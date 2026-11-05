@@ -53,7 +53,8 @@ rep('<meta charset=utf8><meta name=viewport content="width=device-width,initial-
 # 7) Nome do app: NG+ (New Game+). O id técnico "ritmo-de-ferro" do backup NÃO muda (compatibilidade com backups antigos).
 rep('<title>Best Friends Forever</title>','<title>NG+ (New Game+)</title>')
 rep('<h1>Best Friends Forever</h1>','<h1>NG+</h1>')
-rep('<div class="mark">BFF</div>','<div class="mark">NG+</div>')
+rep('<div class="mark">BFF</div>','<div class="mark">NG+</div>',2)   # topo + menu lateral
+rep('<div class="side-name"><b>BFF</b><small>New Game+</small></div>','<div class="side-name"><b>NG+</b><small>New Game+</small></div>')
 rep('Bem-vindo(a) ao Best Friends Forever!','Bem-vindo(a) ao NG+!')
 rep('"Sequência atual no Ritmo de Ferro"','"Sequência atual no NG+"')
 rep("<h1>Ritmo de Ferro — '+r.cfg.rel","<h1>NG+ — '+r.cfg.rel")

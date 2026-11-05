@@ -487,3 +487,94 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .hg-c.l3{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
 .hg-eixo{ display:flex; justify-content:space-between; font-size:var(--fs-2xs); color:var(--ink-soft); margin-top:2px; }
 .cal-key.st-descanso{ border:1px solid var(--line); }
+
+/* ---------- 27. Topo e menu lateral (referência Kinora) ---------- */
+/* celular: busca (ícone) e avatar no topo; título/saudação, menu recolhível e card de sequência só no desktop */
+.top-icon, .top-avatar{ appearance:none; flex:none; inline-size:40px; block-size:40px; border-radius:50%; display:inline-grid; place-items:center; padding:0; cursor:pointer; color:var(--ink-soft); background:var(--surface-2); border:1px solid var(--line-strong); }
+.top-icon svg{ width:20px; height:20px; }
+.top-icon:hover{ color:var(--ink); border-color:var(--accent); }
+.top-avatar{ font:700 14px/1 'Barlow Condensed',sans-serif; letter-spacing:.04em; color:var(--accent-fg,var(--accent)); background:var(--accent-soft); border:1.5px solid var(--accent); }
+.top-avatar:hover{ box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.top-icon:focus-visible, .top-avatar:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.brand{ gap:8px; }
+.brand > .nav-toggle, .brand > .top-title, .side-brand, .side-streak{ display:none; }
+.cmdk-chip svg{ width:18px; height:18px; flex:none; }
+
+@media (min-width:768px){
+  .app{ grid-template-columns:76px minmax(0,1fr); column-gap:24px; row-gap:14px; max-width:1240px; }
+  .topbar{ grid-column:2; grid-row:1; padding-block:0; min-height:64px; justify-content:center; }
+  .app > main{ grid-column:2; grid-row:2; }
+  /* menu lateral em painel de altura total, com marca no topo e sequência no rodapé */
+  .bottomnav{ grid-column:1; grid-row:1 / span 2; align-self:start; position:sticky; top:20px; inline-size:auto;
+    block-size:calc(100dvh - 40px); max-block-size:880px; padding:14px 10px; gap:12px; overflow-y:auto; overflow-x:hidden;
+    border-radius:var(--r-lg); background:color-mix(in oklab, var(--surface) 92%, transparent); }
+  .bottomnav .tabs{ flex:0 0 auto; gap:4px; }
+  .side-brand{ display:flex; align-items:center; justify-content:center; gap:12px; padding:2px 0 10px; }
+  .side-brand .mark{ inline-size:42px; block-size:42px; flex:none; border-radius:var(--r-md); display:grid; place-items:center; color:var(--accent-ink);
+    font:700 15px 'Barlow Condensed',sans-serif; background:linear-gradient(145deg, color-mix(in oklab, var(--accent) 80%, white), var(--accent) 55%, color-mix(in oklab, var(--accent) 75%, black)); }
+  :root[data-game="on"] .side-brand .mark{ box-shadow:0 0 16px 2px color-mix(in srgb, var(--accent) 50%, transparent); }
+  .side-name{ display:none; flex-direction:column; line-height:1.05; min-inline-size:0; }
+  .side-name b{ font:700 26px 'Barlow Condensed',sans-serif; letter-spacing:.06em; color:var(--ink); }
+  .side-name small{ font:500 var(--fs-2xs) 'IBM Plex Mono',monospace; color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase; }
+  /* itens: o ativo vira uma pílula cheia na cor de destaque */
+  :root .bottomnav .tab-btn{ border-radius:14px; min-block-size:48px; }
+  :root .bottomnav .tab-btn[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); box-shadow:0 8px 22px -10px color-mix(in srgb, var(--accent) 85%, transparent); }
+  :root .bottomnav .tab-btn:not([aria-selected="true"]):hover{ background:color-mix(in oklab, var(--surface-3) 80%, transparent); color:var(--ink); }
+  .bottomnav #tab-glossario{ margin-top:14px; position:relative; }
+  .bottomnav #tab-glossario::before{ content:""; position:absolute; inset-inline:8px; top:-8px; border-top:1px solid var(--line); }
+  /* card de sequência (rodapé do menu) */
+  .side-streak{ display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:auto; padding:10px 4px; border-radius:16px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); }
+  .ss-head{ display:flex; align-items:center; gap:6px; color:var(--flame-warm,var(--accent-fg)); }
+  .ss-head svg{ inline-size:18px; block-size:18px; flex:none; }
+  .ss-eyebrow, .ss-unit, .ss-dots{ display:none; }
+  .ss-num{ display:flex; align-items:baseline; gap:6px; }
+  .ss-num b{ font:700 26px/1 'Barlow Condensed',sans-serif; color:var(--accent-fg,var(--accent)); font-variant-numeric:tabular-nums; }
+  .ss-unit{ font-size:var(--fs-xs); color:var(--ink-soft); }
+  .ss-eyebrow{ font:600 var(--fs-2xs) 'IBM Plex Mono',monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+  .ss-dots{ inline-size:100%; grid-template-columns:repeat(7, minmax(0,1fr)); gap:3px; }
+  .ss-d{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .ss-l{ font:600 10px/1 'IBM Plex Mono',monospace; font-style:normal; color:var(--ink-soft); }
+  .ss-dot{ inline-size:14px; block-size:14px; border-radius:50%; border:1.5px solid var(--line-strong); background:transparent; box-sizing:border-box; }
+  .ss-dot.st-feito{ background:var(--accent); border-color:var(--accent); }
+  .ss-dot.st-hoje{ border-color:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .ss-dot.st-hoje.feito{ background:var(--accent); }
+  .ss-dot.st-falta{ border-style:dashed; border-color:var(--ink-soft); }
+  .ss-dot.st-descanso{ inline-size:6px; block-size:6px; margin-block:4px; border-width:0; background:var(--line-strong); }
+  .ss-dot.st-futuro{ border-color:var(--line-strong); }
+  @media (max-height:640px){ .side-streak{ display:none; } }
+  /* topo: título da seção + saudação à esquerda; busca, sincronização e avatar à direita */
+  .brand{ gap:12px; }
+  .brand > .mark, .brand > div:not(.top-title){ display:none; }
+  .brand > .top-title{ display:flex; flex-direction:column; gap:2px; min-inline-size:0; margin-inline-end:auto; }
+  .top-greet{ font:500 var(--fs-xs) 'IBM Plex Mono',monospace; letter-spacing:.04em; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .top-sec{ font:700 30px/1 'Barlow Condensed',sans-serif; letter-spacing:.01em; color:var(--ink); }
+  .brand .sync-pill{ margin-inline-start:auto; }
+  .brand > .top-title ~ .sync-pill{ margin-inline-start:0; }
+}
+@media (min-width:768px) and (max-width:1023px){ .brand > .top-title{ margin-inline-start:0; } }
+/* ≥ 1024 px: menu expandido (com nomes) ou recolhido em trilho — botão no topo */
+@media (min-width:1024px){
+  .brand > .nav-toggle{ display:inline-grid; }
+  :root:not([data-nav="rail"]) .app{ grid-template-columns:236px minmax(0,1fr); }
+  :root:not([data-nav="rail"]) .side-brand{ justify-content:flex-start; padding-inline:6px; }
+  :root:not([data-nav="rail"]) .side-name{ display:flex; }
+  :root:not([data-nav="rail"]) .bottomnav .tab-btn{ justify-content:flex-start; gap:12px; padding:0 14px; font-size:var(--fs-xs); letter-spacing:.06em; }
+  :root:not([data-nav="rail"]) .side-streak{ align-items:stretch; padding:12px; }
+  :root:not([data-nav="rail"]) .ss-eyebrow, :root:not([data-nav="rail"]) .ss-unit{ display:inline; }
+  :root:not([data-nav="rail"]) .ss-dots{ display:grid; }
+  :root:not([data-nav="rail"]) .ss-num{ justify-content:flex-start; }
+  :root[data-nav="rail"] .app{ grid-template-columns:76px minmax(0,1fr); }
+  :root[data-nav="rail"] .bottomnav .tab-btn{ justify-content:center; gap:0; padding:10px 0; font-size:0; letter-spacing:0; }
+}
+/* busca: campo de vidro no desktop com mouse; ícone redondo no celular/tablet */
+.top-search{ order:6; }
+.top-avatar{ order:7; }
+@media (hover:hover) and (min-width:900px){
+  .top-search{ display:none; }
+  .brand .cmdk-chip{ order:5; margin-inline-start:auto; inline-size:min(340px, 32vw); min-block-size:40px; padding:0 14px; justify-content:flex-start; gap:10px; font-size:var(--fs-sm);
+    background:color-mix(in oklab, var(--surface) 72%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .brand .cmdk-chip kbd{ margin-inline-start:auto; }
+  .brand > .top-title{ margin-inline-end:0; }
+  .brand .sync-pill{ order:6; margin-inline-start:0; }
+  .top-avatar{ order:7; }
+}

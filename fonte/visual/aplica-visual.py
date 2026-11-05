@@ -61,4 +61,21 @@ rep('<div id="hab-resumo"></div>','<div id="hab-resumo"></div>\n      <div id="h
 rep('function renderHabitos(){\n', habjs+'function renderHabitos(){\n')
 rep('renderHabitos, renderEvolucaoChart','renderHabitos, renderGradeHabitos, renderEvolucaoChart')
 
+
+# ===== Topo e menu lateral (referência Kinora) =====
+nav=open(base+'/ng-nav.js',encoding='utf8').read()
+IC_SEARCH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>'
+IC_PANEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg>'
+rep('<div class="brand">\n      <div class="mark">BFF</div>',
+    '<div class="brand">\n      <button type="button" class="top-icon nav-toggle" id="nav-toggle" aria-label="Recolher ou expandir o menu lateral" aria-pressed="false">'+IC_PANEL+'</button>\n      <div class="top-title"><span class="top-greet" id="top-greet"></span><strong class="top-sec" id="top-sec">Hoje</strong></div>\n      <div class="mark">BFF</div>')
+rep('<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialog" aria-label="Abrir paleta de comandos (Ctrl K)">Comandos <kbd>Ctrl K</kbd></button>\n    </div>',
+    '<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialog" aria-label="Abrir paleta de comandos (Ctrl K)">'+IC_SEARCH+'<span>Buscar ou ir para…</span> <kbd>Ctrl K</kbd></button>\n      <button type="button" class="top-icon top-search" id="top-search" aria-haspopup="dialog" aria-label="Buscar ou ir para (paleta de comandos)">'+IC_SEARCH+'</button>\n      <button type="button" class="top-avatar" id="top-avatar" data-goto="perfil" aria-label="Abrir o perfil"><span id="top-avatar-ini">—</span></button>\n    </div>')
+rep('<div class="bottomnav" id="bottomnav">\n    <nav class="tabs"',
+    '<div class="bottomnav" id="bottomnav">\n    <div class="side-brand" aria-hidden="true"><div class="mark">BFF</div><div class="side-name"><b>BFF</b><small>New Game+</small></div></div>\n    <nav class="tabs"')
+rep('    </nav>\n    <!-- v98 Fase 3: o botão "Mais" saiu;',
+    '    </nav>\n    <div class="side-streak" id="side-streak" role="group" aria-label="Sequência atual"></div>\n    <!-- v98 Fase 3: o botão "Mais" saiu;')
+rep('function renderNivel(){\n', nav+'function renderNivel(){\n')
+rep('renderNivel();            // aparece','renderNivel(); renderNavExtras();            // aparece')
+rep('if(mainName === "treino") renderWeekTrail();','navTitulo(name);\n  if(mainName === "treino") renderWeekTrail();')
+
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))
