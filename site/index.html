@@ -2993,6 +2993,14 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
 .chart-legend{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-xs); }
 .chart-current-chip{ border-radius:var(--r-pill); }
 .bodyring-svg{ filter:drop-shadow(0 0 14px color-mix(in srgb, var(--s-blue) 22%, transparent)); }
+
+/* ---------- 23. Ajustes vindos do uso no celular ---------- */
+/* "PROTEÇÕES" quebrava no meio da palavra (overflow-wrap:anywhere + ícone + tela estreita): agora só quebra em sílaba (hífen automático em pt-BR) */
+.streak-stat span{ overflow-wrap:normal; word-break:normal; -webkit-hyphens:auto; hyphens:auto; }
+@media (max-width:430px){
+  .streak-stat{ padding-inline:8px; }
+  .streak-stat span svg.ic{ display:none; }
+}
 </style>
 
 <div class="app">
@@ -3602,7 +3610,6 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
     <div class="card">
       <div class="card-head">
         <h2>Ficha de personagem</h2>
-        <span class="hint">seus dados reais, com metáfora de RPG</span>
       </div>
       <div class="attrs-radar" id="attrs-radar"></div>
       <div class="attrs-grid" id="attrs-grid"></div>

@@ -20,4 +20,7 @@ src=src.replace('sw(["#05070d","#141b2e","#22b8cf"])','sw(["#06080a","#151b1f","
 # Fase 6 — gráfico/tile de peso usam a série 1 (limão no tema padrão; azul nos demais)
 rep('label:"Peso", color:"var(--s-blue)",','label:"Peso", color:"var(--viz-1)",')
 rep('statTileV2({eyebrow:"Peso atual", value:num(med.pesoKg,1), unit:"kg", accent:"var(--s-blue)", iconBg:"color-mix(in srgb, var(--s-blue) 18%, transparent)", iconColor:"var(--s-blue)"','statTileV2({eyebrow:"Peso atual", value:num(med.pesoKg,1), unit:"kg", accent:"var(--viz-1)", iconBg:"color-mix(in srgb, var(--viz-1) 18%, transparent)", iconColor:"var(--viz-1)"')
+
+# Ficha de personagem: remove o subtítulo "seus dados reais, com metáfora de RPG" (pedido do Gabriel)
+rep('\n        <span class="hint">seus dados reais, com metáfora de RPG</span>','')
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))
