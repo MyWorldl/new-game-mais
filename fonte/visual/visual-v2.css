@@ -198,3 +198,213 @@
 
 /* ---------- 10. Movimento reduzido ---------- */
 @media (prefers-reduced-motion: reduce){ .btn.primary:active{ transform:none; } }
+
+/* ============================================================
+   FASE 2 — Treino, Dieta e Corpo (formulários, abas, gráficos, trilha semanal)
+   ============================================================ */
+
+/* ---------- 11. Campos de formulário ---------- */
+:is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]), select, textarea){
+  border-radius:12px; background-color:var(--surface-2); border-color:var(--line-strong);
+}
+:is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]), select, textarea):focus-visible{
+  border-color:var(--accent-fg,var(--accent));
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.callout{ border-radius:14px; }
+.empty-state{ border-radius:18px; }
+
+/* ---------- 12. Abas / segmentos ---------- */
+.dieta-tabs{
+  border-bottom:none; gap:4px; padding:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:14px;
+}
+.dieta-tabs button{ border-radius:10px; border-bottom:none; }
+.dieta-tabs button.active{
+  border-bottom:none; color:var(--accent-fg,var(--accent));
+  background:color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.metric-tab{ border-radius:99px; }
+.metric-tab.active{ box-shadow:0 8px 18px -10px color-mix(in srgb, var(--accent) 80%, transparent); }
+.subtabs-wrap{ border-radius:16px; }
+.subtabs-wrap .tab-btn[aria-selected="true"]{ background:color-mix(in srgb, var(--accent) 16%, transparent); color:var(--accent-fg,var(--accent)); border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
+
+/* ---------- 13. Dieta ---------- */
+.indic-grid .stat{
+  background:var(--surface-2); border:1px solid var(--line); border-radius:16px; padding:12px 14px; position:relative; overflow:hidden;
+}
+.indic-grid .stat::before{ content:""; position:absolute; left:0; top:14px; bottom:14px; width:3px; border-radius:0 3px 3px 0; background:var(--accent-fg,var(--accent)); box-shadow:0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.macro-bar-track{ height:12px; border-radius:99px; box-shadow:inset 0 0 0 1px var(--line); }
+.macro-bar-fill{ border-radius:99px; box-shadow:0 0 10px -2px currentColor; }
+.cdp-meal{ border-radius:16px; background:linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 90%, var(--ink)), var(--surface-2)); }
+.cdp-tchip{ background:var(--surface-2); }
+.cdp-tchip.ok{ border-color:color-mix(in srgb, var(--accent) 55%, transparent); }
+.ajuste-scale{ height:12px; box-shadow:inset 0 0 0 1px var(--line); }
+.ajuste-band{ background:color-mix(in srgb, var(--accent) 38%, transparent); }
+.ajuste-mark{ background:var(--ink); box-shadow:0 0 10px color-mix(in srgb, var(--ink) 50%, transparent); }
+.ajuste-box{ border-radius:14px; border-left-width:4px; }
+
+/* ---------- 14. Treino ---------- */
+.heatc-bars{ gap:6px; }
+.heatc-bar{
+  border-radius:8px 8px 3px 3px;
+  background:linear-gradient(180deg, var(--accent-fg,var(--accent)), color-mix(in srgb, var(--accent-fg,var(--accent)) 45%, var(--surface)));
+  box-shadow:0 0 14px -4px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+.heatc-bar.low{ background:linear-gradient(180deg, var(--warn), color-mix(in srgb, var(--warn) 45%, var(--surface))); box-shadow:0 0 14px -4px color-mix(in srgb, var(--warn) 60%, transparent); }
+.heatc-bar.na{ background:var(--surface-2); box-shadow:none; }
+.heat-legend .u-bg-teal{ background:var(--accent-fg,var(--accent)) !important; }
+
+.week-trail-circle{ background:var(--surface-2); border-color:var(--line-strong); }
+.week-trail-node.done .week-trail-circle{
+  background:var(--accent); border-color:var(--accent); color:var(--accent-ink);
+  box-shadow:0 0 18px -2px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+:root:not([data-game="on"]) .week-trail-node.done .week-trail-circle{ background:var(--good); border-color:var(--good); color:var(--on-color); box-shadow:none; }
+.week-trail-node.today .week-trail-circle{ box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 22px -2px color-mix(in srgb, var(--accent) 60%, transparent); }
+.week-trail-connector{ height:4px; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); }
+.week-trail-connector.lit{ background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 70%, black), var(--accent)); box-shadow:0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+:root:not([data-game="on"]) .week-trail-connector.lit{ background:var(--good); box-shadow:none; }
+.week-trail-detail{ border-radius:18px; background:linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 88%, var(--ink)), var(--surface-2)); }
+.wtd-title{ font-size:var(--fs-lg, 22px); letter-spacing:.02em; }
+.formato-card, .formato-panel{ border-radius:18px; }
+.carga-chart-stats{ font-family:'IBM Plex Mono',monospace; }
+.chart-wrap{ border-radius:16px; }
+.period-seg button.active, .carga-chart-select{ border-radius:10px; }
+
+/* ---------- 15. Corpo (tabelas, fotos) ---------- */
+table thead th{ font-family:'IBM Plex Mono',ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase; }
+.table-scroll{ border-radius:16px; border:1px solid var(--line); }
+.fotos-grid img, .foto-cmp{ border-radius:14px; }
+.hab-dia, .hab-num{ border-radius:12px; }
+
+/* ============================================================
+   FASE 3 — Perfil: ficha de personagem (radar), patente/XP em destaque, conquistas
+   ============================================================ */
+
+/* ---------- 16. Radar ---------- */
+.attrs-radar{ display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:var(--sp-4) var(--sp-5); align-items:center; margin-bottom:var(--sp-4); }
+@media (max-width:640px){ .attrs-radar{ grid-template-columns:minmax(0,1fr); } }
+.radar-svg{ width:100%; height:auto; max-width:420px; margin-inline:auto; display:block; overflow:visible; }
+.radar-ring{ fill:none; stroke:var(--line-strong); stroke-width:1; }
+.radar-ring.outer{ stroke:color-mix(in srgb, var(--accent-fg,var(--accent)) 45%, var(--line-strong)); stroke-width:1.4; fill:color-mix(in srgb, var(--surface-2) 70%, transparent); }
+.radar-spoke{ stroke:var(--line); stroke-width:1; }
+.radar-area{ fill:color-mix(in srgb, var(--accent) 24%, transparent); stroke:var(--accent-fg,var(--accent)); stroke-width:2.2; stroke-linejoin:round; filter:drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 45%, transparent)); }
+.radar-dot{ fill:var(--accent-fg,var(--accent)); stroke:var(--surface); stroke-width:2; }
+.radar-lbl{ font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:700; font-size:14px; letter-spacing:.04em; text-transform:uppercase; fill:var(--ink-soft); }
+.radar-val{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-weight:600; font-size:12px; letter-spacing:0; fill:var(--ink); }
+.radar-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--sp-3); min-width:0; }
+.radar-list li{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.radar-li-top{ display:flex; justify-content:space-between; align-items:baseline; gap:var(--sp-2); font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:700; font-size:var(--fs-md,17px); letter-spacing:.03em; text-transform:uppercase; color:var(--ink); }
+.radar-li-top b{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-sm,14px); font-weight:600; }
+.radar-li-bar{ height:7px; border-radius:var(--r-pill,99px); background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); overflow:hidden; }
+.radar-li-bar i{ display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, color-mix(in srgb, var(--accent-fg,var(--accent)) 65%, black), var(--accent-fg,var(--accent))); }
+.radar-list small{ font-size:var(--fs-xs,12px); color:var(--muted); line-height:1.35; overflow-wrap:anywhere; }
+
+/* ---------- 17. Patente / XP em destaque ---------- */
+.nivel-card{ padding:var(--sp-5,22px) var(--sp-4); border-radius:18px; }
+.nivel-card .nivel-top{ gap:var(--sp-4); }
+.nivel-card .nivel-shield{ width:76px; height:76px; }
+.nivel-card .nivel-shield b{ font-size:var(--fs-num-sm); padding-bottom:4px; }
+.nivel-card .nivel-tier-name{ font-size:clamp(34px, 9vw, 46px); letter-spacing:.04em; text-shadow:0 0 22px color-mix(in srgb, var(--tc) 45%, transparent); }
+.nivel-card .nivel-tier-sub{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-xs); letter-spacing:.06em; text-transform:uppercase; }
+.nivel-card .nivel-xp-track{ height:14px; }
+.nivel-card .nivel-xp-top{ font-size:var(--fs-sm,14px); }
+.nivel-card .nivel-stat{ border-radius:14px; background:color-mix(in srgb, var(--tc) 7%, var(--surface-2)); border-color:color-mix(in srgb, var(--tc) 22%, var(--line)); }
+.nivel-card .nivel-stat b{ font-size:var(--fs-num-md); }
+
+/* ---------- 18. Atributos e conquistas ---------- */
+.attr-tile{ border-radius:16px; background:linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 90%, var(--ink)), var(--surface-2)); }
+.attr-tile .attr-val{ font-size:var(--fs-num-sm); }
+.badge-ic{ border-radius:16px; }
+.badge-item:not(.locked) .badge-name{ color:var(--ink); }
+.perfil-avatar{ border-radius:16px; }
+.perfil-name-v2{ font-size:var(--fs-lg,22px); letter-spacing:.02em; }
+
+/* ============================================================
+   FASE 4 — Configurações e seletor de temas
+   ============================================================ */
+
+/* ---------- 19. Temas, cores e dados ---------- */
+.skins-label{ font-family:'IBM Plex Mono',ui-monospace,monospace; letter-spacing:.12em; font-weight:500; }
+.skins-label .skins-hint{ font-family:'Work Sans',system-ui,sans-serif; letter-spacing:0; }
+.theme-block{ border-bottom-style:dashed; }
+.theme-row{ gap:12px; }
+.theme-opt{
+  position:relative; padding-inline-end:38px; border-radius:16px; border:1.5px solid var(--line-strong);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 90%, var(--ink)), var(--surface-2));
+  transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.theme-opt:hover{ border-color:color-mix(in srgb, var(--accent-fg,var(--accent)) 55%, var(--line-strong)); transform:translateY(-1px); }
+.theme-opt:active{ transform:scale(.98); }
+.theme-opt[aria-checked="true"]{
+  border-color:var(--accent-fg,var(--accent));
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent), 0 12px 26px -16px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.theme-opt[aria-checked="true"]::after{
+  content:"✓"; position:absolute; inset-block-start:50%; inset-inline-end:10px; transform:translateY(-50%);
+  width:20px; height:20px; border-radius:50%; display:grid; place-items:center;
+  background:var(--accent); color:var(--accent-ink,#000); font-size:12px; font-weight:800; line-height:1;
+}
+.theme-opt small{ color:var(--ink-soft); font-weight:500; }
+.theme-sw{ border-radius:10px; }
+.theme-sw i{ width:15px; height:32px; }
+.skin-swatch{ width:34px; height:34px; }
+.theme-hint{ line-height:1.45; }
+.data-actions .btn{ border-radius:14px; }
+
+/* ============================================================
+   FASE 5 — Glossário e modais
+   ============================================================ */
+
+/* ---------- 20. Glossário ---------- */
+.glos-term{ padding:0; border-bottom:1px solid var(--line); }
+.glos-term > summary{ padding:var(--sp-3) 2px; min-height:var(--touch-min,44px); font-size:var(--fs-md,16px); letter-spacing:.01em; }
+.glos-term > summary::after{
+  content:"+"; width:26px; height:26px; display:grid; place-items:center; border-radius:9px;
+  border:1px solid var(--line-strong); color:var(--accent-fg,var(--accent)); font-size:var(--fs-md,16px); font-weight:600;
+  transition:background-color .2s ease, border-color .2s ease;
+}
+.glos-term[open] > summary::after{ content:"–"; background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 45%, var(--line-strong)); }
+.glos-term-desc{ padding:0 2px var(--sp-3); line-height:1.6; }
+.glos-cat{ font-family:'IBM Plex Mono',ui-monospace,monospace; letter-spacing:.08em; }
+.search-box input[type=search]{ border-radius:14px; }
+.search-status{ font-family:'IBM Plex Mono',ui-monospace,monospace; }
+
+/* ---------- 21. Modais, avisos e celebrações ---------- */
+.modal-backdrop{ background:rgb(3 6 10 / .62); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+.modal{
+  border-radius:24px 24px 0 0; border-color:var(--line-strong);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 93%, var(--ink)) 0%, var(--surface) 38%);
+  box-shadow:0 -24px 60px -24px rgb(0 0 0 / .75), inset 0 1px 0 rgb(255 255 255 / .05);
+}
+@media (min-width:640px){ .modal{ border-radius:24px; } }
+@media (max-width:639px){ .modal::before{ content:""; display:block; width:42px; height:4px; border-radius:3px; background:var(--line-strong); margin:-8px auto 14px; } }
+.modal h2{ font-size:var(--fs-lg,22px); letter-spacing:.02em; }
+.modal-actions{ gap:var(--sp-3); }
+.toast{
+  background:color-mix(in srgb, var(--surface-2) 94%, transparent); color:var(--ink); border:1px solid var(--line-strong);
+  border-inline-start:3px solid var(--accent-fg,var(--accent)); border-radius:14px;
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); box-shadow:0 16px 36px -16px rgb(0 0 0 / .7);
+}
+.celeb-backdrop{ background:rgb(3 6 10 / .66); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+.celeb-card{ border-radius:24px; border-color:color-mix(in srgb, var(--accent) 30%, var(--line-strong)); }
+.celeb-title{ letter-spacing:.03em; text-transform:uppercase; }
+dialog.cmdk{ border-radius:22px; }
+.tip-pop{ border-radius:14px; border-color:var(--line-strong); }
+
+/* ============================================================
+   FASE 6 — Gráficos
+   ============================================================ */
+
+/* ---------- 22. Séries (tema padrão) — validadas no escuro: limão/laranja/violeta (contraste ≥ 6:1; separação p/ daltonismo ≥ 13) ---------- */
+:root[data-game="on"]{ --viz-1:#a3e635; --viz-2:#f0824f; --viz-3:#9085e9; }
+svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
+.chart-tooltip{
+  border-radius:12px; background:color-mix(in srgb, var(--surface-2) 94%, transparent); border-color:var(--line-strong);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); box-shadow:0 14px 30px -14px rgb(0 0 0 / .7);
+}
+.chart-tooltip .ct-date, .chart-tooltip .ct-val{ font-family:'IBM Plex Mono',ui-monospace,monospace; }
+.chart-legend{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-xs); }
+.chart-current-chip{ border-radius:var(--r-pill); }
+.bodyring-svg{ filter:drop-shadow(0 0 14px color-mix(in srgb, var(--s-blue) 22%, transparent)); }

@@ -62,5 +62,11 @@ rep("não parece um backup do Ritmo de Ferro.","não parece um backup do NG+.")
 rep('"ritmo-de-ferro-"+todayISO()+".png"','"ng-mais-"+todayISO()+".png"')
 rep('"ritmo-de-ferro-medicoes-"+todayISO()','"ng-mais-medicoes-"+todayISO()')
 rep('"ritmo-de-ferro-dados-"+todayISO()','"ng-mais-dados-"+todayISO()')
+
+# 9) % de gordura (Marinha): resultado zero ou negativo é fisicamente impossível (medida errada) -> não mostra número
+rep('  return isFinite(pct) ? pct : null;\n}\nfunction classBF',
+    '  return (isFinite(pct) && pct > 0) ? pct : null;   // NG+: <= 0% é medida inconsistente; a tela pede para conferir\n}\nfunction classBF')
+rep('  const medB = ultimaComBF(p);\n  if(!medB){\n    el.innerHTML = !sexoValido(p.sexo)',
+    '  const medB = ultimaComBF(p);\n  const bfForaDoPossivel = !medB && sexoValido(p.sexo) && med.cinturaCm > 0 && med.pescocoCm > 0 && (p.sexo !== "F" || med.quadrilCm > 0);   // NG+\n  if(!medB && bfForaDoPossivel){\n    el.innerHTML = emptyState("ruler","Confira as medidas","Com a cintura e o pescoço informados, a fórmula dá um resultado fora do possível (0% ou menos). Confira se a cintura foi medida na altura do umbigo e o pescoço logo abaixo do pomo de adão.",{go:"medir",label:"Corrigir medição"});\n    return;\n  }\n  if(!medB){\n    el.innerHTML = !sexoValido(p.sexo)')
 open(sys.argv[2],'w',encoding='utf8').write(src)
 print("ok",len(src))
