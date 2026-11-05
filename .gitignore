@@ -1,0 +1,11 @@
+# sistema / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+# temporários dos testes
+node_modules/
+*.log
+*.tmp
+/tmp/
