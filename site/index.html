@@ -3001,6 +3001,77 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
   .streak-stat{ padding-inline:8px; }
   .streak-stat span svg.ic{ display:none; }
 }
+
+/* ---------- 24. Conquistas com progresso + Próximos marcos (derivados, nada novo é gravado) ---------- */
+button.badge-item{ font:inherit; color:inherit; background:none; border:0; padding:6px 2px 8px; border-radius:14px; cursor:pointer; width:100%; min-width:0; -webkit-appearance:none; appearance:none; }
+button.badge-item:active{ background:var(--surface-2); }
+button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.badge-bar, .ach-bar{ display:block; width:100%; max-width:64px; height:5px; border-radius:99px; background:var(--surface-2); border:1px solid var(--line); overflow:hidden; }
+.badge-bar i, .ach-bar i{ display:block; height:100%; border-radius:99px; background:var(--accent); }
+.badge-prog{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-2xs); color:var(--ink-soft); font-variant-numeric:tabular-nums; line-height:1.2; }
+.badge-prog.done{ color:var(--ink); font-weight:700; }
+.ach-det{ margin:var(--sp-3) 0 var(--sp-2); }
+.ach-det-top{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.ach-det-top b{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-lg,20px); font-variant-numeric:tabular-nums; }
+.ach-det-top span{ color:var(--ink-soft); font-size:var(--fs-sm); }
+.ach-det .ach-bar{ max-width:none; height:10px; }
+.ach-det-extra, .ach-det-ok{ margin:10px 0 0; font-size:var(--fs-sm); color:var(--ink-soft); line-height:1.45; }
+.ach-det-ok b{ color:var(--ink); }
+.marcos-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.marco{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+.marco-top{ display:flex; justify-content:space-between; align-items:baseline; gap:4px 12px; flex-wrap:wrap; }
+.marco-top b{ font-size:var(--fs-sm); color:var(--ink); min-width:0; overflow-wrap:anywhere; }
+.marco-top span{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-xs); color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+.marco .ach-bar{ max-width:none; height:8px; }
+.marco-sub{ font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.4; overflow-wrap:anywhere; }
+
+/* ---------- 25. Constância em visão de mês (calendário) ---------- */
+#constancia-modo{ margin-bottom:var(--sp-3); }
+.cal-nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.cal-titulo{ font-family:'Barlow Condensed',sans-serif; font-size:var(--fs-lg,20px); letter-spacing:.02em; text-align:center; flex:1; min-width:0; }
+.cal-nav-btn{ width:44px; height:44px; border-radius:12px; border:1px solid var(--line-strong); background:var(--surface-2); color:var(--ink); font-size:24px; line-height:1; cursor:pointer; }
+.cal-nav-btn:disabled{ color:var(--muted); cursor:default; background:transparent; border-color:var(--line); }
+.cal-nav-btn:focus-visible, .cal-d:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.cal-sem, .cal-grid{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; }
+.cal-sem{ margin-bottom:4px; }
+.cal-sem span{ text-align:center; font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-2xs); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
+.cal-d{ position:relative; aspect-ratio:1; min-height:38px; padding:2px; border-radius:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; font:inherit; cursor:pointer; -webkit-appearance:none; appearance:none; }
+.cal-n{ font-size:var(--fs-sm); font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+.cal-g{ font-size:var(--fs-xs); line-height:1; min-height:1em; }
+.cal-d.st-feito, .cal-key.st-feito{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.cal-d.st-leve, .cal-key.st-leve{ background:var(--accent-soft); border-color:var(--accent); color:var(--ink); }
+.cal-d.st-gelo, .cal-key.st-gelo{ background:color-mix(in srgb, var(--s-blue) 22%, var(--surface)); border-color:var(--s-blue); color:var(--ink); }
+.cal-d.st-pulou, .cal-key.st-pulou{ background:transparent; border:1px dashed var(--line-strong); color:var(--ink-soft); }
+.cal-d.st-hoje, .cal-key.st-hoje{ background:var(--surface); border-color:var(--accent); color:var(--ink); }
+.cal-d.st-descanso, .cal-key.st-descanso{ background:transparent; border-color:transparent; color:var(--muted); }
+.cal-d.st-futuro{ background:transparent; border-color:var(--line); color:var(--ink-soft); }
+.cal-d.st-antes{ background:transparent; border-color:transparent; color:var(--muted); }
+.cal-d.hoje{ box-shadow:0 0 0 2px var(--accent); }
+.cal-d.sel{ outline:2px solid var(--ink); outline-offset:1px; }
+.cal-vazio{ display:block; }
+.cal-resumo{ margin-top:12px; font-size:var(--fs-sm); color:var(--ink-soft); }
+.cal-resumo b{ color:var(--ink); }
+.cal-det{ margin-top:8px; padding:10px 12px; border-radius:var(--r-md); background:var(--surface-2); border:1px solid var(--line); font-size:var(--fs-sm); color:var(--ink-soft); line-height:1.45; min-height:3.4em; overflow-wrap:anywhere; }
+.cal-leg{ list-style:none; margin:12px 0 0; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:6px 10px; font-size:var(--fs-xs); color:var(--ink-soft); }
+.cal-leg li{ display:flex; align-items:center; gap:8px; min-width:0; }
+.cal-key{ flex:none; width:22px; height:22px; border-radius:7px; border:1px solid var(--line); display:inline-flex; align-items:center; justify-content:center; font-size:var(--fs-xs); line-height:1; }
+
+/* ---------- 26. Hábitos: grade das últimas 12 semanas ---------- */
+#hab-grade{ margin-top:var(--sp-5); }
+#habitos-card > #hab-grade{ grid-column:1 / -1; }
+.hg-h{ margin:0 0 4px; font-size:var(--fs-base); font-family:'Barlow Condensed',sans-serif; letter-spacing:.02em; color:var(--ink); }
+.hg-sub{ margin:0 0 12px; font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.45; }
+.hg-row{ margin-bottom:12px; }
+.hg-top{ display:flex; justify-content:space-between; align-items:baseline; gap:4px 12px; flex-wrap:wrap; margin-bottom:5px; }
+.hg-top b{ font-size:var(--fs-sm); color:var(--ink); }
+.hg-top span{ font-size:var(--fs-xs); color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+.hg-cells{ display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:3px; }
+.hg-c{ aspect-ratio:1; min-height:18px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-2xs); font-weight:700; font-variant-numeric:tabular-nums; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); }
+.hg-c.l1{ background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 40%, transparent); }
+.hg-c.l2{ background:color-mix(in srgb, var(--accent) 45%, var(--surface)); border-color:var(--accent); }
+.hg-c.l3{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.hg-eixo{ display:flex; justify-content:space-between; font-size:var(--fs-2xs); color:var(--ink-soft); margin-top:2px; }
+.cal-key.st-descanso{ border:1px solid var(--line); }
 </style>
 
 <div class="app">
@@ -3229,8 +3300,10 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
     <div class="card">
       <div class="card-head">
         <h2 id="constancia-title">Constância — últimas 8 semanas</h2>
-        <span class="hint">Cada barra é uma semana</span>
+        <span class="hint" id="constancia-hint">Cada barra é uma semana</span>
       </div>
+      <div class="seg u-mb12" id="constancia-modo" role="group" aria-label="Modo de visualização"><button type="button" data-modo="semanas" class="active" aria-pressed="true">Semanas</button><button type="button" data-modo="mes" aria-pressed="false">Mês</button></div>
+      <div id="constancia-semanas">
       <div class="seg u-mb12" id="constancia-period">
         <button type="button" data-weeks="8" class="active">8 sem.</button>
         <button type="button" data-weeks="16">16 sem.</button>
@@ -3243,6 +3316,8 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
         <div class="li"><span class="sw u-bg-warn"></span>Precisa de atenção (menos de 70%)</div>
         <div class="li"><span class="sw" style="background:var(--surface-2); opacity:.5;"></span>Sem dado (antes do seu cadastro ou semana ainda não chegou)</div>
       </div>
+      </div>
+      <div id="constancia-mes" hidden></div>
     </div>
 
     <!-- v98 F9 — Treino em largura total, nesta ordem: Rotina semanal → Cargas e progressão → Volume semanal → A ciência por trás da rotina → Biblioteca → Calculadoras -->
@@ -3408,7 +3483,7 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
 
     <div class="card" id="habitos-card">
       <div class="card-head"><h2>Hábitos <span class="hab-opt">opcional</span></h2><button type="button" class="info-tip" popovertarget="tip-pop" data-tip="hab" aria-label="O que são hábitos?" aria-expanded="false">?</button></div>
-      <p class="hab-intro">Sono, passos e cárdio leve ajudam na recuperação. Registre só se quiser: não vale XP e não entra na sequência.</p>
+      <p class="hab-intro">Sono, passos e cárdio leve ajudam na recuperação; a água entra só como registro. Registre só se quiser: não vale XP e não entra na sequência.</p>
       <form id="form-habitos" class="grid u-gap10" novalidate>
         <div class="field-row hab-dia">
           <div class="field-ic-group"><label for="h-data">Dia</label><div class="field-ic-wrap">
@@ -3420,14 +3495,17 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
           <div class="field-ic-group"><label for="h-passos">Passos</label><div class="field-ic-wrap">
             <input type="number" step="1" min="0" max="100000" id="h-passos" placeholder="8000" inputmode="numeric"></div></div>
         </div>
-        <div class="field-row hab-um">
+        <div class="field-row hab-num">
           <div class="field-ic-group"><label for="h-cardio">Cárdio leve (min)</label><div class="field-ic-wrap">
             <input type="number" step="1" min="0" max="600" id="h-cardio" placeholder="30" inputmode="numeric"></div></div>
+          <div class="field-ic-group"><label for="h-agua">Água (litros)</label><div class="field-ic-wrap">
+            <input type="number" step="0.25" min="0" max="10" id="h-agua" placeholder="2" inputmode="decimal"></div></div>
         </div>
         <div class="med-aviso" id="hab-aviso" role="alert" hidden></div>
         <button class="btn primary block" type="submit">Salvar hábitos do dia</button>
       </form>
       <div id="hab-resumo"></div>
+      <div id="hab-grade"></div>
     </div>
 
     <div class="card">
@@ -3613,6 +3691,13 @@ svg.chart path{ stroke-linejoin:round; stroke-linecap:round; }
       </div>
       <div class="attrs-radar" id="attrs-radar"></div>
       <div class="attrs-grid" id="attrs-grid"></div>
+    </div>
+    <div class="card" id="marcos-card">
+      <div class="card-head">
+        <h2>Próximos marcos</h2>
+        <span class="hint">o que falta para o próximo passo</span>
+      </div>
+      <ul class="marcos-list" id="marcos-list"></ul>
     </div>
     <div class="card">
       <div class="card-head">
@@ -5504,8 +5589,8 @@ const TIPS = {
   foco:{a:"foco corporal", t:"Foco corporal", g:"Treino",
     d:"Escolha até 2 grupos para dar mais atenção. O app sobe a meta de séries por semana neles, mostra uma dica e cria uma missão semanal. Pense em regar mais um canteiro da horta: você escolhe onde vai mais água, mas isso não decide onde o corpo perde gordura (treino localizado não reduz a gordura da região).",
     src:"Revisão sistemática com meta-análise sobre redução localizada de gordura (Human Movement, 2022)", url:"https://doi.org/10.5114/HM.2022.110373"},
-  hab:{a:"Hábitos", t:"Hábitos · sono, passos e cárdio leve", g:"Corpo",
-    d:"Registro opcional, sem XP e fora da sequência. Referências gerais: adultos costumam precisar de 7 h ou mais de sono; estudos observacionais associam 7.000 a 10.000 passos por dia a menor mortalidade; no cárdio leve, a intensidade certa é aquela em que você ainda consegue conversar.",
+  hab:{a:"Hábitos", t:"Hábitos · sono, passos, água e cárdio leve", g:"Corpo",
+    d:"Registro opcional, sem XP e fora da sequência. Referências gerais: adultos costumam precisar de 7 h ou mais de sono; estudos observacionais associam 7.000 a 10.000 passos por dia a menor mortalidade; no cárdio leve, a intensidade certa é aquela em que você ainda consegue conversar. A água é só um registro opcional: o app não define meta.",
     src:"AASM/SRS (2015) · Paluch et al. (2022)", url:"https://pubmed.ncbi.nlm.nih.gov/35247352/"},
   imc:{a:"IMC", t:"IMC · índice de massa corporal", g:"Corpo",
     d:"Peso dividido pela altura ao quadrado. Estimativa rápida de faixa de peso, mas não separa músculo de gordura — por isso o app também mostra o % de gordura. Até os 19 anos o app compara com a curva de IMC por idade e gênero da OMS, e não com o corte de adultos.",
@@ -5918,21 +6003,23 @@ function habMsg(txt){
 function habPreencher(iso){
   const h = habDe(iso) || {};
   const set = (id, v)=>{ const e = document.getElementById(id); if(e) e.value = v == null ? "" : String(v); };
-  set("h-sono", h.sono); set("h-passos", h.passos); set("h-cardio", h.cardio);
+  set("h-sono", h.sono); set("h-passos", h.passos); set("h-cardio", h.cardio); set("h-agua", h.agua);
 }
 function salvarHabitos(){
   const dEl = document.getElementById("h-data");
   const iso = (dEl && dEl.value) || todayISO();
   if(iso > todayISO()){ habMsg("Escolha o dia de hoje ou um dia anterior."); return; }
   const rd = (id)=>{ const e = document.getElementById(id); const t = e ? e.value.trim().replace(",", ".") : ""; return t === "" ? null : Number(t); };
-  const sono = rd("h-sono"), passos = rd("h-passos"), cardio = rd("h-cardio");
+  const sono = rd("h-sono"), passos = rd("h-passos"), cardio = rd("h-cardio"), agua = rd("h-agua");
   if(sono != null && !(sono >= 0 && sono <= 16)){ habMsg("Sono: informe entre 0 e 16 horas."); return; }
   if(passos != null && !(passos >= 0 && passos <= 100000)){ habMsg("Passos: informe entre 0 e 100.000."); return; }
   if(cardio != null && !(cardio >= 0 && cardio <= 600)){ habMsg("Cárdio: informe entre 0 e 600 minutos."); return; }
+  if(agua != null && !(agua >= 0 && agua <= 10)){ habMsg("Água: informe entre 0 e 10 litros."); return; }
   const hab = {};
   if(sono != null) hab.sono = Math.round(sono*2)/2;
   if(passos != null) hab.passos = Math.round(passos);
   if(cardio != null) hab.cardio = Math.round(cardio);
+  if(agua != null) hab.agua = Math.round(agua*100)/100;
   const cur = state.checkins[iso] || {};
   if(!Object.keys(hab).length && !cur.hab){ habMsg("Preencha ao menos um campo para salvar."); return; }
   habMsg(null);
@@ -5942,6 +6029,50 @@ function salvarHabitos(){
   saveDoc("checkins/"+iso, data);
   render();
   showToast(Object.keys(hab).length ? "Hábitos de "+fmtDateBR(iso)+" salvos." : "Hábitos de "+fmtDateBR(iso)+" removidos.");
+}
+/* NG+ — grade de hábitos das últimas 12 semanas. Só leitura de checkins/<iso>.hab (inclui o novo campo opcional "agua").
+   Cada quadradinho é uma semana; o número é quantos dias daquela semana tiveram o hábito registrado (sem meta, sem culpa). */
+const HAB_GRADE = [
+  {k:"sono",   nome:"Sono"},
+  {k:"passos", nome:"Passos"},
+  {k:"cardio", nome:"Cárdio leve"},
+  {k:"agua",   nome:"Água"}
+];
+function renderGradeHabitos(){
+  const box = document.getElementById("hab-grade");
+  if(!box) return;
+  const hoje = todayISO();
+  const seg0 = addDaysISO(mondayOfISO(hoje), -7*11);
+  const semanas = [];
+  for(let w = 0; w < 12; w++){
+    const ini = addDaysISO(seg0, w*7);
+    semanas.push(ini);
+  }
+  const html = HAB_GRADE.map(h=>{
+    let total = 0;
+    const cels = semanas.map(ini=>{
+      let c = 0;
+      for(let i = 0; i < 7; i++){
+        const iso = addDaysISO(ini, i);
+        if(iso > hoje) break;
+        const x = habDe(iso);
+        if(x && x[h.k] != null) c++;
+      }
+      total += c;
+      const nv = c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3;
+      const rot = "Semana de "+fmtDateBR(ini)+": "+c+(c === 1 ? " dia" : " dias")+" com registro";
+      return '<span class="hg-c l'+nv+'" role="listitem" aria-label="'+rot+'" title="'+rot+'">'+(c ? c : "")+'</span>';
+    }).join("");
+    return '<div class="hg-row">'+
+      '<div class="hg-top"><b>'+h.nome+'</b><span>'+(total ? total+(total === 1 ? " dia registrado" : " dias registrados") : "sem registros ainda")+'</span></div>'+
+      '<div class="hg-cells" role="list" aria-label="'+h.nome+": dias com registro por semana, das últimas 12 semanas"+'">'+cels+'</div>'+
+    '</div>';
+  }).join("");
+  box.innerHTML =
+    '<h3 class="hg-h">Últimas 12 semanas</h3>'+
+    '<p class="hg-sub">Cada quadradinho é uma semana; o número mostra em quantos dias você registrou. Registrar já conta, não há meta.</p>'+
+    html+
+    '<div class="hg-eixo" aria-hidden="true"><span>há 12 semanas</span><span>esta semana</span></div>';
 }
 function renderHabitos(){
   const box = document.getElementById("hab-resumo");
@@ -5957,17 +6088,19 @@ function renderHabitos(){
     return;
   }
   const med = (k)=>{ const v = reg.map(x=> x.h[k]).filter(x=> x != null); return v.length ? v.reduce((a,b)=> a+b, 0) / v.length : null; };
-  const sono = med("sono"), passos = med("passos");
+  const sono = med("sono"), passos = med("passos"), agua = med("agua");
   const cardioTot = reg.reduce((a,x)=> a + (x.h.cardio || 0), 0);
   const linhas = [];
   if(sono != null) linhas.push('<li><b>Sono médio: '+num(sono,1)+' h</b> — '+(sono >= 7 ? 'dentro da referência de 7 h ou mais.' : 'abaixo de 7 h, referência para adultos. Sem culpa: se puder, antecipe a hora de dormir aos poucos.')+'</li>');
   if(passos != null) linhas.push('<li><b>Passos médios: '+num(Math.round(passos),0)+'/dia</b> — '+(passos >= 7000 ? 'na faixa que estudos observacionais associam a menor mortalidade (7.000 a 10.000).' : 'abaixo de 7.000. Qualquer aumento já conta; tente uma caminhada curta a mais.')+'</li>');
+  if(agua != null) linhas.push('<li><b>Água média: '+String(Math.round(agua*100)/100).replace('.', ',')+' L/dia</b> — só um registro; o app não define meta de água.</li>');
   if(cardioTot > 0) linhas.push('<li><b>Cárdio leve: '+cardioTot+' min em 7 dias</b> — no ritmo em que você ainda consegue conversar (teste da fala).</li>');
   const lista = reg.map(x=>{
     const partes = [];
     if(x.h.sono != null) partes.push(num(x.h.sono,1)+' h de sono');
     if(x.h.passos != null) partes.push(num(x.h.passos,0)+' passos');
     if(x.h.cardio != null) partes.push(x.h.cardio+' min de cárdio');
+    if(x.h.agua != null) partes.push(String(x.h.agua).replace('.', ',')+' L de água');
     return '<li><span class="hab-d">'+fmtDateBR(x.iso)+'</span><span class="hab-v">'+partes.join(' · ')+'</span></li>';
   }).join("");
   /* v98 F9 — a lista dia a dia vem ACIMA do resumo "Últimos 7 dias" */
@@ -6680,7 +6813,117 @@ const ACHIEVEMENT_COLORS = ["var(--s-blue)","var(--teal)","var(--s-orange)","var
 const BADGE_SHIELD_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3z"/></svg>';
 const BADGE_LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 
+/* NG+ — progresso das conquistas + "Próximos marcos".
+   Tudo é DERIVADO dos dados que o app já guarda (nada novo é gravado, o formato do backup não muda). */
+function achProgressList(){
+  const eng = computeStreakEngine(), ni = computeNivelInfo(), tr = countTotalTreinos();
+  const sem = statsSemana(mondayOfISO(todayISO()));
+  const P = (cur, max, un, extra)=> ({cur:Math.max(0, Math.min(cur, max)), max:max, un:un, extra:extra||""});
+  return {
+    "Primeiro Passo":     P(tr, 1, "treino"),
+    "Semana de Ferro":    P(eng.best, 7, "dias de sequência", "Conta a sua melhor sequência até hoje."),
+    "Guerreiro do Mês":   P(eng.best, 30, "dias de sequência", "Conta a sua melhor sequência até hoje."),
+    "Inabalável":         P(eng.best, 90, "dias de sequência", "Conta a sua melhor sequência até hoje."),
+    "Centurião":          P(tr, 100, "treinos", "Dia leve não entra nesta conta."),
+    "Patente Ouro":       P(ni.tierIndex, 4, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Patente Radiante":   P(ni.tierIndex, 9, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Recorde Pessoal":    P(hasCargaRegistrada() ? 1 : 0, 1, "registro de carga"),
+    "Congelado no Tempo": P(eng.freezesUsedTotal, 1, "congelamento usado", "O congelamento entra sozinho quando você falta e ainda tem saldo."),
+    "Regularidade Total": sem.cap > 0
+      ? P(sem.feitos, sem.cap, "treinos desta semana", "Vale também uma semana perfeita no passado: aqui mostramos a semana atual.")
+      : P(0, 1, "semana", "Sem treinos agendados nesta semana.")
+  };
+}
+function achProgTxt(p){ return p.cur+" de "+p.max; }
+
+function abrirConquista(i){
+  const a = ACHIEVEMENTS[i]; if(!a) return;
+  const p = achProgressList()[a.nome] || {cur:0, max:1, un:"", extra:""};
+  const feita = a.check();
+  const body = document.createElement("div");
+  body.innerHTML =
+    '<h2>'+escapeHtml(a.nome)+'</h2>'+
+    '<div class="sub">'+escapeHtml(a.desc)+'</div>'+
+    '<div class="ach-det">'+
+      (feita
+        ? '<p class="ach-det-ok"><b>Conquista desbloqueada.</b> Ela fica com você, mesmo se a sequência quebrar.</p>'
+        : '<div class="ach-det-top"><b>'+achProgTxt(p)+'</b><span>'+escapeHtml(p.un)+'</span></div>'+
+          '<div class="ach-bar" aria-hidden="true"><i style="width:'+Math.round(p.cur/p.max*100)+'%"></i></div>'+
+          (p.extra ? '<p class="ach-det-extra">'+escapeHtml(p.extra)+'</p>' : ''))+
+    '</div>'+
+    '<div class="modal-actions"><button class="btn primary" type="button" id="ach-close">Fechar</button></div>';
+  openModal(body);
+  body.querySelector("#ach-close").addEventListener("click", closeModal);
+}
+
 function renderAchievements(){
+  const el = document.getElementById("achievements-grid");
+  const countEl = document.getElementById("achievements-count");
+  if(!el) return;
+  const flags = ACHIEVEMENTS.map(a=>a.check());
+  const prog = achProgressList();
+  const unlockedCount = flags.filter(Boolean).length;
+  if(countEl) countEl.textContent = unlockedCount+" de "+ACHIEVEMENTS.length+" desbloqueadas";
+  el.innerHTML = ACHIEVEMENTS.map((a,i)=>{
+    const unlocked = flags[i];
+    const p = prog[a.nome] || {cur:0, max:1, un:""};
+    const color = ACHIEVEMENT_COLORS[i % ACHIEVEMENT_COLORS.length];
+    const lbl = a.nome+": "+(unlocked ? "desbloqueada" : "bloqueada, "+achProgTxt(p)+" "+p.un)+". Toque para ver detalhes.";
+    return '<button type="button" class="badge-item'+(unlocked?'':' locked')+'" data-ach="'+i+'" aria-label="'+escapeHtml(lbl)+'">'+
+      '<span class="badge-ic" style="'+(unlocked?('background:color-mix(in srgb, '+color+' 20%, transparent); border-color:color-mix(in srgb, '+color+' 45%, transparent); color:'+color+'; box-shadow:0 0 12px 1px color-mix(in srgb, '+color+' 40%, transparent);'):'')+'">'+
+        BADGE_SHIELD_SVG +
+        (unlocked?'':'<span class="badge-lock">'+BADGE_LOCK_SVG+'</span>')+
+      '</span>'+
+      '<span class="badge-name">'+escapeHtml(a.nome)+'</span>'+
+      (unlocked
+        ? '<span class="badge-prog done" aria-hidden="true">Feita</span>'
+        : '<span class="badge-bar" aria-hidden="true"><i style="width:'+Math.round(p.cur/p.max*100)+'%"></i></span><span class="badge-prog" aria-hidden="true">'+achProgTxt(p)+'</span>')+
+    '</button>';
+  }).join("");
+  el.onclick = function(ev){
+    const b = ev.target.closest && ev.target.closest("[data-ach]");
+    if(b) abrirConquista(Number(b.dataset.ach));
+  };
+}
+
+function renderMarcos(){
+  const ul = document.getElementById("marcos-list");
+  if(!ul) return;
+  const ni = computeNivelInfo(), eng = computeStreakEngine();
+  const prog = achProgressList();
+  const rows = [];
+  const row = (titulo, texto, ratio, sub)=>
+    '<li class="marco"><div class="marco-top"><b>'+escapeHtml(titulo)+'</b><span>'+escapeHtml(texto)+'</span></div>'+
+    '<div class="ach-bar" aria-hidden="true"><i style="width:'+Math.round(Math.max(0, Math.min(1, ratio))*100)+'%"></i></div>'+
+    (sub ? '<div class="marco-sub">'+escapeHtml(sub)+'</div>' : '')+'</li>';
+  // 1) próxima patente
+  if(ni.isMax){
+    rows.push('<li class="marco"><div class="marco-top"><b>Patente máxima</b><span>'+escapeHtml(ni.tierName)+'</span></div><div class="marco-sub">Você chegou ao topo. Agora é manter o ritmo.</div></li>');
+  } else {
+    const falta = Math.max(0, ni.tierNeed - ni.xpInTier);
+    rows.push(row(ni.proximaTier ? "Próxima patente: "+ni.proximaTier : "Concluir a patente "+ni.tierName, ni.xpInTier+" de "+ni.tierNeed+" XP", ni.xpInTier/ni.tierNeed,
+      "Faltam "+falta+" XP, o equivalente a cerca de "+ni.treinosParaProxima+(ni.treinosParaProxima === 1 ? " treino." : " treinos.")));
+  }
+  // 2) próximo marco de sequência que ainda rende XP
+  if(ni.proximoMarco){
+    rows.push(row("Próximo marco de sequência", eng.streak+" de "+ni.proximoMarco+" dias", eng.streak/ni.proximoMarco,
+      "Ao chegar lá você ganha +"+NIVEL_XP_POR_MARCO+" XP (uma vez só)."));
+  } else {
+    rows.push('<li class="marco"><div class="marco-top"><b>Marcos de sequência</b><span>todos alcançados</span></div></li>');
+  }
+  // 3) a conquista bloqueada mais perto de sair
+  let melhor = null;
+  ACHIEVEMENTS.forEach((a,i)=>{
+    if(a.check()) return;
+    const p = prog[a.nome]; if(!p) return;
+    const r = p.cur / p.max;
+    if(!melhor || r > melhor.r) melhor = {a:a, p:p, r:r};
+  });
+  if(melhor) rows.push(row("Conquista mais perto: "+melhor.a.nome, achProgTxt(melhor.p)+" "+melhor.p.un, melhor.r, melhor.a.desc));
+  else rows.push('<li class="marco"><div class="marco-top"><b>Conquistas</b><span>todas desbloqueadas</span></div></li>');
+  ul.innerHTML = rows.join("");
+}
+function renderAchievementsLegado(){
   const el = document.getElementById("achievements-grid");
   const countEl = document.getElementById("achievements-count");
   if(!el) return;
@@ -9547,7 +9790,121 @@ document.querySelectorAll("#constancia-period button").forEach(btn=>{
   });
 });
 
+/* NG+ — Constância em visão de MÊS (calendário). Só leitura: usa rotina, check-ins e congelamentos que o app já calcula. */
+let constanciaModo = "semanas";     // "semanas" | "mes"
+let calMesIso = null;                // 1º dia do mês exibido (AAAA-MM-01)
+let calDiaSel = null;
+const CAL_MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+function calPrimeiroDiaDoMes(iso){ return iso.slice(0,7)+"-01"; }
+function calMesMais(iso, n){
+  const d = new Date(iso.slice(0,7)+"-01T00:00:00");
+  d.setMonth(d.getMonth()+n);
+  return fmtDateISO(d);
+}
+function calDiasNoMes(iso){
+  const d = new Date(iso.slice(0,7)+"-01T00:00:00");
+  return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+}
+// estado de um dia: feito | leve | gelo | pulou | descanso | hoje | futuro | antes
+function calEstado(iso, ctx){
+  if(iso < ctx.start) return "antes";
+  const key = dayKeyFromISO(iso);
+  const ativo = !!(state.rotina[key] && state.rotina[key].ativo);
+  const c = state.checkins[iso];
+  if(c && c.concluido) return c.leve ? "leve" : "feito";
+  if(iso > ctx.today) return ativo ? "futuro" : "descanso";
+  if(ctx.gelo.indexOf(iso) >= 0) return "gelo";
+  if(iso === ctx.today) return ativo ? "hoje" : "descanso";
+  return ativo ? "pulou" : "descanso";
+}
+const CAL_GLIFO = {feito:"✓", leve:"½", gelo:"❄", pulou:"–", hoje:"○", descanso:"", futuro:"", antes:""};
+const CAL_TXT = {feito:"treino concluído", leve:"dia leve (mantém a sequência)", gelo:"congelamento protegeu a sequência", pulou:"treino não registrado", hoje:"hoje, treino ainda em aberto", descanso:"dia de descanso", futuro:"treino agendado", antes:"antes do seu cadastro"};
+function calDescricao(iso, est){
+  const key = dayKeyFromISO(iso);
+  const d = state.rotina[key];
+  const nome = d && d.ativo && d.nome ? " · "+d.nome : "";
+  const hab = habDe(iso);
+  const hp = [];
+  if(hab){
+    if(hab.sono != null) hp.push(String(hab.sono).replace(".", ",")+" h de sono");
+    if(hab.passos != null) hp.push(num(hab.passos,0)+" passos");
+    if(hab.cardio != null) hp.push(hab.cardio+" min de cárdio");
+    if(hab.agua != null) hp.push(String(hab.agua).replace(".", ",")+" L de água");
+  }
+  return DAY_FULL[key]+", "+fmtDateBR(iso)+": "+CAL_TXT[est]+nome+(hp.length ? ". Hábitos: "+hp.join(", ")+"." : ".");
+}
+function renderCalendario(){
+  const box = document.getElementById("constancia-mes");
+  const title = document.getElementById("constancia-title");
+  if(!box) return;
+  const today = todayISO(), start = getTrackingStartISO();
+  const mesAtual = calPrimeiroDiaDoMes(today);
+  const mesInicio = calPrimeiroDiaDoMes(start);
+  if(!calMesIso) calMesIso = mesAtual;
+  if(calMesIso > mesAtual) calMesIso = mesAtual;
+  if(calMesIso < mesInicio) calMesIso = mesInicio;
+  const ctx = {today:today, start:start, gelo:computeStreakEngine().freezeUsedDates};
+  const nomeMes = CAL_MESES[Number(calMesIso.slice(5,7))-1]+" de "+calMesIso.slice(0,4);
+  if(title) title.textContent = "Constância — "+nomeMes;
+  const hint = document.getElementById("constancia-hint");
+  if(hint) hint.textContent = "Toque num dia para ver detalhes";
+  const n = calDiasNoMes(calMesIso);
+  const lead = DAYS.indexOf(dayKeyFromISO(calMesIso));
+  let feitos = 0, agend = 0;
+  const cells = [];
+  for(let i = 0; i < lead; i++) cells.push('<span class="cal-vazio" aria-hidden="true"></span>');
+  for(let dia = 1; dia <= n; dia++){
+    const iso = calMesIso.slice(0,8)+pad2(dia);
+    const est = calEstado(iso, ctx);
+    if(iso >= start && iso <= today){
+      const ativo = !!(state.rotina[dayKeyFromISO(iso)] && state.rotina[dayKeyFromISO(iso)].ativo);
+      const c = state.checkins[iso];
+      if(ativo || (c && c.concluido)){ agend++; if(c && c.concluido) feitos++; }
+    }
+    cells.push('<button type="button" class="cal-d st-'+est+(iso === today ? ' hoje' : '')+(iso === calDiaSel ? ' sel' : '')+'" data-iso="'+iso+'" aria-label="'+escapeHtml(calDescricao(iso, est))+'" aria-pressed="'+(iso === calDiaSel ? "true" : "false")+'">'+
+      '<span class="cal-n">'+dia+'</span><span class="cal-g" aria-hidden="true">'+CAL_GLIFO[est]+'</span></button>');
+  }
+  const pct = agend ? Math.round(feitos/agend*100) : null;
+  box.innerHTML =
+    '<div class="cal-nav">'+
+      '<button type="button" class="cal-nav-btn" data-cal="-1" aria-label="Mês anterior"'+(calMesIso <= mesInicio ? ' disabled' : '')+'>‹</button>'+
+      '<strong class="cal-titulo" aria-live="polite">'+nomeMes+'</strong>'+
+      '<button type="button" class="cal-nav-btn" data-cal="1" aria-label="Próximo mês"'+(calMesIso >= mesAtual ? ' disabled' : '')+'>›</button>'+
+    '</div>'+
+    '<div class="cal-sem" aria-hidden="true">'+DAYS.map(k=>'<span>'+DAY_LABEL[k]+'</span>').join("")+'</div>'+
+    '<div class="cal-grid">'+cells.join("")+'</div>'+
+    '<div class="cal-resumo">'+(pct == null ? 'Sem treinos agendados neste mês até hoje.' : '<b>'+feitos+' de '+agend+'</b> treinos concluídos neste mês ('+pct+'%).')+'</div>'+
+    '<div class="cal-det" id="cal-det" role="status" aria-live="polite">'+(calDiaSel && calDiaSel.slice(0,7) === calMesIso.slice(0,7) ? escapeHtml(calDescricao(calDiaSel, calEstado(calDiaSel, ctx))) : 'Toque num dia para ver o que aconteceu nele.')+'</div>'+
+    '<ul class="cal-leg">'+
+      ['feito','leve','gelo','pulou','hoje','descanso'].map(k=>'<li><span class="cal-key st-'+k+'" aria-hidden="true">'+CAL_GLIFO[k]+'</span>'+({feito:"Concluído",leve:"Dia leve",gelo:"Congelamento",pulou:"Sem registro",hoje:"Hoje (em aberto)",descanso:"Descanso"})[k]+'</li>').join("")+
+    '</ul>';
+}
 function renderHeatmap(){
+  if(constanciaModo === "mes") renderCalendario(); else renderHeatmapSemanas();
+}
+(function setupCalendario(){
+  const modo = document.getElementById("constancia-modo");
+  const mes = document.getElementById("constancia-mes");
+  const sems = document.getElementById("constancia-semanas");
+  if(!modo || !mes || !sems) return;
+  modo.addEventListener("click", (ev)=>{
+    const b = ev.target.closest("button[data-modo]"); if(!b) return;
+    constanciaModo = b.dataset.modo;
+    modo.querySelectorAll("button").forEach(x=>{ const on = x === b; x.classList.toggle("active", on); x.setAttribute("aria-pressed", on ? "true" : "false"); });
+    sems.hidden = constanciaModo === "mes";
+    mes.hidden = constanciaModo !== "mes";
+    const hint = document.getElementById("constancia-hint");
+    if(constanciaModo !== "mes" && hint) hint.textContent = "Cada barra é uma semana";
+    renderHeatmap();
+  });
+  mes.addEventListener("click", (ev)=>{
+    const nav = ev.target.closest("button[data-cal]");
+    if(nav){ if(nav.disabled) return; calMesIso = calMesMais(calMesIso || calPrimeiroDiaDoMes(todayISO()), Number(nav.dataset.cal)); calDiaSel = null; renderCalendario(); return; }
+    const d = ev.target.closest("button[data-iso]");
+    if(d){ calDiaSel = d.dataset.iso; renderCalendario(); const again = mes.querySelector('button[data-iso="'+calDiaSel+'"]'); if(again) again.focus({preventScroll:true}); }
+  });
+})();
+function renderHeatmapSemanas(){
   const wrap = document.getElementById("heatmap");
   const title = document.getElementById("constancia-title");
   const weeks = constanciaWeeks;
@@ -12062,10 +12419,10 @@ function renderFontes(){
 const SECTION_RENDERERS = {
   painel: [renderPlanoPorque, renderStreak, renderNarrator, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderRecup, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
   treino: [renderPlanoPorque, renderFormatoCard, renderWeekGrid, renderCargas, renderVolume, renderHeatmap, renderBibliotecaExercicios],
-  corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderEvolucaoChart, renderFotosProgresso, renderTabelaMedicoes],
+  corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderEvolucaoChart, renderFotosProgresso, renderTabelaMedicoes],
   dieta: [renderDieta],
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
-  perfil: [renderRadar, renderAttrs, renderPerfilSummary, renderAchievements],
+  perfil: [renderRadar, renderAttrs, renderPerfilSummary, renderMarcos, renderAchievements],
   config: [renderTemas, renderSkins, renderConfigExtras],
   glossario: [renderGlossario]
 };
