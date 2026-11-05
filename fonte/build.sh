@@ -1,0 +1,6 @@
+#!/bin/sh
+# Gera ../site/index.html: candidato PRD -> visual v2 -> ajustes standalone/NG+
+set -e
+cd "$(dirname "$0")"
+python3 visual/aplica-visual.py candidato-prd.html /tmp/candidato-v2.html
+python3 aplica-standalone.py /tmp/candidato-v2.html ../site/index.html
