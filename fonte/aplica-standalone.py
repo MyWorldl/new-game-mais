@@ -49,5 +49,18 @@ rep('document.getElementById("cfg-export-btn").addEventListener("click", exporta
     'document.getElementById("cfg-export-btn").addEventListener("click", exportarDadosJSON);\nif(window.bffRuntime){ const av = document.getElementById("cfg-aviso-local"); if(av){ av.hidden = false; const h = av.previousElementSibling; if(h) h.innerHTML = h.innerHTML.replace("a referência das fotos", "as fotos de progresso"); } }   // A1')
 rep('<meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">',
     '<meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">')
+
+# 7) Nome do app: NG+ (New Game+). O id técnico "ritmo-de-ferro" do backup NÃO muda (compatibilidade com backups antigos).
+rep('<title>Best Friends Forever</title>','<title>NG+ (New Game+)</title>')
+rep('<h1>Best Friends Forever</h1>','<h1>NG+</h1>')
+rep('<div class="mark">BFF</div>','<div class="mark">NG+</div>')
+rep('Bem-vindo(a) ao Best Friends Forever!','Bem-vindo(a) ao NG+!')
+rep('"Sequência atual no Ritmo de Ferro"','"Sequência atual no NG+"')
+rep("<h1>Ritmo de Ferro — '+r.cfg.rel","<h1>NG+ — '+r.cfg.rel")
+rep("Gerado pelo Ritmo de Ferro em","Gerado pelo NG+ em")
+rep("não parece um backup do Ritmo de Ferro.","não parece um backup do NG+.")
+rep('"ritmo-de-ferro-"+todayISO()+".png"','"ng-mais-"+todayISO()+".png"')
+rep('"ritmo-de-ferro-medicoes-"+todayISO()','"ng-mais-medicoes-"+todayISO()')
+rep('"ritmo-de-ferro-dados-"+todayISO()','"ng-mais-dados-"+todayISO()')
 open(sys.argv[2],'w',encoding='utf8').write(src)
 print("ok",len(src))

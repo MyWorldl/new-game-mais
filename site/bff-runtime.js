@@ -1,4 +1,4 @@
-/* bff-runtime.js — Best Friends Forever / Ritmo de Ferro (Etapa A, versão standalone)
+/* bff-runtime.js — NG+ (New Game+) — antes Best Friends Forever / Ritmo de Ferro (Etapa A, versão standalone)
  *
  * O que é: um "adaptador". Dentro do Claude o app conversa com window.claude (db, assets, downloads).
  * Fora do Claude (Cloudflare Pages) esse objeto não existe — então este arquivo cria um igual,

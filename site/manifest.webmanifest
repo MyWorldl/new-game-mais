@@ -1,6 +1,6 @@
 {
-  "name": "Best Friends Forever",
-  "short_name": "BFF Treino",
+  "name": "NG+ (New Game+)",
+  "short_name": "NG+",
   "description": "Treino, corpo e dieta em um só lugar.",
   "start_url": "./index.html",
   "scope": "./",

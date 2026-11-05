@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Best Friends Forever</title>
+<title>NG+ (New Game+)</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2586,9 +2586,9 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 <div class="app">
   <div class="topbar">
     <div class="brand">
-      <div class="mark">BFF</div>
+      <div class="mark">NG+</div>
       <div>
-        <h1>Best Friends Forever</h1>
+        <h1>NG+</h1>
         <div class="sub">Treino, corpo e dieta em um só lugar</div>
       </div>
       <button type="button" class="sync-pill" id="sync-pill" data-state="saved" aria-label="Estado de salvamento"><span class="sync-txt">Salvo</span></button>
@@ -6453,7 +6453,7 @@ function drawCelebrationCard(opts){
 }
 async function downloadCelebrationCard(opts){
   const canvas = drawCelebrationCard(opts);
-  const filename = "ritmo-de-ferro-"+todayISO()+".png";
+  const filename = "ng-mais-"+todayISO()+".png";
 
   // Dentro do artifact publicado: só a capability "downloads" consegue
   // realmente entregar o arquivo ao visitante (o iframe sandboxed bloqueia
@@ -6867,7 +6867,7 @@ document.getElementById("btn-share-streak").addEventListener("click", ()=>{
   downloadCelebrationCard({
     icon: "flame",
     title: streak>0 ? streak+" dia"+(streak===1?"":"s")+" seguido"+(streak===1?"":"s")+"!" : "Bora começar a sequência!",
-    sub: streak>0 ? "Sequência atual no Ritmo de Ferro" : "Conclua a quest de hoje pra começar.",
+    sub: streak>0 ? "Sequência atual no NG+" : "Conclua a quest de hoje pra começar.",
   });
 });
 
@@ -9656,7 +9656,7 @@ function medCsvTexto(){
 }
 async function exportarMedicoesCsv(){
   if(!medLinhasVisiveis.length){ showToast("Nenhuma medição neste período para exportar. Mude o filtro ou registre uma medição."); return; }
-  const filename = "ritmo-de-ferro-medicoes-"+todayISO()+".csv";
+  const filename = "ng-mais-medicoes-"+todayISO()+".csv";
   const blob = new Blob([medCsvTexto()], {type:"text/csv;charset=utf-8"});
   if(window.claude && window.claude.use){
     let downloads = null;
@@ -10334,7 +10334,7 @@ function openOnboarding(){
   function stepWelcome(){
     return '<div style="text-align:center; padding:10px var(--sp-1) var(--sp-1);">'+
       '<div style="font-size:var(--fs-num-xl); margin-bottom:var(--sp-2); color:var(--accent-fg,var(--accent));">'+ic('zap')+'</div>'+
-      '<h2 class="u-fs24">Bem-vindo(a) ao Best Friends Forever!</h2>'+
+      '<h2 class="u-fs24">Bem-vindo(a) ao NG+!</h2>'+
       '<div class="sub u-mb20">Seu parceiro de treino, dieta e evolução corporal. São só 2 passos rápidos para montar o seu plano.</div>'+
       '<button class="btn primary block" id="ob-start">Bora começar os treinos?</button>'+
       '</div>';
@@ -10663,7 +10663,7 @@ function buildPrintReportHtml(){
     : '<div class="u-sm-muted">Sem recordes registrados ainda.</div>';
 
   return (
-    '<div class="pr-head"><h1>Ritmo de Ferro — '+r.cfg.rel+'</h1><span>'+(nome?escapeHtml(nome)+" · ":"")+fmtDateBR(r.start)+' a '+fmtDateBR(r.end)+'</span></div>'+
+    '<div class="pr-head"><h1>NG+ — '+r.cfg.rel+'</h1><span>'+(nome?escapeHtml(nome)+" · ":"")+fmtDateBR(r.start)+' a '+fmtDateBR(r.end)+'</span></div>'+
     '<div class="pr-section"><h2>Resumo do período</h2><div class="pr-grid">'+
       tile(pct==null?"—":pct+"%", "Treinos concluídos", (cfg.ant && pct!=null && pctAnt!=null)?((pct>=pctAnt?"↑":"↓")+" vs. "+pctAnt+"% "+cfg.antNo):"")+
       tile(r.prs.length, "Recordes no período", (cfg.ant && (a.prs.length||r.prs.length))?(cfg.ant+": "+a.prs.length):"")+
@@ -10672,7 +10672,7 @@ function buildPrintReportHtml(){
     '</div></div>'+
     '<div class="pr-section"><h2>Recordes batidos no período</h2>'+prsHtml+'</div>'+
     '<div class="pr-section"><h2>Hall de recordes (recorde atual por exercício)</h2>'+recordesHtml+'</div>'+
-    '<div class="pr-foot">Gerado pelo Ritmo de Ferro em '+fmtDateBR(todayISO())+'. Dados autodeclarados pelo usuário — não substitui acompanhamento profissional.</div>'
+    '<div class="pr-foot">Gerado pelo NG+ em '+fmtDateBR(todayISO())+'. Dados autodeclarados pelo usuário — não substitui acompanhamento profissional.</div>'
   );
 }
 function exportarResumoMesPDF(){
@@ -10712,7 +10712,7 @@ async function exportarDadosJSON(){
   };
   if(fotosArquivos && Object.keys(fotosArquivos).length) payload.fotosArquivos = fotosArquivos;
   const json = JSON.stringify(payload, null, 2);
-  const filename = "ritmo-de-ferro-dados-"+todayISO()+".json";
+  const filename = "ng-mais-dados-"+todayISO()+".json";
 
   if(window.claude && window.claude.use){
     let downloads = null;
@@ -10768,7 +10768,7 @@ function migrarBackup(raw){
   return Object.assign({}, raw, {schemaVersion: SCHEMA_VERSION});
 }
 function validarBackup(raw){
-  if(!isObj(raw)) throw new Error("Esse arquivo não parece um backup do Ritmo de Ferro.");
+  if(!isObj(raw)) throw new Error("Esse arquivo não parece um backup do NG+.");
   if(raw.app && raw.app !== "ritmo-de-ferro") throw new Error("Esse backup é de outro aplicativo, então não dá para importar aqui.");
   const b = migrarBackup(raw);
   const out = {perfil:null, settings:null, rotina:{}, checkins:{}, medicoes:{}, fotos:{}, fotosArquivos:{}, exportadoEm:null, ignorados:0};

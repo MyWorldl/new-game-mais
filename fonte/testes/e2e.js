@@ -65,7 +65,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const bk = JSON.parse(fs.readFileSync(f1,'utf8'));
   t('backup tem perfil/medições/check-ins', bk.perfil && bk.medicoes[hoje] && bk.checkins[hoje]);
   t('backup tem fotos + fotosArquivos', Object.keys(bk.fotos).length===1 && Object.keys(bk.fotosArquivos||{}).length===1 && /^data:image\//.test(Object.values(bk.fotosArquivos)[0]));
-  t('nome do arquivo ritmo-de-ferro-dados-*.json', /^ritmo-de-ferro-dados-\d{4}-\d{2}-\d{2}\.json$/.test(dl.suggestedFilename()), dl.suggestedFilename());
+  t('nome do arquivo ng-mais-dados-*.json', /^ng-mais-dados-\d{4}-\d{2}-\d{2}\.json$/.test(dl.suggestedFilename()), dl.suggestedFilename());
 
   // ---- limpa tudo (como "limpar dados do site") e restaura ----
   await p.evaluate(()=>new Promise(r=>{ const q=indexedDB.deleteDatabase('bff'); q.onsuccess=q.onerror=q.onblocked=()=>r(); }));
@@ -100,7 +100,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await p4.reload().catch(()=>{}); await p4.waitForTimeout(1800);
   t('abre offline e mantém os dados', await p4.evaluate(async()=>{ if(!window.claude) return false; const db=await window.claude.use('db'); return (await db.doc('config/perfil').get()).exists; }));
   await ctx2.setOffline(false);
-  t('manifest válido', await p4.evaluate(async()=>{ const j=await (await fetch('manifest.webmanifest')).json(); return j.name==='Best Friends Forever' && j.icons.length===2; }));
+  t('manifest válido', await p4.evaluate(async()=>{ const j=await (await fetch('manifest.webmanifest')).json(); return j.name==='NG+ (New Game+)' && j.icons.length===2; }));
   t('sem erros de JS/console', errs.length===0, errs.join(' || ').slice(0,300));
   console.log(`\n${ok} ok, ${bad} falhas`);
   await b.close(); process.exit(bad?1:0);
