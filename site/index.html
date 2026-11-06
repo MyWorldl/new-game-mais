@@ -2044,7 +2044,8 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
 }
 .sync-pill::after{content:""; position:absolute; inset:-6px -4px;}   /* área de toque ≈ 44 px sem engordar o cabeçalho */
 .sync-pill .ic{font-size:var(--fs-base); color:var(--sync-c);}
-.sync-pill[data-state="pending"]{--sync-c:var(--warn);}
+.sync-pill[data-state="pending"], .sync-pill[data-state="syncing"]{--sync-c:var(--warn);}
+.sync-pill[data-state="erro"]{--sync-c:var(--crit);}
 .sync-pill[data-state="offline"]{--sync-c:var(--crit);}
 .sync-pill[data-state="local"], .sync-pill[data-state="loading"]{--sync-c:var(--muted);}
 .sync-pill[data-busy="1"] .ic{animation:sync-spin 1s linear infinite;}
@@ -3919,6 +3920,18 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
       <button class="btn small ghost" id="periodizacao-edit-btn" type="button">Editar blocos</button>
     </div>
 
+    <div class="card" id="cfg-conta" hidden>
+      <div class="card-head">
+        <h2>Conta e sincronização</h2>
+        <span class="hint">seus dados em todos os aparelhos</span>
+      </div>
+      <div class="hint u-mb10" id="cfg-conta-info" role="status"></div>
+      <div class="data-actions">
+        <button class="btn" id="cfg-conta-sync" type="button">Sincronizar agora</button>
+        <button class="btn ghost" id="cfg-conta-sair" type="button">Sair da conta</button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-head">
         <h2>Seus dados</h2>
@@ -4013,6 +4026,8 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 <div id="modal-root"></div>
 <div id="celebration-root"></div>
 
+<script src="vendor-supabase.js"></script>
+<script src="ng-nuvem.js"></script>
 <script src="bff-runtime.js"></script>
 <script>
 (function(){
@@ -5199,11 +5214,13 @@ function iniciaCarregamento(){
   const m = document.getElementById("main"); if(m) m.setAttribute("aria-busy","true");
   const live = document.getElementById("sync-live"); if(live) live.textContent = "Carregando seus dados…";
   clearTimeout(_carregTimer);
-  _carregTimer = setTimeout(()=>{   // v98 F7: passou de 6 s sem resposta — diz o que está acontecendo em vez de mostrar tela "vazia" calada
+  const espera = window.ngNuvem ? 25000 : 6000;   // B1: com conta, o 1º acesso baixa os dados da nuvem
+  _carregTimer = setTimeout(function avisoLento(){   // v98 F7: passou de 6 s sem resposta — diz o que está acontecendo em vez de mostrar tela "vazia" calada
     if(!carregando) return;
+    if(document.querySelector(".ng-login")){ _carregTimer = setTimeout(avisoLento, 3000); return; }   // B1: pessoa ainda está na tela de entrada
     showToast("A conexão está lenta. Seus dados aparecem assim que chegarem.");
     fimCarregamento();
-  }, 6000);
+  }, espera);
 }
 function fimCarregamento(){
   if(!carregando) return;
@@ -5345,6 +5362,7 @@ async function flushPending(){
 }
 window.addEventListener("online", ()=>{ updateSyncPill(); scheduleFlush(true); });
 window.addEventListener("offline", updateSyncPill);
+window.addEventListener("ng-sync", ()=>{ try{ updateSyncPill(); }catch(e){} });   // B1
 
 /* v91 U5: indicador de sincronização (salvo / pendente / sem conexão / modo local).
    Lê o que a fila de gravação já sabe; só mostra, não muda o comportamento dela. */
@@ -5353,6 +5371,7 @@ function syncEstado(){
   const n = Object.keys(pendingWrites).length;
   if(!storeIniciada) return {k:"loading", n};
   if(!state.db) return {k:"local", n};
+  if(window.ngNuvem){ const e = window.ngNuvem.estado(); return {k:e.k, n:e.n||0}; }   // B1: estado real da sincronização com a conta
   if(window.bffRuntime) return {k:"saved", n:0};   // A1: gravação local no aparelho, não depende de internet
   if(navigator.onLine === false) return {k:"offline", n};
   if(n > 0) return {k:"pending", n};
@@ -5366,6 +5385,8 @@ function syncTextos(k, n){
   const alt = n===1 ? "1 alteração" : n+" alterações";
   return ({
     loading: {ic:"refresh", txt:"Conectando", full:"Conectando para buscar seus dados…"},
+    syncing: {ic:"refresh", txt:"Sincronizando", full:"Sincronizando com a sua conta…"},
+    erro:    {ic:"cloud-off", txt: n===1 ? "1 pendente" : n+" pendentes", full: alt+" ainda não chegaram à nuvem. Estão guardadas neste aparelho e o app tenta de novo sozinho. Toque para tentar agora."},
     saved:   {ic:"cloud-check", txt:"Salvo", full:"Tudo salvo"+(window.bffRuntime ? " neste aparelho" : "")+(hora ? " — última gravação às "+hora : "")+"."},
     pending: {ic: flushing ? "refresh" : "cloud", txt: n===1 ? "1 pendente" : n+" pendentes", full: alt+" aguardando para salvar. Toque para tentar agora."},
     offline: {ic:"cloud-off", txt:"Sem conexão", full:"Sem conexão"+(n ? ". "+(n===1 ? "1 alteração está guardada neste aparelho e será enviada" : n+" alterações estão guardadas neste aparelho e serão enviadas")+" ao reconectar." : ". O que você registrar fica guardado e é enviado ao reconectar.")},
@@ -5378,7 +5399,7 @@ function updateSyncPill(){
   const {k, n} = syncEstado();
   const L = syncTextos(k, n);
   b.dataset.state = k;
-  if(flushing || k === "loading") b.dataset.busy = "1"; else delete b.dataset.busy;
+  if(flushing || k === "loading" || k === "syncing") b.dataset.busy = "1"; else delete b.dataset.busy;
   b.innerHTML = ic(L.ic)+'<span class="sync-txt">'+L.txt+'</span>';
   b.setAttribute("aria-label", L.full);
   b.title = L.full;
@@ -5391,7 +5412,8 @@ function updateSyncPill(){
   if(!b) return;
   b.addEventListener("click", ()=>{
     const {k, n} = syncEstado();
-    if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }
+    if(window.ngNuvem && (k === "pending" || k === "erro" || k === "offline")){ window.ngNuvem.sincronizar(); showToast(k === "offline" ? syncTextos(k, n).full : "Tentando sincronizar agora…"); }
+    else if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }
     else showToast(syncTextos(k, n).full);
   });
   updateSyncPill();

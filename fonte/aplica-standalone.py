@@ -7,7 +7,7 @@ def rep(old,new,count=1):
 
 # 1) carrega o adaptador antes de qualquer script do app
 rep('<script>\n(function(){\n"use strict";\ndocument.documentElement.lang = "pt-BR";',
-    '<script src="bff-runtime.js"></script>\n<script>\n(function(){\n"use strict";\ndocument.documentElement.lang = "pt-BR";')
+    '<script src="vendor-supabase.js"></script>\n<script src="ng-nuvem.js"></script>\n<script src="bff-runtime.js"></script>\n<script>\n(function(){\n"use strict";\ndocument.documentElement.lang = "pt-BR";')
 
 # 2) foto: URL vem do adaptador
 rep('function fotoSrc(f){ return f.assetId ? ("/_blob/"+f.assetId) : (f.localUrl||""); }',
@@ -15,7 +15,7 @@ rep('function fotoSrc(f){ return f.assetId ? ("/_blob/"+f.assetId) : (f.localUrl
 
 # 3) indicador de sincronização: fora do Claude tudo é gravado no aparelho
 rep('  if(!state.db) return {k:"local", n};\n  if(navigator.onLine === false) return {k:"offline", n};',
-    '  if(!state.db) return {k:"local", n};\n  if(window.bffRuntime) return {k:"saved", n:0};   // A1: gravação local no aparelho, não depende de internet\n  if(navigator.onLine === false) return {k:"offline", n};')
+    '  if(!state.db) return {k:"local", n};\n  if(window.ngNuvem){ const e = window.ngNuvem.estado(); return {k:e.k, n:e.n||0}; }   // B1: estado real da sincronização com a conta\n  if(window.bffRuntime) return {k:"saved", n:0};   // A1: gravação local no aparelho, não depende de internet\n  if(navigator.onLine === false) return {k:"offline", n};')
 rep('full:"Tudo salvo"+(hora ? " — última gravação às "+hora : "")+"."}',
     'full:"Tudo salvo"+(window.bffRuntime ? " neste aparelho" : "")+(hora ? " — última gravação às "+hora : "")+"."}')
 
@@ -69,5 +69,23 @@ rep('  return isFinite(pct) ? pct : null;\n}\nfunction classBF',
     '  return (isFinite(pct) && pct > 0) ? pct : null;   // NG+: <= 0% é medida inconsistente; a tela pede para conferir\n}\nfunction classBF')
 rep('  const medB = ultimaComBF(p);\n  if(!medB){\n    el.innerHTML = !sexoValido(p.sexo)',
     '  const medB = ultimaComBF(p);\n  const bfForaDoPossivel = !medB && sexoValido(p.sexo) && med.cinturaCm > 0 && med.pescocoCm > 0 && (p.sexo !== "F" || med.quadrilCm > 0);   // NG+\n  if(!medB && bfForaDoPossivel){\n    el.innerHTML = emptyState("ruler","Confira as medidas","Com a cintura e o pescoço informados, a fórmula dá um resultado fora do possível (0% ou menos). Confira se a cintura foi medida na altura do umbigo e o pescoço logo abaixo do pomo de adão.",{go:"medir",label:"Corrigir medição"});\n    return;\n  }\n  if(!medB){\n    el.innerHTML = !sexoValido(p.sexo)')
+
+# B1) indicador de sincronização com a conta (novos estados: syncing e erro) + atualização por evento
+rep('    loading: {ic:"refresh", txt:"Conectando", full:"Conectando para buscar seus dados…"},',
+    '    loading: {ic:"refresh", txt:"Conectando", full:"Conectando para buscar seus dados…"},\n    syncing: {ic:"refresh", txt:"Sincronizando", full:"Sincronizando com a sua conta…"},\n    erro:    {ic:"cloud-off", txt: n===1 ? "1 pendente" : n+" pendentes", full: alt+" ainda não chegaram à nuvem. Estão guardadas neste aparelho e o app tenta de novo sozinho. Toque para tentar agora."},')
+rep('  if(flushing || k === "loading") b.dataset.busy = "1"; else delete b.dataset.busy;',
+    '  if(flushing || k === "loading" || k === "syncing") b.dataset.busy = "1"; else delete b.dataset.busy;')
+rep('.sync-pill[data-state="pending"]{--sync-c:var(--warn);}',
+    '.sync-pill[data-state="pending"], .sync-pill[data-state="syncing"]{--sync-c:var(--warn);}\n.sync-pill[data-state="erro"]{--sync-c:var(--crit);}')
+rep('    if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }',
+    '    if(window.ngNuvem && (k === "pending" || k === "erro" || k === "offline")){ window.ngNuvem.sincronizar(); showToast(k === "offline" ? syncTextos(k, n).full : "Tentando sincronizar agora…"); }\n    else if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }')
+rep('window.addEventListener("offline", updateSyncPill);\n',
+    'window.addEventListener("offline", updateSyncPill);\nwindow.addEventListener("ng-sync", ()=>{ try{ updateSyncPill(); }catch(e){} });   // B1\n')
+rep('  _carregTimer = setTimeout(()=>{   // v98 F7: passou de 6 s sem resposta — diz o que está acontecendo em vez de mostrar tela "vazia" calada\n    if(!carregando) return;',
+    '  const espera = window.ngNuvem ? 25000 : 6000;   // B1: com conta, o 1º acesso baixa os dados da nuvem\n  _carregTimer = setTimeout(function avisoLento(){   // v98 F7: passou de 6 s sem resposta — diz o que está acontecendo em vez de mostrar tela "vazia" calada\n    if(!carregando) return;\n    if(document.querySelector(".ng-login")){ _carregTimer = setTimeout(avisoLento, 3000); return; }   // B1: pessoa ainda está na tela de entrada')
+rep('    fimCarregamento();\n  }, 6000);', '    fimCarregamento();\n  }, espera);')
+rep('    <div class="card">\n      <div class="card-head">\n        <h2>Seus dados</h2>',
+    '    <div class="card" id="cfg-conta" hidden>\n      <div class="card-head">\n        <h2>Conta e sincronização</h2>\n        <span class="hint">seus dados em todos os aparelhos</span>\n      </div>\n      <div class="hint u-mb10" id="cfg-conta-info" role="status"></div>\n      <div class="data-actions">\n        <button class="btn" id="cfg-conta-sync" type="button">Sincronizar agora</button>\n        <button class="btn ghost" id="cfg-conta-sair" type="button">Sair da conta</button>\n      </div>\n    </div>\n\n    <div class="card">\n      <div class="card-head">\n        <h2>Seus dados</h2>')
+
 open(sys.argv[2],'w',encoding='utf8').write(src)
 print("ok",len(src))

@@ -15,12 +15,13 @@
   "use strict";
   if (window.claude) return;
 
-  var DB_NAME = "bff", DB_VER = 1;
+  var DB_NAME = "bff", DB_VER = 2;   // v2 (Etapa B): + stores "fila" (envios pendentes) e "meta"
+  var NUV = window.ngNuvem || null;   // camada de conta/sincronização (ng-nuvem.js); ausente = só local, como antes
   var cache = new Map();          // path -> data (objeto)
   var docL = new Map();           // path -> Set(cb)
   var colL = new Map();           // coleção -> Set({fn, limit})
   var blobUrls = new Map();       // id -> object URL
-  var idb = null, readyP = null, bc = null;
+  var idb = null, readyP = null, bc = null, uidAtual = null;
 
   function req2p(r){ return new Promise(function(res, rej){ r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); }; }); }
   function txDone(tx){ return new Promise(function(res, rej){ tx.oncomplete = function(){ res(); }; tx.onerror = tx.onabort = function(){ rej(tx.error || new Error("tx")); }; }); }
@@ -36,6 +37,8 @@
         var d = r.result;
         if (!d.objectStoreNames.contains("docs")) d.createObjectStore("docs", {keyPath: "path"});
         if (!d.objectStoreNames.contains("blobs")) d.createObjectStore("blobs", {keyPath: "id"});
+        if (!d.objectStoreNames.contains("fila")) d.createObjectStore("fila", {keyPath: "path"});
+        if (!d.objectStoreNames.contains("meta")) d.createObjectStore("meta", {keyPath: "k"});
       };
       r.onsuccess = function(){ res(r.result); };
       r.onerror = function(){ rej(r.error); };
@@ -47,6 +50,7 @@
     if (readyP) return readyP;
     readyP = (async function(){
       if (!window.indexedDB) throw new Error("sem IndexedDB");
+      if (NUV) { var ses = await NUV.sessao(); DB_NAME = "bff-" + ses.uid; uidAtual = ses.uid; }   // cada conta tem o seu banco local
       idb = await open();
       var tx = idb.transaction(["docs", "blobs"], "readonly");
       var docs = await req2p(tx.objectStore("docs").getAll());
@@ -58,6 +62,7 @@
         bc = new BroadcastChannel("bff-sync");
         bc.onmessage = function(ev){ recarrega(ev.data); };
       } catch(e){ bc = null; }
+      if (NUV) { try { await NUV.preparar(interno()); } catch(e){} }   // login feito: busca a nuvem (1ª vez) e liga a sincronização
       return true;
     })();
     return readyP;
@@ -121,13 +126,16 @@
   /* ---------- escrita ---------- */
   async function gravar(path, data){
     await ready();
-    var tx = idb.transaction("docs", "readwrite");
-    if (data === undefined) tx.objectStore("docs").delete(path);
-    else tx.objectStore("docs").put({path: path, data: clone(data), updatedAt: Date.now()});
+    var tx = idb.transaction(NUV ? ["docs", "fila"] : "docs", "readwrite");
+    var st = NUV ? tx.objectStore("docs") : tx.objectStore("docs");
+    if (data === undefined) st.delete(path);
+    else st.put({path: path, data: clone(data), updatedAt: Date.now()});
+    if (NUV) tx.objectStore("fila").put({path: path, op: data === undefined ? "del" : "set", t: Date.now()});
     await txDone(tx);
     if (data === undefined) cache.delete(path); else cache.set(path, clone(data));
     notifica([path]);
     try { if (bc) bc.postMessage({type: "docs", paths: [path]}); } catch(e){}
+    if (NUV) NUV.mudou();
   }
 
   function addDocListener(path, fn, errFn){
@@ -192,22 +200,26 @@
     upload: async function(file){
       await ready();
       var blob = await reduzir(file), id = hex32();
-      var tx = idb.transaction("blobs", "readwrite");
+      var tx = idb.transaction(NUV ? ["blobs", "fila"] : "blobs", "readwrite");
       tx.objectStore("blobs").put({id: id, blob: blob, type: blob.type, size: blob.size, criadoEm: Date.now()});
+      if (NUV) tx.objectStore("fila").put({path: "blob:" + id, op: "bset", t: Date.now()});
       await txDone(tx);
       var url = URL.createObjectURL(blob);
       blobUrls.set(id, url);
       try { if (bc) bc.postMessage({type: "blobs", ids: [id]}); } catch(e){}
+      if (NUV) NUV.mudou();
       return {id: id, url: url, sizeBytes: blob.size, contentType: blob.type};
     },
     delete: async function(id){
       await ready();
-      var tx = idb.transaction("blobs", "readwrite");
+      var tx = idb.transaction(NUV ? ["blobs", "fila"] : "blobs", "readwrite");
       tx.objectStore("blobs").delete(id);
+      if (NUV) tx.objectStore("fila").put({path: "blob:" + id, op: "bdel", t: Date.now()});
       await txDone(tx);
       var u = blobUrls.get(id); if (u) URL.revokeObjectURL(u);
       blobUrls.delete(id);
       try { if (bc) bc.postMessage({type: "blobs", ids: [id]}); } catch(e){}
+      if (NUV) NUV.mudou();
     },
     list: async function(){
       await ready();
@@ -217,6 +229,87 @@
       return {assets: all.map(function(r){ return {id: r.id, url: blobUrls.get(r.id), sizeBytes: r.size, contentType: r.type}; }), usage: {bytes: total}};
     }
   };
+
+  /* ---------- peças internas para a camada de nuvem (ng-nuvem.js) ---------- */
+  function interno(){
+    var ST = function(nome, modo){ return idb.transaction(nome, modo || "readonly"); };
+    function bloboUrl(id, blob){ if (blobUrls.has(id)) URL.revokeObjectURL(blobUrls.get(id)); blobUrls.set(id, URL.createObjectURL(blob)); }
+    return {
+      uid: uidAtual,
+      paths: function(){ return Array.from(cache.keys()); },
+      docLocal: function(p){ return cache.has(p) ? clone(cache.get(p)) : undefined; },
+      filaListar: function(){ return req2p(ST("fila").objectStore("fila").getAll()); },
+      filaPut: async function(path, op){ var tx = ST("fila", "readwrite"); tx.objectStore("fila").put({path: path, op: op, t: Date.now()}); await txDone(tx); },
+      // remove da fila só se ninguém regravou o item enquanto enviávamos (compara o carimbo t)
+      filaRemover: async function(path, t){
+        var tx = ST("fila", "readwrite"), st = tx.objectStore("fila"), cur = await req2p(st.get(path));
+        if (cur && cur.t === t) st.delete(path);
+        await txDone(tx);
+      },
+      metaGet: async function(k){ var r = await req2p(ST("meta").objectStore("meta").get(k)); return r ? r.v : undefined; },
+      metaSet: async function(k, v){ var tx = ST("meta", "readwrite"); tx.objectStore("meta").put({k: k, v: v}); await txDone(tx); },
+      // aplica uma mudança vinda da nuvem; recusa se houver envio pendente desse caminho (o que está no aparelho vence até ser enviado)
+      aplicarRemoto: async function(path, data){
+        var tx = idb.transaction(["docs", "fila"], "readwrite");
+        var pend = await req2p(tx.objectStore("fila").get(path));
+        if (pend) { await txDone(tx); return false; }
+        if (data === undefined) tx.objectStore("docs").delete(path);
+        else tx.objectStore("docs").put({path: path, data: clone(data), updatedAt: Date.now()});
+        await txDone(tx);
+        if (data === undefined) cache.delete(path); else cache.set(path, clone(data));
+        notifica([path]);
+        try { if (bc) bc.postMessage({type: "docs", paths: [path]}); } catch(e){}
+        return true;
+      },
+      blobIds: async function(){ return (await req2p(ST("blobs").objectStore("blobs").getAllKeys())); },
+      blobTem: function(id){ return blobUrls.has(id); },
+      blobGet: async function(id){ var r = await req2p(ST("blobs").objectStore("blobs").get(id)); return r ? r.blob : null; },
+      blobPutRemoto: async function(id, blob){
+        var tx = ST("blobs", "readwrite");
+        tx.objectStore("blobs").put({id: id, blob: blob, type: blob.type, size: blob.size, criadoEm: Date.now()});
+        await txDone(tx);
+        bloboUrl(id, blob);
+        try { if (bc) bc.postMessage({type: "blobs", ids: [id]}); } catch(e){}
+        var fp = []; cache.forEach(function(d, p){ if (p.indexOf("fotos/") === 0 && d && d.assetId === id) fp.push(p); });
+        notifica(fp);
+      },
+      // lê o banco antigo ("bff", de antes do login), sem criar um novo se ele não existir
+      lerLegado: function(){
+        return new Promise(function(res){
+          var criou = false, r;
+          try { r = indexedDB.open("bff"); } catch(e){ res(null); return; }
+          r.onupgradeneeded = function(){ criou = true; try { r.transaction.abort(); } catch(e){} };
+          r.onerror = function(){ if (criou) { try { indexedDB.deleteDatabase("bff"); } catch(e){} } res(null); };
+          r.onsuccess = async function(){
+            try {
+              var d = r.result;
+              if (!d.objectStoreNames.contains("docs")) { d.close(); res(null); return; }
+              var tx = d.transaction(["docs", "blobs"], "readonly");
+              var docs = await req2p(tx.objectStore("docs").getAll());
+              var blobs = d.objectStoreNames.contains("blobs") ? await req2p(tx.objectStore("blobs").getAll()) : [];
+              d.close(); res({docs: docs, blobs: blobs});
+            } catch(e){ res(null); }
+          };
+        });
+      },
+      // copia o legado para a conta e enfileira tudo para envio
+      importarLegado: async function(leg){
+        for (var i = 0; i < leg.docs.length; i++) {
+          var d = leg.docs[i], tx = idb.transaction(["docs", "fila"], "readwrite");
+          tx.objectStore("docs").put({path: d.path, data: d.data, updatedAt: Date.now()});
+          tx.objectStore("fila").put({path: d.path, op: "set", t: Date.now()});
+          await txDone(tx); cache.set(d.path, clone(d.data));
+        }
+        for (var j = 0; j < leg.blobs.length; j++) {
+          var b = leg.blobs[j], tx2 = idb.transaction(["blobs", "fila"], "readwrite");
+          tx2.objectStore("blobs").put(b);
+          tx2.objectStore("fila").put({path: "blob:" + b.id, op: "bset", t: Date.now()});
+          await txDone(tx2); bloboUrl(b.id, b.blob);
+        }
+      },
+      apagarTudoLocal: async function(){ try { idb.close(); } catch(e){} await new Promise(function(res){ var q = indexedDB.deleteDatabase(DB_NAME); q.onsuccess = q.onerror = q.onblocked = function(){ res(); }; }); }
+    };
+  }
 
   /* ---------- downloads (fora do Claude o <a download> funciona normalmente) ---------- */
   var downloads = {
@@ -236,7 +329,7 @@
   }
   window.bffRuntime = {
     standalone: true,
-    version: "A1",
+    version: NUV ? "B1" : "A1",
     blobUrl: function(id){ return blobUrls.get(id) || ""; },
     // devolve {id: "data:image/jpeg;base64,..."} das fotos pedidas (para o backup .json)
     exportarFotos: async function(ids){
