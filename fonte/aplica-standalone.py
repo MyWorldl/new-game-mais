@@ -9,6 +9,17 @@ def rep(old,new,count=1):
 rep('<script>\n(function(){\n"use strict";\ndocument.documentElement.lang = "pt-BR";',
     '<script src="vendor-supabase.js"></script>\n<script src="ng-nuvem.js"></script>\n<script src="bff-runtime.js"></script>\n<script>\n(function(){\n"use strict";\ndocument.documentElement.lang = "pt-BR";')
 
+# 1b) fontes hospedadas no próprio site (LGPD: nenhum pedido ao Google; funciona offline)
+rep('<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">',
+    '<style id="ng-fontes">\n'
+    "@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2');}\n"
+    "@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2');}\n"
+    "@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2');}\n"
+    "@font-face{font-family:'Work Sans';font-style:normal;font-weight:400 700;font-display:swap;src:url(fonts/work-sans-latin-wght-normal.woff2) format('woff2');}\n"
+    "@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2');}\n"
+    "@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-mono-latin-600-normal.woff2) format('woff2');}\n"
+    '</style>')
+
 # 2) foto: URL vem do adaptador
 rep('function fotoSrc(f){ return f.assetId ? ("/_blob/"+f.assetId) : (f.localUrl||""); }',
     'function fotoSrc(f){ return f.assetId ? ((window.bffRuntime && window.bffRuntime.blobUrl(f.assetId)) || ("/_blob/"+f.assetId)) : (f.localUrl||""); }   // A1: fora do Claude, o adaptador devolve a URL local da foto')
@@ -85,6 +96,7 @@ rep('  _carregTimer = setTimeout(()=>{   // v98 F7: passou de 6 s sem resposta �
     '  const espera = window.ngNuvem ? 25000 : 6000;   // B1: com conta, o 1º acesso baixa os dados da nuvem\n  _carregTimer = setTimeout(function avisoLento(){   // v98 F7: passou de 6 s sem resposta — diz o que está acontecendo em vez de mostrar tela "vazia" calada\n    if(!carregando) return;\n    if(document.querySelector(".ng-login")){ _carregTimer = setTimeout(avisoLento, 3000); return; }   // B1: pessoa ainda está na tela de entrada')
 rep('    fimCarregamento();\n  }, 6000);', '    fimCarregamento();\n  }, espera);')
 rep('    <div class="card">\n      <div class="card-head">\n        <h2>Seus dados</h2>',
+    '    <div class="card" id="cfg-instalar">\n      <div class="card-head">\n        <h2>Instalar no celular</h2>\n        <span class="hint">abre em tela cheia e funciona sem internet</span>\n      </div>\n      <div class="hint u-mb10" id="cfg-inst-info" role="status"></div>\n      <div class="data-actions">\n        <button class="btn" id="cfg-inst-btn" type="button" aria-expanded="false" aria-controls="cfg-inst-passos"></button>\n      </div>\n      <div class="hint u-mt8" id="cfg-inst-passos" role="region" aria-label="Passo a passo para instalar" hidden></div>\n    </div>\n\n'
     '    <div class="card" id="cfg-conta" hidden>\n      <div class="card-head">\n        <h2>Conta e sincronização</h2>\n        <span class="hint">seus dados em todos os aparelhos</span>\n      </div>\n      <div class="hint u-mb10" id="cfg-conta-info" role="status"></div>\n      <div class="data-actions">\n        <button class="btn" id="cfg-conta-sync" type="button">Sincronizar agora</button>\n        <button class="btn ghost" id="cfg-conta-sair" type="button">Sair da conta</button>\n      </div>\n      <div class="data-actions u-mt8">\n        <button class="btn ghost" id="cfg-conta-politica" type="button">Política de privacidade</button>\n        <button class="btn" id="cfg-conta-excluir" type="button" style="border-color:var(--crit);">Excluir minha conta e dados</button>\n      </div>\n    </div>\n\n    <div class="card">\n      <div class="card-head">\n        <h2>Seus dados</h2>')
 
 open(sys.argv[2],'w',encoding='utf8').write(src)

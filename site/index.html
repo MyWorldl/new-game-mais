@@ -1,9 +1,14 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>NG+ (New Game+)</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style id="ng-fontes">
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2');}
+@font-face{font-family:'Work Sans';font-style:normal;font-weight:400 700;font-display:swap;src:url(fonts/work-sans-latin-wght-normal.woff2) format('woff2');}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-mono-latin-600-normal.woff2) format('woff2');}
+</style>
 
 <style>
 /* v90 D1: ordem das camadas — quem vem depois vence, independentemente da especificidade.
@@ -3997,6 +4002,18 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
       </div>
       <div class="hint u-my10" id="periodizacao-resumo"></div>
       <button class="btn small ghost" id="periodizacao-edit-btn" type="button">Editar blocos</button>
+    </div>
+
+    <div class="card" id="cfg-instalar">
+      <div class="card-head">
+        <h2>Instalar no celular</h2>
+        <span class="hint">abre em tela cheia e funciona sem internet</span>
+      </div>
+      <div class="hint u-mb10" id="cfg-inst-info" role="status"></div>
+      <div class="data-actions">
+        <button class="btn" id="cfg-inst-btn" type="button" aria-expanded="false" aria-controls="cfg-inst-passos"></button>
+      </div>
+      <div class="hint u-mt8" id="cfg-inst-passos" role="region" aria-label="Passo a passo para instalar" hidden></div>
     </div>
 
     <div class="card" id="cfg-conta" hidden>

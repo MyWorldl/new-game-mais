@@ -269,13 +269,18 @@
     pulling = (async function(){
       recentes = new Set();
       try {
-        var rows = [], from = 0, passo = 1000;
+        /* Paginação robusta: avança pelo que o servidor DEVOLVEU (e não por um tamanho fixo) e só para numa página vazia.
+           Se o limite de linhas por requisição do projeto for menor que o pedido, nada é cortado — um corte aqui faria o
+           app achar que o resto "foi apagado em outro aparelho". */
+        var rows = [], from = 0, passo = 1000, vistos = {}, voltas = 0;
         for (;;) {
           var r = await client.from("user_docs").select("path,data").order("path").range(from, from + passo - 1);
           if (r.error) throw r.error;
-          rows = rows.concat(r.data || []);
-          if (!r.data || r.data.length < passo) break;
-          from += passo;
+          var pg = r.data || [];
+          if (!pg.length) break;
+          pg.forEach(function(x){ if (!vistos[x.path]) { vistos[x.path] = 1; rows.push(x); } });
+          from += pg.length;
+          if (++voltas > 200) throw new Error("paginação excedeu o limite de segurança");
         }
         var primeira = !(await I.metaGet("sync1"));
         var nuvem = {};
@@ -294,8 +299,15 @@
         }
         if (primeira) {   // fotos locais que ainda não estão na nuvem
           try {
-            var lst = await client.storage.from(BUCKET).list(uid, {limit: 1000}), tem = {};
-            (lst.data || []).forEach(function(o){ tem[o.name] = 1; });
+            var tem = {}, off = 0;
+            for (var vz = 0; vz < 200; vz++) {   // lista TODAS as fotos da nuvem, 100 por vez (o teto do Storage por página)
+              var lst = await client.storage.from(BUCKET).list(uid, {limit: 100, offset: off, sortBy: {column: "name", order: "asc"}});
+              if (lst.error) throw lst.error;
+              var pgf = lst.data || [];
+              if (!pgf.length) break;
+              pgf.forEach(function(o){ tem[o.name] = 1; });
+              off += pgf.length;
+            }
             var ids = await I.blobIds();
             for (var b = 0; b < ids.length; b++) if (!tem[ids[b]]) await I.filaPut("blob:" + ids[b], "bset");
           } catch(e){}
@@ -504,4 +516,89 @@
     client: client, sessao: sessao, preparar: preparar, mudou: mudou, estado: estado, sincronizar: function(){ return sincronizar().then(flush); },
     abrirPolitica: abrirPolitica, versao: "B2"
   };
+})();
+
+/* ---------------- Instalar no celular (card "Instalar no celular" em Configurações) ----------------
+ * Analogia: o navegador é uma "loja de bairro" que só pode fixar o atalho na sua mesa quando VOCÊ pede.
+ *  - Android/Chrome e Chrome/Edge no computador: o navegador avisa (beforeinstallprompt) que dá para instalar; o botão usa esse aviso e abre a janela oficial de instalação com 1 toque.
+ *  - iPhone/iPad (Safari): a Apple não permite instalar por botão; mostramos o passo a passo certo (Compartilhar → Adicionar à Tela de Início).
+ *  - Já instalado (aberto como app): só confirma. Independe de login e de sincronização. */
+(function(){
+  "use strict";
+  if (window.claude) return;
+  var adiado = null, instalado = false;
+  function $(id){ return document.getElementById(id); }
+  function jaInstalado(){
+    try { if (window.navigator.standalone === true) return true; } catch(e){}
+    try { return ["standalone", "fullscreen", "minimal-ui"].some(function(m){ return window.matchMedia("(display-mode: " + m + ")").matches; }); } catch(e){ return false; }
+  }
+  function plataforma(){
+    var ua = navigator.userAgent || "";
+    var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1);
+    var android = /Android/i.test(ua);
+    var embutido = /FBAN|FBAV|Instagram|Line\/|MicroMessenger|; wv\)|WhatsApp|Snapchat|TikTok/i.test(ua);
+    var safari = ios && /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//i.test(ua) && !embutido;
+    return {ios: ios, android: android, embutido: embutido, safari: safari};
+  }
+  function passos(pl){
+    var li = function(a){ return "<li>" + a.join("</li><li>") + "</li>"; };
+    var l, t;
+    if (pl.embutido) {
+      t = "Este link está aberto dentro de outro aplicativo";
+      l = ["Toque nos três pontinhos ou no ícone de compartilhar do aplicativo atual.", "Escolha <b>Abrir no navegador</b> (" + (pl.ios ? "Safari" : "Chrome") + ").", "Depois volte aqui em Configurações → Instalar no celular."];
+    } else if (pl.ios) {
+      t = pl.safari ? "No iPhone ou iPad (Safari)" : "No iPhone ou iPad";
+      l = pl.safari
+        ? ["Toque no botão <b>Compartilhar</b> (o quadrado com a seta para cima, na barra do Safari).", "Role a lista e toque em <b>Adicionar à Tela de Início</b>.", "Deixe <b>Abrir como App Web</b> ligado, se aparecer, e toque em <b>Adicionar</b>."]
+        : ["Abra este endereço no <b>Safari</b> (é o navegador que o iPhone usa para instalar apps da web).", "Toque em <b>Compartilhar</b> (quadrado com seta para cima).", "Escolha <b>Adicionar à Tela de Início</b> e toque em <b>Adicionar</b>."];
+    } else if (pl.android) {
+      t = "No Android (Chrome)";
+      l = ["Toque nos três pontinhos <b>⋮</b> no canto superior do Chrome.", "Escolha <b>Instalar app</b> (em algumas versões: <b>Adicionar à tela inicial</b>).", "Confirme em <b>Instalar</b>. O ícone do NG+ aparece na tela inicial."];
+    } else {
+      t = "No computador (Chrome ou Edge)";
+      l = ["Procure o ícone de <b>instalar</b> no canto direito da barra de endereço (uma telinha com uma seta).", "Se não aparecer: menu <b>⋮</b> → <b>Transmitir, salvar e compartilhar</b> → <b>Instalar página como app</b> (no Edge: <b>Aplicativos</b> → <b>Instalar este site como um aplicativo</b>).", "No Firefox e no Safari do computador não há instalação; use o NG+ pelo navegador."];
+    }
+    return "<b>" + t + "</b><ol style=\"margin:8px 0 0 20px;padding:0;display:grid;gap:6px\">" + li(l) + "</ol>";
+  }
+  function pinta(){
+    var info = $("cfg-inst-info"), btn = $("cfg-inst-btn"), pas = $("cfg-inst-passos"); if (!info || !btn) return;
+    var pl = plataforma();
+    if (instalado || jaInstalado()) {
+      info.textContent = "Pronto: o NG+ está instalado e aberto como app neste aparelho. Para instalar em outro celular, abra Configurações lá.";
+      btn.hidden = true; if (pas) pas.hidden = true; return;
+    }
+    btn.hidden = false;
+    if (adiado) {
+      info.textContent = "Instale para abrir o NG+ pelo ícone na tela inicial, em tela cheia e sem depender da internet.";
+      btn.textContent = "Instalar agora"; btn.setAttribute("aria-expanded", "false"); btn.removeAttribute("aria-controls"); if (pas) pas.hidden = true;
+    } else {
+      info.textContent = pl.ios && !pl.embutido
+        ? "No iPhone a instalação é feita pelo Safari, em 3 toques. Toque no botão para ver o passo a passo."
+        : "Instale para abrir o NG+ pelo ícone na tela inicial, em tela cheia e sem depender da internet. Toque no botão para ver o passo a passo.";
+      btn.textContent = "Como instalar"; btn.setAttribute("aria-controls", "cfg-inst-passos");
+      btn.setAttribute("aria-expanded", pas && !pas.hidden ? "true" : "false");
+    }
+  }
+  async function clicou(){
+    var info = $("cfg-inst-info"), pas = $("cfg-inst-passos"), btn = $("cfg-inst-btn");
+    if (adiado) {
+      var ev = adiado; adiado = null; btn.disabled = true;
+      try {
+        await ev.prompt();
+        var r = await ev.userChoice;
+        if (r && r.outcome === "accepted") { info.textContent = "Instalando… em instantes o ícone do NG+ aparece na tela inicial."; btn.disabled = false; btn.hidden = true; return; }
+        info.textContent = "Tudo bem, fica para depois. Quando quiser, é só tocar de novo.";
+      } catch(e){ info.textContent = "Não consegui abrir a janela de instalação por aqui. Veja o passo a passo abaixo."; if (pas) { pas.innerHTML = passos(plataforma()); pas.hidden = false; } }
+      btn.disabled = false; btn.textContent = "Como instalar"; btn.setAttribute("aria-controls", "cfg-inst-passos"); btn.setAttribute("aria-expanded", pas && !pas.hidden ? "true" : "false");
+      return;
+    }
+    if (!pas) return;
+    if (pas.hidden) { pas.innerHTML = passos(plataforma()); pas.hidden = false; } else pas.hidden = true;
+    btn.setAttribute("aria-expanded", pas.hidden ? "false" : "true");
+  }
+  window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); adiado = e; pinta(); });
+  window.addEventListener("appinstalled", function(){ instalado = true; adiado = null; pinta(); });
+  function liga(){ var b = $("cfg-inst-btn"); if (!b || b.dataset.ligado) return; b.dataset.ligado = "1"; b.addEventListener("click", clicou); pinta(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", liga); else liga();
+  window.ngInstalar = {pinta: pinta, plataforma: plataforma};
 })();
