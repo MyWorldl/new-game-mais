@@ -3538,6 +3538,16 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
         <span class="hint">Regras simples, calculadas no seu aparelho — sem IA</span>
       </div>
       <div id="analise-treino-body"></div>
+      <div id="treinador-ia" hidden style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line-strong)">
+        <h3 class="an-h3">Resumo do treinador (IA) <span class="chip neutral">opcional</span></h3>
+        <p class="hint u-mb10" id="trn-info" role="status"></p>
+        <div class="data-actions">
+          <button class="btn" id="trn-btn" type="button"></button>
+          <button class="btn ghost" id="trn-revoga" type="button" hidden>Desativar IA</button>
+        </div>
+        <div id="trn-saida" role="region" aria-label="Resumo do treinador" aria-live="polite" tabindex="-1" hidden style="white-space:pre-wrap;margin-top:12px;padding:12px 14px;border:1px solid var(--line-strong);border-radius:12px;line-height:1.55"></div>
+        <p class="foot-note u-mt4" id="trn-aviso" hidden>Texto gerado por IA a partir dos seus números. Pode errar e não substitui um profissional de educação física ou de saúde.</p>
+      </div>
       <div class="foot-note u-mt4">Como lemos seus números: "progredindo" = mais carga ou mais repetições que na sessão anterior; "estagnado" = 3 ou mais sessões seguidas sem melhora. Base: dupla progressão e RPE (<a href="https://openrepository.aut.ac.nz/items/92cefeac-7c32-44f1-bfbc-f48f4a5dd8cf/full" target="_blank" rel="noopener">Helms et al., 2016</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/26049792/" target="_blank" rel="noopener">Zourdos et al., 2016</a>) e faixas de volume (<a href="https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth" target="_blank" rel="noopener">RP Strength</a>). É um apoio para conversar com seu treinador, não um diagnóstico.</div>
     </div>
 
@@ -4016,6 +4026,20 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
       <div class="hint u-mt8" id="cfg-inst-passos" role="region" aria-label="Passo a passo para instalar" hidden></div>
     </div>
 
+    <div class="card" id="cfg-lembretes" hidden>
+      <div class="card-head">
+        <h2>Lembretes de treino</h2>
+        <span class="hint">um aviso só nos dias de treino</span>
+      </div>
+      <div class="hint u-mb10" id="lem-info" role="status"></div>
+      <label class="hint" for="lem-hora" style="display:block;margin-bottom:6px">Horário do lembrete</label>
+      <select id="lem-hora" class="carga-chart-select" style="max-width:100%"><option value="5">05:00</option><option value="6">06:00</option><option value="7">07:00</option><option value="8">08:00</option><option value="9">09:00</option><option value="10">10:00</option><option value="11">11:00</option><option value="12">12:00</option><option value="13">13:00</option><option value="14">14:00</option><option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option><option value="18">18:00</option><option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option><option value="22">22:00</option></select>
+      <div class="data-actions u-mt8">
+        <button class="btn" id="lem-btn" type="button">Ativar lembretes</button>
+        <button class="btn ghost" id="lem-teste" type="button" hidden>Enviar lembrete de teste</button>
+      </div>
+    </div>
+
     <div class="card" id="cfg-conta" hidden>
       <div class="card-head">
         <h2>Conta e sincronização</h2>
@@ -4028,6 +4052,10 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
       </div>
       <div class="data-actions u-mt8">
         <button class="btn ghost" id="cfg-conta-politica" type="button">Política de privacidade</button>
+        <button class="btn" id="cfg-conta-resetar" type="button" style="border-color:var(--warn);">Resetar meus dados</button>
+      </div>
+      <div class="hint u-mt8">Resetar apaga seus registros e fotos, mas <b>mantém a conta</b>. Excluir remove também o login.</div>
+      <div class="data-actions u-mt8">
         <button class="btn" id="cfg-conta-excluir" type="button" style="border-color:var(--crit);">Excluir minha conta e dados</button>
       </div>
     </div>
@@ -13250,6 +13278,25 @@ window.addEventListener("resize", ()=>{
   bar.addEventListener("focusin", ()=> bar.classList.remove("hide"));
 })();
 /* ganchos só para os testes automatizados — ficam inertes a menos que o aparelho tenha ng_test_hooks=1 */
+/* NG+ — resumo compacto para o "treinador por IA" (só é usado no app instalado/online e só se a pessoa ativar). Não inclui nome, e-mail, idade, peso, medidas nem fotos. */
+function resumoParaTreinador(){
+  const p = state.perfil || {};
+  const plan = computeVolumeTotals();
+  const musc = {}; DAYS.forEach(k=>{ const d = state.rotina[k]; if(d && d.ativo) (d.exercicios||[]).forEach(e=>{ if(!musc[e.nome]) musc[e.nome] = e.musculos || []; }); });
+  const ordem = {estagnado:0, progredindo:1, estavel:2, "sem-dados":3};
+  const itens = allActiveExercises().map(x=> analiseExercicio(x.nome, musc[x.nome], plan)).filter(i=> i.sess.length).sort((a,b)=> ordem[a.cls.estado] - ordem[b.cls.estado]).slice(0, 14);
+  const seg = mondayOfISO(todayISO()), real = semanaRealizadaPorMusculo(seg);
+  const hoje = todayISO(), ha30 = addDaysISO(hoje, -30);
+  return {
+    experiencia: String(p.experiencia || ""), objetivo: String(p.objetivo || ""),
+    diasPorSemana: DAYS.filter(k=>{ const d = state.rotina[k]; return d && d.ativo !== false && (d.exercicios||[]).length; }).length,
+    sequenciaDias: computeStreak(),
+    treinosUltimos30Dias: Object.keys(state.checkins).filter(iso=> iso > ha30 && iso <= hoje && state.checkins[iso] && state.checkins[iso].concluido).length,
+    exercicios: itens.map(i=>({nome:i.nome, estado:i.cls.estado, resumo:i.resumo, sessoes:i.sess.slice(-ANALISE_JANELA).map(x=>({data:x.iso, cargaKg:x.peso, repsPorSerie:x.sets, rpe:x.rpe}))})),
+    volume: MUSCLE_ORDER.filter(m=> (plan[m]||0) > 0).map(m=>({musculo:MUSCLE_LANDMARKS[m].label, realizado:real[m]||0, planejado:plan[m], minimo:MUSCLE_LANDMARKS[m].mev, ideal:MUSCLE_LANDMARKS[m].mav, teto:MUSCLE_LANDMARKS[m].mrv}))
+  };
+}
+window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
 try{ if(localStorage.getItem("ng_test_hooks") === "1") window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino}; }catch(e){}
 })();
 </script>

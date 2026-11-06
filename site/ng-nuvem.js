@@ -32,6 +32,7 @@
   var I = null, uid = null, email = null;
   var fluxo = false, falhou = false, retry = 0, tRetry = null, pulling = null, canal = null;
   var recentes = null, ultimoPull = 0, ultimoOk = null, estadoAtual = {k: "loading", n: 0}, logado = false;
+  var resetando = false;   // true durante "Resetar meus dados": pausa envio e busca para nada ressuscitar o que está sendo apagado
 
   /* ---------------- util ---------------- */
   function $(id){ return document.getElementById(id); }
@@ -240,7 +241,7 @@
     }
   }
   async function flush(){
-    if (fluxo || !I || !logado || navigator.onLine === false) { atualizaEstado(); return; }
+    if (resetando || fluxo || !I || !logado || navigator.onLine === false) { atualizaEstado(); return; }
     fluxo = true; atualizaEstado();
     try {
       for (;;) {
@@ -265,6 +266,7 @@
     }
   }
   async function pull(){
+    if (resetando) return;
     if (pulling) return pulling;
     pulling = (async function(){
       recentes = new Set();
@@ -351,13 +353,13 @@
     tMudou = setTimeout(function(){ flush(); }, 600);   // junta várias gravações seguidas num envio só
   }
 
-  function dialogo(html, cls){
+  function dialogo(html, cls, rotulo){
     return new Promise(function(resolve){
       injetaCss();
       var d = document.createElement("div"); d.className = "ng-dlg" + (cls && cls.indexOf("top") >= 0 ? " top" : "");
-      d.innerHTML = '<div class="ng-dlg-box' + (cls && cls.indexOf("longo") >= 0 ? ' longo' : '') + '" role="dialog" aria-modal="true" aria-label="' + (cls && cls.indexOf("longo") >= 0 ? 'Política de privacidade' : 'Aviso') + '">' + html + '</div>';
+      d.innerHTML = '<div class="ng-dlg-box' + (cls && cls.indexOf("longo") >= 0 ? ' longo' : '') + '" role="dialog" aria-modal="true" aria-label="' + (rotulo || (cls && cls.indexOf("longo") >= 0 ? 'Política de privacidade' : 'Aviso')) + '">' + html + '</div>';
       document.body.appendChild(d);
-      d.addEventListener("click", function(ev){ var b = ev.target.closest("[data-r]"); if (b) { var chk = d.querySelector("input[type=checkbox]"); var v = b.getAttribute("data-r"); d.remove(); resolve({r: v, chk: !!(chk && chk.checked)}); } });
+      d.addEventListener("click", function(ev){ var b = ev.target.closest("[data-r]"); if (b) { var chk = d.querySelector("input[type=checkbox]"); var v = b.getAttribute("data-r"); var chks = Array.prototype.map.call(d.querySelectorAll("input[type=checkbox]"), function(c){ return !!c.checked; }); d.remove(); resolve({r: v, chk: !!(chk && chk.checked), chks: chks}); } });
       var primeiro = d.querySelector("button"); if (primeiro) primeiro.focus();
     });
   }
@@ -413,19 +415,30 @@
       '<h3>Quais dados ficam no app</h3><ul>' +
         '<li>Seu e-mail, usado só para entrar na conta.</li>' +
         '<li>O que você registra: perfil (nome, idade, sexo, altura, objetivo, experiência), treinos e cargas, dieta, medidas corporais, peso, conquistas e preferências.</li>' +
-        '<li>Fotos de progresso, se você adicionar.</li></ul>' +
+        '<li>Fotos de progresso, se você adicionar.</li>' +
+        '<li><b>Se você ativar os lembretes:</b> o endereço de notificação do seu navegador (um código técnico), o horário que escolheu e o seu fuso horário.</li>' +
+        '<li><b>Se você ativar o resumo por IA:</b> um resumo dos seus números de treino, enviado só quando você pedir (veja a seção própria abaixo).</li></ul>' +
       '<p>Medidas, peso e fotos do corpo são dados pessoais sensíveis (dados de saúde). Por isso, só os tratamos com o seu consentimento, que você dá ao entrar e usar o app.</p>' +
-      '<h3>Para que usamos</h3><p>Só para o app funcionar: guardar seu histórico e sincronizar entre os seus aparelhos. Não vendemos dados, não mostramos anúncios, não fazemos perfis comerciais e não enviamos seus dados para ferramentas de IA.</p>' +
+      '<h3>Para que usamos</h3><p>Só para o app funcionar: guardar seu histórico, sincronizar entre os seus aparelhos e, se você ativar, avisar a hora do treino. Não vendemos dados, não mostramos anúncios, não fazemos perfis comerciais e não enviamos seus dados para ferramentas de IA, a menos que você mesmo ative, de forma opcional, o resumo do treinador por IA (seção abaixo).</p>' +
       '<h3>Onde ficam guardados</h3><ul>' +
         '<li>No seu aparelho (para o app funcionar sem internet).</li>' +
         '<li>Na nuvem da Supabase (banco de dados e login), em servidores no Brasil (São Paulo). Cada conta só enxerga os próprios dados e as fotos ficam em área privada.</li>' +
-        '<li>A hospedagem do site é da Cloudflare, e o e-mail com o código de login é enviado pelo Gmail (Google). Essas empresas atuam como operadoras: só executam o serviço.</li></ul>' +
-      '<h3>Por quanto tempo</h3><p>Enquanto sua conta existir. Se você excluir a conta, os dados na nuvem são apagados na hora.</p>' +
-      '<h3>Menores de 18 anos</h3><p>Se você tem menos de 18 anos, use o app com o conhecimento e o consentimento de um responsável. O app não oferece metas agressivas de dieta para menores.</p>' +
+        '<li>A hospedagem do site é da Cloudflare, e o e-mail com o código de login é enviado pelo Gmail (Google). Essas empresas atuam como operadoras: só executam o serviço.</li>' +
+        '<li>Os lembretes passam pelo serviço de notificações do seu navegador (Google no Chrome e no Android, Apple no iPhone, Mozilla no Firefox), que só entrega a mensagem ao aparelho. O conteúdo do aviso viaja criptografado.</li>' +
+        '<li>As fontes de letra do app ficam dentro do próprio app: nenhum pedido ao Google ou a outros sites é feito para carregá-las.</li></ul>' +
+      '<h3>Resumo do treinador por IA (opcional)</h3>' +
+        '<p>É um recurso desligado por padrão. Só funciona se você ler o aviso, tocar em <b>Concordo e ativar</b> e depois tocar em <b>Gerar resumo</b>. Nada é enviado antes disso.</p><ul>' +
+        '<li><b>O que é enviado:</b> nomes dos exercícios, cargas, repetições, RPE, volume semanal, sequência de dias, nível de experiência e objetivo. <b>Não é enviado:</b> nome, e-mail, idade, peso, medidas nem fotos.</li>' +
+        '<li><b>Quem recebe:</b> a Anthropic (operadora do Claude), nos Estados Unidos, por meio da API comercial. Segundo a política da empresa, os dados enviados pela API são apagados em até 30 dias e não são usados para treinar modelos por padrão; podem ser retidos por mais tempo em caso de violação de uso ou exigência legal.</li>' +
+        '<li><b>Limites:</b> só para maiores de 18 anos (verificado no servidor), no máximo 5 resumos por dia. O texto é gerado por IA, pode errar e não substitui profissional de saúde.</li>' +
+        '<li><b>Base legal e como retirar:</b> seu consentimento (LGPD, art. 7º, I). Para retirar, use <b>Treino → Resumo do treinador → Desativar IA</b> ou exclua a conta. O registro do consentimento (versão e data) fica na sua conta e é apagado com ela.</li></ul>' +
+      '<h3>Por quanto tempo</h3><p>Enquanto sua conta existir. Se você excluir a conta, os dados na nuvem são apagados na hora. Os lembretes são apagados quando você os desliga, sai da conta ou exclui a conta.</p>' +
+      '<h3>Menores de 18 anos</h3><p>Se você tem menos de 18 anos, use o app com o conhecimento e o consentimento de um responsável. O app não oferece metas agressivas de dieta para menores, e o resumo por IA não é oferecido a menores de 18 anos.</p>' +
       '<h3>Seus direitos (art. 18 da LGPD)</h3><ul>' +
         '<li><b>Acessar e levar seus dados:</b> Config → Seus dados → Exportar dados (.json).</li>' +
         '<li><b>Corrigir:</b> edite os registros direto no app.</li>' +
-        '<li><b>Excluir e retirar o consentimento:</b> Config → Conta → Excluir minha conta e dados.</li>' +
+        '<li><b>Apagar só os registros e manter a conta:</b> Config → Conta → Resetar meus dados.</li>' +
+        '<li><b>Excluir a conta e retirar o consentimento:</b> Config → Conta → Excluir minha conta e dados.</li>' +
         '<li><b>Saber com quem compartilhamos e tirar dúvidas:</b> escreva para ' + esc(CONTATO_PRIVACIDADE) + '.</li></ul>' +
       '<h3>Segurança</h3><p>A conexão é protegida (HTTPS), o acesso ao banco é restrito por conta e não há senha para vazar: o login é por e-mail com código. Nenhum sistema é 100% seguro; se houver um incidente que afete você, avisaremos.</p>' +
       '<h3>Saúde</h3><p>O NG+ organiza seu treino e sua alimentação, mas não é aconselhamento médico nem substitui profissional de saúde.</p>' +
@@ -482,6 +495,78 @@
     await dialogo('<h2>Conta excluída</h2><p>Sua conta e todos os seus dados foram apagados da nuvem e deste aparelho. Obrigado por ter usado o NG+.</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Fechar</button></div>');
     location.reload();
   }
+  /* ---------------- Resetar meus dados (a conta continua) ----------------
+   * Analogia: "esvaziar o armário" sem trocar a fechadura — apaga o que você guardou (nuvem + aparelho), mas o login,
+   * os lembretes ligados e a escolha sobre o resumo por IA ficam como estão. Ordem: nuvem primeiro, aparelho depois;
+   * se algo falhar no meio, o aparelho não é apagado e o app se acerta com a nuvem na próxima sincronização. */
+  async function limparFotosDaNuvem(){
+    for (var v = 0; v < 500; v++) {
+      var lst = await client.storage.from(BUCKET).list(uid, {limit: 100, offset: 0});
+      if (lst.error) throw lst.error;
+      var nomes = (lst.data || []).filter(function(o){ return o && o.name && o.name.charAt(0) !== "."; }).map(function(o){ return uid + "/" + o.name; });
+      if (!nomes.length) return;
+      var rm = await client.storage.from(BUCKET).remove(nomes);
+      if (rm.error) throw rm.error;
+      if (!rm.data || !rm.data.length) throw new Error("fotos_nao_removidas");
+    }
+    throw new Error("fotos_limite");
+  }
+  async function resetarDados(){
+    if (navigator.onLine === false) { await dialogo('<h2>Sem internet</h2><p>Para resetar é preciso estar conectado, para apagar também o que está na nuvem. Tente de novo quando a internet voltar.</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Entendi</button></div>', null, "Sem internet"); return; }
+    var manter = false, x;
+    for (;;) {
+      x = await dialogo(
+        '<h2>Resetar meus dados?</h2>' +
+        '<p>Isso apaga <b>para sempre</b> tudo o que você registrou: treinos e cargas, rotina, dieta, medidas, peso, conquistas e fotos de progresso — na nuvem e neste aparelho. Nível, XP e sequência voltam do zero e o app recomeça pelo cadastro inicial.</p>' +
+        '<p><b>Sua conta continua</b> (<b>' + esc(email || "") + '</b>): o login, os lembretes ligados e a escolha sobre o resumo por IA não mudam.</p>' +
+        '<label class="ng-chk"><input type="checkbox"' + (manter ? ' checked' : '') + '> <span>Manter meu perfil (nome, idade, altura, objetivo) para não preencher de novo.</span></label>' +
+        '<p class="ng-peq">Não dá para desfazer. Se quiser uma cópia, baixe o backup antes e guarde o arquivo.</p>' +
+        '<div class="ng-dlg-act"><button class="ng-btn ghost" data-r="backup">Baixar backup antes</button></div>' +
+        '<div class="ng-dlg-act"><button class="ng-btn ghost" data-r="cancela">Cancelar</button><button class="ng-btn perigo" data-r="seguir">Continuar</button></div>', null, "Resetar meus dados");
+      manter = !!(x.chks && x.chks[0]);
+      if (x.r === "backup") { try { if (window.ngApp && window.ngApp.exportarBackup) await window.ngApp.exportarBackup(); } catch(e){} continue; }
+      break;
+    }
+    if (x.r !== "seguir") return;
+    var pr = dialogo(
+      '<h2>Confirme o reset</h2><p>Para confirmar, digite <b>RESETAR</b> no campo abaixo.</p>' +
+      '<label class="ng-l" for="ng-rst-in">Digite RESETAR</label><input id="ng-rst-in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">' +
+      '<div class="ng-dlg-act"><button class="ng-btn ghost" data-r="cancela">Cancelar</button><button class="ng-btn perigo" data-r="resetar" disabled>Resetar tudo</button></div>', null, "Confirmar o reset");
+    var dl = document.querySelectorAll(".ng-dlg"); dl = dl[dl.length - 1];
+    var inp = dl.querySelector("#ng-rst-in"), bt = dl.querySelector("[data-r=resetar]");
+    inp.addEventListener("input", function(){ bt.disabled = inp.value.trim().toUpperCase() !== "RESETAR"; });
+    inp.addEventListener("keydown", function(ev){ if (ev.key === "Enter" && !bt.disabled) bt.click(); });
+    inp.focus();
+    var y = await pr;
+    if (y.r !== "resetar") return;
+    var oc = dialogoOcupado("Resetando seus dados…");
+    var erro = null; resetando = true; travaApp(true);
+    try {
+      try { if (canal) await client.removeChannel(canal); } catch(e){}
+      canal = null;
+      for (var w = 0; w < 100 && fluxo; w++) await sleep(100);   // deixa terminar um envio que já estava em andamento
+      clearTimeout(tRetry); clearTimeout(tMudou);
+      var del = client.from("user_docs").delete().eq("user_id", uid);
+      if (manter) del = del.neq("path", "config/perfil");
+      var rd = await del; if (rd.error) throw rd.error;
+      await limparFotosDaNuvem();
+      var rc = await client.from("user_docs").select("path", {count: "exact", head: true});   // confere: não pode sobrar nada (além do perfil, se mantido)
+      if (rc.error) throw rc.error;
+      if ((rc.count || 0) > (manter ? 1 : 0)) throw new Error("sobrou_registro");
+    } catch(e){ erro = (e && (e.message || e.code)) || "falha"; }
+    if (erro) {
+      resetando = false; travaApp(false); oc.remove();
+      ligaRealtime(); sincronizar();   // o aparelho se acerta com o que sobrou na nuvem
+      await dialogo('<h2>Não foi possível resetar agora</h2><p>Confira a internet e tente de novo. Se uma parte já tinha sido apagada, o app mostra só o que sobrou; nada foi apagado à força neste aparelho.</p><p class="ng-peq">Código: ' + esc(erro) + '</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Entendi</button></div>', null, "Erro ao resetar");
+      return;
+    }
+    // sucesso na nuvem: limpa este aparelho (registros, fila de envio, fotos e o banco antigo de antes do login)
+    try { await I.apagarTudoLocal(); } catch(e){}
+    try { await new Promise(function(res){ var q = indexedDB.deleteDatabase("bff"); q.onsuccess = q.onerror = q.onblocked = function(){ res(); }; }); } catch(e){}
+    oc.remove();
+    await dialogo('<h2>Dados resetados</h2><p>Tudo foi apagado' + (manter ? ', menos o seu perfil' : '') + '. Sua conta continua ativa. O app vai recarregar para você recomeçar.</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Recomeçar</button></div>', null, "Dados resetados");
+    location.reload();
+  }
   function ligaConfig(){
     var card = $("cfg-conta"); if (!card) return;
     card.hidden = false; pintaConta();
@@ -489,6 +574,153 @@
     $("cfg-conta-sair").addEventListener("click", sair);
     var pol = $("cfg-conta-politica"); if (pol) pol.addEventListener("click", abrirPolitica);
     var exc = $("cfg-conta-excluir"); if (exc) exc.addEventListener("click", excluirConta);
+    var rst = $("cfg-conta-resetar"); if (rst) rst.addEventListener("click", resetarDados);
+    ligaLembretes(); ligaTreinador();
+  }
+
+  /* ---------------- Lembretes de treino (Web Push) ----------------
+   * Analogia: o aparelho entrega ao serviço de notificações do navegador (Google/Apple/Mozilla) um "endereço de caixa postal".
+   * Guardamos esse endereço na sua conta; de hora em hora o servidor confere quem treina hoje e ainda não treinou e manda o aviso. */
+  var VAPID_PUB = "BA33G21lNP57th7egdbLbresUkYApIOm5yeh56e52To89Re9qb9BAXhK8FyuilhAFxm5nMtF7-yeoxeJ9hqLgyI";
+  function pushSuportado(){ return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function ehIOS(){ var ua = navigator.userAgent || ""; return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1); }
+  function b64ParaBytes(u){ var p = "=".repeat((4 - u.length % 4) % 4), r = atob((u + p).replace(/-/g, "+").replace(/_/g, "/")), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i); return a; }
+  async function subDoAparelho(){ try { var reg = await navigator.serviceWorker.ready; return await reg.pushManager.getSubscription(); } catch(e){ return null; } }
+  async function removerPushDoAparelho(){
+    try { var sub = await subDoAparelho(); if (sub) { try { await client.from("push_subs").delete().eq("endpoint", sub.endpoint); } catch(e){} try { await sub.unsubscribe(); } catch(e){} } } catch(e){}
+  }
+  async function pintaLembretes(msg){
+    var info = $("lem-info"), btn = $("lem-btn"), teste = $("lem-teste"), hora = $("lem-hora"); if (!info || !btn) return;
+    teste.hidden = true; btn.disabled = false; hora.disabled = false;
+    if (msg) { info.textContent = msg; }
+    if (!pushSuportado()) {
+      info.textContent = ehIOS()
+        ? "No iPhone os lembretes só funcionam com o app instalado: use Configurações → Instalar no celular, abra o NG+ pelo ícone na tela inicial e volte aqui (precisa de iOS 16.4 ou mais novo)."
+        : "Este navegador não oferece notificações. Tente o Chrome ou o Edge, ou instale o app.";
+      btn.hidden = true; hora.disabled = true; return;
+    }
+    btn.hidden = false;
+    if (Notification.permission === "denied") { info.textContent = "As notificações estão bloqueadas para o NG+ neste aparelho. Libere nas configurações do navegador (ou do celular) e volte aqui."; btn.disabled = true; hora.disabled = true; return; }
+    var sub = await subDoAparelho(), row = null;
+    if (sub) { try { var r = await client.from("push_subs").select("hora,ativo").eq("endpoint", sub.endpoint).maybeSingle(); row = r.data; } catch(e){} }
+    if (sub && row && row.ativo) {
+      hora.value = String(row.hora);
+      if (!msg) info.textContent = "Lembretes ligados: você recebe um aviso às " + String(row.hora).padStart(2, "0") + ":00 nos dias de treino em que ainda não treinou.";
+      btn.textContent = "Desligar lembretes"; btn.dataset.modo = "desligar"; teste.hidden = false;
+    } else {
+      if (!msg) info.textContent = "Receba um aviso no horário que escolher, só nos dias de treino em que você ainda não treinou. Funciona neste aparelho; para outro aparelho, ative lá também.";
+      btn.textContent = "Ativar lembretes"; btn.dataset.modo = "ativar";
+    }
+  }
+  async function ativarLembretes(){
+    var btn = $("lem-btn"), hora = Number($("lem-hora").value);
+    btn.disabled = true;
+    try {
+      var perm = await Notification.requestPermission();
+      if (perm !== "granted") { await pintaLembretes("Sem a permissão do navegador não dá para avisar. Toque em Ativar de novo e escolha Permitir."); return; }
+      var reg = await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: b64ParaBytes(VAPID_PUB)});
+      var j = sub.toJSON(), tz = "America/Sao_Paulo"; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch(e){}
+      var r = await client.from("push_subs").upsert({user_id: uid, endpoint: sub.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, hora: hora, tz: tz, ativo: true, ultimo_envio: null}, {onConflict: "user_id,endpoint"});
+      if (r.error) throw r.error;
+      await pintaLembretes("Pronto! Lembretes ligados para as " + String(hora).padStart(2, "0") + ":00. Toque em “Enviar lembrete de teste” para ver como aparece.");
+    } catch(e){ await pintaLembretes("Não consegui ativar agora (" + ((e && e.message) || "erro") + "). Confira a internet e tente de novo."); }
+    finally { btn.disabled = false; }
+  }
+  async function desligarLembretes(){
+    var btn = $("lem-btn"); btn.disabled = true;
+    await removerPushDoAparelho();
+    btn.disabled = false; await pintaLembretes("Lembretes desligados neste aparelho.");
+  }
+  async function testeLembrete(){
+    var b = $("lem-teste"); b.disabled = true; var info = $("lem-info");
+    try {
+      var r = await client.functions.invoke("lembretes", {body: {teste: true}});
+      if (r.error) { var c = r.error.context, j = null; try { j = c && c.json ? await c.json() : null; } catch(e){} info.textContent = (j && j.erro) ? "Ainda não deu: " + j.erro + "." : "Não consegui enviar o teste agora."; }
+      else if (r.data && r.data.enviados > 0) info.textContent = "Teste enviado! A notificação deve aparecer em instantes.";
+      else info.textContent = "O teste não chegou a nenhum aparelho. Desligue e ligue os lembretes de novo.";
+    } catch(e){ info.textContent = "Não consegui enviar o teste agora."; }
+    b.disabled = false;
+  }
+  function ligaLembretes(){
+    var card = $("cfg-lembretes"); if (!card || card.dataset.ligado) return; card.dataset.ligado = "1"; card.hidden = false;
+    $("lem-btn").addEventListener("click", function(){ if (this.dataset.modo === "desligar") desligarLembretes(); else ativarLembretes(); });
+    $("lem-teste").addEventListener("click", testeLembrete);
+    $("lem-hora").addEventListener("change", async function(){
+      var sub = await subDoAparelho(); if (!sub) return;
+      try { var r = await client.from("push_subs").update({hora: Number(this.value), ultimo_envio: null}).eq("endpoint", sub.endpoint).select("endpoint"); if (r.data && r.data.length) await pintaLembretes("Horário atualizado: " + String(this.value).padStart(2, "0") + ":00."); } catch(e){}
+    });
+    pintaLembretes();
+  }
+
+  /* ---------------- Resumo do treinador por IA (opcional, só com consentimento) ---------------- */
+  var CONSENT_V = 1;
+  async function consentimentoAtual(){
+    try { var r = await client.auth.getSession(); var c = r.data && r.data.session && r.data.session.user.user_metadata && r.data.session.user.user_metadata.ia_consent; return !!(c && c.v === CONSENT_V && c.treinador === true); } catch(e){ return false; }
+  }
+  async function pintaTreinador(msg){
+    var box = $("treinador-ia"); if (!box) return;
+    var A = window.ngApp, info = $("trn-info"), btn = $("trn-btn"), rev = $("trn-revoga");
+    if (!A || !A.perfilCarregado()) { box.hidden = true; return; }
+    box.hidden = false; btn.disabled = false;
+    var idade = A.idade();
+    if (idade == null || idade < 18) { info.textContent = idade == null ? "Para usar o resumo por IA, informe sua idade no Perfil. O recurso é só para maiores de 18 anos." : "O resumo por IA não está disponível para menores de 18 anos. A análise do treino acima continua funcionando normalmente."; btn.hidden = true; rev.hidden = true; return; }
+    btn.hidden = false;
+    var ok = await consentimentoAtual();
+    if (ok) { btn.textContent = "Gerar resumo"; btn.dataset.modo = "gerar"; rev.hidden = false; if (msg) info.textContent = msg; else if (!info.dataset.pos) info.textContent = "IA ativada. Ao tocar em “Gerar resumo”, um resumo dos seus números de treino (sem nome nem e-mail) é enviado à Anthropic para escrever o texto. Limite: 5 por dia."; }
+    else { btn.textContent = "Ativar resumo por IA"; btn.dataset.modo = "ativar"; rev.hidden = true; info.textContent = msg || "Quer um resumo escrito por IA, como um treinador comentando seus números? É opcional e só acontece se você ativar: nada é enviado antes disso."; }
+  }
+  async function pedirConsentimentoIA(){
+    var x = await dialogo(
+      '<h2>Ativar o resumo do treinador por IA?</h2>' +
+      '<p><b>O que é enviado</b> (só quando você tocar em “Gerar resumo”): nomes dos exercícios, cargas, repetições, RPE, volume semanal, sequência de dias, nível de experiência e objetivo.</p>' +
+      '<p><b>O que não é enviado:</b> seu nome, e-mail, idade, peso, medidas e fotos.</p>' +
+      '<p><b>Quem recebe:</b> a Anthropic (empresa que opera o Claude), nos Estados Unidos. Pela política da empresa para a API, os dados são apagados em até 30 dias e não são usados para treinar modelos por padrão (exceções: violação de uso e exigência legal).</p>' +
+      '<p><b>Regras:</b> só para maiores de 18 anos; limite de 5 resumos por dia; você pode desativar quando quiser em Treino → Resumo do treinador. O texto é gerado por IA, pode errar e não substitui profissional de saúde.</p>' +
+      '<p>Base legal: seu consentimento (LGPD, art. 7º, I), que você pode retirar a qualquer momento.</p>' +
+      '<div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Concordo e ativar</button><button class="ng-btn ghost" data-r="nao">Agora não</button></div>', "longo top", "Ativar resumo do treinador por IA");
+    if (x.r !== "ok") return false;
+    var r = await client.auth.updateUser({data: {ia_consent: {v: CONSENT_V, treinador: true, em: new Date().toISOString()}}});
+    return !r.error;
+  }
+  async function gerarResumoIA(){
+    var A = window.ngApp, info = $("trn-info"), btn = $("trn-btn"), out = $("trn-saida"), aviso = $("trn-aviso");
+    if (navigator.onLine === false) { info.textContent = "Sem internet. Tente de novo quando voltar a conexão."; return; }
+    var resumo = A.resumoParaTreinador();
+    if (!resumo.exercicios.length) { info.textContent = "Registre alguns treinos primeiro: o resumo usa as suas últimas sessões."; return; }
+    btn.disabled = true; btn.textContent = "Gerando…"; info.dataset.pos = "1"; info.textContent = "Escrevendo o resumo…";
+    try {
+      var r = await client.functions.invoke("treinador", {body: {resumo: resumo}});
+      if (r.error) {
+        var j = null; try { j = r.error.context && r.error.context.json ? await r.error.context.json() : null; } catch(e){}
+        var cod = j && j.codigo;
+        info.textContent = cod === "sem-chave" ? "O recurso de IA ainda está sendo configurado. Tente mais tarde."
+          : cod === "limite" ? "Você já gerou 5 resumos hoje. Volte amanhã."
+          : cod === "idade" ? "O resumo por IA é só para maiores de 18 anos."
+          : cod === "sem-consentimento" ? "Ative o resumo por IA antes de gerar."
+          : (j && j.erro) ? j.erro.charAt(0).toUpperCase() + j.erro.slice(1) + "." : "Não consegui gerar agora. Tente de novo em instantes.";
+      } else {
+        out.textContent = r.data.texto; out.hidden = false; aviso.hidden = false;   // textContent: nunca interpreta HTML vindo da IA
+        info.textContent = "Resumo pronto. Resumos restantes hoje: " + r.data.restantes + ".";
+        out.focus();
+      }
+    } catch(e){ info.textContent = "Não consegui gerar agora. Confira a internet e tente de novo."; }
+    btn.disabled = false; btn.textContent = "Gerar resumo";
+  }
+  function ligaTreinador(){
+    var box = $("treinador-ia"); if (!box || box.dataset.ligado) return; box.dataset.ligado = "1";
+    $("trn-btn").addEventListener("click", async function(){
+      if (this.dataset.modo === "gerar") return gerarResumoIA();
+      this.disabled = true; var ok = await pedirConsentimentoIA(); this.disabled = false;
+      await pintaTreinador(ok ? "IA ativada. Toque em “Gerar resumo” quando quiser." : null);
+    });
+    $("trn-revoga").addEventListener("click", async function(){
+      await client.auth.updateUser({data: {ia_consent: {v: 0, treinador: false, em: new Date().toISOString()}}});
+      var out = $("trn-saida"); out.hidden = true; out.textContent = ""; $("trn-aviso").hidden = true; $("trn-info").dataset.pos = "";
+      await pintaTreinador("IA desativada. Nada mais será enviado.");
+    });
+    document.addEventListener("click", function(ev){ if (ev.target.closest && ev.target.closest("#tab-treino")) setTimeout(function(){ pintaTreinador(); }, 400); });
+    setTimeout(function(){ pintaTreinador(); }, 1500);
   }
   async function sair(){
     var n = 0; try { n = (await I.filaListar()).length; } catch(e){}
@@ -499,6 +731,7 @@
       '<div class="ng-dlg-act"><button class="ng-btn" data-r="sair">Sair</button><button class="ng-btn ghost" data-r="cancela">Cancelar</button></div>');
     if (x.r !== "sair") return;
     try { await flush(); } catch(e){}
+    await removerPushDoAparelho();   // este aparelho deixa de receber lembretes da conta que saiu
     var restam = 0; try { restam = (await I.filaListar()).length; } catch(e){}
     if (x.chk && restam) {
       var y = await dialogo('<h2>Ainda há alterações sem enviar</h2><p>Se apagar agora, ' + restam + (restam === 1 ? ' alteração será perdida' : ' alterações serão perdidas') + '. Conecte-se à internet e tente de novo, ou saia mantendo os dados neste aparelho.</p><div class="ng-dlg-act"><button class="ng-btn" data-r="manter">Sair mantendo os dados</button><button class="ng-btn ghost" data-r="cancela">Cancelar</button></div>');

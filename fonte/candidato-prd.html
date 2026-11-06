@@ -12181,6 +12181,25 @@ window.addEventListener("resize", ()=>{
   bar.addEventListener("focusin", ()=> bar.classList.remove("hide"));
 })();
 /* ganchos só para os testes automatizados — ficam inertes a menos que o aparelho tenha ng_test_hooks=1 */
+/* NG+ — resumo compacto para o "treinador por IA" (só é usado no app instalado/online e só se a pessoa ativar). Não inclui nome, e-mail, idade, peso, medidas nem fotos. */
+function resumoParaTreinador(){
+  const p = state.perfil || {};
+  const plan = computeVolumeTotals();
+  const musc = {}; DAYS.forEach(k=>{ const d = state.rotina[k]; if(d && d.ativo) (d.exercicios||[]).forEach(e=>{ if(!musc[e.nome]) musc[e.nome] = e.musculos || []; }); });
+  const ordem = {estagnado:0, progredindo:1, estavel:2, "sem-dados":3};
+  const itens = allActiveExercises().map(x=> analiseExercicio(x.nome, musc[x.nome], plan)).filter(i=> i.sess.length).sort((a,b)=> ordem[a.cls.estado] - ordem[b.cls.estado]).slice(0, 14);
+  const seg = mondayOfISO(todayISO()), real = semanaRealizadaPorMusculo(seg);
+  const hoje = todayISO(), ha30 = addDaysISO(hoje, -30);
+  return {
+    experiencia: String(p.experiencia || ""), objetivo: String(p.objetivo || ""),
+    diasPorSemana: DAYS.filter(k=>{ const d = state.rotina[k]; return d && d.ativo !== false && (d.exercicios||[]).length; }).length,
+    sequenciaDias: computeStreak(),
+    treinosUltimos30Dias: Object.keys(state.checkins).filter(iso=> iso > ha30 && iso <= hoje && state.checkins[iso] && state.checkins[iso].concluido).length,
+    exercicios: itens.map(i=>({nome:i.nome, estado:i.cls.estado, resumo:i.resumo, sessoes:i.sess.slice(-ANALISE_JANELA).map(x=>({data:x.iso, cargaKg:x.peso, repsPorSerie:x.sets, rpe:x.rpe}))})),
+    volume: MUSCLE_ORDER.filter(m=> (plan[m]||0) > 0).map(m=>({musculo:MUSCLE_LANDMARKS[m].label, realizado:real[m]||0, planejado:plan[m], minimo:MUSCLE_LANDMARKS[m].mev, ideal:MUSCLE_LANDMARKS[m].mav, teto:MUSCLE_LANDMARKS[m].mrv}))
+  };
+}
+window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
 try{ if(localStorage.getItem("ng_test_hooks") === "1") window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino}; }catch(e){}
 })();
 </script>
