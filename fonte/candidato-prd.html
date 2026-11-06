@@ -2026,6 +2026,76 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
 .qc-field > .rest-auto{grid-column:1 / -1; margin-top:0;}
 .quest-rest-row{flex-wrap:wrap;}
 
+/* NG+ Treino Fase 1 — lançamento série a série */
+.sl{display:flex; flex-direction:column; gap:var(--sp-2); margin-top:var(--sp-2);}
+.sl-top{display:flex; justify-content:space-between; align-items:baseline; gap:var(--sp-2); flex-wrap:wrap; font-size:var(--fs-sm);}
+.sl-count b{font-family:'IBM Plex Mono',monospace; font-size:var(--fs-base);}
+.sl-faixa{color:var(--muted); font-size:var(--fs-xs);}
+.sl-sets{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px;}
+.sl-chip{appearance:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; min-height:var(--target-min,32px); padding:4px 10px; border-radius:var(--r-pill,999px); border:1px solid var(--line-strong); background:var(--surface-2); color:var(--ink); font:600 var(--fs-sm) 'Work Sans',sans-serif;}
+.sl-chip b{font-family:'IBM Plex Mono',monospace;}
+.sl-chip small{font-size:12px; color:var(--muted);}
+.sl-chip-n{color:var(--muted); font-size:var(--fs-xs);}
+.sl-chip.on{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 16%, var(--surface-2));}
+.sl-chip.on .sl-chip-n, .sl-chip.on small{color:var(--ink);}
+.sl-chip:focus-visible, .sl-step:focus-visible, .sl-in:focus-visible, .sl-mot:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.sl-leg{font-size:var(--fs-xs); color:var(--muted); line-height:1.4;}
+.sl-row{display:flex; flex-direction:column; gap:var(--sp-2);}
+.sl-lab{font-size:var(--fs-sm); font-weight:600;}
+.sl-inwrap{display:flex; align-items:stretch; gap:8px;}
+.sl-step{appearance:none; cursor:pointer; flex:none; inline-size:48px; min-height:48px; border-radius:12px; border:1px solid var(--line-strong); background:var(--surface-2); color:var(--ink); font:700 22px 'Work Sans',sans-serif;}
+.sl-step:active{transform:scale(.96);}
+.sl-in{flex:1; min-width:0; min-height:48px; border-radius:12px; border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); text-align:center; font:700 22px 'IBM Plex Mono',monospace;}
+.sl-ok{min-height:48px; font-weight:800;}
+.sl-btns{display:flex; flex-wrap:wrap; gap:8px;}
+.sl-btns .btn{flex:1 1 120px; min-height:44px;}
+.sl-acoes{display:flex; gap:8px; flex-wrap:wrap;}
+.an-sum{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+.an-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+.an-ex{border:1px solid var(--line-strong); border-radius:12px; background:var(--surface);}
+.an-ex>summary{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; min-height:var(--touch-min,44px); cursor:pointer; list-style:none;}
+.an-ex>summary::-webkit-details-marker{display:none;}
+.an-name{font-weight:700; min-width:0; overflow-wrap:anywhere;}
+.an-body{padding:0 12px 12px; display:flex; flex-direction:column; gap:8px; font-size:var(--fs-sm); line-height:1.5; color:var(--ink-soft);}
+.an-body p{margin:0;}
+.an-resumo{color:var(--ink);}
+.an-linhas{margin:0; padding-left:1.1em; display:flex; flex-direction:column; gap:4px;}
+.an-tabw{overflow-x:auto;}
+.an-tab{border-collapse:collapse; width:100%; font-size:var(--fs-xs,.75rem); font-variant-numeric:tabular-nums;}
+.an-tab th,.an-tab td{padding:4px 8px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap;}
+.an-tab th{color:var(--ink-soft); font-weight:600;}
+.an-h3{margin:16px 0 8px; font-size:var(--fs-md,1rem);}
+.an-volwrap{display:flex; flex-direction:column; gap:10px;}
+.an-vol-top{display:flex; justify-content:space-between; gap:8px; font-size:var(--fs-sm); margin-bottom:4px;}
+.an-vol-sub{font-size:var(--fs-xs,.75rem); color:var(--ink-soft); margin-top:4px;}
+.an-nota{color:var(--ink);}
+.qc-analise{margin-top:12px; padding:12px; border:1px solid var(--line-strong); border-radius:12px; background:var(--surface);}
+.qc-analise-t{font-weight:700; margin-bottom:8px;}
+.qc-analise ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; font-size:var(--fs-sm); line-height:1.45;}
+.qc-analise li{display:flex; gap:8px; align-items:flex-start;}
+.sl-rpe{display:flex; flex-direction:column; gap:8px; padding:12px; border:1px solid var(--line-strong); border-radius:12px; background:var(--surface-2);}
+.sl-rpe-q{font-weight:700; font-size:var(--fs-md,1rem); display:flex; align-items:center; gap:6px;}
+.sl-rpe-intro{margin:0; font-size:var(--fs-sm); line-height:1.5; color:var(--ink-soft);}
+.sl-rpe-opts{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;}
+.sl-rpe-opt{display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-height:var(--touch-min,44px); padding:8px 10px; border-radius:10px; border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); text-align:left; cursor:pointer; font:inherit;}
+.sl-rpe-opt small{color:var(--ink-soft); font-size:var(--fs-xs,.75rem); line-height:1.3;}
+.sl-rpe-opt:hover{border-color:var(--accent);}
+.sl-rpe-foot{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:var(--fs-xs,.75rem); color:var(--ink-soft);}
+.sl-rpe-done{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:var(--fs-sm); color:var(--ink-soft);}
+.sl-rpe-done b{color:var(--ink);}
+.glos-src{display:inline-block; margin-left:4px; color:var(--ink); text-decoration:underline;}
+.sl-status{padding:10px 12px; border-radius:12px; border:1px solid var(--line-strong); background:var(--surface-2); font-size:var(--fs-sm); line-height:1.45;}
+.sl-status.parcial{border-color:color-mix(in srgb, var(--warn) 60%, var(--line-strong));}
+.sl-status .btn{margin-inline-start:6px;}
+.sl-motivos{display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:var(--fs-xs);}
+.sl-mlab{color:var(--muted);}
+.sl-mot{appearance:none; cursor:pointer; min-height:var(--target-min,32px); padding:2px 10px; border-radius:var(--r-pill,999px); border:1px solid var(--line-strong); background:transparent; color:var(--ink); font:600 var(--fs-xs) 'Work Sans',sans-serif;}
+.sl-mot.on{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 16%, var(--surface-2));}
+.qc.part .qc-badge, .qc.skip .qc-badge{background:var(--surface-2); color:var(--ink); border:1px solid var(--line-strong);}
+.qc-st{font-weight:700; color:var(--ink-soft);}
+#today-dots span.part{background:color-mix(in srgb, var(--accent) 45%, var(--surface-2));}
+@media (hover:none) and (pointer:coarse){ .sl-chip, .sl-mot{min-height:var(--touch-min,44px);} }
+
 
 /* ============================================================
    v91 — USABILIDADE (U3 alvos ≥ 24 px · U4 busca · U5 sincronização · U6 validação)
@@ -2864,6 +2934,15 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         <div class="carga-chart-empty" id="carga-chart-empty" hidden></div>
       </div>
       <div id="cargas-body"></div>
+    </div>
+
+    <div class="card" id="analise-treino-card">
+      <div class="card-head">
+        <h2 id="analise-treino-t">Análise do treino</h2>
+        <span class="hint">Regras simples, calculadas no seu aparelho — sem IA</span>
+      </div>
+      <div id="analise-treino-body"></div>
+      <div class="foot-note u-mt4">Como lemos seus números: "progredindo" = mais carga ou mais repetições que na sessão anterior; "estagnado" = 3 ou mais sessões seguidas sem melhora. Base: dupla progressão e RPE (<a href="https://openrepository.aut.ac.nz/items/92cefeac-7c32-44f1-bfbc-f48f4a5dd8cf/full" target="_blank" rel="noopener">Helms et al., 2016</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/26049792/" target="_blank" rel="noopener">Zourdos et al., 2016</a>) e faixas de volume (<a href="https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth" target="_blank" rel="noopener">RP Strength</a>). É um apoio para conversar com seu treinador, não um diagnóstico.</div>
     </div>
 
     <div class="card">
@@ -5065,10 +5144,10 @@ const TIPS = {
     d:"O teto de séries por semana que você ainda consegue recuperar. Passou disso, acumula mais cansaço do que músculo — como encher o copo além da borda.",
     src:"RP Strength — Training Volume Landmarks", url:"https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth"},
   rpe:{a:"RPE", t:"RPE · esforço percebido", g:"Treino",
-    d:"Nota de 6 a 10 para o quão pesada foi a última série. 10 = até a falha; 8 ≈ 2 repetições sobrando (RIR 2). É o velocímetro do esforço: o app usa para sugerir quando subir a carga.",
+    d:"É o marcador de combustível do esforço: não mede quanto você levantou, mede quanto ainda tinha no tanque ao parar. 10 = esvaziou (nenhuma repetição a mais); 9 = sobrava 1; 8 = sobravam 2; 7 = sobravam 3; 6 = 4 ou mais. Exemplo: você fez 10 repetições e conseguiria mais 2 → RPE 8. Não precisa ser exato. O app usa a nota, junto com as repetições de cada série, para sugerir quando subir a carga.",
     src:"Zourdos et al., 2016 — J Strength Cond Res", url:"https://pubmed.ncbi.nlm.nih.gov/26049792/"},
   xp:{a:"XP", t:"XP e patente", g:"Jogo",
-    d:"Pontos ganhos ao concluir treinos. Acumular XP sobe seu nível e sua patente, até a Radiante. Igual à barra de experiência de um jogo — só que o desafio aqui é a constância."},
+    d:"Pontos ganhos ao concluir treinos. Acumular XP sobe seu nível e sua patente, até a Radiante. Igual à barra de experiência de um jogo — só que o desafio aqui é a constância. Exercício completo vale 100%; se você encerrar um exercício antes do fim, ele vale proporcional às séries feitas (no mínimo metade); exercício pulado não vale XP, mas o dia continua contando para a sua sequência."},
   freeze:{a:"proteções", t:"Proteções (freeze)", g:"Jogo",
     d:"Se você perder um dia de treino, uma proteção impede que a sequência zere — um colete salva-vidas: usado só quando precisa. Você ganha uma a cada 7 dias de sequência e guarda no máximo 2."},
   meta:{a:"meta da semana", t:"Meta da semana", g:"Jogo",
@@ -5709,7 +5788,7 @@ function computeNivelInfo(){
 
   let iso = getTrackingStartISO();
   const end = todayISO();
-  let cur = 0, treinos = 0, leves = 0, xp = 0, tierIndex = 0, freezeBalance = 0;
+  let cur = 0, treinos = 0, leves = 0, xp = 0, tierIndex = 0, freezeBalance = 0, xpTreinos = 0;
   let tierStartDate = iso;
   const milestonesHit = new Set();
   let daysElapsed = 0;
@@ -5721,7 +5800,7 @@ function computeNivelInfo(){
     if(state.rotina[key]?.ativo){
       if(state.checkins[iso]?.concluido){
         cur++;
-        if(state.checkins[iso].leve) leves++; else treinos++;   // v95: dia leve mantém a sequência, mas vale metade do XP
+        if(state.checkins[iso].leve) leves++; else { treinos++; xpTreinos += xpDoTreino(state.checkins[iso], state.rotina[key]); }   // v95: dia leve mantém a sequência, mas vale metade do XP · NG+: exercícios parciais/pulados valem menos
         STREAK_MILESTONES.forEach(m=>{ if(cur>=m) milestonesHit.add(m); });
       } else if(freezeBalance > 0){
         freezeBalance--; // sequência protegida: mantém cur, não gera XP de treino
@@ -5729,7 +5808,7 @@ function computeNivelInfo(){
         cur = 0;
       }
     }
-    const newXp = treinos*NIVEL_XP_POR_TREINO + leves*NIVEL_XP_POR_LEVE + milestonesHit.size*NIVEL_XP_POR_MARCO;
+    const newXp = xpTreinos + leves*NIVEL_XP_POR_LEVE + milestonesHit.size*NIVEL_XP_POR_MARCO;
     if(newXp > xp){
       xp = newXp;
       while(tierIndex < NIVEL_TIERS.length-1 && xp >= boundaries[tierIndex+1]){
@@ -5748,7 +5827,7 @@ function computeNivelInfo(){
   return {
     tierIndex, tierName: NIVEL_TIERS[tierIndex].name, xp, xpInTier, tierNeed, isMax, diasNaPatente,
     proximaTier: NIVEL_TIERS[tierIndex+1]?.name || null,
-    treinos, leves, marcos: milestonesHit.size, xpTreinos: treinos*NIVEL_XP_POR_TREINO, xpLeves: leves*NIVEL_XP_POR_LEVE, xpMarcos: milestonesHit.size*NIVEL_XP_POR_MARCO,
+    treinos, leves, marcos: milestonesHit.size, xpTreinos, xpLeves: leves*NIVEL_XP_POR_LEVE, xpMarcos: milestonesHit.size*NIVEL_XP_POR_MARCO,
     streakAtual: cur, proximoMarco: STREAK_MILESTONES.find(m=>!milestonesHit.has(m)) || null,
     treinosParaProxima: isMax ? 0 : Math.max(1, Math.ceil((tierNeed-xpInTier)/NIVEL_XP_POR_TREINO)),
   };
@@ -5793,7 +5872,7 @@ function renderNivel(){
     const src = document.getElementById("nivel-src");
     if(src){
       src.innerHTML =
-        '<span>Treinos concluídos <b>'+info.treinos+' × '+NIVEL_XP_POR_TREINO+' = '+num(info.xpTreinos)+' XP</b></span>'+
+        '<span>Treinos concluídos <b>'+info.treinos+(info.xpTreinos === info.treinos*NIVEL_XP_POR_TREINO ? ' × '+NIVEL_XP_POR_TREINO+' = ' : ' · ')+num(info.xpTreinos)+' XP</b>'+(info.xpTreinos < info.treinos*NIVEL_XP_POR_TREINO ? ' <small>(exercícios encerrados antes ou pulados valem menos)</small>' : '')+'</span>'+
         '<span>Marcos de sequência <b>'+info.marcos+' × '+NIVEL_XP_POR_MARCO+' = '+num(info.xpMarcos)+' XP</b></span>'+
         (info.leves ? '<span>Dias leves <b>'+info.leves+' × '+NIVEL_XP_POR_LEVE+' = '+num(info.xpLeves)+' XP</b></span>' : '');
     }
@@ -6332,8 +6411,10 @@ function microReward(el){
    (prioridade: patente > conquista > recorde > nada).
    ============================================================ */
 function captureCelebrationBaseline(){
+  const nv = computeNivelInfo();
   return {
-    tierIndex: computeNivelInfo().tierIndex,
+    tierIndex: nv.tierIndex,
+    xp: nv.xp,
     achievementFlags: ACHIEVEMENTS.map(a=>a.check()),
     streak: computeStreakEngine().streak,
   };
@@ -7470,13 +7551,12 @@ function renderTodayDots(day, checkin){
   const dotsEl = document.getElementById("today-dots");
   if(!dotsEl) return;
   if(!day || !day.exercicios || !day.exercicios.length){ dotsEl.innerHTML = ""; return; }
-  const progresso = (checkin && checkin.progresso) || {};
   dotsEl.innerHTML = day.exercicios.map((ex,i)=>{
-    const meta = Number(ex.metaReps)||0;
-    const cur = meta ? Math.min(meta, Number(progresso[i])||0) : 0;
-    const done = meta>0 ? cur>=meta : !!(checkin && checkin.concluido);
+    const e = estadoEx(checkin, i, ex);
+    const done = e.feito;
     const nomeHoje = (checkin && checkin.trocas && checkin.trocas[i]) || ex.nome;
-    return '<span class="'+(done?"on":"")+'" title="'+escapeHtml(nomeHoje)+(done?" — concluído":" — pendente")+'"></span>';
+    const rot = e.status === "ok" ? " — concluído" : e.status === "parcial" ? " — encerrado antes do fim" : e.status === "pulado" ? " — pulado" : " — pendente";
+    return '<span class="'+(done?"on":"")+(e.status==="parcial"?" part":"")+(e.status==="pulado"?" skip":"")+'" title="'+escapeHtml(nomeHoje)+rot+'"></span>';
   }).join("");
 }
 function setTodayRing(cur, total, done){
@@ -7541,14 +7621,8 @@ function renderTodayCard(){
   if(title) title.textContent = day.nome;
   hint.textContent = DAY_FULL[key]+" — "+day.exercicios.length+" exercícios"+(checkin && checkin.leve ? " · dia leve: sequência mantida" : (checkin && checkin.rapido ? " · sessão rápida" : ""));
   renderTodayDots(day, checkin);
-  const progresso = (checkin && checkin.progresso) || {};
-  let nDone = 0, algum = false;
-  day.exercicios.forEach((ex,i)=>{
-    const meta = Number(ex.metaReps)||0;
-    const cur = meta ? Math.min(meta, Number(progresso[i])||0) : 0;
-    if(cur > 0) algum = true;
-    if(meta>0 ? cur>=meta : done) nDone++;
-  });
+  const rd = resumoDia(checkin, day);
+  let nDone = rd.resolvidos, algum = rd.algumRegistro;
   if(done) nDone = day.exercicios.length;
   aplicaAcaoHoje(!state.perfil ? "cadastro" : done ? "concluido" : (algum || nDone > 0) ? "andamento" : "pendente", nDone, day.exercicios.length, !!(checkin && checkin.leve));
   setTodayRing(nDone, day.exercicios.length, done);
@@ -7670,7 +7744,7 @@ document.getElementById("btn-quick-checkin").addEventListener("click", (e)=>{
   renderNivel();
   renderAchievements();
   if(!wasConcluido){
-    const celebrated = celebrateProgress(before, e.currentTarget, {xp:NIVEL_XP_POR_TREINO});
+    const celebrated = celebrateProgress(before, e.currentTarget, {xp:Math.max(0, computeNivelInfo().xp - before.xp)});
     if(!celebrated) toastCheckinDesfazer("Quest de hoje registrada. Continue assim!", iso, prevSnap);
   } else {
     showToast("Quest de hoje registrada. Continue assim!");
@@ -8101,24 +8175,262 @@ function rpeDoExercicio(exNome, iso){
   exs.forEach((e,i)=>{ const n = (c.trocas && c.trocas[i]) || e.nome; if(idx < 0 && n === exNome) idx = i; });
   return (idx >= 0 && c.rpe[idx] != null) ? Number(c.rpe[idx]) : null;
 }
+/* registro do exercício num dia: séries reais (só as lançadas série a série), faixa de repetições e RPE */
+function registroDoExercicio(exNome, iso){
+  const c = state.checkins[iso];
+  if(!c) return null;
+  const day = state.rotina[dayKeyFromISO(iso)];
+  const exs = (day && day.exercicios) || [];
+  let idx = -1, ex = null;
+  exs.forEach((e,i)=>{ if(idx >= 0) return; const x = exDoDia(e, iso, i); if(x.nome === exNome){ idx = i; ex = x; } });
+  if(idx < 0) return null;
+  const reais = (c.sets && Array.isArray(c.sets[idx])) ? c.sets[idx].map(s=> Number(s && s.r)||0).filter(r=> r > 0) : [];
+  const e = estadoEx(c, idx, ex);
+  return {idx, ex, sets: reais, completo: e.status === "ok" && reais.length >= e.prev, faixa: faixaDeReps(ex.reps),
+          rpe: (c.rpe && c.rpe[idx] != null) ? Number(c.rpe[idx]) : null};
+}
+/* NG+ · Treino Fase 2 — dupla progressão: primeiro sobe as repetições até o topo da faixa em todas as séries, depois sobe a carga.
+   O RPE ajusta a decisão, mas não é obrigatório. Sem séries lançadas (check-in antigo), cai na regra antiga baseada só no RPE. */
 function sugestaoProgressao(exNome){
   const hist = getCargaHistory(exNome);
   if(!hist.length) return null;
   const last = hist[hist.length-1];
-  const rpe = rpeDoExercicio(exNome, last.iso);
-  if(rpe == null) return null;
-  const prev = hist.length > 1 ? rpeDoExercicio(exNome, hist[hist.length-2].iso) : null;
   const step = cargaStepFor(exNome);
+  const rec = registroDoExercicio(exNome, last.iso);
+  const rpe = rec ? rec.rpe : rpeDoExercicio(exNome, last.iso);
+  const prevHist = hist.length > 1 ? hist[hist.length-2] : null;
+  const prevRec = prevHist ? registroDoExercicio(exNome, prevHist.iso) : null;
+  const prevRpe = prevHist ? (prevRec ? prevRec.rpe : rpeDoExercicio(exNome, prevHist.iso)) : null;
+  const usaSeries = !!(rec && rec.completo && rec.faixa.max && rec.faixa.unid === "reps");
+  const out = (delta, acao, texto, base)=> ({sugerido: Math.max(0, last.peso + delta), texto, acao, rpe, base});
+  if(usaSeries){
+    const f = rec.faixa, r = rec.sets;
+    const topoTodas = r.every(x=> x >= f.max);
+    const abaixo = r.some(x=> x < f.min);
+    const prevAbaixo = !!(prevRec && prevRec.completo && prevRec.faixa.max && prevRec.sets.some(x=> x < prevRec.faixa.min));
+    const lista = r.join(", ");
+    if(rpe != null && rpe <= 7) return out(step, "subir", "RPE "+rpe+" na última vez ("+lista+" reps) — sobrou fôlego, tente subir a carga", "series");
+    if(topoTodas && (rpe == null || rpe <= 8)) return out(step, "subir", "você chegou ao topo da faixa ("+f.max+" reps) em todas as séries ("+lista+") — hora de subir a carga e recomeçar em "+f.min+" reps", "series");
+    if(topoTodas) return out(0, "manter", "topo da faixa em todas as séries, mas com esforço alto (RPE "+rpe+") — mantenha a carga mais uma vez e suba quando ficar mais folgado", "series");
+    if(rpe === 10 && prevRpe === 10) return out(-step, "reduzir", "RPE 10 duas vezes seguidas — reduza um degrau e deixe 1–2 repetições na reserva", "series");
+    if(abaixo){
+      if(prevAbaixo && rpe != null && rpe >= 9) return out(-step, "reduzir", "alguma série ficou abaixo de "+f.min+" reps duas sessões seguidas, com esforço alto — reduza um degrau e reconstrua as repetições", "series");
+      return out(0, "manter", "alguma série ficou abaixo de "+f.min+" reps ("+lista+") — mantenha a carga e busque chegar a "+f.min+" em todas", "series");
+    }
+    return out(0, "manter", "séries na faixa ("+lista+") — mantenha a carga e tente +1 repetição em alguma série; ao chegar a "+f.max+" em todas, suba", "series");
+  }
+  if(rpe == null) return null;
+  const prev = prevRpe;
   let delta = 0, texto, acao = "manter";
   if(rpe <= 7){ delta = step; acao = "subir"; texto = "RPE "+rpe+" na última vez — sobrou fôlego, tente subir"; }
   else if(rpe === 8){ texto = "RPE 8 na última vez — zona boa (1–2 repetições na reserva): mantenha e tente mais uma repetição"; }
   else if(rpe === 9){ texto = "RPE 9 na última vez — também é zona boa: mantenha e busque o topo da faixa de repetições"; }
   else if(prev === 10){ delta = -step; acao = "reduzir"; texto = "RPE 10 duas vezes seguidas — reduza um degrau e deixe 1–2 repetições na reserva"; }
   else { texto = "RPE 10 (até a falha) na última vez — mantenha e, na próxima, pare com 1–2 repetições na reserva"; }
-  return {sugerido: Math.max(0, last.peso + delta), texto, acao, rpe};
+  return {sugerido: Math.max(0, last.peso + delta), texto, acao, rpe, base:"rpe"};
+}
+
+/* ============================================================
+   ANÁLISE DO TREINO (NG+ · Treino Fase 3) — regras locais, sem IA.
+   Por exercício: olha as últimas 4 sessões e diz se está progredindo, estável ou estagnado; cruza com RPE e volume semanal.
+   Iniciantes e menores de 18 anos não veem 1RM estimado: veem repetições na mesma carga e séries concluídas.
+   ============================================================ */
+const ANALISE_JANELA = 4;
+function sessoesDoExercicio(nome, ateISO){
+  const out = [];
+  Object.keys(state.checkins).sort().forEach(iso=>{
+    if(ateISO && iso > ateISO) return;
+    const c = state.checkins[iso]; if(!c) return;
+    const day = state.rotina[c.dia || dayKeyFromISO(iso)];
+    const exs = (day && day.exercicios) || [];
+    let idx = -1, ex = null;
+    exs.forEach((e,i)=>{ if(idx >= 0) return; const x = exDoDia(e, iso, i); if(x.nome === nome){ idx = i; ex = x; } });
+    if(idx < 0) return;
+    const est = estadoEx(c, idx, ex);
+    if(est.status === "pulado" || !est.n) return;
+    const sets = est.sets.map(x=> x.r);
+    out.push({iso, idx, peso: (c.cargas && c.cargas[nome] != null) ? Number(c.cargas[nome]) : null,
+      sets, total: sets.reduce((a,b)=> a+b, 0), n: sets.length, prev: est.prev, completo: est.status === "ok",
+      real: !!(c.sets && Array.isArray(c.sets[idx])), rpe: (c.rpe && c.rpe[idx] != null) ? Number(c.rpe[idx]) : null,
+      unid: faixaDeReps(ex.reps).unid, musculos: ex.musculos || []});
+  });
+  return out;
+}
+/* 1 = a é melhor que b; -1 = pior; 0 = igual. Mais carga vale mais; na mesma carga, mais repetições no total. */
+function cmpSessao(a, b){
+  const pa = a.peso || 0, pb = b.peso || 0;
+  if(Math.abs(pa - pb) >= 0.01) return pa > pb ? 1 : -1;
+  const d = a.total - b.total;
+  return Math.abs(d) >= 1 ? (d > 0 ? 1 : -1) : 0;
+}
+function classificarExercicio(sess){
+  const w = sess.slice(-ANALISE_JANELA);
+  if(w.length < 2) return {estado:"sem-dados", w, ups:0, downs:0, last:0};
+  const t = []; for(let k=1; k<w.length; k++) t.push(cmpSessao(w[k], w[k-1]));
+  const ups = t.filter(x=> x > 0).length, downs = t.filter(x=> x < 0).length, last = t[t.length-1];
+  let estado;
+  if(w.length === 2) estado = last > 0 ? "progredindo" : "estavel";
+  else if(last > 0) estado = "progredindo";
+  else if(ups === 0) estado = "estagnado";
+  else estado = "estavel";
+  return {estado, w, ups, downs, last};
+}
+function descMudanca(a, b){
+  if(Math.abs((a.peso||0) - (b.peso||0)) >= 0.01) return "carga de "+fmtKg(b.peso||0)+" → "+fmtKg(a.peso||0)+" kg";
+  const d = a.total - b.total, ad = Math.abs(d);
+  const un = a.unid === "s" ? " s" : (ad === 1 ? " repetição" : " repetições");
+  return (d > 0 ? "+" : "−")+ad+un+(a.unid==="s" ? "" : " no total")+(a.peso ? " com "+fmtKg(a.peso)+" kg" : "")+" ("+b.total+" → "+a.total+")";
+}
+function semanaRealizadaPorMusculo(mondayISO){
+  const tot = {}; MUSCLE_ORDER.forEach(m=> tot[m] = 0);
+  for(let k=0; k<7; k++){
+    const iso = addDaysISO(mondayISO, k), c = state.checkins[iso]; if(!c) continue;
+    const day = state.rotina[c.dia || dayKeyFromISO(iso)]; const exs = (day && day.exercicios) || [];
+    exs.forEach((e,i)=>{
+      const x = exDoDia(e, iso, i), est = estadoEx(c, i, x);
+      if(est.status === "pulado") return;
+      const n = est.n || ((c.concluido && !(c.sets || c.status)) ? est.prev : 0);   // check-in rápido sem séries: conta as séries previstas
+      (x.musculos || []).forEach(m=>{ if(tot[m] != null) tot[m] += n; });
+    });
+  }
+  return tot;
+}
+function analiseExercicio(nome, musculos, totaisPlan){
+  const sess = sessoesDoExercicio(nome), cls = classificarExercicio(sess);
+  const adulto = !menorDeIdade((state.perfil||{}).idade) && (state.perfil||{}).experiencia !== "iniciante";
+  const last = sess[sess.length-1], prev = sess[sess.length-2];
+  const linhas = [];
+  let resumo = "";
+  if(cls.estado === "sem-dados"){
+    resumo = sess.length ? "Só 1 sessão registrada — com a próxima já dá para comparar." : "Ainda sem registros.";
+  } else if(cls.estado === "progredindo"){
+    resumo = "Melhorou desde a última vez: "+descMudanca(last, prev)+".";
+  } else if(cls.estado === "estavel"){
+    resumo = cls.last < 0 ? "Oscilou para baixo na última sessão ("+descMudanca(last, prev)+") — um dia ruim ou uma semana de deload explicam isso." : "Mesmos números nas últimas sessões. Normal: progressão não é linear.";
+  } else {
+    resumo = cls.w.length+" sessões seguidas sem melhora.";
+    const rpes = cls.w.map(x=> x.rpe).filter(x=> x != null);
+    const altos = rpes.filter(x=> x >= 9).length;
+    if(rpes.length && altos >= 2) linhas.push("O esforço já está alto (RPE 9–10 em "+altos+" sessões): pode faltar recuperação — sono, alimentação ou uma semana de deload.");
+    else linhas.push("O esforço não está no limite: tente +1 repetição por série ou subir a carga um degrau (dupla progressão).");
+    const ms = (musculos||[]).filter(m=> MUSCLE_LANDMARKS[m]);
+    ms.forEach(m=>{
+      const lm = MUSCLE_LANDMARKS[m], v = totaisPlan[m] || 0;
+      if(lm.mev && v > 0 && v < lm.mev) linhas.push("O volume planejado de "+lm.label.toLowerCase()+" ("+v+" séries/semana) está abaixo do mínimo "+lm.mev+": pode ser pouco estímulo.");
+      else if(v > lm.mrv) linhas.push("O volume planejado de "+lm.label.toLowerCase()+" ("+v+" séries/semana) está acima do teto "+lm.mrv+": pode ser excesso para recuperar.");
+    });
+    linhas.push("Se a última semana foi deload, ignore este alerta.");
+  }
+  // tendência de força: só adulto não iniciante, ≥3 sessões com séries reais e carga
+  let tendencia = "";
+  if(adulto){
+    const e1 = sess.filter(x=> x.real && x.peso > 0 && x.unid === "reps").map(x=>{
+      const m = Math.max.apply(null, x.sets.filter(r=> r > 0 && r <= 12).map(r=> x.peso * (1 + r/30)).concat([0])); return m > 0 ? {iso:x.iso, v:m} : null; }).filter(Boolean);
+    if(e1.length >= 3){
+      const a = e1[0].v, b = e1[e1.length-1].v, pct = (b - a) / a * 100;
+      tendencia = "Força estimada (1RM, fórmula de Epley): "+fmtKg(Math.round(a*2)/2)+" → "+fmtKg(Math.round(b*2)/2)+" kg ("+(pct >= 0 ? "+" : "−")+Math.abs(pct).toFixed(1).replace(".", ",")+"%). É uma estimativa, não um teste de carga máxima.";
+    }
+  } else if(last){
+    const mesma = sess.filter(x=> x.peso === last.peso).slice(-4);
+    if(mesma.length >= 2) linhas.push("Repetições na mesma carga ("+fmtKg(last.peso||0)+" kg): "+mesma.map(x=> x.total).join(" → ")+" no total.");
+    linhas.push("Séries concluídas na última sessão: "+last.n+" de "+last.prev+".");
+  }
+  return {nome, cls, sess, resumo, linhas, tendencia};
+}
+const ANALISE_ESTADO = {
+  progredindo:{t:"↑ Progredindo", c:"good"}, estavel:{t:"→ Estável", c:"info"}, estagnado:{t:"⚠ Estagnado", c:"warn"}, "sem-dados":{t:"… Sem dados", c:"neutral"}
+};
+function renderAnaliseTreino(){
+  const el = document.getElementById("analise-treino-body"); if(!el) return;
+  const exList = allActiveExercises();
+  if(!exList.length){ el.innerHTML = '<div class="empty-note">Monte sua rotina para ver a análise.</div>'; return; }
+  const plan = computeVolumeTotals();
+  const musc = {}; DAYS.forEach(k=>{ const d = state.rotina[k]; if(d && d.ativo) (d.exercicios||[]).forEach(e=>{ if(!musc[e.nome]) musc[e.nome] = e.musculos || []; }); });
+  const itens = exList.map(x=> analiseExercicio(x.nome, musc[x.nome], plan));
+  const ordem = {estagnado:0, progredindo:1, estavel:2, "sem-dados":3};
+  itens.sort((a,b)=> ordem[a.cls.estado] - ordem[b.cls.estado]);
+  const cont = {}; itens.forEach(i=> cont[i.cls.estado] = (cont[i.cls.estado]||0) + 1);
+  const comDados = itens.filter(i=> i.sess.length).length;
+  let h = '';
+  if(!comDados){
+    h += '<div class="empty-note">Assim que você registrar séries nos treinos, aparece aqui o que está progredindo, o que está parado e por quê.</div>';
+  } else {
+    h += '<div class="an-sum" role="list" aria-label="Resumo">'+
+      ["progredindo","estavel","estagnado","sem-dados"].filter(k=> cont[k]).map(k=>'<span role="listitem" class="chip '+ANALISE_ESTADO[k].c+'">'+ANALISE_ESTADO[k].t+' · '+cont[k]+'</span>').join("")+'</div>';
+    h += '<ul class="an-list">'+itens.map(i=>{
+      const st = ANALISE_ESTADO[i.cls.estado];
+      const tab = i.sess.length ? '<div class="an-tabw" tabindex="0" role="region" aria-label="Últimas sessões de '+escapeHtml(i.nome)+'"><table class="an-tab"><thead><tr><th scope="col">Data</th><th scope="col">Carga</th><th scope="col">Reps por série</th><th scope="col">RPE</th></tr></thead><tbody>'+
+        i.sess.slice(-ANALISE_JANELA).reverse().map(x=>'<tr><td>'+escapeHtml(fmtDateBR(x.iso))+'</td><td>'+(x.peso != null ? fmtKg(x.peso)+' kg' : '—')+'</td><td>'+x.sets.join(" · ")+(x.unid==="s" ? " s" : "")+'</td><td>'+(x.rpe != null ? x.rpe : '—')+'</td></tr>').join("")+'</tbody></table></div>' : '';
+      return '<li><details class="an-ex"'+(i.cls.estado === "estagnado" ? ' open' : '')+'><summary><span class="an-name">'+escapeHtml(i.nome)+'</span><span class="chip '+st.c+'">'+st.t+'</span></summary>'+
+        '<div class="an-body"><p class="an-resumo">'+escapeHtml(i.resumo)+'</p>'+
+        (i.tendencia ? '<p class="an-tend">'+escapeHtml(i.tendencia)+'</p>' : '')+
+        (i.linhas.length ? '<ul class="an-linhas">'+i.linhas.map(l=>'<li>'+escapeHtml(l)+'</li>').join("")+'</ul>' : '')+tab+'</div></details></li>';
+    }).join("")+'</ul>';
+  }
+  // volume da semana: realizado x planejado, e a semana passada contra o mínimo
+  const seg = mondayOfISO(todayISO()), segAnt = addDaysISO(seg, -7);
+  const real = semanaRealizadaPorMusculo(seg), ant = semanaRealizadaPorMusculo(segAnt);
+  const linhasVol = MUSCLE_ORDER.filter(m=> (plan[m]||0) > 0).map(m=>{
+    const lm = MUSCLE_LANDMARKS[m], pl = plan[m], rl = real[m]||0, pct = Math.min(100, Math.round(rl / pl * 100));
+    const nota = (lm.mev && ant[m] > 0 && ant[m] < lm.mev) ? ' <span class="an-nota">Semana passada: '+ant[m]+' séries, abaixo do mínimo ('+lm.mev+').</span>' : '';
+    return '<div class="an-vol"><div class="an-vol-top"><span>'+escapeHtml(lm.label)+'</span><span><b>'+rl+'</b> de '+pl+' séries</span></div>'+
+      '<div class="quest-track" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
+      '<div class="an-vol-sub">Referência semanal: mínimo '+lm.mev+' · ideal '+lm.mav+' · teto '+lm.mrv+nota+'</div></div>';
+  }).join("");
+  if(linhasVol) h += '<h3 class="an-h3">Volume desta semana (realizado × planejado)</h3><div class="an-volwrap">'+linhasVol+'</div>';
+  el.innerHTML = h;
+}
+/* análise rápida ao concluir o dia: compara cada exercício de hoje com a última vez */
+function analiseDoDiaHtml(iso, day){
+  const exs = (day && day.exercicios) || [];
+  const itens = [];
+  exs.forEach((e,i)=>{
+    const x = exDoDia(e, iso, i), sess = sessoesDoExercicio(x.nome, iso);
+    const hoje = sess[sess.length-1];
+    if(!hoje || hoje.iso !== iso) return;
+    const ant = sess.length > 1 ? sess[sess.length-2] : null;
+    if(!ant){ itens.push({n:x.nome, s:"Primeira vez registrado — vira a sua referência.", c:"neutral", i:"•"}); return; }
+    const r = cmpSessao(hoje, ant);
+    itens.push(r > 0 ? {n:x.nome, s:"Melhor que a última vez: "+descMudanca(hoje, ant)+".", c:"good", i:"↑"}
+             : r < 0 ? {n:x.nome, s:"Um pouco abaixo da última vez ("+descMudanca(hoje, ant)+"). Acontece.", c:"info", i:"↓"}
+             : {n:x.nome, s:"Igual à última vez. Constância também é progresso.", c:"info", i:"→"});
+  });
+  if(!itens.length) return "";
+  return '<div class="qc-analise" role="region" aria-label="Análise do treino de hoje"><div class="qc-analise-t">Análise de hoje</div><ul>'+
+    itens.map(t=>'<li><span class="chip '+t.c+'" aria-hidden="true">'+t.i+'</span><span><b>'+escapeHtml(t.n)+'</b> — '+escapeHtml(t.s)+'</span></li>').join("")+'</ul></div>';
 }
 
 const RPE_HINTS = {6:"≈4 reps na reserva",7:"≈3 reps na reserva",8:"≈2 reps na reserva",9:"≈1 rep na reserva",10:"até a falha"};
+/* NG+ · Treino Fase 2 — "Como foi?" ao fechar o exercício. Menor de idade nunca vê "Falha"; iniciante também não (aprende a margem primeiro). */
+const RPE_PERGUNTA = [
+  {v:7,  t:"Sobrou bastante", d:"dava pra fazer 3 ou mais"},
+  {v:8,  t:"Bom",             d:"dava pra fazer mais 2"},
+  {v:9,  t:"Quase na falha",  d:"só mais 1"},
+  {v:10, t:"Falha",           d:"nenhuma a mais", falha:true}
+];
+const rpeSkip = {};   // idx -> true quando a pessoa pulou a pergunta (só nesta sessão da tela)
+function rpeEscondeFalha(){ const p = state.perfil || {}; return menorDeIdade(p.idade) || p.experiencia === "iniciante"; }
+function rpeValoresManuais(){ return menorDeIdade((state.perfil||{}).idade) ? [6,7,8,9] : [6,7,8,9,10]; }
+function rpeIntroVista(){ try{ return localStorage.getItem("ng_rpe_intro") === "1"; }catch(e){ return false; } }
+function rpeMarcaIntro(){ try{ localStorage.setItem("ng_rpe_intro", "1"); }catch(e){} }
+function rpePerguntaHtml(i, c, est){
+  if(est.status !== "ok") return "";
+  const atual = (c && c.rpe && c.rpe[i] != null) ? Number(c.rpe[i]) : null;
+  if(atual != null){
+    const q = RPE_PERGUNTA.find(o=> o.v === atual);
+    return '<div class="sl-rpe-done"><span>Esforço: <b>RPE '+atual+'</b>'+(q ? ' — '+q.t.toLowerCase() : '')+' ('+RPE_HINTS[atual]+')</span> <button type="button" class="btn small ghost" data-slrpe-edit>Alterar</button></div>';
+  }
+  if(rpeSkip[i]) return '';
+  const opts = RPE_PERGUNTA.filter(o=> !(o.falha && rpeEscondeFalha()));
+  const intro = rpeIntroVista() ? '' :
+    '<p class="sl-rpe-intro">Pense no <b>marcador de combustível</b> do carro: ele não mostra quanto você andou, mostra quanto ainda tinha no tanque. Aqui é igual — não importa o peso, importa <b>quantas repetições ainda sobravam</b> quando você parou.</p>';
+  return '<div class="sl-rpe" role="group" aria-label="Como foi esse exercício?">'+
+    '<div class="sl-rpe-q">Como foi esse exercício?'+tipBtn("rpe")+'</div>'+intro+
+    '<div class="sl-rpe-opts">'+opts.map(o=>
+      '<button type="button" class="sl-rpe-opt" data-slrpe="'+o.v+'"><b>'+o.t+'</b><small>'+o.d+'</small></button>').join("")+'</div>'+
+    '<div class="sl-rpe-foot"><span>Não precisa ser exato — é só uma noção.</span> <button type="button" class="btn small ghost" data-slrpe-skip>Agora não</button></div>'+
+  '</div>';
+}
 function saveRPE(iso, idx, value){
   const cur = state.checkins[iso] || {};
   const rpe = Object.assign({}, cur.rpe);
@@ -8134,20 +8446,317 @@ function getCargaHistory(exNome){
     .map(iso => ({iso, peso: Number(state.checkins[iso].cargas[exNome])}));
 }
 
-function bumpQuestProgress(iso, key, idx, delta, metaReps){
+/* ============================================================
+   LANÇAMENTO SÉRIE A SÉRIE (NG+ · Treino Fase 1)
+   checkins/<iso>.sets[idx]   = [{r}]  uma entrada por série, com as repetições (ou segundos) que a pessoa fez de verdade
+   checkins/<iso>.status[idx] = "parcial" | "pulado"   (ausente = normal)
+   checkins/<iso>.motivo[idx] = "cansaco" | "dor" | "tempo" | "equipamento" | "outro"   (opcional)
+   checkins/<iso>.progresso[idx] = soma das repetições — derivado, só para manter backups e telas antigas válidos.
+   Check-in antigo (só com "progresso") continua valendo: vira séries "implícitas" ao ser lido.
+   ============================================================ */
+const XP_PARCIAL_PISO = 0.5;   // exercício encerrado antes do fim vale, no mínimo, metade; acima disso, proporcional às séries feitas
+const MOTIVOS_ENCERRAR = {cansaco:"Cansaço", dor:"Dor ou desconforto", tempo:"Falta de tempo", equipamento:"Equipamento ocupado", outro:"Outro motivo"};
+function faixaDeReps(reps){
+  const r = String(reps||"");
+  let m = r.match(/^(\d+)-(\d+)s$/); if(m) return {min:+m[1], max:+m[2], unid:"s"};
+  m = r.match(/^(\d+)-(\d+)/); if(m) return {min:+m[1], max:+m[2], unid:"reps"};
+  m = r.match(/^(\d+)$/); if(m) return {min:+m[1], max:+m[1], unid:"reps"};
+  return {min:0, max:0, unid:"reps"};
+}
+function setsDe(c, idx, ex){
+  if(c && c.sets && Array.isArray(c.sets[idx])) return c.sets[idx].map(s=>({r: Math.max(0, Number(s && s.r)||0)}));
+  const prog = Number(c && c.progresso && c.progresso[idx])||0;
+  if(prog <= 0) return [];
+  const prev = Math.max(1, Number(ex && ex.series)||1);
+  const meta = Number(ex && ex.metaReps)||0;
+  const por = meta ? Math.max(1, Math.round(meta/prev)) : Math.max(1, faixaDeReps(ex && ex.reps).max || 1);
+  const n = Math.min(prev, Math.ceil(prog/por));
+  const out = []; let resto = prog;
+  for(let k=0; k<n; k++){ const v = Math.min(por, resto); out.push({r:v}); resto -= v; }
+  return out;
+}
+function statusDe(c, idx){
+  const s = c && c.status && c.status[idx];
+  return (s === "parcial" || s === "pulado") ? s : null;
+}
+function estadoEx(c, idx, ex){
+  const prev = Math.max(1, Number(ex && ex.series)||1);
+  const sets = setsDe(c, idx, ex), n = sets.length;
+  const st = statusDe(c, idx);
+  let s;
+  if(st === "pulado") s = "pulado";
+  else if(st === "parcial") s = n > 0 ? "parcial" : "pulado";   // "encerrar aqui" sem nenhuma série registrada equivale a pular
+  else if(n >= prev) s = "ok";
+  else s = n > 0 ? "andamento" : "pendente";
+  return {n, prev, sets, status:s, resolvido: s==="ok"||s==="parcial"||s==="pulado", feito: s==="ok"||s==="parcial"};
+}
+function resumoDia(c, day){
+  const exs = (day && day.exercicios) || [];
+  const r = {total:exs.length, ok:0, parcial:0, pulado:0, resolvidos:0, algumFeito:false, algumRegistro:false};
+  exs.forEach((ex,i)=>{
+    const e = estadoEx(c, i, ex);
+    if(e.status === "ok") r.ok++; else if(e.status === "parcial") r.parcial++; else if(e.status === "pulado") r.pulado++;
+    if(e.resolvido) r.resolvidos++;
+    if(e.feito) r.algumFeito = true;
+    if(e.n > 0 || e.status === "pulado") r.algumRegistro = true;
+  });
+  r.completo = r.total > 0 && r.resolvidos === r.total && r.algumFeito;   // o dia conclui quando todos os exercícios foram resolvidos (feitos, encerrados ou pulados) e ao menos um foi feito
+  return r;
+}
+/* fração do treino que vale XP: completo 100%, parcial proporcional às séries feitas (piso de 50%), pulado 0% */
+function fatorXpDoTreino(c, day){
+  const exs = (day && day.exercicios) || [];
+  if(!c || !exs.length) return 1;
+  const temRegistro = (c.sets && Object.keys(c.sets).length) || (c.status && Object.keys(c.status).length);
+  if(!temRegistro) return 1;   // check-in antigo, sessão rápida ou "concluir treino inteiro" sem séries lançadas: vale o treino completo
+  let soma = 0;
+  exs.forEach((ex,i)=>{
+    const e = estadoEx(c, i, ex);
+    if(e.status === "pulado") return;
+    if(e.status === "parcial" || e.status === "andamento") soma += Math.max(XP_PARCIAL_PISO, Math.min(1, e.n/e.prev));
+    else soma += 1;
+  });
+  return soma / exs.length;
+}
+function xpDoTreino(c, day){ return Math.round(NIVEL_XP_POR_TREINO * fatorXpDoTreino(c, day)); }
+
+/* grava uma mudança de séries/status: materializa séries implícitas, recalcula o progresso derivado e se o dia está concluído */
+function mudarSeries(iso, key, mut){
   const cur = state.checkins[iso] || {};
-  const progresso = Object.assign({}, cur.progresso);
-  const val = Math.max(0, Math.min(metaReps, (Number(progresso[idx])||0) + delta));
-  progresso[idx] = val;
   const day = state.rotina[key];
-  const exercicios = (day && day.exercicios) || [];
-  const allDone = exercicios.length>0 && exercicios.every((ex,i)=> !ex.metaReps || (Number(progresso[i])||0) >= ex.metaReps);
-  // mescla com o check-in existente — antes recriava o objeto do zero e
-  // apagava carga/RPE já registrados no dia a cada toque em +/−
-  const data = Object.assign({}, cur, {data:iso, dia:key, concluido:allDone, progresso});
-  delete data.leve; delete data.rapido; delete data.rapidoEx;   // v95: registrar séries = treino completo
+  const exs = (day && day.exercicios) || [];
+  const sets = {}; Object.keys(cur.sets||{}).forEach(k=>{ sets[k] = (cur.sets[k]||[]).map(s=>({r:Number(s && s.r)||0})); });
+  const status = Object.assign({}, cur.status), motivo = Object.assign({}, cur.motivo), progresso = Object.assign({}, cur.progresso);
+  exs.forEach((ex,i)=>{ if(!sets[i] && Number(progresso[i]) > 0) sets[i] = setsDe(cur, i, ex); });
+  mut({sets, status, motivo, exs});
+  Object.keys(sets).forEach(k=>{
+    if(!sets[k].length){ delete sets[k]; delete progresso[k]; }
+    else progresso[k] = sets[k].reduce((a,s)=> a + (Number(s.r)||0), 0);
+  });
+  const data = Object.assign({}, cur, {data:iso, dia:key, sets, status, motivo, progresso});
+  if(!Object.keys(sets).length) delete data.sets;
+  if(!Object.keys(status).length) delete data.status;
+  if(!Object.keys(motivo).length) delete data.motivo;
+  if(!Object.keys(progresso).length) delete data.progresso;
+  data.concluido = resumoDia(data, day).completo;
+  delete data.leve; delete data.rapido; delete data.rapidoEx;   // lançar séries = treino completo
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
+}
+function registrarSerie(iso, key, idx, reps){
+  mudarSeries(iso, key, o=>{
+    const prev = Math.max(1, Number(o.exs[idx] && o.exs[idx].series)||1);
+    const lista = o.sets[idx] || (o.sets[idx] = []);
+    if(lista.length < 20) lista.push({r: Math.max(1, Math.min(999, Math.round(reps)))});
+    if(lista.length >= prev){ delete o.status[idx]; delete o.motivo[idx]; }   // completou as séries previstas: deixa de ser parcial
+  });
+}
+function editarSerie(iso, key, idx, k, reps){
+  mudarSeries(iso, key, o=>{ if(o.sets[idx] && o.sets[idx][k]) o.sets[idx][k].r = Math.max(1, Math.min(999, Math.round(reps))); });
+}
+function removerSerie(iso, key, idx, k){
+  mudarSeries(iso, key, o=>{
+    if(!o.sets[idx]) return;
+    o.sets[idx].splice(k, 1);
+    if(!o.sets[idx].length){ delete o.status[idx]; delete o.motivo[idx]; }
+  });
+}
+function encerrarExercicio(iso, key, idx, tipo){
+  mudarSeries(iso, key, o=>{ o.status[idx] = tipo; });
+}
+function retomarExercicio(iso, key, idx){
+  mudarSeries(iso, key, o=>{ delete o.status[idx]; delete o.motivo[idx]; });
+}
+function definirMotivo(iso, key, idx, m){
+  mudarSeries(iso, key, o=>{ if(o.motivo[idx] === m) delete o.motivo[idx]; else if(MOTIVOS_ENCERRAR[m]) o.motivo[idx] = m; });
+}
+function restaurarCheckin(iso, prev){
+  if(prev){ state.checkins[iso] = prev; saveDoc("checkins/"+iso, prev); }
+  else { delete state.checkins[iso]; deleteDocRemote("checkins/"+iso); }
+  render();
+  showToast("Desfeito.");
+}
+
+/* estado efêmero da tela (o cronômetro de descanso redesenha a lista a cada segundo; sem isso o número digitado se perderia) */
+const setDraft = {};   // idx -> texto digitado
+const setEdit = {};    // idx -> índice da série em edição
+const setExtra = {};   // idx -> true quando a pessoa abriu "série extra" depois de completar as previstas
+function alvoReps(ex, sets){
+  if(sets && sets.length) return sets[sets.length-1].r || 1;
+  const f = faixaDeReps(ex.reps);
+  return f.max ? Math.max(1, Math.ceil((f.min + f.max)/2)) : 10;
+}
+function rotuloFaixa(r, ex){
+  const f = faixaDeReps(ex.reps);
+  if(!f.max) return null;
+  if(r < f.min) return {t:"abaixo da faixa", s:"▼"};
+  if(r > f.max) return {t:"acima da faixa", s:"▲"};
+  return {t:"na faixa", s:"●"};
+}
+function semFocoEmCampo(fn){
+  return ()=>{ const a = document.activeElement; if(a && a.matches && a.matches("input,select,textarea") && a.closest("#week-trail-detail, .live-workout")) return; fn(); };
+}
+function serieLogHtml(i, ex, c, pfx){
+  const e = estadoEx(c, i, ex), f = faixaDeReps(ex.reps);
+  const un = f.unid === "s" ? " s" : "", unLong = f.unid === "s" ? "segundos" : "repetições";
+  const editK = (setEdit[i] != null && setEdit[i] < e.n) ? setEdit[i] : null;
+  if(setEdit[i] != null && editK == null) delete setEdit[i];
+  const alvo = alvoReps(ex, e.sets);
+  const draft = setDraft[i] != null ? setDraft[i] : String(editK != null ? e.sets[editK].r : alvo);
+  const pct = Math.min(100, Math.round(e.n/e.prev*100));
+  const faixaTxt = f.max ? "meta "+(f.min === f.max ? f.min : f.min+"–"+f.max)+(f.unid === "s" ? " s" : " reps")+" por série" : "";
+  const chips = e.sets.map((s,k)=>{
+    const rf = rotuloFaixa(s.r, ex);
+    return '<li><button type="button" class="sl-chip'+(editK===k?' on':'')+'" data-slchip="'+k+'" aria-pressed="'+(editK===k)+'" aria-label="Série '+(k+1)+': '+s.r+' '+unLong+(rf ? ', '+rf.t : '')+'. Toque para editar.">'+
+      '<span class="sl-chip-n">'+(k+1)+'ª</span><b>'+s.r+un+'</b>'+(rf ? '<small aria-hidden="true">'+rf.s+'</small>' : '')+'</button></li>';
+  }).join("");
+  let h = '<div class="sl" data-sl="'+i+'" data-pfx="'+pfx+'">'+
+    '<div class="sl-top"><span class="sl-count" tabindex="-1"><b>'+e.n+'</b> de '+e.prev+' série'+(e.prev===1?'':'s')+'</span>'+(faixaTxt ? '<span class="sl-faixa">'+faixaTxt+'</span>' : '')+'</div>'+
+    '<div class="quest-track" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
+    (e.n ? '<ul class="sl-sets" aria-label="Séries registradas">'+chips+'</ul>' : '');
+  if(e.n && f.max) h += '<div class="sl-leg">▼ abaixo · ● na faixa · ▲ acima da faixa — sem certo ou errado</div>';
+  if(e.status === "parcial" || e.status === "pulado"){
+    const m = (c && c.motivo && c.motivo[i]) || null;
+    h += '<div class="sl-status '+e.status+'" role="status"><b>'+(e.status === "parcial" ? 'Encerrado aqui' : 'Exercício pulado')+'</b> — '+
+      (e.status === "parcial" ? e.n+' série'+(e.n===1?'':'s')+' registrada'+(e.n===1?'':'s')+'. Vale XP proporcional ao que você fez.' : 'Não conta XP e não atrapalha a sua sequência.')+
+      ' <button type="button" class="btn small" data-slresume>Retomar</button></div>'+
+      '<div class="sl-motivos" role="group" aria-label="Motivo (opcional)"><span class="sl-mlab">Motivo (opcional):</span>'+
+      Object.keys(MOTIVOS_ENCERRAR).map(k=>'<button type="button" class="sl-mot'+(m===k?' on':'')+'" data-slmot="'+k+'" aria-pressed="'+(m===k)+'">'+MOTIVOS_ENCERRAR[k]+'</button>').join("")+'</div>';
+  } else if(e.n >= e.prev && editK == null && !setExtra[i]){
+    h += rpePerguntaHtml(i, c, e);
+    h += '<div class="sl-acoes"><button type="button" class="btn small ghost" data-slextra>+ Série extra</button></div>';
+  } else {
+    const rotulo = editK != null ? 'Editando a série '+(editK+1) : (e.n >= e.prev ? 'Série extra (a '+(e.n+1)+'ª)' : 'Série '+(e.n+1)+' de '+e.prev);
+    h += '<div class="sl-row"><label class="sl-lab" for="sl-in-'+pfx+i+'">'+rotulo+' · '+unLong+' feitas</label>'+
+      '<div class="sl-inwrap">'+
+        '<button type="button" class="sl-step" data-slstep="-1" aria-label="Uma a menos">−</button>'+
+        '<input id="sl-in-'+pfx+i+'" class="sl-in" data-slin type="number" inputmode="numeric" min="1" max="999" step="1" value="'+escapeHtml(draft)+'">'+
+        '<button type="button" class="sl-step" data-slstep="1" aria-label="Uma a mais">+</button>'+
+      '</div>';
+    if(editK != null){
+      h += '<div class="sl-btns"><button type="button" class="btn primary" data-slok>Salvar série</button><button type="button" class="btn" data-slrm>Remover série</button><button type="button" class="btn ghost" data-slcancel>Cancelar</button></div>';
+    } else {
+      h += '<button type="button" class="btn primary sl-ok" data-slok>✓ Registrar série</button>';
+    }
+    h += '</div>';
+    if(editK == null && e.n >= e.prev){
+      h += '<div class="sl-acoes"><button type="button" class="btn small ghost" data-slextraoff>Fechar série extra</button></div>';
+    } else if(editK == null){
+      h += '<div class="sl-acoes">'+
+        (e.n > 0 && e.n < e.prev ? '<button type="button" class="btn small ghost" data-slend>Encerrar aqui</button>' : '')+
+        (e.n === 0 ? '<button type="button" class="btn small ghost" data-slskip>Pular exercício</button>' : '')+
+      '</div>';
+    }
+  }
+  return h+'</div>';
+}
+function atualizaPaineisTreino(){
+  renderWeekGrid(); renderTodayCard(); renderStreak(); renderWeekDots(); renderHeatmap();
+}
+function acaoSerie(tipo, iso, key, idx, arg, anchorEl, rerender, tick){
+  const dayObj = state.rotina[key];
+  if(!dayObj || !dayObj.exercicios || !dayObj.exercicios[idx]) return;
+  const wasConcluido = !!(state.checkins[iso] && state.checkins[iso].concluido);
+  const prevSnap = snapCheckin(iso);
+  const before = captureCelebrationBaseline();
+  let desfazerMsg = null;
+  if(tipo === "registrar") registrarSerie(iso, key, idx, arg);
+  else if(tipo === "editar") editarSerie(iso, key, idx, arg.k, arg.r);
+  else if(tipo === "remover"){ removerSerie(iso, key, idx, arg); desfazerMsg = "Série removida."; }
+  else if(tipo === "encerrar"){ encerrarExercicio(iso, key, idx, "parcial"); cancelRestTimer(idx); }
+  else if(tipo === "pular"){ encerrarExercicio(iso, key, idx, "pulado"); cancelRestTimer(idx); }
+  else if(tipo === "retomar") retomarExercicio(iso, key, idx);
+  else if(tipo === "motivo") definirMotivo(iso, key, idx, arg);
+  if(tipo !== "motivo"){ hapticPulse(10); playSound("tick"); }
+  atualizaPaineisTreino();
+  if(rerender) rerender();
+  const agora = state.checkins[iso];
+  const nowConcluido = !!(agora && agora.concluido);
+  if(wasConcluido || nowConcluido){ renderNivel(); renderAchievements(); }
+  const ex = exDoDia(dayObj.exercicios[idx], iso, idx);
+  const est = estadoEx(agora, idx, ex);
+  if(!wasConcluido && nowConcluido){
+    playSound("checkin");
+    const ganho = Math.max(0, computeNivelInfo().xp - before.xp);
+    const celebrated = celebrateProgress(before, anchorEl, {xp:ganho});
+    if(!celebrated) toastCheckinDesfazer("Treino de hoje concluído"+(ganho ? " (+"+ganho+" XP)" : "")+". Bom trabalho!", iso, prevSnap);
+  } else if(tipo === "registrar"){
+    if(est.status === "ok"){ cancelRestTimer(idx); showToast("Exercício completo: "+est.n+" série"+(est.n===1?"":"s")+" registrada"+(est.n===1?"":"s")+"."); }
+    else if(restAutoOn() && !restTimers[idx]){ const secs = restPref(); startRestTimer(idx, secs, tick); showToast("Série "+est.n+" registrada — descanso de "+secs+" s."); }
+  } else if(desfazerMsg){
+    showToast(desfazerMsg, {action:{label:"Desfazer", fn:()=> restaurarCheckin(iso, prevSnap)}});
+  } else if(tipo === "encerrar"){
+    showToast("Exercício encerrado aqui. Vale XP proporcional às séries feitas.");
+  } else if(tipo === "pular"){
+    showToast("Exercício pulado. Sem problema — o treino segue.");
+  }
+}
+/* depois de responder à pergunta de esforço o botão some; o foco vai para o próximo controle útil, mesmo que o app redesenhe a tela em seguida */
+let focoPendente = null;
+function aplicaFocoPendente(){
+  const f = focoPendente; if(!f) return;
+  if(Date.now() > f.ate){ focoPendente = null; return; }
+  const el = document.querySelector('.sl[data-pfx="'+f.pfx+'"][data-sl="'+f.i+'"] '+f.sel);
+  if(el && document.activeElement !== el){ try{ el.focus({preventScroll:true}); }catch(e){} }
+}
+function bindSerieLog(root, pfx, iso, key, rerender, tick){
+  root.querySelectorAll('.sl[data-pfx="'+pfx+'"]').forEach(box=>{
+    const i = Number(box.dataset.sl);
+    const dayObj = state.rotina[key];
+    const base = dayObj && dayObj.exercicios && dayObj.exercicios[i];
+    if(!base) return;
+    const ex = exDoDia(base, iso, i);
+    const inp = box.querySelector("[data-slin]");
+    const lerValor = ()=> Math.round(Number(String(inp ? inp.value : "").replace(",", ".")));
+    const act = (tipo, arg, anchor)=> acaoSerie(tipo, iso, key, i, arg, anchor || box, rerender, tick);
+    if(inp){
+      inp.addEventListener("input", ()=>{ setDraft[i] = inp.value; });
+      inp.addEventListener("keydown", (ev)=>{ if(ev.key === "Enter"){ ev.preventDefault(); const ok = box.querySelector("[data-slok]"); if(ok) ok.click(); } });
+    }
+    box.querySelectorAll("[data-slstep]").forEach(b=> b.addEventListener("click", ()=>{
+      if(!inp) return;
+      const atual = lerValor();
+      const ponto = isFinite(atual) && atual > 0 ? atual : alvoReps(ex, estadoEx(state.checkins[iso], i, ex).sets);
+      const v = Math.max(1, Math.min(999, ponto + Number(b.dataset.slstep)));
+      inp.value = String(v); setDraft[i] = String(v); hapticPulse(6);
+    }));
+    const ok = box.querySelector("[data-slok]");
+    if(ok) ok.addEventListener("click", ()=>{
+      const n = lerValor();
+      if(!(n >= 1 && n <= 999)){ showToast("Digite quantas você fez (de 1 a 999)."); if(inp) inp.focus(); return; }
+      const k = setEdit[i];
+      delete setDraft[i]; delete setExtra[i];
+      if(k != null){ delete setEdit[i]; act("editar", {k, r:n}, ok); }
+      else act("registrar", n, ok);
+    });
+    box.querySelectorAll("[data-slchip]").forEach(b=> b.addEventListener("click", ()=>{
+      const k = Number(b.dataset.slchip);
+      if(setEdit[i] === k){ delete setEdit[i]; delete setDraft[i]; }
+      else { setEdit[i] = k; delete setDraft[i]; }
+      if(rerender) rerender(); else renderWeekTrailDetail();
+      const campo = document.getElementById("sl-in-"+pfx+i); if(campo){ try{ campo.focus({preventScroll:true}); campo.select(); }catch(e){} }
+    }));
+    const rm = box.querySelector("[data-slrm]");
+    if(rm) rm.addEventListener("click", ()=>{ const k = setEdit[i]; delete setEdit[i]; delete setDraft[i]; if(k != null) act("remover", k, rm); });
+    const cn = box.querySelector("[data-slcancel]");
+    if(cn) cn.addEventListener("click", ()=>{ delete setEdit[i]; delete setDraft[i]; if(rerender) rerender(); else renderWeekTrailDetail(); });
+    const ex1 = box.querySelector("[data-slextra]"); if(ex1) ex1.addEventListener("click", ()=>{ setExtra[i] = true; delete setDraft[i]; if(rerender) rerender(); else renderWeekTrailDetail(); const campo = document.getElementById("sl-in-"+pfx+i); if(campo){ try{ campo.focus({preventScroll:true}); campo.select(); }catch(e){} } });
+    const ex0 = box.querySelector("[data-slextraoff]"); if(ex0) ex0.addEventListener("click", ()=>{ delete setExtra[i]; delete setDraft[i]; if(rerender) rerender(); else renderWeekTrailDetail(); });
+    const refresh = ()=>{ if(rerender) rerender(); else renderWeekTrailDetail(); };
+    const focaApos = (sel)=>{ focoPendente = {pfx, i, sel, ate: Date.now()+1500}; aplicaFocoPendente(); };
+    box.querySelectorAll("[data-slrpe]").forEach(b=> b.addEventListener("click", ()=>{
+      const v = Number(b.dataset.slrpe);
+      saveRPE(iso, i, v); rpeMarcaIntro(); hapticPulse(8);
+      refresh(); focaApos("[data-slrpe-edit]");
+      showToast("Esforço anotado: RPE "+v+" ("+RPE_HINTS[v]+").");
+    }));
+    const rpeSk = box.querySelector("[data-slrpe-skip]"); if(rpeSk) rpeSk.addEventListener("click", ()=>{ rpeSkip[i] = true; rpeMarcaIntro(); refresh(); focaApos(".sl-count"); });
+    const rpeEd = box.querySelector("[data-slrpe-edit]"); if(rpeEd) rpeEd.addEventListener("click", ()=>{ delete rpeSkip[i]; saveRPE(iso, i, null); refresh(); focaApos("[data-slrpe]"); });
+    const fim = box.querySelector("[data-slend]"); if(fim) fim.addEventListener("click", ()=> act("encerrar", null, fim));
+    const pula = box.querySelector("[data-slskip]"); if(pula) pula.addEventListener("click", ()=> act("pular", null, pula));
+    const ret = box.querySelector("[data-slresume]"); if(ret) ret.addEventListener("click", ()=> act("retomar", null, ret));
+    box.querySelectorAll("[data-slmot]").forEach(b=> b.addEventListener("click", ()=> act("motivo", b.dataset.slmot, b)));
+  });
 }
 
 /* ============================================================
@@ -8200,7 +8809,7 @@ function restTimerCellHtml(idx, exNome){
 }
 function startRestTimer(idx, seconds, onTick){
   cancelRestTimer(idx);
-  const tick = onTick || renderWeekTrailDetail;
+  const tick = onTick || semFocoEmCampo(renderWeekTrailDetail);   // NG+: não redesenha enquanto a pessoa digita as repetições
   restTimers[idx] = {remaining: seconds, intervalId: null};
   restTimers[idx].intervalId = setInterval(()=>{
     const t = restTimers[idx];
@@ -8269,10 +8878,6 @@ function renderLiveWorkout(body){
   const i = liveWorkoutIdx;
   const ex = exDoDia(exercicios[i], iso, i);
   const checkin = state.checkins[iso];
-  const progresso = (checkin && checkin.progresso) || {};
-  const meta = Number(ex.metaReps)||0;
-  const cur = meta ? Math.min(meta, Number(progresso[i])||0) : 0;
-  const exDone = meta>0 && cur>=meta;
   const cargaAtual = (checkin && checkin.cargas && checkin.cargas[ex.nome]!=null) ? checkin.cargas[ex.nome] : "";
   const histAntes = getCargaHistory(ex.nome).filter(h=>h.iso!==iso);
   let cargaHint = "Primeiro registro";
@@ -8284,7 +8889,6 @@ function renderLiveWorkout(body){
   const rpeAtual = (checkin && checkin.rpe && checkin.rpe[i]!=null) ? Number(checkin.rpe[i]) : null;
   const sug = (!cargaAtual) ? sugestaoProgressao(ex.nome) : null;
   const alt = alternativasDoDia(ex);
-  const perSerieLw = meta ? Math.max(1, Math.round(meta / Math.max(1, Number(ex.series)||1))) : 0;
 
   body.innerHTML =
     '<div class="lw-head">'+escapeHtml(day.nome)+' · Exercício '+(i+1)+' de '+n+'</div>'+
@@ -8295,55 +8899,19 @@ function renderLiveWorkout(body){
     (alt.length ? '<div class="qc-alt lw-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : '')+
     permBtnHtml(i, ex)+
     '<div class="lw-video-row"><a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer">'+ICON_PLAY+'<span>Ver vídeo de execução</span></a></div>'+
-    '<div class="lw-progress">'+
-      (meta ?
-        '<div class="quest-track"><div class="quest-fill" style="width:'+Math.round((cur/meta)*100)+'%;"></div></div>'+
-        '<div class="lw-progress-nums">'+cur+' / '+meta+'</div>'+
-        '<div class="lw-bigbtns">'+
-          '<button class="btn lw-big" type="button" data-lwstep="-1" '+(cur<=0?'disabled':'')+'>−</button>'+
-          '<button class="btn primary lw-big" type="button" data-lwstep="1" '+(exDone?'disabled':'')+'>+</button>'+
-          '<button class="btn primary lw-big lw-serie" type="button" data-lwstep="'+perSerieLw+'" data-lwserie aria-label="Concluir uma série: somar '+perSerieLw+' repetições e iniciar o descanso" '+(exDone?'disabled':'')+'>✓ Série</button>'+
-        '</div>'
-        : '<div class="lw-progress-nums">'+ex.series+'×'+escapeHtml(String(ex.reps))+'</div>')+
-    '</div>'+
+    '<div class="lw-progress">'+serieLogHtml(i, ex, checkin, 'lw')+'</div>'+
     '<div class="quest-carga-row"><label>Carga</label><input type="number" step="0.5" min="0" class="quest-carga-input" id="lw-carga-input" value="'+cargaAtual+'" placeholder="kg"><span class="quest-carga-hint">'+cargaHint+'</span></div>'+
     cargaQuickHtml(i, ex.nome, cargaAtual, histAntes.length ? histAntes[histAntes.length-1].peso : null)+
     (sug ? '<div class="quest-sugestao">'+ic('bulb')+' Sugestão: '+fmtKg(sug.sugerido)+' kg — '+escapeHtml(sug.texto)+'</div>' : '')+
-    '<div class="quest-rpe-row"><label>RPE</label>'+tipBtn("rpe")+'<div class="seg quest-rpe-seg" id="lw-rpe-seg">'+[6,7,8,9,10].map(v=>'<button type="button" data-rpeval="'+v+'" class="'+(rpeAtual===v?'active':'')+'">'+v+'</button>').join("")+'</div><span class="quest-rpe-hint">'+(rpeAtual?RPE_HINTS[rpeAtual]:"")+'</span></div>'+
+    '<div class="quest-rpe-row"><label>RPE</label>'+tipBtn("rpe")+'<div class="seg quest-rpe-seg" id="lw-rpe-seg">'+rpeValoresManuais().map(v=>'<button type="button" data-rpeval="'+v+'" class="'+(rpeAtual===v?'active':'')+'">'+v+'</button>').join("")+'</div><span class="quest-rpe-hint">'+(rpeAtual?RPE_HINTS[rpeAtual]:"")+'</span></div>'+
     restTimerCellHtml(i, ex.nome)+
     '<div class="lw-nav">'+
       '<button class="btn" type="button" data-lwprev '+(i<=0?'disabled':'')+'>← Anterior</button>'+
       '<button class="btn primary" type="button" data-lwnext>'+(i>=n-1?'Concluir':'Próximo →')+'</button>'+
     '</div>';
 
-  if(meta){
-    body.querySelectorAll("[data-lwstep]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const step = Number(btn.dataset.lwstep);
-        const wasConcluido = !!(state.checkins[iso] && state.checkins[iso].concluido);
-        const before = captureCelebrationBaseline();
-        bumpQuestProgress(iso, key, i, step, meta);
-        hapticPulse(10);
-        playSound("tick");
-        renderLiveWorkout(body);
-        renderWeekGrid();
-        renderTodayCard();
-        renderStreak();
-        renderWeekDots();
-        renderHeatmap();
-        const nowConcluido = !!(state.checkins[iso] && state.checkins[iso].concluido);
-        if(!wasConcluido && nowConcluido){
-          renderNivel();
-          renderAchievements();
-          playSound("checkin");
-          celebrateProgress(before, btn, {xp:NIVEL_XP_POR_TREINO});
-        } else if(btn.hasAttribute("data-lwserie") && step > 0 && restAutoOn() && !restTimers[i]){
-          const feito = Number(state.checkins[iso] && state.checkins[iso].progresso && state.checkins[iso].progresso[i]) || 0;
-          if(feito < meta){ const secs = restPref(); startRestTimer(i, secs, ()=>renderLiveWorkout(body)); showToast("Série registrada — descanso de "+secs+" s."); }
-        }
-      });
-    });
-  }
+  bindSerieLog(body, 'lw', iso, key, ()=>renderLiveWorkout(body), semFocoEmCampo(()=>renderLiveWorkout(body)));
+  aplicaFocoPendente();
   body.querySelectorAll("[data-qswap]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const base = exercicios[i];
@@ -8531,15 +9099,11 @@ function renderWeekTrailDetail(){
     bodyHtml = '<div class="empty-note">Dia de descanso. Aproveite para recuperar!</div>';
   } else if(isToday && (day.exercicios||[]).length){
     const checkin = state.checkins[iso];
-    const progresso = (checkin && checkin.progresso) || {};
-    let exComMeta = 0, exCompletos = 0;
+    const resDia = resumoDia(checkin, day);
     const questItems = day.exercicios.map((exBase,i)=>{
       const ex = exDoDia(exBase, iso, i);
-      const meta = Number(ex.metaReps)||0;
-      const cur = meta ? Math.min(meta, Number(progresso[i])||0) : 0;
-      const exDone = meta>0 && cur>=meta;
-      if(meta>0){ exComMeta++; if(exDone) exCompletos++; }
-      const pct = meta ? Math.round((cur/meta)*100) : 0;
+      const est = estadoEx(checkin, i, ex);
+      const exDone = est.status === "ok";
       const histAntes = getCargaHistory(ex.nome).filter(h=>h.iso!==iso);
       const cargaRaw = (checkin && checkin.cargas && checkin.cargas[ex.nome]!=null) ? checkin.cargas[ex.nome] : "";
       const cargaAtual = cargaRaw==="" ? "" : cargaRaw;
@@ -8572,6 +9136,8 @@ function renderWeekTrailDetail(){
       const subParts = [ex.series+' × '+escapeHtml(String(ex.reps))];
       if(ex.trocado) subParts.unshift('<span class="qc-swapped">trocado hoje</span>');
       if(lastPeso!=null) subParts.push('última '+fmtKg(lastPeso)+' kg');
+      if(est.status === "parcial") subParts.push('<span class="qc-st">encerrado aqui</span>');
+      if(est.status === "pulado") subParts.push('<span class="qc-st">pulado</span>');
 
       const folha = modoFolha();
       const panelHtml = !open ? '' :
@@ -8587,7 +9153,7 @@ function renderWeekTrailDetail(){
           '</div>'+
           (sug ? '<div class="qc-sug">'+ICON_TIP+'<span>Sugestão: '+fmtKg(sug.sugerido)+' kg — '+escapeHtml(sug.texto)+'</span></div>' : '')+
           '<div class="qc-field"><span class="qc-label">RPE'+tipBtn("rpe")+'</span>'+
-            '<div class="seg quest-rpe-seg" data-rpeidx="'+i+'">'+[6,7,8,9,10].map(v=>'<button type="button" data-rpeval="'+v+'" class="'+(rpeAtual===v?'active':'')+'">'+v+'</button>').join("")+'</div>'+
+            '<div class="seg quest-rpe-seg" data-rpeidx="'+i+'">'+rpeValoresManuais().map(v=>'<button type="button" data-rpeval="'+v+'" class="'+(rpeAtual===v?'active':'')+'">'+v+'</button>').join("")+'</div>'+
             '<span class="qc-hint">'+(rpeAtual?RPE_HINTS[rpeAtual]:"Esforço da última série (opcional)")+'</span>'+
           '</div>'+
           '<div class="qc-field"><span class="qc-label">Descanso</span>'+restTimerCellHtml(i, ex.nome)+'</div>'+
@@ -8597,20 +9163,13 @@ function renderWeekTrailDetail(){
           permBtnHtml(i, ex)+
         '</div>';
 
-      const perSerie = meta ? Math.max(1, Math.round(meta / Math.max(1, Number(ex.series)||1))) : 0;
-      return '<li class="qc'+(exDone?' done':'')+(open?' open':'')+(ex.nome===cargaChartExercise?' sel':'')+'"'+(meta ? ' data-qi="'+i+'" data-qper="'+perSerie+'" data-noswipe' : '')+'>'+
+      return '<li class="qc'+(exDone?' done':'')+(est.status==="parcial"?' part':'')+(est.status==="pulado"?' skip':'')+(open?' open':'')+(ex.nome===cargaChartExercise?' sel':'')+'" data-qi="'+i+'" data-qper="1" data-noswipe>'+
         '<div class="qc-head">'+
-          '<span class="qc-badge">'+(exDone ? ICON_CHECK : (i+1))+'</span>'+
+          '<span class="qc-badge" aria-hidden="true">'+(exDone ? ICON_CHECK : est.status==="parcial" ? "½" : est.status==="pulado" ? "–" : (i+1))+'</span>'+
           '<div class="qc-title"><span class="qc-name" title="'+escapeHtml(ex.nome)+'">'+escapeHtml(ex.nome)+'</span><span class="qc-sub">'+subParts.join(' · ')+'</span></div>'+
-          (meta ? '<span class="qc-count"><b>'+cur+'</b>/'+meta+'</span>' : '')+
+          '<span class="qc-count" title="séries registradas"><b>'+est.n+'</b>/'+est.prev+'</span>'+
         '</div>'+
-        (meta ? '<div class="qc-progress"><div class="quest-track"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
-          '<div class="qc-stepper">'+
-            '<button class="quest-add" type="button" data-qadd="'+i+'" data-qstep="-1" aria-label="Diminuir repetições" '+(cur<=0?'disabled':'')+'>−</button>'+
-            '<button class="quest-add" type="button" data-qadd="'+i+'" data-qstep="1" aria-label="Somar repetições" '+(exDone?'disabled':'')+'>+</button>'+
-          '</div>'+
-          '<button class="quest-serie" type="button" data-qadd="'+i+'" data-qstep="'+perSerie+'" data-qserie aria-label="Concluir uma série: somar '+perSerie+' repetições e iniciar o descanso" '+(exDone?'disabled':'')+'>✓ Série</button>'+
-          '</div>' : '')+
+        serieLogHtml(i, ex, checkin, 'qc')+
         '<div class="qc-foot">'+
           '<div class="qc-pills">'+pills.join("")+'</div>'+
           '<div class="qc-actions">'+
@@ -8622,9 +9181,10 @@ function renderWeekTrailDetail(){
       '</li>';
     }).join("");
     bodyHtml = '<div class="wtd-actions qc-dayhead"><button class="btn small '+(done?'':'primary')+'" data-checkin="'+key+'">'+(done?'✓ Concluído hoje':'Concluir treino inteiro')+'</button>'+
-        (exComMeta ? '<span class="qc-daycount"><b>'+exCompletos+'</b> de <b>'+exComMeta+'</b> exercícios completos</span>' : '')+
+        (resDia.total ? '<span class="qc-daycount"><b>'+resDia.ok+'</b> de <b>'+resDia.total+'</b> completos'+(resDia.parcial ? ' · '+resDia.parcial+' encerrado'+(resDia.parcial===1?'':'s')+' antes' : '')+(resDia.pulado ? ' · '+resDia.pulado+' pulado'+(resDia.pulado===1?'':'s') : '')+'</span>' : '')+
       '</div>'+
-      '<ul class="quest-list">'+questItems+'</ul>';
+      '<ul class="quest-list">'+questItems+'</ul>'+
+      (resDia.completo ? analiseDoDiaHtml(iso, day) : '');
   } else if(isToday){
     bodyHtml = '<div class="wtd-actions"><button class="btn small '+(done?'':'primary')+'" data-checkin="'+key+'">'+(done?'✓ Concluído hoje':'Concluir hoje')+'</button></div>';
   } else if(status === "lost"){
@@ -8681,45 +9241,26 @@ function renderWeekTrailDetail(){
       renderAchievements();
       if(!wasConcluido){
         playSound("checkin");
-        const celebrated = celebrateProgress(before, btn, {xp:NIVEL_XP_POR_TREINO});
+        const celebrated = celebrateProgress(before, btn, {xp:Math.max(0, computeNivelInfo().xp - before.xp)});
         if(!celebrated) toastCheckinDesfazer("Quest de hoje marcada como concluída.", iso, prevSnap);
       } else {
         showToast("Quest de hoje marcada como concluída.");
       }
     });
   });
-  // v86 (I6): a mesma ação serve ao botão +/− e ao gesto de deslizar o card (±1 série)
-  const doQuestStep = (idx, step, anchorEl, isSerie)=>{
+  // gesto de deslizar o card: direita = registra uma série com o valor sugerido; esquerda = remove a última série
+  const doQuestStep = (idx, step, anchorEl)=>{
     const dayObj = state.rotina[todayKey];
-    const ex = dayObj && dayObj.exercicios && dayObj.exercicios[idx];
-    if(!ex) return;
-    const wasConcluido = !!(state.checkins[iso] && state.checkins[iso].concluido);
-    const prevSnap = snapCheckin(iso);
-    const before = captureCelebrationBaseline();
-    bumpQuestProgress(iso, todayKey, idx, step, Number(ex.metaReps)||0);
-    hapticPulse(10);
-    playSound("tick");
-    renderWeekGrid();
-    renderTodayCard();
-    renderStreak();
-    renderWeekDots();
-    renderHeatmap();
-    const nowConcluido = !!(state.checkins[iso] && state.checkins[iso].concluido);
-    if(!wasConcluido && nowConcluido){
-      renderNivel();
-      renderAchievements();
-      playSound("checkin");
-      const celebrated = celebrateProgress(before, anchorEl, {xp:NIVEL_XP_POR_TREINO});
-      if(!celebrated) toastCheckinDesfazer("Quest de hoje concluída. Continue assim!", iso, prevSnap);
-    } else if(isSerie && step > 0 && restAutoOn() && !restTimers[idx]){
-      // v87 (I3): série concluída e exercício ainda não terminou → começa o descanso sozinho
-      const feito = Number(state.checkins[iso] && state.checkins[iso].progresso && state.checkins[iso].progresso[idx]) || 0;
-      if(feito < (Number(ex.metaReps)||0)){ const secs = restPref(); startRestTimer(idx, secs); showToast("Série registrada — descanso de "+secs+" s."); }
-    }
+    const ex0 = dayObj && dayObj.exercicios && dayObj.exercicios[idx];
+    if(!ex0) return;
+    const ex = exDoDia(ex0, iso, idx);
+    const e = estadoEx(state.checkins[iso], idx, ex);
+    if(e.status === "parcial" || e.status === "pulado"){ showToast("Este exercício foi encerrado. Toque em Retomar para continuar."); return; }
+    if(step > 0) acaoSerie("registrar", iso, todayKey, idx, alvoReps(ex, e.sets), anchorEl, null);
+    else if(e.n > 0) acaoSerie("remover", iso, todayKey, idx, e.n-1, anchorEl, null);
   };
-  el.querySelectorAll("[data-qadd]").forEach(btn=>{
-    btn.addEventListener("click", ()=> doQuestStep(Number(btn.dataset.qadd), Number(btn.dataset.qstep), btn, btn.hasAttribute("data-qserie")));
-  });
+  bindSerieLog(el, 'qc', iso, todayKey, null);
+  aplicaFocoPendente();
   bindQuestSwipe(el, doQuestStep);
   bindCargaQuick(el, idx=> el.querySelector('[data-carga="'+idx+'"]'), ()=> renderWeekTrailDetail());
   el.querySelectorAll("[data-carga]").forEach(inp=>{
@@ -11294,11 +11835,13 @@ function renderPeriodizacaoStatus(){
    recolhido por padrão (só o nome aparece), toca pra expandir a
    definição — pedido do Gabriel pra não virar parede de texto.
    ============================================================ */
+function glosFonte(t){ return t && t.url ? ' <a class="glos-src" href="'+escapeHtml(t.url)+'" target="_blank" rel="noopener noreferrer">Fonte: '+escapeHtml(t.src||"")+'</a>' : ""; }
 const GLOSSARIO = {
   "Treino": [
     {termo:"Divisão A–F (PPL: Push/Pull/Legs)", def:"A estrutura da sua rotina: dias de Peito e Ombros (com tríceps), Costas e Bíceps e Pernas, repetidos 2× por semana — A, B e C, depois D, E e F. Em inglês isso é o PPL (Push/Pull/Legs: empurrar, puxar e pernas). É tipo separar as tarefas da casa por cômodo em vez de misturar tudo — cada grupo muscular treina e descansa de forma mais previsível."},
-    {termo:"RPE (esforço percebido)", def:"Nota de 6 a 10 pra quão difícil foi a série, baseada no que você sentiu. É como dar nota pro esforço de uma corrida: RPE 10 é correr até não aguentar mais; RPE 7 é forte, mas ainda sustentável."},
-    {termo:"RIR (repetições em reserva)", def:"Quantas reps a mais você ainda faria antes de falhar — o troco do RPE. RPE 8 ≈ 2 RIR; RPE 10 ≈ 0 RIR (limite)."},
+    {termo:"RPE (esforço percebido)", def:"Nota de 6 a 10 para o esforço do exercício. Pense no marcador de combustível do carro: ele não diz quanto você andou, diz quanto ainda tinha no tanque. Aqui, o que importa é quantas repetições ainda sobravam quando você parou. 10 = nenhuma (falha); 9 = sobrava 1; 8 = sobravam 2; 7 = sobravam 3; 6 = 4 ou mais. Exemplo: fez 10 repetições e conseguiria mais 2 → RPE 8. Não precisa ser exato: uma noção já ajuda. O app cruza a nota com as repetições de cada série para sugerir se a carga sobe, fica ou reduz. Menores de 18 anos e iniciantes não recebem a opção \"Falha\" na pergunta rápida.", src:"Zourdos et al., 2016 — Novel resistance training-specific RPE scale (J Strength Cond Res)", url:"https://pubmed.ncbi.nlm.nih.gov/26049792/"},
+    {termo:"RIR (repetições em reserva)", def:"Quantas repetições a mais você ainda faria antes de falhar — o \"troco\" do RPE. RPE 8 ≈ 2 RIR; RPE 10 ≈ 0 RIR (limite). É o combustível que sobrou no tanque.", src:"Helms et al., 2016 — RPE and RIR in resistance training (Strength Cond J)", url:"https://openrepository.aut.ac.nz/items/92cefeac-7c32-44f1-bfbc-f48f4a5dd8cf/full"},
+    {termo:"Dupla progressão", def:"A regra que o app usa para sugerir a carga: primeiro você sobe as repetições, depois o peso. Exemplo com meta de 8–12: com 20 kg você faz 9, 9, 8 → mantém; na semana seguinte 11, 10, 10 → mantém; quando fizer 12, 12, 12 (topo da faixa nas três séries) → sobe para 22,5 kg e recomeça perto de 8. É como subir um degrau só depois de firmar o pé no anterior. Se o esforço (RPE) estiver muito alto no topo da faixa, o app pede mais uma sessão antes de subir.", src:"Helms et al., 2016 — RPE and RIR in resistance training", url:"https://openrepository.aut.ac.nz/items/92cefeac-7c32-44f1-bfbc-f48f4a5dd8cf/full"},
     {termo:"1RM (repetição máxima)", def:"O peso máximo que você levantaria numa única repetição. Arriscado de testar de verdade, por isso o app estima esse número a partir de séries normais."},
     {termo:"Volume e MEV / MAV / MRV", def:"Volume é quantas séries um músculo recebe por semana. Pensa como dose: MEV é a dose mínima pra crescer, MAV é a faixa ideal, MRV é o teto — passar disso acumula fadiga mais rápido do que recupera."},
     {termo:"Deload", def:"Uma semana de respiro com volume ou carga bem reduzida, de tempos em tempos, pra dissipar o cansaço acumulado. Mesma lógica de parar pra descansar numa viagem longa — no total, você anda mais rápido."},
@@ -11410,13 +11953,13 @@ function renderGlossario(){
     Object.keys(GLOSSARIO).forEach(cat=> GLOSSARIO[cat].forEach(t=> todos.push({cat, t})));
     if(status) status.textContent = "";
     body.innerHTML = todos.map(({cat, t})=>
-      '<details class="glos-term"><summary><span>'+escapeHtml(t.termo)+'<span class="glos-cat">'+escapeHtml(cat)+'</span></span></summary><div class="glos-term-desc">'+escapeHtml(t.def)+'</div></details>'
+      '<details class="glos-term"><summary><span>'+escapeHtml(t.termo)+'<span class="glos-cat">'+escapeHtml(cat)+'</span></span></summary><div class="glos-term-desc">'+escapeHtml(t.def)+glosFonte(t)+'</div></details>'
     ).join("");
     return;
   }
   const termos = GLOSSARIO[glossarioCat] || [];
   body.innerHTML = termos.map(t=>
-    '<details class="glos-term"><summary>'+escapeHtml(t.termo)+'</summary><div class="glos-term-desc">'+escapeHtml(t.def)+'</div></details>'
+    '<details class="glos-term"><summary>'+escapeHtml(t.termo)+'</summary><div class="glos-term-desc">'+escapeHtml(t.def)+glosFonte(t)+'</div></details>'
   ).join("");
 }
 
@@ -11563,7 +12106,7 @@ function renderFontes(){
    Agora só a aba visível é redesenhada; as demais ficam marcadas e são desenhadas quando abertas (showTab). */
 const SECTION_RENDERERS = {
   painel: [renderPlanoPorque, renderStreak, renderNarrator, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderRecup, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
-  treino: [renderPlanoPorque, renderFormatoCard, renderWeekGrid, renderCargas, renderVolume, renderHeatmap, renderBibliotecaExercicios],
+  treino: [renderPlanoPorque, renderFormatoCard, renderWeekGrid, renderCargas, renderAnaliseTreino, renderVolume, renderHeatmap, renderBibliotecaExercicios],
   corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderEvolucaoChart, renderFotosProgresso, renderTabelaMedicoes],
   dieta: [renderDieta],
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
@@ -11637,6 +12180,8 @@ window.addEventListener("resize", ()=>{
   // foco num campo dentro do cabeçalho (ex.: navegação por teclado) → mostra de volta
   bar.addEventListener("focusin", ()=> bar.classList.remove("hide"));
 })();
+/* ganchos só para os testes automatizados — ficam inertes a menos que o aparelho tenha ng_test_hooks=1 */
+try{ if(localStorage.getItem("ng_test_hooks") === "1") window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino}; }catch(e){}
 })();
 </script>
 

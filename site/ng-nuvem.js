@@ -84,6 +84,12 @@
     '.ng-dlg-box{width:100%;max-width:420px;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;background:var(--surface,#10192a);color:var(--ink,#eef2f7);border:1px solid var(--line-strong,#3a4658)}' +
     '.ng-dlg-box h2{margin:0;font-size:20px}.ng-dlg-box p{margin:0;font-size:15px;line-height:1.5;color:var(--ink-soft,#b6c0cf)}' +
     '.ng-dlg-act{display:flex;gap:10px;flex-wrap:wrap}.ng-dlg-act .ng-btn{flex:1 1 140px}' +
+    '.ng-dlg.top{z-index:100000}.ng-dlg-box.longo{max-width:560px;max-height:90vh;overflow:auto}' +
+    '.ng-dlg-box h3{margin:10px 0 0;font-size:16px}.ng-dlg-box ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;font-size:15px;line-height:1.5;color:var(--ink-soft,#b6c0cf)}' +
+    '.ng-dlg-box .ng-peq{font-size:13px}.ng-dlg-box input[type=text]{font:inherit;font-size:17px;min-height:48px;padding:10px 14px;border-radius:12px;border:1px solid var(--line-strong,#3a4658);background:var(--surface-2,#0b1220);color:var(--ink,#eef2f7);width:100%;box-sizing:border-box}' +
+    '.ng-dlg-box label.ng-l{font-size:13px;font-weight:600;color:var(--muted,#9aa6b8)}' +
+    '.ng-btn.perigo{background:transparent;color:var(--ink,#eef2f7);border:2px solid var(--crit,#ff6b6b)}' +
+    '.ng-link{background:none;border:0;padding:6px 2px;font:inherit;font-size:14px;color:var(--ink,#eef2f7);text-decoration:underline;cursor:pointer;min-height:44px}.ng-link:focus-visible{outline:3px solid var(--focus,#7dd3fc);outline-offset:2px}' +
     '.ng-chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink,#eef2f7)}.ng-chk input{width:22px;min-height:22px;margin-top:2px}';
   function injetaCss(){
     if ($("ng-nuvem-css")) return;
@@ -124,10 +130,12 @@
               '<button class="ng-btn ghost" type="button" id="ng-login-outro" hidden>Usar outro e-mail</button>' +
             '</form>' +
             '<p class="ng-login-m" id="ng-login-m" role="status" aria-live="polite"></p>' +
+            '<p class="ng-peq" style="font-size:13px">Ao entrar, você concorda com o uso dos seus dados descrito na <button type="button" class="ng-link" id="ng-login-pol">política de privacidade</button>.</p>' +
           '</div>';
         document.body.appendChild(el);
         var f = $("ng-login-f"), inE = $("ng-login-e"), inC = $("ng-login-c"), box = $("ng-login-cod"), ok = $("ng-login-ok"),
             reenv = $("ng-login-reenv"), outro = $("ng-login-outro"), m = $("ng-login-m"), p = $("ng-login-p");
+        $("ng-login-pol").addEventListener("click", abrirPolitica);
         function msg(t, erro){ m.textContent = t || ""; m.className = "ng-login-m" + (erro ? " err" : ""); }
         function trava(b){ ok.disabled = b; reenv.disabled = b || cooldown > 0; }
         function ticCool(){
@@ -331,11 +339,11 @@
     tMudou = setTimeout(function(){ flush(); }, 600);   // junta várias gravações seguidas num envio só
   }
 
-  function dialogo(html){
+  function dialogo(html, cls){
     return new Promise(function(resolve){
       injetaCss();
-      var d = document.createElement("div"); d.className = "ng-dlg";
-      d.innerHTML = '<div class="ng-dlg-box" role="dialog" aria-modal="true">' + html + '</div>';
+      var d = document.createElement("div"); d.className = "ng-dlg" + (cls && cls.indexOf("top") >= 0 ? " top" : "");
+      d.innerHTML = '<div class="ng-dlg-box' + (cls && cls.indexOf("longo") >= 0 ? ' longo' : '') + '" role="dialog" aria-modal="true" aria-label="' + (cls && cls.indexOf("longo") >= 0 ? 'Política de privacidade' : 'Aviso') + '">' + html + '</div>';
       document.body.appendChild(d);
       d.addEventListener("click", function(ev){ var b = ev.target.closest("[data-r]"); if (b) { var chk = d.querySelector("input[type=checkbox]"); var v = b.getAttribute("data-r"); d.remove(); resolve({r: v, chk: !!(chk && chk.checked)}); } });
       var primeiro = d.querySelector("button"); if (primeiro) primeiro.focus();
@@ -383,11 +391,92 @@
     }[e.k] || "";
     el.innerHTML = 'Conectado como <b>' + esc(email || "") + '</b>.<br>' + esc(t) + '. Seus dados ficam também neste aparelho, por isso o app funciona sem internet.';
   }
+
+  /* ---------------- LGPD: política de privacidade e exclusão da conta ---------------- */
+  var CONTATO_PRIVACIDADE = "sombrasplays@gmail.com";   // responsável pelo app: troque aqui se quiser outro contato
+  function politicaHtml(){
+    return '<h2>Política de privacidade do NG+</h2>' +
+      '<p class="ng-peq">Atualizada em 6 de novembro de 2026. Escrita em linguagem simples, com base na Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018).</p>' +
+      '<h3>Quem cuida dos seus dados</h3><p>O NG+ é um projeto pessoal mantido por Gabriel, que é o responsável (controlador) pelos dados do app. Contato para qualquer pedido sobre seus dados: <b>' + esc(CONTATO_PRIVACIDADE) + '</b>.</p>' +
+      '<h3>Quais dados ficam no app</h3><ul>' +
+        '<li>Seu e-mail, usado só para entrar na conta.</li>' +
+        '<li>O que você registra: perfil (nome, idade, sexo, altura, objetivo, experiência), treinos e cargas, dieta, medidas corporais, peso, conquistas e preferências.</li>' +
+        '<li>Fotos de progresso, se você adicionar.</li></ul>' +
+      '<p>Medidas, peso e fotos do corpo são dados pessoais sensíveis (dados de saúde). Por isso, só os tratamos com o seu consentimento, que você dá ao entrar e usar o app.</p>' +
+      '<h3>Para que usamos</h3><p>Só para o app funcionar: guardar seu histórico e sincronizar entre os seus aparelhos. Não vendemos dados, não mostramos anúncios, não fazemos perfis comerciais e não enviamos seus dados para ferramentas de IA.</p>' +
+      '<h3>Onde ficam guardados</h3><ul>' +
+        '<li>No seu aparelho (para o app funcionar sem internet).</li>' +
+        '<li>Na nuvem da Supabase (banco de dados e login), em servidores no Brasil (São Paulo). Cada conta só enxerga os próprios dados e as fotos ficam em área privada.</li>' +
+        '<li>A hospedagem do site é da Cloudflare, e o e-mail com o código de login é enviado pelo Gmail (Google). Essas empresas atuam como operadoras: só executam o serviço.</li></ul>' +
+      '<h3>Por quanto tempo</h3><p>Enquanto sua conta existir. Se você excluir a conta, os dados na nuvem são apagados na hora.</p>' +
+      '<h3>Menores de 18 anos</h3><p>Se você tem menos de 18 anos, use o app com o conhecimento e o consentimento de um responsável. O app não oferece metas agressivas de dieta para menores.</p>' +
+      '<h3>Seus direitos (art. 18 da LGPD)</h3><ul>' +
+        '<li><b>Acessar e levar seus dados:</b> Config → Seus dados → Exportar dados (.json).</li>' +
+        '<li><b>Corrigir:</b> edite os registros direto no app.</li>' +
+        '<li><b>Excluir e retirar o consentimento:</b> Config → Conta → Excluir minha conta e dados.</li>' +
+        '<li><b>Saber com quem compartilhamos e tirar dúvidas:</b> escreva para ' + esc(CONTATO_PRIVACIDADE) + '.</li></ul>' +
+      '<h3>Segurança</h3><p>A conexão é protegida (HTTPS), o acesso ao banco é restrito por conta e não há senha para vazar: o login é por e-mail com código. Nenhum sistema é 100% seguro; se houver um incidente que afete você, avisaremos.</p>' +
+      '<h3>Saúde</h3><p>O NG+ organiza seu treino e sua alimentação, mas não é aconselhamento médico nem substitui profissional de saúde.</p>' +
+      '<h3>Mudanças</h3><p>Se esta política mudar de forma relevante, avisamos no app e atualizamos a data acima.</p>' +
+      '<div class="ng-dlg-act"><button class="ng-btn" data-r="fecha">Fechar</button></div>';
+  }
+  function abrirPolitica(){ return dialogo(politicaHtml(), "longo top"); }
+
+  function dialogoOcupado(txt){
+    injetaCss();
+    var d = document.createElement("div"); d.className = "ng-dlg top";
+    d.innerHTML = '<div class="ng-dlg-box" role="alertdialog" aria-live="assertive" aria-label="Aguarde"><h2>' + esc(txt) + '</h2><p>Não feche esta tela.</p></div>';
+    document.body.appendChild(d); return d;
+  }
+  async function excluirConta(){
+    if (navigator.onLine === false) { await dialogo('<h2>Sem internet</h2><p>Para excluir a conta é preciso estar conectado. Tente de novo quando a internet voltar.</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Entendi</button></div>'); return; }
+    var x = await dialogo(
+      '<h2>Excluir minha conta e meus dados?</h2>' +
+      '<p>Isso apaga <b>para sempre</b>: a conta <b>' + esc(email || "") + '</b>, tudo o que está guardado na nuvem (perfil, treinos, dieta, medidas, conquistas) e as fotos de progresso. Os dados guardados neste aparelho também são apagados.</p>' +
+      '<p><b>Não dá para desfazer.</b> Se quiser guardar uma cópia, cancele e use <b>Exportar dados (.json)</b> em Config → Seus dados.</p>' +
+      '<div class="ng-dlg-act"><button class="ng-btn ghost" data-r="cancela">Cancelar</button><button class="ng-btn perigo" data-r="seguir">Continuar</button></div>');
+    if (x.r !== "seguir") return;
+    var pr = dialogo(
+      '<h2>Confirme a exclusão</h2><p>Para confirmar, digite <b>EXCLUIR</b> no campo abaixo.</p>' +
+      '<label class="ng-l" for="ng-exc-in">Digite EXCLUIR</label><input id="ng-exc-in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">' +
+      '<div class="ng-dlg-act"><button class="ng-btn ghost" data-r="cancela">Cancelar</button><button class="ng-btn perigo" data-r="excluir" disabled>Excluir tudo</button></div>');
+    var dl = document.querySelectorAll(".ng-dlg"); dl = dl[dl.length - 1];
+    var inp = dl.querySelector("#ng-exc-in"), bt = dl.querySelector("[data-r=excluir]");
+    inp.addEventListener("input", function(){ bt.disabled = inp.value.trim().toUpperCase() !== "EXCLUIR"; });
+    inp.addEventListener("keydown", function(ev){ if (ev.key === "Enter" && !bt.disabled) bt.click(); });
+    var y = await pr;
+    if (y.r !== "excluir") return;
+    var oc = dialogoOcupado("Excluindo sua conta…");
+    var erro = null;
+    try {
+      try { if (canal) await client.removeChannel(canal); canal = null; } catch(e){}
+      var ss = await client.auth.getSession();
+      var tk = ss && ss.data && ss.data.session && ss.data.session.access_token;
+      if (!tk) throw new Error("sem_sessao");
+      var r = await fetch(API + "/functions/v1/delete-account", {method: "POST", headers: {"Content-Type": "application/json", "apikey": KEY, "Authorization": "Bearer " + tk}, body: JSON.stringify({confirmar: "EXCLUIR"})});
+      var j = null; try { j = await r.json(); } catch(e){}
+      if (!r.ok || !j || !j.ok) erro = (j && j.error) || ("http_" + r.status);
+    } catch(e){ erro = (e && e.message) || "falha"; }
+    oc.remove();
+    if (erro) {
+      await dialogo('<h2>Não foi possível excluir agora</h2><p>' + (/falha_remover_usuario/.test(erro) ? 'Seus registros e fotos já foram apagados, mas a conta ainda não. Tente de novo em instantes.' : 'Nada foi apagado por completo. Confira a internet e tente de novo; se continuar, escreva para ' + esc(CONTATO_PRIVACIDADE) + '.') + '</p><p class="ng-peq">Código: ' + esc(erro) + '</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Entendi</button></div>');
+      return;
+    }
+    // sucesso: limpa tudo neste aparelho
+    try { await I.apagarTudoLocal(); } catch(e){}
+    try { await new Promise(function(res){ var q = indexedDB.deleteDatabase("bff"); q.onsuccess = q.onerror = q.onblocked = function(){ res(); }; }); } catch(e){}
+    try { await client.auth.stopAutoRefresh(); } catch(e){}   // a conta já não existe: não chama o servidor para "sair"
+    try { Object.keys(localStorage).forEach(function(k){ if (/^(ng|bff|sb-)/i.test(k)) localStorage.removeItem(k); }); } catch(e){}
+    await dialogo('<h2>Conta excluída</h2><p>Sua conta e todos os seus dados foram apagados da nuvem e deste aparelho. Obrigado por ter usado o NG+.</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Fechar</button></div>');
+    location.reload();
+  }
   function ligaConfig(){
     var card = $("cfg-conta"); if (!card) return;
     card.hidden = false; pintaConta();
     $("cfg-conta-sync").addEventListener("click", async function(){ var b = this; b.disabled = true; await sincronizar(); await flush(); b.disabled = false; });
     $("cfg-conta-sair").addEventListener("click", sair);
+    var pol = $("cfg-conta-politica"); if (pol) pol.addEventListener("click", abrirPolitica);
+    var exc = $("cfg-conta-excluir"); if (exc) exc.addEventListener("click", excluirConta);
   }
   async function sair(){
     var n = 0; try { n = (await I.filaListar()).length; } catch(e){}
@@ -413,6 +502,6 @@
 
   window.ngNuvem = {
     client: client, sessao: sessao, preparar: preparar, mudou: mudou, estado: estado, sincronizar: function(){ return sincronizar().then(flush); },
-    versao: "B1"
+    abrirPolitica: abrirPolitica, versao: "B2"
   };
 })();
