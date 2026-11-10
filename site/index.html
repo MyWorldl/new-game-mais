@@ -1503,6 +1503,18 @@ td.num, th.num{text-align:right; font-variant-numeric:tabular-nums;}
 .cdp-actions .btn{display:inline-flex; align-items:center; gap:6px;}
 .cdp-warn{color:var(--warn);}
 .cdp-note{font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.45; margin-top:var(--sp-2);}
+
+.cdp-sub{font-size:var(--fs-sm); color:var(--ink-soft); line-height:1.45; margin:0 0 var(--sp-3);}
+.cdp-days{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin-bottom:var(--sp-3);}
+.cdp-day{font:inherit; font-size:var(--fs-sm); font-weight:700; min-height:48px; min-width:0; border-radius:var(--r-md); border:1px solid var(--line-strong); background:var(--surface); color:var(--ink-soft); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:4px 0;}
+.cdp-day small{font-size:var(--fs-2xs); font-weight:600; color:var(--muted);}
+.cdp-day.on{background:var(--accent-soft); color:var(--accent-fg,var(--accent)); border-color:color-mix(in srgb, var(--accent) 55%, transparent);}
+.cdp-day:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.cdp-tip{font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.45; padding:6px 0 4px;}
+.cdp-shop{margin:var(--sp-3) 0 var(--sp-1); border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2); padding:0 var(--sp-3) 6px;}
+.cdp-shop summary{cursor:pointer; min-height:44px; display:flex; align-items:center; font-weight:700; font-size:var(--fs-14);}
+.cdp-shop summary:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.cdp-gh{margin:var(--sp-2) 0 0; font-size:var(--fs-2xs); font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
 @media (min-width:700px){ .cdp-meals{grid-template-columns:1fr 1fr;} .cdp-controls{grid-template-columns:1fr 1fr 1.4fr; align-items:end;} }
 
 /* ============ NAVEGAÇÃO v72: barra inferior (celular) / menu lateral (desktop) ============ */
@@ -3806,8 +3818,8 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 
     <div class="card" id="cardapio-card" data-dieta-dados>
       <div class="card-head">
-        <h2>Cardápio sugerido</h2>
-        <span class="hint">um dia de refeições fechando sua meta</span>
+        <h2>Cardápio da semana</h2>
+        <span class="hint">7 dias e lista de compras, fechando sua meta</span>
       </div>
       <div id="cardapio-body"></div>
     </div>
@@ -11461,236 +11473,403 @@ function renderDieta(){
 }
 
 /* ============================================================
-   CARDÁPIO SUGERIDO (v82) — monta um dia de refeições que fecha as calorias
-   e os macros da meta. Valores por 100 g da TACO (NEPA/UNICAMP, via Tabela TACO
-   Online); whey usa valor típico de rótulo (confira o seu). Porções em gramas,
-   com medida caseira aproximada. É um exemplo, não prescrição individual.
+   CARDÁPIO DA SEMANA — 7 dias + lista de compras, por jeito de comer (onívoro, vegetariano, vegano, low carb),
+   rotina (marmita, dia corrido, orçamento enxuto, almoço fora) e restrições. A meta (kcal e proteína) vem da
+   aba Dieta. Valores por 100 g da TACO (NEPA/UNICAMP, via Tabela TACO Online); itens com * usam valor típico
+   de rótulo. Cópia testável do motor: fonte/cardapio/engine.js (teste: fonte/testes/cardapio-sim.js).
+   É um exemplo, não prescrição individual.
    ============================================================ */
-const CDP_FOODS = {
-  frango:   {n:"Peito de frango grelhado", k:159, p:32,   c:0,    g:2.5,  tags:["carne"], min:80, max:220, step:10},
-  patinho:  {n:"Patinho grelhado",         k:219, p:35.9, c:0,    g:7.3,  tags:["carne"], min:80, max:200, step:10},
-  acem:     {n:"Carne moída (acém) cozida",k:212, p:26.7, c:0,    g:10.9, tags:["carne"], min:80, max:200, step:10},
-  ovo:      {n:"Ovo cozido",               k:146, p:13.3, c:0.6,  g:9.5,  tags:[], unit:50, un:["ovo","ovos"], min:50, max:150, vmax:200, step:50},
-  minas:    {n:"Queijo minas frescal",     k:264, p:17.4, c:3.2,  g:20.2, tags:["lactose"], unit:30, un:["fatia","fatias"], min:30, max:60, vmax:90, step:30},
-  iogurte:  {n:"Iogurte natural",          k:51,  p:4.1,  c:1.9,  g:3.0,  tags:["lactose"], unit:170, un:["pote","potes"], min:170, max:340, step:170},
-  whey:     {n:"Whey protein (dose de ~30 g)", k:400, p:80, c:7,   g:6,    tags:["lactose","rotulo"], unit:30, un:["dose","doses"], min:30, max:60, step:30},
-  feijao:   {n:"Feijão carioca cozido",    k:76,  p:4.8,  c:13.6, g:0.5,  tags:[], min:60, max:200, step:20},
-  preto:    {n:"Feijão preto cozido",      k:77,  p:4.5,  c:14.0, g:0.5,  tags:[], min:60, max:200, step:20},
-  lentilha: {n:"Lentilha cozida",          k:93,  p:6.3,  c:16.3, g:0.5,  tags:[], min:60, max:200, step:20},
-  arroz1:   {n:"Arroz branco cozido",      k:128, p:2.5,  c:28.1, g:0.2,  tags:[], min:60, max:300, step:10},
-  arrozi:   {n:"Arroz integral cozido",    k:124, p:2.6,  c:25.8, g:1.0,  tags:[], min:60, max:300, step:10},
-  batatadoce:{n:"Batata-doce cozida",      k:77,  p:0.6,  c:18.4, g:0.1,  tags:[], min:80, max:350, step:10},
-  batata:   {n:"Batata inglesa cozida",    k:52,  p:1.2,  c:11.9, g:0,    tags:[], min:100,max:400, step:10},
-  mandioca: {n:"Mandioca cozida",          k:125, p:0.6,  c:30.1, g:0.3,  tags:[], min:60, max:250, step:10},
-  cuscuz:   {n:"Cuscuz de milho",          k:113, p:2.2,  c:25.3, g:0.7,  tags:[], min:80, max:300, step:10},
-  pao:      {n:"Pão francês",              k:300, p:8,    c:58.6, g:3.1,  tags:["gluten"], unit:50, un:["pão","pães"], min:50, max:150, step:50},
-  aveia:    {n:"Aveia em flocos",          k:394, p:13.9, c:66.6, g:8.5,  tags:["gluten"], unit:15, un:["colher de sopa","colheres de sopa"], min:15, max:75, step:15},
-  banana:   {n:"Banana prata",             k:98,  p:1.3,  c:26,   g:0.1,  tags:[], unit:80, un:["unidade","unidades"], fixed:80},
-  maca:     {n:"Maçã",                     k:56,  p:0.3,  c:15.2, g:0,    tags:[], unit:130, un:["unidade","unidades"], fixed:130},
-  laranja:  {n:"Laranja-pera",             k:37,  p:1.0,  c:8.9,  g:0.1,  tags:[], unit:150, un:["unidade","unidades"], fixed:150},
-  mamao:    {n:"Mamão papaia",             k:40,  p:0.5,  c:10.4, g:0.1,  tags:[], unit:120, un:["fatia","fatias"], fixed:120},
-  azeite:   {n:"Azeite de oliva",          k:884, p:0,    c:0,    g:100,  tags:[], unit:9, un:["colher de sobremesa","colheres de sobremesa"], fixed:9},
-  amendoim: {n:"Amendoim torrado",         k:606, p:22.5, c:18.7, g:54,   tags:[], fixed:20},
-  abacate:  {n:"Abacate",                  k:96,  p:1.2,  c:6.0,  g:8.4,  tags:[], fixed:60},
-  brocolis: {n:"Brócolis cozido",          k:25,  p:2.1,  c:4.4,  g:0.5,  tags:[], fixed:80},
-  tomate:   {n:"Tomate",                   k:18,  p:1.1,  c:3.1,  g:0.2,  tags:[], fixed:80},
+const CDPE = (function(){
+// Motor de cardápio NG+ (semana completa). Em produção vive embutido em candidato-prd.html (bloco CARDÁPIO DA SEMANA); este arquivo é a cópia testável. Valores por 100 g de alimento preparado: [kcal, P, C, G]
+// TACO (NEPA/UNICAMP) conforme tabelatacoonline.com.br; itens com * = valor típico de rótulo.
+var TVP_CHEAP = false; // preço de referência ainda não confirmado
+var FOODS = {
+  frango:   { n: 'Frango grelhado',        v: [159, 32, 0, 2.5],      role: 'prot', veg: false, cheap: true,  fast: true },
+  patinho:  { n: 'Patinho grelhado',       v: [219, 35.9, 0, 7.3],    role: 'prot', veg: false, cheap: false, fast: false },
+  acem:     { n: 'Carne moída (acém)',     v: [212, 26.7, 0, 10.9],   role: 'prot', veg: false, cheap: true,  fast: false },
+  sardinha: { n: 'Sardinha assada',        v: [164, 32.2, 0, 3.0],    role: 'prot', veg: false, cheap: true,  fast: true },
+  abadejo:  { n: 'Abadejo grelhado',      v: [130, 27.6, 0, 1.3],    role: 'prot', veg: false, cheap: false, fast: true },
+  pintado:  { n: 'Pintado grelhado',       v: [152, 30.8, 0, 2.3],    role: 'prot', veg: false, cheap: false, fast: false },
+  tvp:      { n: 'Soja texturizada hidratada*', v: [117, 18, 6.4, 0.6], role: 'prot', veg: true, vegan: true, cheap: TVP_CHEAP, fast: true },
+  leiteS:   { n: 'Leite de soja',          v: [39, 2.4, 4.3, 1.6],    role: 'prot', veg: true,  vegan: true, cheap: false, fast: true, liq: true, unit: [200, 'copo', 'copos'] },
+  ovo:      { n: 'Ovo cozido',             v: [146, 13.3, 0.6, 9.5],  role: 'prot', veg: true,  cheap: true,  fast: true, unit: [50, 'ovo', 'ovos'] },
+  queijo:   { n: 'Queijo minas',           v: [264, 17.4, 3.2, 20.2], role: 'prot', veg: true,  cheap: false, fast: true, lact: true, unit: [25, 'fatia', 'fatias'] },
+  iogurte:  { n: 'Iogurte natural',        v: [51, 4.1, 1.9, 3.0],    role: 'prot', veg: true,  cheap: true,  fast: true, lact: true, unit: [170, 'pote', 'potes'] },
+  tofu:     { n: 'Tofu',                   v: [64, 6.6, 2.1, 4.0],    role: 'prot', veg: true,  vegan: true, cheap: false, fast: true },
+  whey:     { n: 'Whey protein*',          v: [389, 80, 6, 5],        role: 'prot', veg: true,  cheap: false, fast: true, lact: true, unit: [30, 'dose', 'doses'] },
+  vegpo:    { n: 'Proteína vegetal em pó*',v: [389, 80, 6, 5],        role: 'prot', veg: true,  vegan: true, cheap: false, fast: true, unit: [30, 'dose', 'doses'] },
+  feijaoC:  { n: 'Feijão carioca',         v: [76, 4.8, 13.6, 0.5],   role: 'leg',  veg: true,  vegan: true, cheap: true,  fast: true },
+  feijaoP:  { n: 'Feijão preto',           v: [77, 4.5, 14.0, 0.5],   role: 'leg',  veg: true,  vegan: true, cheap: true,  fast: true },
+  lentilha: { n: 'Lentilha',               v: [93, 6.3, 16.3, 0.5],   role: 'leg',  veg: true,  vegan: true, cheap: true,  fast: false },
+  arroz:    { n: 'Arroz branco',           v: [128, 2.5, 28.1, 0.2],  role: 'carb', veg: true,  vegan: true, cheap: true,  fast: true },
+  arrozI:   { n: 'Arroz integral',         v: [124, 2.6, 25.8, 1.0],  role: 'carb', veg: true,  vegan: true, cheap: true,  fast: true },
+  batataD:  { n: 'Batata-doce',            v: [77, 0.6, 18.4, 0.1],   role: 'carb', veg: true,  vegan: true, cheap: true,  fast: false },
+  batata:   { n: 'Batata inglesa',         v: [52, 1.2, 11.9, 0],     role: 'carb', veg: true,  vegan: true, cheap: true,  fast: false },
+  mandioca: { n: 'Mandioca',               v: [125, 0.6, 30.1, 0.3],  role: 'carb', veg: true,  vegan: true, cheap: true,  fast: false },
+  cuscuz:   { n: 'Cuscuz',                 v: [113, 2.2, 25.3, 0.7],  role: 'carb', veg: true,  vegan: true, cheap: true,  fast: true },
+  pao:      { n: 'Pão francês',            v: [300, 8, 58.6, 3.1],    role: 'carb', veg: true,  vegan: true, cheap: true,  fast: true, gluten: true, unit: [50, 'pão', 'pães'] },
+  aveia:    { n: 'Aveia',                  v: [394, 13.9, 66.6, 8.5], role: 'carb', veg: true,  vegan: true, cheap: true,  fast: true, gluten: true },
+  banana:   { n: 'Banana prata',           v: [98, 1.3, 26, 0.1],     role: 'fruit', veg: true, vegan: true, cheap: true,  fast: true, unit: [70, 'banana', 'bananas'] },
+  maca:     { n: 'Maçã Fuji',              v: [56, 0.3, 15.2, 0],     role: 'fruit', veg: true, vegan: true, cheap: false, fast: true, unit: [130, 'maçã', 'maçãs'] },
+  mamao:    { n: 'Mamão',                  v: [40, 0.5, 10.4, 0.1],   role: 'fruit', veg: true, vegan: true, cheap: true,  fast: true },
+  laranja:  { n: 'Laranja-pera',           v: [37, 1, 8.9, 0.1],      role: 'fruit', veg: true, vegan: true, cheap: true,  fast: true, unit: [150, 'laranja', 'laranjas'] },
+  brocolis: { n: 'Brócolis',               v: [25, 2.1, 4.4, 0.5],    role: 'veg',  veg: true,  vegan: true, cheap: false, fast: false },
+  tomate:   { n: 'Tomate',                 v: [18, 1.1, 3.1, 0.2],    role: 'veg',  veg: true,  vegan: true, cheap: true,  fast: true },
+  azeite:   { n: 'Azeite',                 v: [884, 0, 0, 100],       role: 'fat',  veg: true,  vegan: true, cheap: true,  fast: true, unit: [13, 'colher de sopa', 'colheres de sopa'] },
+  amendoim: { n: 'Amendoim',               v: [606, 22.5, 18.7, 54],  role: 'fat',  veg: true,  vegan: true, cheap: true,  fast: true },
+  abacate:  { n: 'Abacate',                v: [96, 1.2, 6, 8.4],      role: 'fat',  veg: true,  vegan: true, cheap: false, fast: true }
 };
-const CDP_SLOTS = {
-  3:[["cafe","Café da manhã",.28],["almoco","Almoço",.40],["jantar","Jantar",.32]],
-  4:[["cafe","Café da manhã",.25],["almoco","Almoço",.35],["lancheT","Lanche da tarde",.15],["jantar","Jantar",.25]],
-  5:[["cafe","Café da manhã",.22],["almoco","Almoço",.32],["lancheT","Lanche / pré-treino",.15],["jantar","Jantar",.23],["ceia","Ceia",.08]],
-  6:[["cafe","Café da manhã",.20],["lancheM","Lanche da manhã",.09],["almoco","Almoço",.28],["lancheT","Lanche / pré-treino",.13],["jantar","Jantar",.22],["ceia","Ceia",.08]],
+// Ordem de v: [kcal, proteína, carboidrato, gordura] por 100 g.
+var OBJ = {
+  cut:   { n: 'Cutting',               k: 0.85, prot: 2.2, fat: 0.25, minor: false },
+  bulk:  { n: 'Bulking limpo',         k: 1.10, prot: 1.8, fat: 0.25, minorK: 1.05 },
+  maint: { n: 'Manutenção/recomposição', k: 1.00, prot: 2.0, fat: 0.28 }
 };
-// receita = lista de itens {r: papel, f: candidatos, g: gramas fixas (opcional), o: opcional}
-// papéis: P proteína (calculada) · C carboidrato (calculado) · F fruta · L leguminosa · V legume/verdura · X extra fixo
-const CDP_REC = {
-  brasileiro:{
-    cafe:[ [{r:"C",f:["pao"]},{r:"P",f:["ovo"]},{r:"X",f:["minas"],o:1,g:30},{r:"F",f:["banana","mamao","laranja"]}],
-           [{r:"C",f:["cuscuz"]},{r:"P",f:["ovo"]},{r:"X",f:["minas"],o:1,g:30},{r:"F",f:["mamao","banana","maca"]}],
-           [{r:"C",f:["pao"]},{r:"P",f:["iogurte","minas"]},{r:"F",f:["banana","maca"]}] ],
-    lancheM:[ [{r:"F",f:["maca","laranja","mamao"]},{r:"P",f:["iogurte","minas","ovo"]}] ],
-    almoco:[ [{r:"C",f:["arroz1","arrozi"]},{r:"D",f:["mandioca","batatadoce","batata"]},{r:"L",f:["feijao","preto","lentilha"],g:100},{r:"P",f:["frango","patinho","acem","ovo"]},{r:"V",f:["brocolis","tomate"]},{r:"X",f:["azeite"]}] ],
-    lancheT:[ [{r:"C",f:["pao"]},{r:"P",f:["minas","ovo"]},{r:"F",f:["banana"]}],
-              [{r:"F",f:["banana"]},{r:"C",f:["aveia"]},{r:"P",f:["iogurte","whey"]}] ],
-    jantar:[ [{r:"C",f:["batatadoce","mandioca","batata"]},{r:"D",f:["arroz1","arrozi","cuscuz"]},{r:"P",f:["frango","patinho","ovo","acem"]},{r:"V",f:["brocolis","tomate"]},{r:"X",f:["azeite"]}] ],
-    ceia:[ [{r:"P",f:["iogurte","ovo","minas"]},{r:"F",f:["maca","mamao","laranja"]},{r:"X",f:["amendoim"],o:1,g:15}] ],
-  },
-  pratico:{
-    cafe:[ [{r:"C",f:["pao","cuscuz"]},{r:"P",f:["ovo"]},{r:"F",f:["banana"]}],
-           [{r:"C",f:["cuscuz","pao"]},{r:"P",f:["ovo"]},{r:"F",f:["banana","maca"]}] ],
-    lancheM:[ [{r:"F",f:["banana","maca"]},{r:"X",f:["amendoim"],g:20}] ],
-    almoco:[ [{r:"C",f:["arroz1"]},{r:"D",f:["batatadoce","mandioca"]},{r:"L",f:["feijao","preto"],g:100},{r:"P",f:["frango","acem","patinho"]},{r:"V",f:["brocolis"]}] ],
-    lancheT:[ [{r:"F",f:["banana"]},{r:"C",f:["pao"]},{r:"P",f:["ovo","minas"]}] ],
-    jantar:[ [{r:"C",f:["batatadoce","arroz1"]},{r:"D",f:["arroz1","batatadoce","mandioca"]},{r:"P",f:["frango","acem","patinho"]},{r:"V",f:["brocolis"]},{r:"X",f:["azeite"]}] ],
-    ceia:[ [{r:"P",f:["iogurte","ovo"]},{r:"F",f:["banana","maca"]}] ],
-  },
-  variado:{
-    cafe:[ [{r:"C",f:["aveia"]},{r:"P",f:["iogurte","ovo","whey"]},{r:"F",f:["banana"]},{r:"X",f:["amendoim"],o:1,g:15}],
-           [{r:"C",f:["pao"]},{r:"P",f:["ovo"]},{r:"X",f:["abacate"],g:40},{r:"F",f:["mamao","laranja"]}] ],
-    lancheM:[ [{r:"P",f:["whey","iogurte","ovo"]},{r:"F",f:["banana","maca"]}] ],
-    almoco:[ [{r:"C",f:["arrozi","arroz1"]},{r:"D",f:["batatadoce","mandioca"]},{r:"L",f:["lentilha","feijao","preto"],g:100},{r:"P",f:["frango","patinho","acem","ovo"]},{r:"V",f:["brocolis","tomate"]},{r:"X",f:["azeite"]}] ],
-    lancheT:[ [{r:"P",f:["whey","iogurte","ovo"]},{r:"F",f:["banana","maca"]},{r:"C",f:["aveia"],o:1}] ],
-    jantar:[ [{r:"C",f:["batatadoce","mandioca","arrozi"]},{r:"D",f:["arrozi","arroz1","cuscuz"]},{r:"P",f:["patinho","frango","ovo","acem"]},{r:"V",f:["brocolis","tomate"]},{r:"X",f:["abacate"],g:50}] ],
-    ceia:[ [{r:"P",f:["iogurte","ovo","whey"]},{r:"X",f:["amendoim"],o:1,g:15},{r:"F",f:["maca","mamao"]}] ],
-  },
+var STYLE = { omni: 'Onívoro', veg: 'Vegetariano', vegan: 'Vegano', lowc: 'Low carb moderado' };
+var ROUT = {
+  marmita: { n: 'Marmita da semana', meals: ['cafe', 'almoco', 'lanche', 'jantar', 'ceia'] },
+  corrido: { n: 'Dia corrido',       meals: ['cafe', 'almoco', 'lanche', 'jantar'] },
+  budget:  { n: 'Orçamento enxuto',  meals: ['cafe', 'almoco', 'lanche', 'jantar', 'ceia'] },
+  fora:    { n: 'Almoço fora',       meals: ['cafe', 'almoco', 'lanche', 'jantar'] }
 };
-let cdpVar = 0;   // "Outra sugestão" — só em memória
+var SLOT = {
+  cafe:   { n: 'Café da manhã', share: 0.22, prot: 0.20, comp: ['carb', 'prot', 'fruit'] },
+  almoco: { n: 'Almoço',        share: 0.30, prot: 0.28, comp: ['carb', 'leg', 'prot', 'veg', 'fat'] },
+  lanche: { n: 'Lanche',        share: 0.14, prot: 0.17, comp: ['carb', 'prot', 'fruit', 'fat'] },
+  jantar: { n: 'Jantar',        share: 0.24, prot: 0.25, comp: ['carb', 'prot', 'veg', 'fat'] },
+  ceia:   { n: 'Ceia',          share: 0.10, prot: 0.10, comp: ['prot', 'fruit', 'fat'] }
+};
+var DAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+var TRAIN = [1, 1, 0, 1, 1, 1, 0]; // 5 dias de treino, 2 de descanso
+
+
+var PREF = {
+  cafe:   ['ovo', 'queijo', 'iogurte', 'leiteS', 'tofu', 'whey', 'vegpo'],
+  almoco: ['frango', 'patinho', 'abadejo', 'acem', 'sardinha', 'ovo', 'tofu', 'tvp', 'queijo'],
+  jantar: ['sardinha', 'frango', 'pintado', 'patinho', 'ovo', 'acem', 'tofu', 'tvp', 'queijo'],
+  lanche: ['iogurte', 'leiteS', 'queijo', 'whey', 'vegpo', 'ovo', 'tofu'],
+  ceia:   ['iogurte', 'leiteS', 'whey', 'vegpo', 'queijo', 'ovo', 'tofu']
+};
+var PCAP = { abadejo: 200, pintado: 200, tvp: 250, leiteS: 400, frango: 200, patinho: 200, acem: 180, sardinha: 160, ovo: 150, queijo: 75, iogurte: 340, tofu: 250, whey: 60, vegpo: 60 };
+var CCAP = { arroz: 250, arrozI: 250, batataD: 300, batata: 350, mandioca: 250, cuscuz: 220, aveia: 80, pao: 150 };
+var POWDER = ['whey', 'vegpo'];
+
+function allowed(id, cfg) {
+  var f = FOODS[id];
+  if (cfg.style === 'vegan' && !f.vegan) return false;
+  if (cfg.style === 'veg' && !f.veg) return false;
+  if (cfg.nolact && f.lact) return false;
+  if (cfg.nogluten && f.gluten) return false;
+  if (cfg.rout === 'budget' && !f.cheap) return false;
+  if (cfg.rout === 'corrido' && !f.fast) return false;
+  return true;
+}
+function qty(id, g) {
+  var u = FOODS[id].unit;
+  if (u) return Math.max(u[0], Math.round(g / u[0]) * u[0]);
+  return Math.max(5, Math.round(g / 5) * 5);
+}
+function prefList(slot, cfg) {
+  return PREF[slot].filter(function (id) { return allowed(id, cfg); });
+}
+function rolePool(role, cfg, slot) {
+  var out = [];
+  for (var id in FOODS) if (FOODS[id].role === role && allowed(id, cfg)) out.push(id);
+  if (role === 'carb') {
+    if (slot === 'cafe' || slot === 'lanche') out = out.filter(function (id) { return ['pao', 'aveia', 'cuscuz', 'batataD'].indexOf(id) >= 0; });
+    else out = out.filter(function (id) { return ['pao', 'aveia'].indexOf(id) < 0; });
+    if (cfg.style === 'lowc') out = out.filter(function (id) { return ['batataD', 'cuscuz', 'aveia'].indexOf(id) >= 0; });
+  }
+  if (role === 'fat') {
+    if (slot === 'almoco' || slot === 'jantar') out = out.filter(function (id) { return id === 'azeite'; });
+    else out = out.filter(function (id) { return id !== 'azeite'; });
+  }
+  if (role === 'fruit' && cfg.style === 'lowc') out = out.filter(function (id) { return id !== 'banana'; });
+  return out;
+}
+function boosters(cfg, slot, used) {
+  var main = slot === 'almoco' || slot === 'jantar';
+  var out = prefList(slot, cfg).filter(function (id) { return used.indexOf(id) < 0; });
+  if (cfg.style === 'omni' || cfg.style === 'lowc') out = out.filter(function (id) { return ['tofu', 'tvp', 'leiteS'].indexOf(id) < 0; });
+  // pó entra no prato principal só se for vegetariano/vegano (onívoro reforça com outra fonte inteira)
+  if (main) {
+    ['whey', 'vegpo'].forEach(function (id) { if ((cfg.style === 'veg' || cfg.style === 'vegan') && allowed(id, cfg) && used.indexOf(id) < 0 && out.indexOf(id) < 0) out.push(id); });
+    if (cfg.style === 'omni' || cfg.style === 'lowc') out = out.filter(function (id) { return ['tofu', 'tvp', 'leiteS'].indexOf(id) < 0 && POWDER.indexOf(id) < 0; });
+  }
+  out.sort(function (a, b) { return FOODS[b].v[1] - FOODS[a].v[1]; });
+  return out;
+}
+function targets(cfg) {
+  // No app, a meta vem da aba Dieta (calorias e proteína já calculadas): cfg.kcalMeta e cfg.protG.
+  if (cfg.kcalMeta != null) {
+    var Pm = cfg.protG;
+    var Fm = (cfg.kcalMeta * (cfg.style === 'lowc' ? 0.40 : 0.27)) / 9;
+    var Cm = (cfg.kcalMeta - 4 * Pm - 9 * Fm) / 4;
+    return { kcal: cfg.kcalMeta, P: Pm, C: Math.max(Cm, 0), F: Fm };
+  }
+  var o = OBJ[cfg.obj];
+  var minor = cfg.age < 18;
+  var k = minor && o.minorK ? o.minorK : o.k;
+  if (minor && cfg.obj === 'cut') k = 1.0; // trava: menor nunca recebe déficit
+  var kcal = cfg.tdee * k;
+  var P = cfg.kg * o.prot;
+  if (minor && P > cfg.kg * 2.0) P = cfg.kg * 2.0;
+  var fatShare = cfg.style === 'lowc' ? 0.40 : o.fat;
+  var F = (kcal * fatShare) / 9;
+  var C = (kcal - 4 * P - 9 * F) / 4;
+  return { kcal: kcal, P: P, C: Math.max(C, 0), F: F };
+}
+function dayTargets(t, d) {
+  var kcal = t.kcal * (TRAIN[d] ? 1.06 : 0.85);
+  var C = Math.max(0, (kcal - 4 * t.P - 9 * t.F) / 4);
+  return { kcal: kcal, P: t.P, F: t.F, C: C, train: !!TRAIN[d] };
+}
+function macros(items) {
+  var s = { kcal: 0, P: 0, C: 0, F: 0 };
+  items.forEach(function (it) {
+    var v = FOODS[it.id].v, g = it.g / 100;
+    s.kcal += v[0] * g; s.P += v[1] * g; s.C += v[2] * g; s.F += v[3] * g;
+  });
+  return s;
+}
+function pick(list, i) { return list.length ? list[((i % list.length) + list.length) % list.length] : null; }
+function capOf(it) { return it.role === 'prot' ? (PCAP[it.id] || 250) : it.role === 'carb' ? (CCAP[it.id] || 300) : it.role === 'fat' ? (it.id === 'azeite' ? 39 : 60) : it.role === 'fruit' ? 300 : 9999; }
+
+function buildMeal(slotKey, d, cfg, dt, mealIdx) {
+  var S = SLOT[slotKey];
+  var ms = ROUT[cfg.rout].meals, sS = 0, sP = 0;
+  ms.forEach(function (k) { sS += SLOT[k].share; sP += SLOT[k].prot; });
+  var Kt = dt.kcal * S.share / sS, Pt = dt.P * S.prot / sP, Ft = dt.F * S.share / sS;
+  var Ct = Math.max(0, (Kt - 4 * Pt - 9 * Ft) / 4);
+  var seed = d + mealIdx;
+  if (cfg.rout === 'marmita' && (slotKey === 'almoco' || slotKey === 'jantar')) seed = (d < 4 ? 0 : 1) + mealIdx; // 2 lotes por semana
+  var items = [];
+  var has = function (r) { return S.comp.indexOf(r) >= 0; };
+  var vegId = has('veg') ? pick(rolePool('veg', cfg, slotKey), seed) : null;
+  var fruitId = has('fruit') ? pick(rolePool('fruit', cfg, slotKey), seed + 1) : null;
+  var legId = has('leg') && slotKey === 'almoco' ? pick(rolePool('leg', cfg, slotKey), seed) : null;
+  if (vegId) items.push({ id: vegId, g: 90, role: 'veg' });
+  if (fruitId) items.push({ id: fruitId, g: qty(fruitId, slotKey === 'lanche' ? 120 : 100), role: 'fruit' });
+  if (legId) items.push({ id: legId, g: 100, role: 'leg' });
+  // proteína principal
+  var prefs = prefList(slotKey, cfg);
+  var main = slotKey === 'almoco' || slotKey === 'jantar';
+  if (cfg.style === 'omni' || cfg.style === 'lowc') prefs = prefs.filter(function (id) { return ['tofu', 'tvp', 'leiteS'].indexOf(id) < 0; });
+  if (!prefs.length) prefs = prefList(slotKey, cfg);
+  var pId = pick(prefs, seed);
+  var used = [];
+  function addProt(id, need) {
+    var pv = FOODS[id].v;
+    var cap = PCAP[id] || 250;
+    var g = qty(id, Math.min(cap, (need / pv[1]) * 100));
+    if (g > cap + 1) g = Math.floor(cap / (FOODS[id].unit ? FOODS[id].unit[0] : 5)) * (FOODS[id].unit ? FOODS[id].unit[0] : 5);
+    items.push({ id: id, g: g, role: 'prot' });
+    used.push(id);
+  }
+  // carbo (até 2 itens) — calculado antes da proteína, que depois cobre o que faltar
+  var carbPool = has('carb') ? rolePool('carb', cfg, slotKey) : [];
+  var cur = macros(items);
+  var cNeed = Ct - cur.C - (pId ? 0 : 0);
+  var carbIds = [];
+  if (carbPool.length && cNeed > 8) {
+    var c1 = pick(carbPool, seed);
+    var gc = qty(c1, Math.min(CCAP[c1], (cNeed / FOODS[c1].v[2]) * 100));
+    items.push({ id: c1, g: gc, role: 'carb' }); carbIds.push(c1);
+    var left = cNeed - gc * FOODS[c1].v[2] / 100;
+    var rest = carbPool.filter(function (id) { return id !== c1; });
+    if (left > 15 && rest.length && (slotKey === 'almoco' || slotKey === 'jantar')) {
+      var c2 = pick(rest, seed + 1);
+      var g2 = qty(c2, Math.min(CCAP[c2], (left / FOODS[c2].v[2]) * 100));
+      items.push({ id: c2, g: g2, role: 'carb' });
+    }
+  }
+  // proteína principal + reforços
+  if (pId) {
+    cur = macros(items);
+    addProt(pId, Math.max(0, Pt - cur.P));
+    for (var b = 0; b < 2; b++) {
+      cur = macros(items);
+      var gap = Pt - cur.P;
+      if (gap < 5) break;
+      var cands = boosters(cfg, slotKey, used);
+      var bId = pick(cands.slice(0, 2), seed + b);
+      if (!bId) break;
+      addProt(bId, gap);
+    }
+  }
+  // gordura
+  var fatPool = has('fat') ? rolePool('fat', cfg, slotKey) : [];
+  if (fatPool.length) {
+    cur = macros(items);
+    var fId = pick(fatPool, seed);
+    var fneed = Math.max(0, Ft - cur.F);
+    var gf = (fneed / FOODS[fId].v[3]) * 100;
+    if (fId === 'azeite') gf = Math.min(Math.round(gf / 13) * 13, 39);
+    else gf = Math.min(Math.round(gf / 5) * 5, 60);
+    var minG = fId === 'azeite' ? 13 : 15;
+    if (gf >= minG) items.push({ id: fId, g: gf, role: 'fat' });
+  }
+  var m = macros(items);
+  return { slot: slotKey, name: S.n, items: items, m: m, target: { kcal: Kt, P: Pt } };
+}
+
+function dayTotals(meals) {
+  var s = { kcal: 0, P: 0, C: 0, F: 0 };
+  meals.forEach(function (ml) { var m = ml.m || macros(ml.items); s.kcal += m.kcal; s.P += m.P; s.C += m.C; s.F += m.F; });
+  return s;
+}
+function buildDay(d, cfg) {
+  var t = targets(cfg), dt = dayTargets(t, d);
+  var meals = ROUT[cfg.rout].meals.map(function (k, i) { return buildMeal(k, d, cfg, dt, i); });
+  // fecha as calorias do dia escalando carboidrato/fruta (e gordura quando preciso), respeitando tetos
+  for (var pass = 0; pass < 4; pass++) {
+    var tot = dayTotals(meals);
+    var diff = dt.kcal - tot.kcal;
+    if (Math.abs(diff) / dt.kcal < 0.03) break;
+    var set = [];
+    meals.forEach(function (ml) { ml.items.forEach(function (it) { if (it.role === 'carb' || it.role === 'fruit' || (it.role === 'fat' && (pass >= 1 || cfg.style === 'lowc'))) set.push(it); }); });
+    var base = set.reduce(function (a, it) { return a + FOODS[it.id].v[0] * it.g / 100; }, 0);
+    if (base < 1) break;
+    var f = Math.min(2.2, Math.max(0.25, 1 + diff / base));
+    set.forEach(function (it) {
+      var ng = it.g * f;
+      if (it.id === 'azeite') ng = Math.round(ng / 13) * 13; else ng = qty(it.id, ng);
+      if (ng > capOf(it)) ng = capOf(it) - (capOf(it) % (FOODS[it.id].unit ? FOODS[it.id].unit[0] : 5));
+      it.g = ng;
+    });
+    meals.forEach(function (ml) { ml.items = ml.items.filter(function (it) { return it.g > 0; }); ml.m = macros(ml.items); });
+  }
+  return { day: d, label: DAYS[d], train: dt.train, meals: meals, tot: dayTotals(meals), target: dt };
+}
+function shopping(week) {
+  var acc = {};
+  week.forEach(function (day) { day.meals.forEach(function (ml) { ml.items.forEach(function (it) { acc[it.id] = (acc[it.id] || 0) + it.g; }); }); });
+  return Object.keys(acc).map(function (id) { return { id: id, g: acc[id] }; });
+}
+function fmtQty(it) {
+  var f = FOODS[it.id];
+  if (f.unit) {
+    var n = Math.round(it.g / f.unit[0]);
+    return n + ' ' + (n > 1 ? f.unit[2] : f.unit[1]) + ' (≈ ' + it.g + (f.liq ? ' ml' : ' g') + ')';
+  }
+  return it.g + (f.liq ? ' ml' : ' g');
+}
+if (typeof module !== 'undefined') module.exports = { FOODS: FOODS, OBJ: OBJ, STYLE: STYLE, ROUT: ROUT, SLOT: SLOT, DAYS: DAYS, TRAIN: TRAIN, targets: targets, dayTargets: dayTargets, buildDay: buildDay, shopping: shopping, fmtQty: fmtQty, allowed: allowed };
+return {FOODS:FOODS, STYLE:STYLE, ROUT:ROUT, SLOT:SLOT, DAYS:DAYS, TRAIN:TRAIN, targets:targets, buildDay:buildDay, shopping:shopping};
+})();
+/* Tela do cardápio da semana (aba Dieta). Usa o motor CDPE e a meta que o app já calcula (kcalAlvo + macros).
+   Escolhas salvas em settings.cardapio = {jeito, rotina, restricoes:{lactose, gluten}} (entra no backup junto com as configurações). */
+const CDP_JEITOS = [["omni","Onívoro"],["veg","Vegetariano"],["vegan","Vegano"],["lowc","Low carb"]];
+const CDP_ROTINAS = [["marmita","Marmita da semana"],["corrido","Dia corrido"],["budget","Orçamento enxuto"],["fora","Almoço fora"]];
+const CDP_ROT_DESC = {
+  marmita:"5 refeições; cozinhe no domingo e na quinta e use em lotes.",
+  corrido:"4 refeições de preparo rápido, para dias apertados.",
+  budget:"5 refeições só com alimentos de custo menor.",
+  fora:"4 refeições; no almoço, dica de como montar o prato por quilo."
+};
+const CDP_OBJ_TXT = {deficit:"Emagrecimento", manutencao:"Manutenção", superavit:"Hipertrofia"};
+const CDP_GRUPOS = [["Proteínas",["prot"]],["Carboidratos e leguminosas",["carb","leg"]],["Frutas e vegetais",["fruit","veg"]],["Gorduras",["fat"]]];
+let cdpDia = 0;          // dia da semana selecionado (só em memória)
+let cdpUltimo = null;    // última meta usada, para trocar de dia sem refazer a aba inteira
+
 function cdpCfg(){
   const c = (state.settings && state.settings.cardapio) || {};
-  const r = Number(c.refeicoes);
+  const r = c.restricoes || {};
   return {
-    refeicoes: CDP_SLOTS[r] ? r : 5,
-    restricoes: {lactose:!!(c.restricoes&&c.restricoes.lactose), gluten:!!(c.restricoes&&c.restricoes.gluten), vegetariano:!!(c.restricoes&&c.restricoes.vegetariano)},
-    estilo: CDP_REC[c.estilo] ? c.estilo : "brasileiro",
+    jeito: CDPE.STYLE[c.jeito] ? c.jeito : (r.vegetariano ? "veg" : "omni"),   // quem usava o antigo "Vegetariano" mantém a escolha
+    rotina: CDPE.ROUT[c.rotina] ? c.rotina : "marmita",
+    restricoes: {lactose:!!r.lactose, gluten:!!r.gluten},
   };
 }
 function cdpSalvar(cfg){
-  state.settings = Object.assign({}, state.settings, {cardapio:cfg});
+  state.settings = Object.assign({}, state.settings, {cardapio:{jeito:cfg.jeito, rotina:cfg.rotina, restricoes:{lactose:cfg.restricoes.lactose, gluten:cfg.restricoes.gluten}}});
   saveDoc("config/settings", state.settings);
 }
-function cdpPermitido(id, cfg){
-  const f = CDP_FOODS[id], r = cfg.restricoes;
-  if(r.lactose && f.tags.indexOf("lactose")>=0) return false;
-  if(r.gluten && f.tags.indexOf("gluten")>=0) return false;
-  if(r.vegetariano && f.tags.indexOf("carne")>=0) return false;
-  return true;
+function cdpQtd(id, g, compras){
+  const f = CDPE.FOODS[id], un = f.liq ? "ml" : "g";
+  let q = g >= 1000 ? num(g/1000,1)+(f.liq ? " L" : " kg") : num(g,0)+" "+un;
+  if(f.unit && !(compras && id === "azeite")){ const n = Math.max(1, Math.round(g/f.unit[0])); q = n+" "+(n>1 ? f.unit[2] : f.unit[1])+" (≈ "+q+")"; }
+  return q;
 }
-let cdpVeg = false;   // vegetariano: libera porções maiores de ovo/queijo (as únicas proteínas densas permitidas)
-function cdpRound(food, g){
-  const step = food.step || food.unit || 5;
-  const lo = food.min != null ? food.min : step, hi = (cdpVeg && food.vmax) ? food.vmax : (food.max != null ? food.max : 1e9);
-  return Math.max(lo, Math.min(hi, Math.round(g/step)*step));
+function cdpNome(f){
+  const rot = /\*$/.test(f.n);
+  return escapeHtml(rot ? f.n.replace(/\*$/,"") : f.n)+(rot ? '<sup title="valor típico de rótulo — confira o seu">*</sup>' : "");
 }
-function cdpMacro(food, g){ const m=g/100; return {k:food.k*m, p:food.p*m, c:food.c*m, g:food.g*m}; }
-function cdpMedida(food, g){
-  if(!food.un) return "";
-  const n = Math.round(g/food.unit*2)/2;
-  if(!n) return "";
-  return "≈ "+String(n).replace(".",",")+" "+(n===1?food.un[0]:food.un[1]);
-}
-function cdpMontarRefeicao(kind, cfg, kcalAlvo, protAlvo, frac, variacao){
-  // se as restrições inviabilizam todas as receitas do estilo escolhido, usa as dos outros estilos
-  const ordem = [cfg.estilo].concat(["brasileiro","variado","pratico"].filter(e=> e!==cfg.estilo));
-  const receitas = [].concat.apply([], ordem.map(e=> CDP_REC[e][kind]));
-  const nPrim = CDP_REC[cfg.estilo][kind].length;
-  let itens = null;
-  for(let t = 0; t < receitas.length && !itens; t++){
-    const idx = t < nPrim ? (variacao + t) % nPrim : t;
-    const rec = receitas[idx];
-    const out = []; let ok = true;
-    rec.forEach(spec=>{
-      const cand = spec.f.filter(id=> cdpPermitido(id, cfg) && !out.some(x=> x.id===id));
-      if(!cand.length){ if(!spec.o) ok = false; return; }
-      const id = cand[variacao % cand.length];
-      out.push({r:spec.r, id, g: spec.g != null ? spec.g : (CDP_FOODS[id].fixed || 0), o:!!spec.o});
-    });
-    if(ok && out.length) itens = out;
-  }
-  if(!itens) return null;
-  // porções fixas primeiro; depois proteína e carboidrato fecham a meta da refeição
-  const alvoK0 = kcalAlvo*frac;
-  itens.forEach(i=>{ if(i.r==="L") i.g = cdpRound(CDP_FOODS[i.id], i.g * Math.max(1, Math.min(1.8, alvoK0/650))); });   // refeições maiores levam mais leguminosa
-  const fixo = itens.filter(i=> i.r!=="P" && i.r!=="C" && i.r!=="D");
-  let fk = 0, fp = 0;
-  fixo.forEach(i=>{ const m = cdpMacro(CDP_FOODS[i.id], i.g); fk += m.k; fp += m.p; });
-  const alvoK = kcalAlvo*frac, alvoP = protAlvo*frac;
-  const P = itens.find(i=> i.r==="P");
-  const Cs = itens.filter(i=> i.r==="C" || i.r==="D");
-  if(P){
-    const f = CDP_FOODS[P.id];
-    const cp = Cs.length ? Cs.reduce((a,i)=> a + CDP_FOODS[i.id].p*0.6, 0) : 0;   // ~60 g de cada carboidrato já entram na conta
-    P.g = cdpRound(f, Math.max(0, alvoP - fp - cp) / (f.p/100));
-  }
-  if(Cs.length){
-    const pk = P ? cdpMacro(CDP_FOODS[P.id], P.g).k : 0;
-    const share = Math.max(0, alvoK - fk - pk) / Cs.length;
-    Cs.forEach(i=>{ const f = CDP_FOODS[i.id]; i.g = cdpRound(f, share / (f.k/100)); });
-  }
-  return {kind, frac, itens};
-}
-function cdpTotais(refs){
-  const t = {k:0, p:0, c:0, g:0};
-  refs.forEach(r=> r.itens.forEach(i=>{ const m = cdpMacro(CDP_FOODS[i.id], i.g); t.k+=m.k; t.p+=m.p; t.c+=m.c; t.g+=m.g; }));
-  return t;
-}
-function cdpAjustar(refs, kcalAlvo, protAlvo){
-  // ajuste global: alterna proteína e carboidrato até aproximar os totais da meta
-  for(let it = 0; it < 4; it++){
-    let t = cdpTotais(refs);
-    const dP = protAlvo - t.p;
-    const ps = [];
-    refs.forEach(r=> r.itens.forEach(i=>{ if(i.r==="P") ps.push(i); }));
-    if(ps.length && Math.abs(dP) > 3){
-      const base = ps.reduce((a,i)=> a + i.g, 0) || 1;
-      ps.forEach(i=>{ const f = CDP_FOODS[i.id]; i.g = cdpRound(f, i.g + (dP * i.g/base) / (f.p/100)); });
-    }
-    t = cdpTotais(refs);
-    const dK = kcalAlvo - t.k;
-    const cs = [];
-    refs.forEach(r=> r.itens.forEach(i=>{ if(i.r==="C" || i.r==="D") cs.push(i); }));
-    if(cs.length && Math.abs(dK) > 25){
-      const base = cs.reduce((a,i)=> a + CDP_FOODS[i.id].k*i.g/100, 0) || 1;
-      cs.forEach(i=>{ const f = CDP_FOODS[i.id]; const share = dK * (f.k*i.g/100)/base; i.g = cdpRound(f, i.g + share/(f.k/100)); });
-    }
-  }
-}
-function cdpGerar(cfg, kcalAlvo, macros, variacao){
-  cdpVeg = !!cfg.restricoes.vegetariano;
-  const slots = CDP_SLOTS[cfg.refeicoes];
-  const refs = slots.map((s,idx)=> {
-    const r = cdpMontarRefeicao(s[0], cfg, kcalAlvo, macros.proteina.g, s[2], variacao + idx);
-    if(r){ r.nome = s[1]; }
-    return r;
-  }).filter(Boolean);
-  cdpAjustar(refs, kcalAlvo, macros.proteina.g);
-  return refs;
+function cdpSemana(motor){
+  const w = [];
+  for(let d = 0; d < 7; d++) w.push(CDPE.buildDay(d, motor));
+  return w;
 }
 function renderCardapio(kcalAlvo, macros){
   const el = document.getElementById("cardapio-body");
   if(!el) return;
   if(!kcalAlvo || !macros){
+    cdpUltimo = null;
     el.innerHTML = '<div class="empty-note">Complete seu perfil e registre seu peso para ver o cardápio da sua meta.</div>';
     return;
   }
-  const cfg = cdpCfg();
-  const refs = cdpGerar(cfg, kcalAlvo, macros, cdpVar);
-  const tot = cdpTotais(refs);
-  const alvos = {k:kcalAlvo, p:macros.proteina.g, c:macros.carbo.g, g:macros.gordura.g};
-  const chip = (lbl, v, a, un) => {
-    const d = a ? (v - a)/a : 0, ok = Math.abs(d) <= 0.07;
-    return '<span class="cdp-tchip '+(ok?'ok':'warn')+'"><b>'+lbl+'</b> '+num(v,0)+un+' <i>/ meta '+num(a,0)+'</i></span>';
-  };
-  const mealsHtml = refs.map(r=>{
-    const mt = cdpTotais([r]);
-    const rows = r.itens.map(i=>{
-      const f = CDP_FOODS[i.id];
-      const med = cdpMedida(f, i.g);
-      return '<div class="cdp-it"><span class="cdp-n">'+escapeHtml(f.n)+(f.tags.indexOf("rotulo")>=0?'<sup title="valor típico de rótulo — confira o seu">*</sup>':'')+'</span>'+
-        '<span class="cdp-q"><b>'+num(i.g,0)+' g</b>'+(med?'<small>'+med+'</small>':'')+'</span></div>';
+  cdpUltimo = {k:kcalAlvo, m:macros};
+  const cfg = cdpCfg(), p = state.perfil || {};
+  const motor = {kg:macros.proteina.g/macros.proteina.gkg, age:Number(p.idade)||30, kcalMeta:kcalAlvo, protG:macros.proteina.g,
+                 style:cfg.jeito, rout:cfg.rotina, nolact:cfg.restricoes.lactose, nogluten:cfg.restricoes.gluten};
+  const semana = cdpSemana(motor);
+  const cur = semana[cdpDia] || semana[0];
+  const rK = cur.tot.kcal/cur.target.kcal, rP = cur.tot.P/cur.target.P;
+  const kOk = Math.abs(rK-1) <= 0.07, pOk = rP >= 0.9;
+  const chip = (lbl, val, meta, ok, un) => '<span class="cdp-tchip '+(ok?'ok':'warn')+'"><b>'+lbl+'</b> '+num(val,0)+un+(meta!=null ? ' <i>/ meta '+num(meta,0)+'</i>' : '')+'</span>';
+  const chipsHtml = chip("kcal", cur.tot.kcal, cur.target.kcal, kOk, "")+chip("Prot.", cur.tot.P, cur.target.P, pOk, " g")+chip("Carb.", cur.tot.C, null, true, " g")+chip("Gord.", cur.tot.F, null, true, " g");
+  const media = semana.reduce((a,d)=>({k:a.k+d.tot.kcal/7, P:a.P+d.tot.P/7}), {k:0, P:0});
+  const diasBaixos = semana.filter(d=> d.tot.P/d.target.P < 0.9).length;
+
+  const grupo = (id, itens, rot, atual) => '<div class="cdp-chips" role="group" aria-label="'+id+'">'+itens.map(e=>
+    '<button type="button" class="cdp-chip'+(atual===e[0]?' on':'')+'" data-cdp="'+rot+'" data-v="'+e[0]+'" aria-pressed="'+(atual===e[0])+'">'+e[1]+'</button>').join("")+'</div>';
+  const dias = semana.map((d,i)=> '<button type="button" class="cdp-day'+(i===cdpDia?' on':'')+'" data-cdp="dia" data-v="'+i+'" aria-pressed="'+(i===cdpDia)+'" aria-label="'+d.label+(d.train?', dia de treino':', dia de descanso')+'">'+d.label+'<small>'+(d.train?'treino':'descanso')+'</small></button>').join("");
+
+  const dicas = {fora:"No por quilo, comece pelas saladas e legumes, escolha uma proteína grelhada e complete com arroz e feijão.", marmita:"Este almoço e jantar se repetem nos dias do mesmo lote (cozinhe no domingo e na quinta)."};
+  const refeicoes = cur.meals.map(ml=>{
+    const rows = ml.items.map(it=>{
+      const f = CDPE.FOODS[it.id];
+      return '<div class="cdp-it"><span class="cdp-n">'+cdpNome(f)+'</span><span class="cdp-q"><b>'+escapeHtml(cdpQtd(it.id, it.g))+'</b></span></div>';
     }).join("");
-    return '<section class="cdp-meal"><header class="cdp-mh"><h3>'+escapeHtml(r.nome)+'</h3><span class="cdp-mt">'+num(mt.k,0)+' kcal · '+num(mt.p,0)+' g prot.</span></header>'+rows+'</section>';
+    const dica = (ml.slot === "almoco" && dicas[cfg.rotina]) ? '<div class="cdp-tip">'+escapeHtml(dicas[cfg.rotina])+'</div>' : "";
+    return '<section class="cdp-meal"><header class="cdp-mh"><h3>'+escapeHtml(ml.name)+'</h3><span class="cdp-mt">'+num(ml.m.kcal,0)+' kcal · '+num(ml.m.P,0)+' g prot.</span></header>'+rows+dica+'</section>';
   }).join("");
-  const pRef = tot.p / (refs.length || 1);
-  const notaProt = pRef > 40 ? 'Com '+refs.length+' refeições, a proteína média passa de 40 g por refeição. A ISSN sugere ~0,25 g/kg (20–40 g) por dose, a cada 3–4 h — mais refeições distribuem melhor.' :
-                   pRef < 20 ? 'A proteína média por refeição ficou abaixo de 20 g; com menos refeições cada uma rende mais.' :
-                   'A proteína média por refeição ficou na faixa de 20–40 g sugerida pela ISSN (~0,25 g/kg por dose).';
-  const notaFalta = tot.p < alvos.p*0.9 ? 'Com essas restrições, as porções práticas não chegam à sua meta de proteína ('+num(tot.p,0)+' de '+num(alvos.p,0)+' g). Whey (se permitido), mais ovos/iogurte ou orientação de nutricionista ajudam a fechar a diferença.' : '';
-  const temRotulo = refs.some(r=> r.itens.some(i=> CDP_FOODS[i.id].tags.indexOf("rotulo")>=0));
+
+  const compra = CDPE.shopping(semana);
+  const compraHtml = CDP_GRUPOS.map(gd=>{
+    const its = compra.filter(s=> gd[1].indexOf(CDPE.FOODS[s.id].role) >= 0).sort((a,b)=> b.g-a.g);
+    if(!its.length) return "";
+    return '<h4 class="cdp-gh">'+gd[0]+'</h4>'+its.map(s=> '<div class="cdp-it"><span class="cdp-n">'+cdpNome(CDPE.FOODS[s.id])+'</span><span class="cdp-q"><b>'+escapeHtml(cdpQtd(s.id, s.g, true))+'</b></span></div>').join("");
+  }).join("");
+  const temRotulo = compra.some(s=> /\*$/.test(CDPE.FOODS[s.id].n));
+
+  // avisos (texto sempre orientado ao que fazer, sem culpar a pessoa nem o app)
+  const avisos = [];
+  if(!kOk) avisos.push("Neste dia as calorias ficaram em "+Math.round(rK*100)+"% da meta: as porções seguem um teto realista (ex.: até 250 g de arroz por refeição). Se quiser chegar mais perto, divida em mais refeições ou some um lanche.");
+  if(diasBaixos > 0) avisos.push("Nesta combinação, a proteína fica abaixo de 90% da meta em "+diasBaixos+" dia(s) da semana. Para chegar mais perto: troque a rotina (ex.: Marmita da semana), inclua uma fonte concentrada ("+(cfg.jeito==="vegan" ? "tofu, soja texturizada ou proteína vegetal em pó" : cfg.jeito==="veg" ? "ovos, iogurte ou whey, se fizerem parte da sua dieta" : "ovos, iogurte ou whey")+") ou converse com um(a) nutricionista.");
+  const notaJeito = cfg.jeito==="vegan" ? "No vegano, atenção a proteína, ferro, cálcio, vitamina B12 e vitamina D: o cardápio cuida da proteína; o resto pede acompanhamento profissional." :
+                    cfg.jeito==="lowc" ? "Low carb moderado: carboidrato reduzido, sem chegar à cetose; cerca de 40% das calorias vêm de gordura." : "";
+  const menor = menorDeIdade(p.idade);
+  const subt = CDP_OBJ_TXT[objetivoAtual]+' · '+num(kcalAlvo,0)+' kcal/dia (média da semana) · '+num(macros.proteina.g,0)+' g de proteína';
   const restr = cfg.restricoes;
+
   el.innerHTML =
+    '<p class="cdp-sub">'+escapeHtml(subt)+'. O objetivo segue o que você escolheu acima.</p>'+
     '<div class="cdp-controls">'+
-      '<div class="cdp-field"><span class="cdp-lbl" id="cdp-l1">Refeições por dia</span><div class="seg" role="group" aria-labelledby="cdp-l1">'+
-        [3,4,5,6].map(n=>'<button type="button" data-cdp="ref" data-v="'+n+'" class="'+(cfg.refeicoes===n?'active':'')+'" aria-pressed="'+(cfg.refeicoes===n)+'">'+n+'</button>').join("")+'</div></div>'+
-      '<div class="cdp-field"><span class="cdp-lbl" id="cdp-l2">Estilo</span><div class="seg" role="group" aria-labelledby="cdp-l2">'+
-        [["brasileiro","Brasileiro"],["pratico","Prático"],["variado","Variado"]].map(e=>'<button type="button" data-cdp="estilo" data-v="'+e[0]+'" class="'+(cfg.estilo===e[0]?'active':'')+'" aria-pressed="'+(cfg.estilo===e[0])+'">'+e[1]+'</button>').join("")+'</div></div>'+
-      '<div class="cdp-field"><span class="cdp-lbl" id="cdp-l3">Restrições</span><div class="cdp-chips" role="group" aria-labelledby="cdp-l3">'+
-        [["lactose","Sem lactose"],["gluten","Sem glúten"],["vegetariano","Vegetariano"]].map(e=>'<button type="button" class="cdp-chip'+(restr[e[0]]?' on':'')+'" data-cdp="restr" data-v="'+e[0]+'" aria-pressed="'+!!restr[e[0]]+'">'+e[1]+'</button>').join("")+'</div></div>'+
+      '<div class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>'+grupo("Jeito de comer", CDP_JEITOS, "jeito", cfg.jeito)+'</div>'+
+      '<div class="cdp-field"><span class="cdp-lbl">Rotina</span>'+grupo("Rotina", CDP_ROTINAS, "rotina", cfg.rotina)+'<span class="cdp-note">'+escapeHtml(CDP_ROT_DESC[cfg.rotina])+'</span></div>'+
+      '<div class="cdp-field"><span class="cdp-lbl">Restrições</span><div class="cdp-chips" role="group" aria-label="Restrições">'+
+        [["lactose","Sem lactose"],["gluten","Sem glúten"]].map(e=>'<button type="button" class="cdp-chip'+(restr[e[0]]?' on':'')+'" data-cdp="restr" data-v="'+e[0]+'" aria-pressed="'+!!restr[e[0]]+'">'+e[1]+'</button>').join("")+'</div></div>'+
     '</div>'+
-    '<div class="cdp-total" aria-label="Total do dia">'+chip("kcal",tot.k,alvos.k,"")+chip("Prot.",tot.p,alvos.p," g")+chip("Carb.",tot.c,alvos.c," g")+chip("Gord.",tot.g,alvos.g," g")+'</div>'+
-    '<div class="cdp-meals">'+mealsHtml+'</div>'+
-    '<div class="cdp-actions"><button type="button" class="btn small" data-cdp="outra">'+ICON_SWAP.replace('<svg ','<svg width="16" height="16" ')+' Outra sugestão</button></div>'+
-    '<div class="cdp-note">'+escapeHtml(notaProt)+'</div>'+(notaFalta?'<div class="cdp-note cdp-warn">'+escapeHtml(notaFalta)+'</div>':'')+
-    '<div class="cdp-note">Exemplo para um dia, calculado a partir da sua meta — porções em gramas de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde, alergias ou intolerâncias.'+(temRotulo?' <b>*</b> Whey: valor típico de rótulo; confira o do seu produto.':'')+'</div>';
+    '<div class="cdp-days" role="group" aria-label="Dia da semana">'+dias+'</div>'+
+    '<div class="cdp-total" aria-label="Total do dia">'+chipsHtml+'</div>'+
+    avisos.map(a=>'<div class="cdp-note cdp-warn">'+escapeHtml(a)+'</div>').join("")+
+    '<div class="cdp-meals">'+refeicoes+'</div>'+
+    '<details class="cdp-shop"><summary>Lista de compras da semana</summary>'+compraHtml+(temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "")+'<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.</div></details>'+
+    '<div class="cdp-note">Média da semana: '+num(media.k,0)+' kcal e '+num(media.P,0)+' g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div>'+
+    (notaJeito ? '<div class="cdp-note">'+escapeHtml(notaJeito)+'</div>' : "")+
+    (menor ? '<div class="cdp-note">Para menores de 18 anos o cardápio nunca usa déficit calórico e o ganho de massa é moderado.</div>' : "")+
+    '<div class="cdp-note">Exemplo calculado a partir da sua meta, com porções de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde.</div>';
 }
 (function setupCardapio(){
   const el = document.getElementById("cardapio-body");
@@ -11699,15 +11878,18 @@ function renderCardapio(kcalAlvo, macros){
     const b = ev.target.closest("[data-cdp]");
     if(!b) return;
     const act = b.dataset.cdp, cfg = cdpCfg();
-    if(act === "outra"){ cdpVar++; playSound("tick"); renderDieta(); const f = el.querySelector('[data-cdp="outra"]'); if(f) f.focus(); return; }
-    if(act === "ref") cfg.refeicoes = Number(b.dataset.v);
-    else if(act === "estilo") cfg.estilo = b.dataset.v;
-    else if(act === "restr") cfg.restricoes[b.dataset.v] = !cfg.restricoes[b.dataset.v];
-    cdpVar = 0;
-    cdpSalvar(cfg);
-    renderDieta();
-    const sel = '[data-cdp="'+act+'"]'+(b.dataset.v?'[data-v="'+b.dataset.v+'"]':'');
-    const f = el.querySelector(sel); if(f) f.focus();
+    if(act === "dia"){
+      cdpDia = Number(b.dataset.v) || 0;
+      if(cdpUltimo) renderCardapio(cdpUltimo.k, cdpUltimo.m);
+    } else {
+      if(act === "jeito") cfg.jeito = b.dataset.v;
+      else if(act === "rotina") cfg.rotina = b.dataset.v;
+      else if(act === "restr") cfg.restricoes[b.dataset.v] = !cfg.restricoes[b.dataset.v];
+      cdpSalvar(cfg);
+      renderDieta();
+    }
+    playSound("tick");
+    const f = el.querySelector('[data-cdp="'+act+'"][data-v="'+b.dataset.v+'"]'); if(f) f.focus();
   });
 })();
 
@@ -13182,7 +13364,7 @@ function renderFontes(){
     'Fórmulas: TMB — <a href="https://www.omnicalculator.com/health/bmr" target="_blank" rel="noopener">equação de Mifflin-St Jeor</a> · '+
     'Proteína — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">ISSN Position Stand: Protein and Exercise (2017)</a> · '+
     'Gordura/Carboidrato — <a href="https://www.ncbi.nlm.nih.gov/books/NBK610333/" target="_blank" rel="noopener">Acceptable Macronutrient Distribution Range (IOM/National Academies)</a> · '+
-    'Cardápio — composição dos alimentos pela <a href="https://www.tabelatacoonline.com.br" target="_blank" rel="noopener">Tabela Brasileira de Composição de Alimentos (TACO, NEPA/UNICAMP)</a>; proteína por refeição: <a href="https://pubmed.ncbi.nlm.nih.gov/28642676/" target="_blank" rel="noopener">ISSN Position Stand (2017)</a>; nota sobre déficit: <a href="https://pubmed.ncbi.nlm.nih.gov/28698222/" target="_blank" rel="noopener">Morton et al. (2018)</a>.';
+    'Cardápio — composição dos alimentos pela <a href="https://www.tabelatacoonline.com.br" target="_blank" rel="noopener">Tabela Brasileira de Composição de Alimentos (TACO, NEPA/UNICAMP)</a>; soja texturizada e proteínas em pó: valor típico de rótulo; vegano e vegetariano: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">ISSN Position Stand (2017)</a>; proteína por refeição: <a href="https://pubmed.ncbi.nlm.nih.gov/28642676/" target="_blank" rel="noopener">ISSN Position Stand (2017)</a>; nota sobre déficit: <a href="https://pubmed.ncbi.nlm.nih.gov/28698222/" target="_blank" rel="noopener">Morton et al. (2018)</a>.';
   const fontesRec = document.getElementById("fontes-recomendacoes");
   if(fontesRec){
     fontesRec.innerHTML =
