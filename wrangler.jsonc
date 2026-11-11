@@ -9,5 +9,8 @@
     // Comportamento explícito (é o padrão da Cloudflare): /index.html redireciona para / e o que não existe dá 404.
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
-  }
+  },
+  // Builds de preview da Cloudflare (branches e PRs) rodam `wrangler preview`, que exige este bloco.
+  // Vazio basta: herda assets e compatibility_date do topo. Não afeta o `wrangler deploy` da produção.
+  "previews": {}
 }
