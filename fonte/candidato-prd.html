@@ -1039,6 +1039,16 @@ button.biblio-ex-chip.on{background:var(--accent-soft); border-color:var(--accen
 .foto-cmpbtn:hover{background:rgba(0,0,0,.75);}
 dialog.foto-zoom{border:0; padding:0; margin:0; max-width:none; max-height:none; width:100vw; height:100dvh; background:rgba(8,10,12,.97); color:#fff; overflow:hidden;}
 dialog.foto-zoom::backdrop{background:rgba(0,0,0,.85);}
+/* Reagendar: treino perdido feito hoje */
+.perdido-card{display:flex; align-items:center; gap:12px 14px; flex-wrap:wrap; border-inline-start:3px solid var(--warn, #d9a441);}
+.perdido-card .hp-body{flex:1 1 220px; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.perdido-card .hp-body b{font-size:var(--fs-base);}
+.perdido-card .hp-body span{font-size:var(--fs-xs); color:var(--ink-2, inherit);}
+.perdido-card .hp-act{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.reag-lista{list-style:none; margin:10px 0; padding:0; display:flex; flex-direction:column; gap:6px;}
+.reag-lista li{display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; padding:8px 10px; border:1px solid var(--line); border-radius:10px;}
+.reag-lista li b{min-width:64px;}
+.reag-lista li.fora{border-style:dashed;}
 .fz-stage{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; touch-action:none; overflow:hidden; cursor:zoom-in; user-select:none; -webkit-user-select:none;}
 .fz-stage.zoomed{cursor:grab;}
 .fz-img{max-width:100%; max-height:100%; object-fit:contain; transform-origin:center center; will-change:transform; -webkit-user-drag:none; user-select:none;}
@@ -2750,6 +2760,8 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       </div>
     </div>
 
+    <section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>
+
     <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>
 
     <button type="button" class="nivel-mini" id="nivel-mini" data-goto="perfil" style="--tier-color: var(--t1);" aria-label="Ver sua patente no Perfil">
@@ -3779,6 +3791,14 @@ function dayKeyFromISO(iso){
   const map = ["dom","seg","ter","qua","qui","sex","sab"];
   return map[jsDay];
 }
+/* ---- Reagendar: treino perdido feito hoje ----
+   settings.reagenda = {dias:{ "AAAA-MM-DD": "<chave do treino>" }, recuperados:["AAAA-MM-DD"]}
+   treinoKey(iso) = qual treino da rotina vale NAQUELA data (o dia da semana, salvo remanejamento). */
+function treinoKey(iso){
+  const r = state.settings && state.settings.reagenda;
+  const k = r && r.dias && r.dias[iso];
+  return (k && DAYS.indexOf(k) >= 0) ? k : dayKeyFromISO(iso);
+}
 function addDaysISO(iso, n){
   const d = new Date(iso+"T00:00:00");
   d.setDate(d.getDate()+n);
@@ -4258,7 +4278,7 @@ function missaoFoco(days){
   const hit = diasComFoco(focoMusculos());
   if(!hit.length) return null;
   const hitSet = new Set(hit);
-  const feitos = days.filter(iso=>{ const c = state.checkins[iso]; return hitSet.has(dayKeyFromISO(iso)) && c && c.concluido && !c.leve; }).length;
+  const feitos = days.filter(iso=>{ const c = state.checkins[iso]; return hitSet.has(treinoKey(iso)) && c && c.concluido && !c.leve; }).length;
   const tot = Math.min(2, hit.length);
   return {
     nome:"Foco: "+focoNomes().join(" e "),
@@ -5435,6 +5455,127 @@ function getTrackingStartISO(){
 }
 
 /* ============================================================
+   REAGENDAR — treino perdido feito hoje
+   O usuário perde um dia (imprevisto) e quer fazer o treino que ficou para trás
+   sem perder a ordem da semana. Fazendo-o hoje, o treino de hoje vai para amanhã
+   e os dias seguintes andam 1 dia; o primeiro descanso absorve o deslocamento.
+   Se não houver descanso até domingo, o último treino fica de fora da semana.
+   Vale só para a semana atual (seg–dom). Os dias passados não mudam: o dia perdido
+   continua perdido (usa congelamento, se houver) e o treino conta no dia em que foi feito.
+   ============================================================ */
+function reagendaCfg(){
+  const r = state.settings && state.settings.reagenda;
+  return {dias:(r && r.dias) || {}, recuperados:(r && r.recuperados) || []};
+}
+function treinoAtivoKey(k){ const d = state.rotina && state.rotina[k]; return !!(d && d.ativo && (d.exercicios||[]).length); }
+function rotuloTreino(k){ return treinoAtivoKey(k) ? (state.rotina[k].nome || DAY_FULL[k]) : "Descanso"; }
+function treinosPerdidos(){
+  if(!state.rotina || state.rotinaIsExample || !state.perfil) return [];
+  const hoje = todayISO(), ini = getTrackingStartISO(), rec = new Set(reagendaCfg().recuperados);
+  const out = [];
+  for(let d = mondayOfISO(hoje); d < hoje; d = addDaysISO(d, 1)){
+    if(d < ini) continue;
+    const k = treinoKey(d);
+    if(!treinoAtivoKey(k)) continue;
+    if(state.checkins[d]?.concluido || rec.has(d)) continue;
+    out.push({iso:d, key:k, nome:state.rotina[k].nome || DAY_FULL[k]});
+  }
+  return out;
+}
+function hojeLivreParaReagendar(){
+  const hoje = todayISO(), c = state.checkins[hoje];
+  if(!c) return true;
+  if(c.concluido) return false;
+  const day = state.rotina[treinoKey(hoje)];
+  try{ return !(day && resumoDia(c, day).algumRegistro); }catch(e){ return true; }
+}
+function planoReagenda(missIso, hoje){
+  hoje = hoje || todayISO();
+  const fim = addDaysISO(mondayOfISO(hoje), 6);
+  const datas = []; for(let d = hoje; d <= fim; d = addDaysISO(d, 1)) datas.push(d);
+  const orig = datas.map(d=> treinoKey(d));
+  const novo = orig.slice();
+  const missKey = treinoKey(missIso);
+  novo[0] = missKey;
+  let carry = treinoAtivoKey(orig[0]) ? orig[0] : null;
+  for(let i = 1; i < datas.length && carry; i++){
+    const o = orig[i];
+    novo[i] = carry;
+    carry = treinoAtivoKey(o) ? o : null;     // um dia de descanso absorve o deslocamento
+  }
+  return {datas, orig, novo, missKey, missIso, fora: carry};
+}
+function aplicaReagenda(plano){
+  const antes = state.settings && state.settings.reagenda ? JSON.parse(JSON.stringify(state.settings.reagenda)) : null;
+  const cfg = reagendaCfg(), hoje = todayISO(), corte = addDaysISO(hoje, -21), corteRec = addDaysISO(hoje, -60);
+  const dias = {};
+  Object.keys(cfg.dias).forEach(d=>{ if(d >= corte && plano.datas.indexOf(d) < 0) dias[d] = cfg.dias[d]; });
+  plano.datas.forEach((d, i)=>{ if(plano.novo[i] !== dayKeyFromISO(d)) dias[d] = plano.novo[i]; });
+  const recuperados = cfg.recuperados.filter(d=> d >= corteRec).concat(plano.missIso);
+  state.settings = Object.assign({}, state.settings, {reagenda:{dias, recuperados}});
+  saveDoc("config/settings", state.settings);
+  selectedTrailDay = null;
+  render();
+  showToast("Treino de hoje trocado. A semana foi reorganizada.", {action:{label:"Desfazer", fn:()=>{
+    state.settings = Object.assign({}, state.settings, {reagenda: antes});
+    saveDoc("config/settings", state.settings);
+    selectedTrailDay = null; render();
+  }}});
+}
+function abrirReagenda(missIso){
+  if(!treinosPerdidos().some(p=> p.iso === missIso)){ showToast("Esse treino já foi reposto ou não está mais disponível."); return; }
+  if(!hojeLivreParaReagendar()){ showToast("Hoje já tem treino registrado. Conclua ou desfaça o de hoje antes de repor o de outro dia."); return; }
+  const plano = planoReagenda(missIso);
+  const hoje = todayISO();
+  const wdNome = (d)=> d === hoje ? "Hoje" : DAY_LABEL[dayKeyFromISO(d)];
+  const linhas = [];
+  plano.datas.forEach((d, i)=>{
+    if(plano.novo[i] === plano.orig[i]) return;
+    const quem = rotuloTreino(plano.novo[i]);
+    const nota = (i === 0) ? " · treino de "+DAY_FULL[plano.missKey]+" que ficou para trás" : (treinoAtivoKey(plano.novo[i]) ? " · empurrado" : "");
+    linhas.push('<li><b>'+escapeHtml(wdNome(d))+'</b><span>'+escapeHtml(quem)+nota+'</span></li>');
+  });
+  if(plano.fora) linhas.push('<li class="fora"><b>Fora</b><span>'+escapeHtml(rotuloTreino(plano.fora))+' fica de fora desta semana (não há descanso para absorver).</span></li>');
+  const body = document.createElement("div");
+  body.innerHTML =
+    '<h2>Fazer o treino que ficou para trás?</h2>'+
+    '<p class="hint">Você vai fazer <b>'+escapeHtml(rotuloTreino(plano.missKey))+'</b> hoje, para manter a ordem da semana. Veja como fica:</p>'+
+    '<ul class="reag-lista">'+linhas.join("")+'</ul>'+
+    '<p class="hint">Vale só para esta semana. O treino conta no dia em que você o faz; o dia que passou continua sem treino (usa um congelamento, se houver). Dá para desfazer logo depois.</p>'+
+    '<div class="modal-actions"><button class="btn" id="reag-cancel" type="button">Cancelar</button><button class="btn primary" id="reag-ok" type="button">Trocar o treino de hoje</button></div>';
+  openModal(body);
+  body.querySelector("#reag-cancel").addEventListener("click", closeModal);
+  body.querySelector("#reag-ok").addEventListener("click", ()=>{ closeModal(); aplicaReagenda(plano); });
+}
+function renderPerdidoCard(){
+  const el = document.getElementById("hoje-perdido");
+  if(!el) return;
+  const hoje = todayISO();
+  const lista = treinosPerdidos().filter(p=> p.iso >= addDaysISO(hoje, -3));
+  const p = lista[lista.length - 1];
+  let dispensado = null; try{ dispensado = localStorage.getItem("ng_perdido_dispensado"); }catch(e){}
+  if(!p || !hojeLivreParaReagendar() || dispensado === p.iso+"|"+hoje){ el.hidden = true; el.innerHTML = ""; return; }
+  const ontem = p.iso === addDaysISO(hoje, -1);
+  const quando = ontem ? "Ontem" : DAY_FULL[dayKeyFromISO(p.iso)];
+  const plano = planoReagenda(p.iso);
+  const hojeKey = plano.orig[0];
+  const nota = treinoAtivoKey(hojeKey) ? "O treino de hoje ("+rotuloTreino(hojeKey)+") vai para amanhã e a semana segue na ordem." : "Hoje seria descanso: dá para repor sem mexer no resto.";
+  el.innerHTML =
+    '<div class="hp-body"><b id="hp-t">'+quando+' ficou sem treino: '+escapeHtml(p.nome)+'</b><span>Imprevistos acontecem. Quer fazer esse treino hoje? '+escapeHtml(nota)+'</span></div>'+
+    '<div class="hp-act"><button type="button" class="btn small primary" data-hp="fazer" data-iso="'+p.iso+'">Fazer hoje</button>'+
+    '<button type="button" class="link-btn" data-hp="dispensar" data-iso="'+p.iso+'">Agora não</button></div>';
+  el.hidden = false;
+}
+document.addEventListener("click", (e)=>{
+  const r = e.target.closest && e.target.closest("[data-recup]");
+  if(r){ abrirReagenda(r.dataset.recup); return; }
+  const h = e.target.closest && e.target.closest("[data-hp]");
+  if(!h) return;
+  if(h.dataset.hp === "fazer") abrirReagenda(h.dataset.iso);
+  else { try{ localStorage.setItem("ng_perdido_dispensado", h.dataset.iso+"|"+todayISO()); }catch(_){} renderPerdidoCard(); }
+});
+
+/* ============================================================
    CONGELAMENTO DE SEQUÊNCIA (streak freeze)
    Ganha-se 1 congelamento a cada FREEZE_EARN_DAYS dias corridos de uso
    do app (teto de FREEZE_MAX guardados). Quando um dia de treino
@@ -5448,7 +5589,7 @@ const FREEZE_EARN_DAYS = 7;
 function computeStreakEngine(){
   const start = getTrackingStartISO();
   const today = todayISO();
-  const todayKey = dayKeyFromISO(today);
+  const todayKey = treinoKey(today);
   const todayAtivo = state.rotina[todayKey]?.ativo;
   const todayDone = state.checkins[today]?.concluido;
   // se hoje é dia de treino e ainda não concluído, a contagem "oficial" pára em ontem —
@@ -5463,7 +5604,7 @@ function computeStreakEngine(){
   while(iso <= end){
     daysElapsed++;
     if(daysElapsed % FREEZE_EARN_DAYS === 0 && freezeBalance < FREEZE_MAX) freezeBalance++;
-    const key = dayKeyFromISO(iso);
+    const key = treinoKey(iso);
     if(state.rotina[key]?.ativo){
       if(state.checkins[iso]?.concluido){
         cur++;
@@ -5518,7 +5659,7 @@ function statsSemana(mondayIso){
   for(let i=0; i<7; i++){
     const iso = addDaysISO(mondayIso, i);
     if(iso < start) continue;
-    if(!state.rotina[dayKeyFromISO(iso)]?.ativo) continue;
+    if(!state.rotina[treinoKey(iso)]?.ativo) continue;
     cap++;
     if(iso <= today && state.checkins[iso]?.concluido){ feitos++; if(state.checkins[iso].leve) leves++; }
   }
@@ -5583,7 +5724,7 @@ function saveRecup(iso, campo, v){
   const cur = state.checkins[iso] || {};
   const rec = Object.assign({}, cur.recup);
   if(rec[campo] === v) delete rec[campo]; else rec[campo] = v;
-  const data = Object.assign({}, cur, {data:iso, dia:dayKeyFromISO(iso), recup:rec});
+  const data = Object.assign({}, cur, {data:iso, dia:treinoKey(iso), recup:rec});
   if(!Object.keys(rec).length) delete data.recup;
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
@@ -5604,7 +5745,7 @@ function renderRecup(){
   const card = document.getElementById("cc-recup");
   if(!card) return;
   const iso = todayISO();
-  const day = state.rotina[dayKeyFromISO(iso)];
+  const day = state.rotina[treinoKey(iso)];
   const ativo = !!(day && day.ativo), done = !!state.checkins[iso]?.concluido;
   card.hidden = !ativo || done;
   if(card.hidden) return;
@@ -5649,7 +5790,7 @@ function salvarHabitos(){
   const cur = state.checkins[iso] || {};
   if(!Object.keys(hab).length && !cur.hab){ habMsg("Preencha ao menos um campo para salvar."); return; }
   habMsg(null);
-  const data = Object.assign({}, cur, {data:iso, dia:dayKeyFromISO(iso)});
+  const data = Object.assign({}, cur, {data:iso, dia:treinoKey(iso)});
   if(Object.keys(hab).length) data.hab = hab; else delete data.hab;
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
@@ -5698,7 +5839,7 @@ function renderHabitos(){
 
 /* ---- dia leve ---- */
 function registrarDiaLeve(){
-  const iso = todayISO(), key = dayKeyFromISO(iso);
+  const iso = todayISO(), key = treinoKey(iso);
   if(!state.rotina[key]?.ativo) return;
   const existing = state.checkins[iso] || {};
   if(existing.concluido) return;
@@ -5737,7 +5878,7 @@ function sessaoRapidaItens(extras){
   return out;
 }
 function abrirSessaoRapida(){
-  const iso = todayISO(), key = dayKeyFromISO(iso);
+  const iso = todayISO(), key = treinoKey(iso);
   if(!state.rotina[key]?.ativo || state.checkins[iso]?.concluido) return;
   const body = document.createElement("div");
   body.innerHTML = '<h2>Sessão rápida</h2><div id="sr-dyn"></div>';
@@ -5853,7 +5994,7 @@ function computeNivelInfo(){
   while(iso <= end){
     daysElapsed++;
     if(daysElapsed % FREEZE_EARN_DAYS === 0 && freezeBalance < FREEZE_MAX) freezeBalance++;
-    const key = dayKeyFromISO(iso);
+    const key = treinoKey(iso);
     if(state.rotina[key]?.ativo){
       if(state.checkins[iso]?.concluido){
         cur++;
@@ -6103,7 +6244,7 @@ function renderNarrator(){
   if(!card || !msgEl) return;
 
   const today = todayISO();
-  const todayKey = dayKeyFromISO(today);
+  const todayKey = treinoKey(today);
   const todayDay = state.rotina ? state.rotina[todayKey] : null;
   const todayAtivo = !!(todayDay && todayDay.ativo);
   const todayDone = !!state.checkins[today]?.concluido;
@@ -6317,7 +6458,7 @@ function hasPerfectWeekEver(){
       const iso = addDaysISO(monday, i);
       if(iso > today) break;
       if(iso < start) continue;
-      const key = dayKeyFromISO(iso);
+      const key = treinoKey(iso);
       if(state.rotina[key]?.ativo){
         total++;
         if(state.checkins[iso]?.concluido) done++;
@@ -6762,7 +6903,7 @@ function activeDaysInRange(startIso, endIso){
   const list = [];
   let iso = startIso;
   while(iso <= realEnd){
-    const key = dayKeyFromISO(iso);
+    const key = treinoKey(iso);
     if(state.rotina[key]?.ativo) list.push(iso);
     iso = addDaysISO(iso, 1);
   }
@@ -6964,7 +7105,7 @@ function renderStreak(){
   const usedYesterday = engine.freezeUsedDates.includes(addDaysISO(todayISO(), -1));
 
   // streak em risco: hoje é dia de treino ativo, ainda não concluído, e já está tarde
-  const todayKeyRisk = dayKeyFromISO(todayISO());
+  const todayKeyRisk = treinoKey(todayISO());
   const todayAtivoRisk = state.rotina[todayKeyRisk]?.ativo;
   const todayDoneRisk = !!state.checkins[todayISO()]?.concluido;
   const atRisk = streak > 0 && todayAtivoRisk && !todayDoneRisk && new Date().getHours() >= 20;
@@ -7025,7 +7166,7 @@ function renderWeekDots(){
   const freezeUsedSet = new Set(computeStreakEngine().freezeUsedDates);
   let done=0, total=0;
   days.forEach(iso=>{
-    const key = dayKeyFromISO(iso);
+    const key = treinoKey(iso);
     const ativo = state.rotina[key]?.ativo;
     const isDone = !!state.checkins[iso]?.concluido;
     const isToday = iso === todayISO();
@@ -7033,8 +7174,9 @@ function renderWeekDots(){
     if(ativo){ total++; if(isDone) done++; }
     const el = document.createElement("div");
     el.className = "dot" + (isDone?" done":"") + (isDone && state.checkins[iso].leve ? " leve" : "") + (!ativo?" rest":"") + (isToday?" today":"") + (isFrozen?" frozen":"");
-    if(isFrozen) el.innerHTML = ic("snow"); else el.textContent = DAY_LABEL[key][0];
-    el.title = DAY_FULL[key] + (isFrozen ? " — protegido por congelamento" : (ativo ? (isDone ? (state.checkins[iso].leve ? " — dia leve" : " — concluído") : " — pendente") : " — descanso"));
+    const wd = dayKeyFromISO(iso);
+    if(isFrozen) el.innerHTML = ic("snow"); else el.textContent = DAY_LABEL[wd][0];
+    el.title = DAY_FULL[wd] + (isFrozen ? " — protegido por congelamento" : (ativo ? (isDone ? (state.checkins[iso].leve ? " — dia leve" : " — concluído") : " — pendente") : " — descanso"));
     wrap.appendChild(el);
   });
   document.getElementById("week-label").textContent = done+" de "+total+" treinos concluídos";
@@ -7049,7 +7191,7 @@ function renderWeekDots(){
   for(let d=1; d<=lastDayNum; d++){
     const dIso = y+"-"+m+"-"+pad2(d);
     if(dIso > iso) break;
-    const key = dayKeyFromISO(dIso);
+    const key = treinoKey(dIso);
     if(state.rotina[key]?.ativo){
       mtotal++;
       if(state.checkins[dIso]?.concluido) mdone++;
@@ -7672,14 +7814,15 @@ function renderSemanaResumo(){
   el.textContent = (base ? base+" · " : "")+"sequência "+streak;
 }
 function renderTodayCard(){
+  try{ renderPerdidoCard(); }catch(e){}
   const iso = todayISO();
-  const key = dayKeyFromISO(iso);
+  const key = treinoKey(iso);
   const day = state.rotina[key];
   const hint = document.getElementById("today-hint");
   const title = document.getElementById("today-title");
   if(!day || !day.ativo){
     if(title) title.textContent = "Dia de descanso";
-    hint.textContent = DAY_FULL[key]+" — recupere: sono, proteína e uma caminhada leve contam.";
+    hint.textContent = DAY_FULL[dayKeyFromISO(iso)]+" — recupere: sono, proteína e uma caminhada leve contam.";
     aplicaAcaoHoje(state.perfil ? "descanso" : "cadastro", 0, 0, false);
     renderTodayDots(null, null);
     setTodayRing(0, 0, false);
@@ -7688,7 +7831,7 @@ function renderTodayCard(){
   const checkin = state.checkins[iso];
   const done = !!checkin?.concluido;
   if(title) title.textContent = day.nome;
-  hint.textContent = DAY_FULL[key]+" — "+day.exercicios.length+" exercícios"+(checkin && checkin.leve ? " · dia leve: sequência mantida" : (checkin && checkin.rapido ? " · sessão rápida" : ""));
+  hint.textContent = DAY_FULL[dayKeyFromISO(iso)]+" — "+day.exercicios.length+" exercícios"+(key !== dayKeyFromISO(iso) ? " · treino de "+DAY_FULL[key]+" (remanejado)" : "")+(checkin && checkin.leve ? " · dia leve: sequência mantida" : (checkin && checkin.rapido ? " · sessão rápida" : ""));
   renderTodayDots(day, checkin);
   const rd = resumoDia(checkin, day);
   let nDone = rd.resolvidos, algum = rd.algumRegistro;
@@ -7802,7 +7945,7 @@ async function aplicarFormato(){
 })();
 document.getElementById("btn-quick-checkin").addEventListener("click", (e)=>{
   const iso = todayISO();
-  const key = dayKeyFromISO(iso);
+  const key = treinoKey(iso);
   const existing = state.checkins[iso] || {};
   const wasConcluido = !!existing.concluido;
   const prevSnap = snapCheckin(iso);
@@ -7991,7 +8134,7 @@ function saveCarga(iso, exNome, pesoKg){
   } else {
     cargas[exNome] = pesoKg;
   }
-  const data = Object.assign({}, cur, {data:iso, dia:dayKeyFromISO(iso), cargas});
+  const data = Object.assign({}, cur, {data:iso, dia:treinoKey(iso), cargas});
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
 }
@@ -8190,7 +8333,7 @@ function saveTroca(iso, idx, nome){
   const cur = state.checkins[iso] || {};
   const trocas = Object.assign({}, cur.trocas);
   if(nome==null) delete trocas[idx]; else trocas[idx] = nome;
-  const data = Object.assign({}, cur, {data:iso, dia:dayKeyFromISO(iso), trocas});
+  const data = Object.assign({}, cur, {data:iso, dia:treinoKey(iso), trocas});
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
 }
@@ -8285,7 +8428,7 @@ function aplicarLocalTreino(modo){
   return Promise.all(jobs);
 }
 async function tornarTrocaPermanente(iso, idx, after){
-  const key = dayKeyFromISO(iso);
+  const key = treinoKey(iso);
   const day = state.rotina[key];
   const novo = exTrocado(iso, idx);
   if(!day || !novo || !(day.exercicios||[])[idx]) return;
@@ -8328,7 +8471,7 @@ function altChipsHtml(alts, idx, ex){
 function rpeDoExercicio(exNome, iso){
   const c = state.checkins[iso];
   if(!c || !c.rpe) return null;
-  const day = state.rotina[dayKeyFromISO(iso)];
+  const day = state.rotina[treinoKey(iso)];
   const exs = (day && day.exercicios) || [];
   let idx = -1;
   exs.forEach((e,i)=>{ const n = (c.trocas && c.trocas[i]) || e.nome; if(idx < 0 && n === exNome) idx = i; });
@@ -8338,7 +8481,7 @@ function rpeDoExercicio(exNome, iso){
 function registroDoExercicio(exNome, iso){
   const c = state.checkins[iso];
   if(!c) return null;
-  const day = state.rotina[dayKeyFromISO(iso)];
+  const day = state.rotina[treinoKey(iso)];
   const exs = (day && day.exercicios) || [];
   let idx = -1, ex = null;
   exs.forEach((e,i)=>{ if(idx >= 0) return; const x = exDoDia(e, iso, i); if(x.nome === exNome){ idx = i; ex = x; } });
@@ -8400,7 +8543,7 @@ function sessoesDoExercicio(nome, ateISO){
   Object.keys(state.checkins).sort().forEach(iso=>{
     if(ateISO && iso > ateISO) return;
     const c = state.checkins[iso]; if(!c) return;
-    const day = state.rotina[c.dia || dayKeyFromISO(iso)];
+    const day = state.rotina[c.dia || treinoKey(iso)];
     const exs = (day && day.exercicios) || [];
     let idx = -1, ex = null;
     exs.forEach((e,i)=>{ if(idx >= 0) return; const x = exDoDia(e, iso, i); if(x.nome === nome){ idx = i; ex = x; } });
@@ -8444,7 +8587,7 @@ function semanaRealizadaPorMusculo(mondayISO){
   const tot = {}; MUSCLE_ORDER.forEach(m=> tot[m] = 0);
   for(let k=0; k<7; k++){
     const iso = addDaysISO(mondayISO, k), c = state.checkins[iso]; if(!c) continue;
-    const day = state.rotina[c.dia || dayKeyFromISO(iso)]; const exs = (day && day.exercicios) || [];
+    const day = state.rotina[c.dia || treinoKey(iso)]; const exs = (day && day.exercicios) || [];
     exs.forEach((e,i)=>{
       const x = exDoDia(e, iso, i), est = estadoEx(c, i, x);
       if(est.status === "pulado") return;
@@ -8613,7 +8756,7 @@ function saveRPE(iso, idx, value){
   const cur = state.checkins[iso] || {};
   const rpe = Object.assign({}, cur.rpe);
   if(value == null) delete rpe[idx]; else rpe[idx] = value;
-  const data = Object.assign({}, cur, {data:iso, dia:dayKeyFromISO(iso), rpe});
+  const data = Object.assign({}, cur, {data:iso, dia:treinoKey(iso), rpe});
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
 }
@@ -9022,7 +9165,7 @@ function cancelRestTimer(idx){
 let liveWorkoutIdx = 0;
 function openTreinoAoVivo(){
   const iso = todayISO();
-  const key = dayKeyFromISO(iso);
+  const key = treinoKey(iso);
   const day = state.rotina[key];
   if(!day || !day.ativo || !(day.exercicios||[]).length){
     showToast("Hoje é dia de descanso: sem treino para começar. Aproveite para recuperar.");
@@ -9037,7 +9180,7 @@ function openTreinoAoVivo(){
 
 function renderLiveWorkout(body){
   const iso = todayISO();
-  const key = dayKeyFromISO(iso);
+  const key = treinoKey(iso);
   const day = state.rotina[key];
   if(!day){ closeModal(); return; }
   const exercicios = day.exercicios || [];
@@ -9178,9 +9321,9 @@ function trailNodeCenter(i, n, trailW){
 }
 
 function trailDayStatus(key, todayKey, iso, freezeUsedSet){
-  const day = state.rotina[key] || {nome:"—", ativo:false, exercicios:[]};
-  const isToday = key === todayKey;
   const dateForKey = isoWeekDateForKey(key);
+  const day = state.rotina[treinoKey(dateForKey)] || {nome:"—", ativo:false, exercicios:[]};
+  const isToday = key === todayKey;
   const isPast = !isToday && dateForKey < iso;
   const checkin = isToday ? state.checkins[iso] : (isPast ? state.checkins[dateForKey] : null);
   const done = !!checkin?.concluido;
@@ -9257,10 +9400,11 @@ function renderWeekTrailDetail(){
   const el = document.getElementById("week-trail-detail");
   if(!el) return;
   const iso = todayISO();
-  const todayKey = dayKeyFromISO(iso);
-  const key = selectedTrailDay || todayKey;
+  const wdKey = dayKeyFromISO(iso);       // dia da semana de hoje (a trilha é por dia da semana)
+  const todayKey = treinoKey(iso);        // treino que vale hoje (pode ter sido remanejado)
+  const key = selectedTrailDay || wdKey;
   const freezeUsedSet = new Set(computeStreakEngine().freezeUsedDates);
-  const info = trailDayStatus(key, todayKey, iso, freezeUsedSet);
+  const info = trailDayStatus(key, wdKey, iso, freezeUsedSet);
   const day = info.day, isToday = info.isToday, done = info.done, status = info.status;
 
   const statusChipHtml = {
@@ -9358,13 +9502,13 @@ function renderWeekTrailDetail(){
         panelHtml+
       '</li>';
     }).join("");
-    bodyHtml = '<div class="wtd-actions qc-dayhead"><button class="btn small '+(done?'':'primary')+'" data-checkin="'+key+'">'+(done?'✓ Concluído hoje':'Concluir treino inteiro')+'</button>'+
+    bodyHtml = '<div class="wtd-actions qc-dayhead"><button class="btn small '+(done?'':'primary')+'" data-checkin="'+todayKey+'">'+(done?'✓ Concluído hoje':'Concluir treino inteiro')+'</button>'+
         (resDia.total ? '<span class="qc-daycount"><b>'+resDia.ok+'</b> de <b>'+resDia.total+'</b> completos'+(resDia.parcial ? ' · '+resDia.parcial+' encerrado'+(resDia.parcial===1?'':'s')+' antes' : '')+(resDia.pulado ? ' · '+resDia.pulado+' pulado'+(resDia.pulado===1?'':'s') : '')+'</span>' : '')+
       '</div>'+
       '<ul class="quest-list">'+questItems+'</ul>'+
       (resDia.completo ? analiseDoDiaHtml(iso, day) : '');
   } else if(isToday){
-    bodyHtml = '<div class="wtd-actions"><button class="btn small '+(done?'':'primary')+'" data-checkin="'+key+'">'+(done?'✓ Concluído hoje':'Concluir hoje')+'</button></div>';
+    bodyHtml = '<div class="wtd-actions"><button class="btn small '+(done?'':'primary')+'" data-checkin="'+todayKey+'">'+(done?'✓ Concluído hoje':'Concluir hoje')+'</button></div>';
   } else if(status === "lost"){
     const chips = (day.exercicios||[]).map(ex=>'<span class="ex-chip"><b>'+escapeHtml(ex.nome)+'</b> '+ex.series+'×'+escapeHtml(String(ex.reps))+'</span>').join("");
     bodyHtml = '<div class="empty-note u-mb8">Sem treino registrado nesse dia — sem problema, foco no próximo!</div>'+
@@ -9374,8 +9518,13 @@ function renderWeekTrailDetail(){
     bodyHtml = '<div class="trow-chips">'+(chips || '<span class="empty-note">Dia sem exercícios. Adicione em Editar rotina.</span>')+'</div>';
   }
 
+  if(info.isPast && (status === "lost" || status === "frozen") && treinosPerdidos().some(p=> p.iso === info.dateForKey)){
+    bodyHtml += '<div class="wtd-actions u-mt8"><button type="button" class="btn small primary" data-recup="'+info.dateForKey+'">Fazer este treino hoje</button></div>'+
+      '<div class="empty-note">Você faz '+escapeHtml(day.nome||"este treino")+' hoje e o treino de hoje vai para amanhã, seguindo a ordem da semana.</div>';
+  }
   const faseNum = DAYS.indexOf(key) + 1;
-  const subLabel = "Fase "+faseNum+" · " + (isToday ? (DAY_FULL[key]+" · hoje") : fmtDateBR(info.dateForKey));
+  const remanej = (info.dateForKey && treinoKey(info.dateForKey) !== key) ? ' · remanejado' : '';
+  const subLabel = "Fase "+faseNum+" · " + (isToday ? (DAY_FULL[key]+" · hoje") : fmtDateBR(info.dateForKey)) + remanej;
   el.innerHTML =
     '<div class="wtd-head">'+
       '<div><div class="wtd-title">'+escapeHtml(day.nome||DAY_FULL[key])+'</div><div class="wtd-sub">'+subLabel+'</div></div>'+
@@ -9407,7 +9556,7 @@ function renderWeekTrailDetail(){
       const wasConcluido = !!existing.concluido;
       const prevSnap = snapCheckin(iso);
       const before = captureCelebrationBaseline();
-      const data = Object.assign({}, existing, {data:iso, dia:key, concluido:true});
+      const data = Object.assign({}, existing, {data:iso, dia:todayKey, concluido:true});
       state.checkins[iso] = data;
       saveDoc("checkins/"+iso, data);
       renderWeekGrid();
@@ -9805,7 +9954,7 @@ function renderHeatmap(){
     if(effStart <= effEnd){
       let iso = effStart;
       while(iso <= effEnd){
-        const key = dayKeyFromISO(iso);
+        const key = treinoKey(iso);
         if(state.rotina[key]?.ativo){
           total++;
           if(state.checkins[iso]?.concluido) done++;
