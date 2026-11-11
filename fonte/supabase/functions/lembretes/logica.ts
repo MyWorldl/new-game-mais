@@ -15,6 +15,15 @@ export function parteLocal(tz, agora) {
   return { iso: p.year + "-" + p.month + "-" + p.day, hora: Number(p.hour) % 24, dia: DIAS_EN[p.weekday] || "seg" };
 }
 
+const CHAVES = ["seg", "ter", "qua", "qui", "sex", "sab", "dom"];
+
+/** Qual treino da rotina vale em `iso`: o remanejado por "Reagendar" (config/settings.reagenda.dias[iso]) ou, sem remanejamento,
+ *  o do dia da semana. Espelha treinoKey() do app: chave inválida ou ausente cai no dia da semana. */
+export function chaveTreino(settings, iso, diaSemana) {
+  const k = settings && settings.reagenda && settings.reagenda.dias && settings.reagenda.dias[iso];
+  return (typeof k === "string" && CHAVES.indexOf(k) >= 0) ? k : diaSemana;
+}
+
 /** sub: {hora, tz, ultimo_envio}; rotinaDia: doc rotina/<dia> (ou null); checkin: doc checkins/<hoje> (ou null) */
 export function decidir(sub, agora, rotinaDia, checkin) {
   const l = parteLocal(sub.tz, agora);
