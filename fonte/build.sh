@@ -7,6 +7,6 @@ cd "$(dirname "$0")"
 mkdir -p .build
 # empacota o cardápio (engine.js + ui.js) em UM módulo ES, carregado sob demanda pelo app com import(); sem minificar (legível, como o app.js)
 ../node_modules/.bin/esbuild cardapio/ui.js --bundle --format=esm --target=es2020 --charset=utf8 --log-level=warning --outfile=.build/cardapio.js
-python3 visual/aplica-visual.py candidato-prd.html /tmp/candidato-v2.html
-python3 aplica-standalone.py /tmp/candidato-v2.html ../site/index.html
+python3 visual/aplica-visual.py app.html /tmp/app-v2.html
+python3 aplica-standalone.py /tmp/app-v2.html ../site/index.html
 python3 externaliza.py ../site .build/cardapio.js
