@@ -1,9 +1,13 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   // Site estático (sem Worker): a Cloudflare publica só a pasta "site".
   // "name" precisa ser igual ao nome do projeto criado no painel (new-game-mais).
   "name": "new-game-mais",
   "compatibility_date": "2026-11-05",
   "assets": {
-    "directory": "./site"
+    "directory": "./site",
+    // Comportamento explícito (é o padrão da Cloudflare): /index.html redireciona para / e o que não existe dá 404.
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
   }
 }

@@ -1,14 +1,27 @@
 /* Service worker do NG+ (New Game+) — só deixa o app abrir sem internet.
    Os DADOS ficam no IndexedDB (bff-runtime.js), não aqui. Para publicar uma versão nova, mude VERSAO. */
-const VERSAO = "ng-reagenda-3";
-const ARQUIVOS = ["./", "./index.html", "./bff-runtime.js", "./ng-nuvem.js", "./vendor-supabase.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./fonts/barlow-condensed-latin-500-normal.woff2", "./fonts/barlow-condensed-latin-600-normal.woff2", "./fonts/barlow-condensed-latin-700-normal.woff2", "./fonts/work-sans-latin-wght-normal.woff2", "./fonts/ibm-plex-mono-latin-500-normal.woff2", "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
+const VERSAO = "ng-seguranca-1";
+const ARQUIVOS = ["./", "./bff-runtime.js", "./ng-nuvem.js", "./vendor-supabase.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./fonts/barlow-condensed-latin-500-normal.woff2", "./fonts/barlow-condensed-latin-600-normal.woff2", "./fonts/barlow-condensed-latin-700-normal.woff2", "./fonts/work-sans-latin-wght-normal.woff2", "./fonts/ibm-plex-mono-latin-500-normal.woff2", "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
 self.addEventListener("install", e=>{ e.waitUntil(caches.open(VERSAO).then(c=>c.addAll(ARQUIVOS)).then(()=>self.skipWaiting())); });
 self.addEventListener("activate", e=>{ e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSAO).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
 self.addEventListener("fetch", e=>{
   const r = e.request;
   if(r.method !== "GET" || new URL(r.url).origin !== location.origin) return;
   // rede primeiro (pega versão nova quando há internet); sem internet, usa o que está guardado
-  e.respondWith(fetch(r).then(res=>{ const cp = res.clone(); caches.open(VERSAO).then(c=>c.put(r, cp)).catch(()=>{}); return res; }).catch(()=>caches.match(r).then(m=>m || caches.match("./index.html"))));
+  // Só guarda respostas OK (nada de 404/500/redirecionamento); sem internet, devolve o que foi guardado.
+  // O HTML de reserva vale apenas para navegação — um .js/.css/fonte que falha nunca vira HTML.
+  e.respondWith((async ()=>{
+    try{
+      const res = await fetch(r);
+      if(res.ok && res.type === "basic" && !res.redirected){ const cp = res.clone(); caches.open(VERSAO).then(c=>c.put(r, cp)).catch(()=>{}); }
+      return res;
+    }catch(_){
+      const hit = await caches.match(r);
+      if(hit) return hit;
+      if(r.mode === "navigate"){ const home = await caches.match("./"); if(home) return home; }
+      return Response.error();
+    }
+  })());
 });
 
 /* Lembretes de treino (Web Push): o servidor manda {titulo, corpo, url}; o toque abre/foca o app. */

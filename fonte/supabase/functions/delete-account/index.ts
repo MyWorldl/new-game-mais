@@ -4,12 +4,13 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const BUCKET = 'fotos-progresso'
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// CORS restrito ao site do app (e localhost para desenvolvimento). Extras: segredo CORS_ORIGENS (lista separada por vírgula).
+const PERMITIDAS = ['https://new-game-mais.sombrasplays.workers.dev', ...(Deno.env.get('CORS_ORIGENS') || '').split(',').map((s) => s.trim()).filter(Boolean)]
+const corsDe = (req: Request) => {
+  const o = req.headers.get('Origin') || ''
+  const ok = PERMITIDAS.includes(o) || /^http:\/\/localhost(:\d+)?$/.test(o)
+  return { 'Access-Control-Allow-Origin': ok ? o : PERMITIDAS[0], 'Vary': 'Origin', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
 }
-const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
 function chaveAdmin(): string {
   const legado = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -18,6 +19,8 @@ function chaveAdmin(): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const cors = corsDe(req)
+  const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
 

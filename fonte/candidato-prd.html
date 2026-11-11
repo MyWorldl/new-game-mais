@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Best Friends Forever</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2707,10 +2707,16 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
   #print-report{display:block !important; background:#fff; color:#111; padding:0; font-family:'Work Sans',sans-serif;}
   @page{margin:16mm;}
 }
+/* ---- Acessibilidade: skip link e foco visível na trilha da semana ---- */
+.skip-link{position:absolute; left:8px; top:-64px; z-index:10000; padding:10px 16px; background:var(--surface); color:var(--ink); border:2px solid var(--accent); border-radius:10px; font-weight:700; text-decoration:none;}
+.skip-link:focus{top:8px;}
+.week-trail-node:focus{outline:none;}
+.week-trail-node:focus-visible .week-trail-circle{outline:3px solid var(--accent); outline-offset:3px;}
 </style>
 
 <div class="app">
-  <div class="topbar">
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <div class="topbar" role="banner">
     <div class="brand">
       <div class="mark">BFF</div>
       <div>
@@ -2734,7 +2740,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
   </div>
 
   <!-- ================= PAINEL ================= -->
-  <main id="main">
+  <main id="main" tabindex="-1">
   <section class="view" id="view-painel" role="tabpanel" aria-labelledby="tab-painel" tabindex="-1">
     <div class="card today-card today-hero" id="today-hero">
       <div class="today-ring">
@@ -9401,7 +9407,8 @@ function renderWeekTrail(){
     const isSelected = key === selectedTrailDay;
     const pastRestClass = (info.status==="rest" && info.isPast) ? " past" : "";
     const c = centers[i];
-    nodesHtml += '<div class="week-trail-node '+info.status+pastRestClass+(isSelected?' selected':'')+'" data-day="'+key+'" title="'+escapeHtml("Fase "+(i+1)+" · "+DAY_FULL[key])+'" style="left:'+(c.x-nodeW/2)+'px; width:'+nodeW+'px; top:'+(c.y-(circleD/2))+'px;">'+
+    const rotuloSt = {done:"concluído", frozen:"congelado", lost:"perdido", today:"hoje", rest:"descanso", future:"ainda por vir"}[info.status] || info.status;
+    nodesHtml += '<div class="week-trail-node '+info.status+pastRestClass+(isSelected?' selected':'')+'" data-day="'+key+'" role="button" tabindex="0" aria-pressed="'+(isSelected?'true':'false')+'" aria-label="'+escapeHtml(DAY_FULL[key]+" — "+rotuloSt)+'" title="'+escapeHtml("Fase "+(i+1)+" · "+DAY_FULL[key])+'" style="left:'+(c.x-nodeW/2)+'px; width:'+nodeW+'px; top:'+(c.y-(circleD/2))+'px;">'+
       '<div class="week-trail-circle">'+iconByStatus[info.status]+'</div>'+
       '<span class="week-trail-lbl">'+DAY_LABEL[key]+'</span>'+
     '</div>';
@@ -9420,12 +9427,17 @@ function renderWeekTrail(){
   const maxY = Math.max(...centers.map(c=>c.y)) + (circleD/2) + 26; // círculo + rótulo abaixo
   wrap.style.height = maxY+"px";
   wrap.innerHTML = connectorsHtml + nodesHtml;
+  // clique ou Enter/Espaço; a trilha é redesenhada, então devolvemos o foco ao mesmo dia (sem rolar a tela)
+  const escolheDia = (node, viaTeclado)=>{
+    const k = node.dataset.day;
+    selectedTrailDay = k;
+    renderWeekTrail();
+    renderWeekTrailDetail();
+    if(viaTeclado){ const n2 = document.querySelector('#week-trail .week-trail-node[data-day="'+k+'"]'); if(n2) n2.focus({preventScroll:true}); }
+  };
   wrap.querySelectorAll(".week-trail-node").forEach(node=>{
-    node.addEventListener("click", ()=>{
-      selectedTrailDay = node.dataset.day;
-      renderWeekTrail();
-      renderWeekTrailDetail();
-    });
+    node.addEventListener("click", ()=>escolheDia(node, false));
+    node.addEventListener("keydown", ev=>{ if(ev.key==="Enter" || ev.key===" "){ ev.preventDefault(); escolheDia(node, true); } });
   });
 }
 

@@ -71,7 +71,7 @@ rep('<div class="brand">\n      <div class="mark">BFF</div>',
 rep('<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialog" aria-label="Abrir paleta de comandos (Ctrl K)">Comandos <kbd>Ctrl K</kbd></button>\n    </div>',
     '<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialog" aria-label="Abrir paleta de comandos (Ctrl K)">'+IC_SEARCH+'<span>Buscar ou ir para…</span> <kbd>Ctrl K</kbd></button>\n      <button type="button" class="top-icon top-search" id="top-search" aria-haspopup="dialog" aria-label="Buscar ou ir para (paleta de comandos)">'+IC_SEARCH+'</button>\n      <button type="button" class="top-avatar" id="top-avatar" data-goto="perfil" aria-label="Abrir o perfil"><span id="top-avatar-ini">—</span></button>\n    </div>')
 rep('<div class="bottomnav" id="bottomnav">\n    <nav class="tabs"',
-    '<div class="bottomnav" id="bottomnav">\n    <div class="side-brand" aria-hidden="true"><div class="mark">BFF</div><div class="side-name"><b>BFF</b><small>New Game+</small></div></div>\n    <nav class="tabs"')
+    '<div class="bottomnav" id="bottomnav" role="navigation" aria-label="Navegação principal">\n    <div class="side-brand" aria-hidden="true"><div class="mark">BFF</div><div class="side-name"><b>BFF</b><small>New Game+</small></div></div>\n    <nav class="tabs"')
 rep('    </nav>\n    <!-- v98 Fase 3: o botão "Mais" saiu;',
     '    </nav>\n    <div class="side-streak" id="side-streak" role="group" aria-label="Sequência atual"></div>\n    <!-- v98 Fase 3: o botão "Mais" saiu;')
 rep('function renderNivel(){\n', nav+'function renderNivel(){\n')

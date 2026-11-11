@@ -1,31 +1,53 @@
 // @ts-nocheck
 // Edge Function "lembretes" — NG+: envia o lembrete de treino por Web Push.
-// Chamada de hora em hora pelo pg_cron (sem login; é idempotente: só envia quando a hora local da pessoa bate
-// com a hora escolhida e ainda não enviou hoje) e, com login, pelo botão "Enviar lembrete de teste" (body {"teste":true}).
+// Duas formas de chamar (verify_jwt = false, a função faz a própria autenticação):
+//  1) pg_cron de hora em hora, com o header x-cron-secret (segredo guardado no Vault; validado pela RPC cron_secret_ok).
+//     É idempotente: só envia quando a hora local da pessoa bate com a escolhida e ainda não enviou hoje.
+//  2) Pessoa logada, pelo botão "Enviar lembrete de teste" (body {"teste":true} + JWT do usuário).
+// Qualquer outra chamada recebe 401 ANTES de ler inscrições ou enviar push.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
 import { decidir } from "./logica.ts";
 
-const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
-const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...CORS, "Content-Type": "application/json" } });
+// CORS restrito ao site do app (e localhost para desenvolvimento). Extras: segredo CORS_ORIGENS (lista separada por vírgula).
+const PERMITIDAS = ["https://new-game-mais.sombrasplays.workers.dev", ...(Deno.env.get("CORS_ORIGENS") || "").split(",").map((s) => s.trim()).filter(Boolean)];
+const corsDe = (req) => {
+  const o = req.headers.get("Origin") || "";
+  const ok = PERMITIDAS.includes(o) || /^http:\/\/localhost(:\d+)?$/.test(o);
+  return { "Access-Control-Allow-Origin": ok ? o : PERMITIDAS[0], "Vary": "Origin", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
+};
 
 Deno.serve(async (req) => {
+  const CORS = corsDe(req);
+  const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...CORS, "Content-Type": "application/json" } });
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  const pub = Deno.env.get("VAPID_PUBLIC_KEY"), priv = Deno.env.get("VAPID_PRIVATE_KEY");
-  if (!pub || !priv) return json({ erro: "chaves VAPID não configuradas" }, 503);
-  webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT") || "https://new-game-mais.sombrasplays.workers.dev", pub, priv);
+  if (req.method !== "POST") return json({ erro: "método não permitido" }, 405);
+
   const admin = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
-
   let body = {}; try { body = await req.json(); } catch (_e) {}
-  const agora = new Date();
-  let subs, teste = false;
+  const teste = !!(body && body.teste === true);
 
-  if (body && body.teste === true) {
+  // --- autenticação (antes de qualquer outra coisa) ---
+  let uidTeste = null;
+  if (teste) {
     const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     const { data: u } = await admin.auth.getUser(jwt);
     if (!u || !u.user) return json({ erro: "faça login para enviar o teste" }, 401);
-    teste = true;
-    const r = await admin.from("push_subs").select("*").eq("user_id", u.user.id).eq("ativo", true);
+    uidTeste = u.user.id;
+  } else {
+    const seg = req.headers.get("x-cron-secret") || "";
+    const { data: ok } = await admin.rpc("cron_secret_ok", { p: seg });
+    if (ok !== true) return json({ erro: "não autorizado" }, 401);
+  }
+
+  const pub = Deno.env.get("VAPID_PUBLIC_KEY"), priv = Deno.env.get("VAPID_PRIVATE_KEY");
+  if (!pub || !priv) return json({ erro: "chaves VAPID não configuradas" }, 503);
+  webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT") || "https://new-game-mais.sombrasplays.workers.dev", pub, priv);
+
+  const agora = new Date();
+  let subs;
+  if (teste) {
+    const r = await admin.from("push_subs").select("*").eq("user_id", uidTeste).eq("ativo", true);
     subs = r.data || [];
   } else {
     const r = await admin.from("push_subs").select("*").eq("ativo", true);

@@ -5,11 +5,20 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { MAX_POR_DIA, consentimentoOk, idadeOk, sanitizaResumo, SISTEMA, montaMensagem } from "./validacao.ts";
 
-const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
-const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...CORS, "Content-Type": "application/json" } });
+// CORS restrito ao site do app (e localhost para desenvolvimento). Extras: segredo CORS_ORIGENS (lista separada por vírgula).
+const PERMITIDAS = ["https://new-game-mais.sombrasplays.workers.dev", ...(Deno.env.get("CORS_ORIGENS") || "").split(",").map((s) => s.trim()).filter(Boolean)];
+const corsDe = (req) => {
+  const o = req.headers.get("Origin") || "";
+  const ok = PERMITIDAS.includes(o) || /^http:\/\/localhost(:\d+)?$/.test(o);
+  return { "Access-Control-Allow-Origin": ok ? o : PERMITIDAS[0], "Vary": "Origin", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
+};
+// "dia" do limite = dia civil em São Paulo (e não UTC, que virava às 21h)
+const diaSP = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 const MODELO = Deno.env.get("ANTHROPIC_MODEL") || "claude-haiku-5-5";
 
 Deno.serve(async (req) => {
+  const CORS = corsDe(req);
+  const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...CORS, "Content-Type": "application/json" } });
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ erro: "método não permitido" }, 405);
   const admin = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
@@ -29,12 +38,11 @@ Deno.serve(async (req) => {
   const chave = Deno.env.get("ANTHROPIC_API_KEY");   // checada depois das travas de login, consentimento, idade e dados
   if (!chave) return json({ erro: "recurso ainda não configurado", codigo: "sem-chave" }, 503);
 
-  // limite diário (conta antes de chamar o modelo)
-  const hoje = new Date().toISOString().slice(0, 10);
-  const uso = await admin.from("llm_uso").select("n").eq("user_id", uid).eq("dia", hoje).maybeSingle();
-  const n = (uso.data && uso.data.n) || 0;
-  if (n >= MAX_POR_DIA) return json({ erro: "limite de " + MAX_POR_DIA + " resumos por dia atingido — volte amanhã", codigo: "limite" }, 429);
-  await admin.from("llm_uso").upsert({ user_id: uid, dia: hoje, n: n + 1 });
+  // limite diário: UMA instrução atômica no banco (insere ou soma 1 só se ainda houver cota) — sem corrida entre pedidos paralelos
+  const rpc = await admin.rpc("consome_cota_ia", { p_user: uid, p_dia: diaSP(), p_max: MAX_POR_DIA });
+  if (rpc.error) { console.error("cota", String(rpc.error.message).slice(0, 100)); return json({ erro: "não foi possível verificar o limite agora", codigo: "ia" }, 500); }
+  const n = rpc.data;   // novo total do dia; nulo = limite atingido
+  if (n === null || n === undefined) return json({ erro: "limite de " + MAX_POR_DIA + " resumos por dia atingido — volte amanhã", codigo: "limite" }, 429);
 
   const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 30000);
   try {
@@ -47,7 +55,7 @@ Deno.serve(async (req) => {
     const j = await r.json();
     const texto = ((j.content || []).filter((c) => c.type === "text").map((c) => c.text).join("\n") || "").trim().slice(0, 2500);
     if (!texto) return json({ erro: "resposta vazia; tente novamente", codigo: "ia" }, 502);
-    return json({ texto, restantes: Math.max(0, MAX_POR_DIA - (n + 1)) });
+    return json({ texto, restantes: Math.max(0, MAX_POR_DIA - n) });
   } catch (e) {
     console.error("treinador", String(e && e.message).slice(0, 100));
     return json({ erro: "o serviço de IA demorou demais; tente de novo", codigo: "ia" }, 504);

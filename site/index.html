@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>NG+ (New Game+)</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
 <style id="ng-fontes">
@@ -2713,6 +2713,11 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
   #print-report{display:block !important; background:#fff; color:#111; padding:0; font-family:'Work Sans',sans-serif;}
   @page{margin:16mm;}
 }
+/* ---- Acessibilidade: skip link e foco visível na trilha da semana ---- */
+.skip-link{position:absolute; left:8px; top:-64px; z-index:10000; padding:10px 16px; background:var(--surface); color:var(--ink); border:2px solid var(--accent); border-radius:10px; font-weight:700; text-decoration:none;}
+.skip-link:focus{top:8px;}
+.week-trail-node:focus{outline:none;}
+.week-trail-node:focus-visible .week-trail-circle{outline:3px solid var(--accent); outline-offset:3px;}
 </style>
 <style id="visual-v2">
 /* ============================================================
@@ -3261,7 +3266,9 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   @media (max-height:640px){ .side-streak{ display:none; } }
   /* topo: título da seção + saudação à esquerda; busca, sincronização e avatar à direita */
   .brand{ gap:12px; }
-  .brand > .mark, .brand > div:not(.top-title){ display:none; }
+  .brand > .mark{ display:none; }
+  /* o <h1> continua na página para leitores de tela (só some da vista, não da árvore de acessibilidade) */
+  .brand > div:not(.top-title){ position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
   .brand > .top-title{ display:flex; flex-direction:column; gap:2px; min-inline-size:0; margin-inline-end:auto; }
   .top-greet{ font:500 var(--fs-xs) 'IBM Plex Mono',monospace; letter-spacing:.04em; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .top-sec{ font:700 30px/1 'Barlow Condensed',sans-serif; letter-spacing:.01em; color:var(--ink); }
@@ -3325,7 +3332,8 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 </style>
 
 <div class="app">
-  <div class="topbar">
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <div class="topbar" role="banner">
     <div class="brand">
       <button type="button" class="top-icon nav-toggle" id="nav-toggle" aria-label="Recolher ou expandir o menu lateral" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
       <div class="top-title"><span class="top-greet" id="top-greet"></span><strong class="top-sec" id="top-sec">Hoje</strong></div>
@@ -3353,7 +3361,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   </div>
 
   <!-- ================= PAINEL ================= -->
-  <main id="main">
+  <main id="main" tabindex="-1">
   <section class="view" id="view-painel" role="tabpanel" aria-labelledby="tab-painel" tabindex="-1">
     <div class="card today-card today-hero" id="today-hero">
       <div class="today-ring">
@@ -4185,7 +4193,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   </main>
 
   <!-- ================= NAVEGAÇÃO (barra inferior no celular / menu lateral no desktop) ================= -->
-  <div class="bottomnav" id="bottomnav">
+  <div class="bottomnav" id="bottomnav" role="navigation" aria-label="Navegação principal">
     <div class="side-brand" aria-hidden="true"><div class="mark">NG+</div><div class="side-name"><b>NG+</b><small>New Game+</small></div></div>
     <nav class="tabs" id="main-tabs" role="tablist" aria-label="Seções">
       <button class="tab-btn" id="tab-painel" aria-controls="view-painel" data-tab="painel" role="tab" aria-selected="true">
@@ -10398,7 +10406,8 @@ function renderWeekTrail(){
     const isSelected = key === selectedTrailDay;
     const pastRestClass = (info.status==="rest" && info.isPast) ? " past" : "";
     const c = centers[i];
-    nodesHtml += '<div class="week-trail-node '+info.status+pastRestClass+(isSelected?' selected':'')+'" data-day="'+key+'" title="'+escapeHtml("Fase "+(i+1)+" · "+DAY_FULL[key])+'" style="left:'+(c.x-nodeW/2)+'px; width:'+nodeW+'px; top:'+(c.y-(circleD/2))+'px;">'+
+    const rotuloSt = {done:"concluído", frozen:"congelado", lost:"perdido", today:"hoje", rest:"descanso", future:"ainda por vir"}[info.status] || info.status;
+    nodesHtml += '<div class="week-trail-node '+info.status+pastRestClass+(isSelected?' selected':'')+'" data-day="'+key+'" role="button" tabindex="0" aria-pressed="'+(isSelected?'true':'false')+'" aria-label="'+escapeHtml(DAY_FULL[key]+" — "+rotuloSt)+'" title="'+escapeHtml("Fase "+(i+1)+" · "+DAY_FULL[key])+'" style="left:'+(c.x-nodeW/2)+'px; width:'+nodeW+'px; top:'+(c.y-(circleD/2))+'px;">'+
       '<div class="week-trail-circle">'+iconByStatus[info.status]+'</div>'+
       '<span class="week-trail-lbl">'+DAY_LABEL[key]+'</span>'+
     '</div>';
@@ -10417,12 +10426,17 @@ function renderWeekTrail(){
   const maxY = Math.max(...centers.map(c=>c.y)) + (circleD/2) + 26; // círculo + rótulo abaixo
   wrap.style.height = maxY+"px";
   wrap.innerHTML = connectorsHtml + nodesHtml;
+  // clique ou Enter/Espaço; a trilha é redesenhada, então devolvemos o foco ao mesmo dia (sem rolar a tela)
+  const escolheDia = (node, viaTeclado)=>{
+    const k = node.dataset.day;
+    selectedTrailDay = k;
+    renderWeekTrail();
+    renderWeekTrailDetail();
+    if(viaTeclado){ const n2 = document.querySelector('#week-trail .week-trail-node[data-day="'+k+'"]'); if(n2) n2.focus({preventScroll:true}); }
+  };
   wrap.querySelectorAll(".week-trail-node").forEach(node=>{
-    node.addEventListener("click", ()=>{
-      selectedTrailDay = node.dataset.day;
-      renderWeekTrail();
-      renderWeekTrailDetail();
-    });
+    node.addEventListener("click", ()=>escolheDia(node, false));
+    node.addEventListener("keydown", ev=>{ if(ev.key==="Enter" || ev.key===" "){ ev.preventDefault(); escolheDia(node, true); } });
   });
 }
 
