@@ -4,3 +4,4 @@ set -e
 cd "$(dirname "$0")"
 python3 visual/aplica-visual.py candidato-prd.html /tmp/candidato-v2.html
 python3 aplica-standalone.py /tmp/candidato-v2.html ../site/index.html
+python3 externaliza.py ../site

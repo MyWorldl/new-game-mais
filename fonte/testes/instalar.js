@@ -27,7 +27,7 @@ const txt = (p, s) => p.evaluate((s) => (document.querySelector(s) || {}).innerT
   t('sem aviso do navegador: botão "Como instalar" e passos fechados', (await txt(p, '#cfg-inst-btn')) === 'Como instalar' && await p.locator('#cfg-inst-passos').isHidden());
   await p.click('#cfg-inst-btn');
   t('passos abrem; aria-expanded=true; texto de computador', (await p.getAttribute('#cfg-inst-btn', 'aria-expanded')) === 'true' && /computador/i.test(await txt(p, '#cfg-inst-passos')), await txt(p, '#cfg-inst-passos'));
-  if (axeSrc) { await p.addScriptTag({ content: axeSrc }); const v = await p.evaluate(async () => (await axe.run('#cfg-instalar', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: card sem violações (passos abertos)', v.length === 0, v.join(',')); }
+  if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#cfg-instalar', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: card sem violações (passos abertos)', v.length === 0, v.join(',')); }
   await p.click('#cfg-inst-btn'); t('segundo toque fecha os passos', await p.locator('#cfg-inst-passos').isHidden() && (await p.getAttribute('#cfg-inst-btn', 'aria-expanded')) === 'false');
   // 2) navegador oferece instalação (Android/Chrome): botão "Instalar agora" usa a janela oficial
   await p.evaluate(() => { window.__prompts = 0; const e = new Event('beforeinstallprompt', { cancelable: true }); e.prompt = async () => { window.__prompts++; }; e.userChoice = Promise.resolve({ outcome: 'accepted' }); window.dispatchEvent(e); });
@@ -46,7 +46,7 @@ const txt = (p, s) => p.evaluate((s) => (document.querySelector(s) || {}).innerT
   // 4) iPhone/Safari
   ({ c, p } = await abre(b, { ua: UA.ios })); await p.click('#cfg-inst-btn');
   let s = await txt(p, '#cfg-inst-passos'); t('iPhone Safari: Compartilhar → Adicionar à Tela de Início', /Compartilhar/.test(s) && /Adicionar à Tela de Início/.test(s) && /Safari/.test(await txt(p, '#cfg-inst-info')), s);
-  if (axeSrc) { await p.addScriptTag({ content: axeSrc }); const v = await p.evaluate(async () => (await axe.run('#cfg-instalar', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id)); t('axe iPhone: sem violações', v.length === 0, v.join(',')); } await c.close();
+  if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#cfg-instalar', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id)); t('axe iPhone: sem violações', v.length === 0, v.join(',')); } await c.close();
   // 5) iPhone com Chrome: manda abrir no Safari
   ({ c, p } = await abre(b, { ua: UA.iosChrome })); await p.click('#cfg-inst-btn'); s = await txt(p, '#cfg-inst-passos'); t('iPhone fora do Safari: pede para abrir no Safari', /Abra este endereço no\s+Safari/i.test(s), s); await c.close();
   // 6) Android sem aviso

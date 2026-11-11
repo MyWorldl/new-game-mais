@@ -2,6 +2,7 @@
 const { chromium } = require('playwright');
 let ok=0,bad=0; const t=(n,c,x='')=>{(c?ok++:bad++); console.log((c?'PASS ':'FAIL ')+n+(x?'  '+x:''));};
 (async()=>{
+ const VERS=/VERSAO\s*=\s*"([^"]+)"/.exec(await (await fetch('http://localhost:8792/sw.js')).text())[1];
  const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:1100,height:800},serviceWorkers:'allow'});
  await ctx.addInitScript(()=>{try{localStorage.setItem('ng_dev_semnuvem','1');localStorage.setItem('ng_test_hooks','1');}catch(e){}});
  const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
@@ -31,11 +32,11 @@ let ok=0,bad=0; const t=(n,c,x='')=>{(c?ok++:bad++); console.log((c?'PASS ':'FAI
  const sw=await p.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration(); return !!(r&&r.active)});
  t('service worker ativo', sw);
  const ver=await p.evaluate(async()=>(await caches.keys()));
- t('cache com a versão nova', ver.includes('ng-seguranca-1'), JSON.stringify(ver));
- const pre=await p.evaluate(async()=>{const c=await caches.open('ng-seguranca-1'); return (await c.keys()).map(r=>new URL(r.url).pathname)});
+ t('cache com a versão nova', ver.includes(VERS), JSON.stringify(ver));
+ const pre=await p.evaluate(async(v)=>{const c=await caches.open(v); return (await c.keys()).map(r=>new URL(r.url).pathname)}, VERS);
  t('pré-cache tem "/" e não tem /index.html', pre.includes('/')&&!pre.includes('/index.html'), pre.slice(0,4).join(','));
  // 404 não vai para o cache; e depois dele nada de HTML no lugar de JS
- const r404=await p.evaluate(async()=>{const r=await fetch('/nao-existe.js'); const c=await caches.open('ng-seguranca-1'); return {s:r.status, noCache: !(await c.match('/nao-existe.js'))}});
+ const r404=await p.evaluate(async(v)=>{const r=await fetch('/nao-existe.js'); const c=await caches.open(v); return {s:r.status, noCache: !(await c.match('/nao-existe.js'))}}, VERS);
  t('404 passa e NÃO é guardado no cache', r404.s===404&&r404.noCache, JSON.stringify(r404));
  // offline
  await ctx.setOffline(true);

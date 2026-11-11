@@ -12,7 +12,7 @@ const axeSrc = process.env.SP ? fs.readFileSync(process.env.SP + '/axe/node_modu
   await p.goto(URL_); await p.waitForSelector('.ng-login', { timeout: 8000 });
   await p.evaluate(async (u) => { const r = await window.ngNuvem.client.auth.signInWithPassword({ email: u.e, password: u.p }); if (r.error) throw new Error(r.error.message); }, U);
   await p.waitForSelector('.ng-login', { state: 'detached', timeout: 15000 }); await p.waitForTimeout(2500);
-  if (axeSrc) await p.addScriptTag({ content: axeSrc });
+  if (axeSrc) await p.evaluate(axeSrc);
   const liberaTela = () => p.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); const a = document.querySelector('.app'); if (a) a.removeAttribute('inert'); });
   await liberaTela();
 

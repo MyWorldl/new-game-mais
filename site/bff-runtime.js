@@ -363,10 +363,69 @@
     }
   };
 
+  // ---- diagnóstico local: guarda os últimos erros NESTE aparelho (nada é enviado). Se um dia houver RUM (window.DD_RUM), repassa.
+  var ERROS_CHAVE = "ng-erros";
+  function lerErros(){ try { var v = JSON.parse(localStorage.getItem(ERROS_CHAVE) || "[]"); return Array.isArray(v) ? v : []; } catch(e){ return []; } }
+  function reportar(err, ctx){
+    try {
+      var msg = String((err && err.message) || err || "erro").slice(0, 200);
+      var pilha = String((err && err.stack) || "").split("\n").slice(0, 5).map(function(l){ return l.replace(/https?:\/\/[^\/\s)]+/g, ""); }).join("\n").slice(0, 600);
+      var lista = lerErros(), ult = lista[lista.length - 1], agora = Date.now();
+      if (ult && ult.m === msg && ult.c === (ctx || "")) { ult.n = (ult.n || 1) + 1; ult.t = agora; }
+      else lista.push({t: agora, c: ctx || "", m: msg, s: pilha, n: 1});
+      localStorage.setItem(ERROS_CHAVE, JSON.stringify(lista.slice(-30)));
+      if (window.DD_RUM && typeof window.DD_RUM.addError === "function") window.DD_RUM.addError(err, {contexto: ctx || ""});
+    } catch(e){}
+  }
+  window.reportar = reportar;
+  window.ngErros = {
+    listar: lerErros,
+    limpar: function(){ try { localStorage.removeItem(ERROS_CHAVE); } catch(e){} },
+    texto: function(){
+      var linhas = ["NG+ · relatório de diagnóstico", "gerado em " + new Date().toISOString(), "navegador: " + String(navigator.userAgent).slice(0, 160), "online: " + (navigator.onLine !== false), ""];
+      var l = lerErros();
+      if (!l.length) linhas.push("(nenhum erro registrado)");
+      l.forEach(function(x){ linhas.push(new Date(x.t).toISOString() + " · " + (x.c || "-") + " · x" + (x.n || 1) + "\n" + x.m + (x.s ? "\n" + x.s : "") + "\n"); });
+      return linhas.join("\n");
+    }
+  };
+  window.addEventListener("error", function(ev){
+    if (ev && ev.filename && ev.filename.indexOf(location.origin) !== 0) return;      // ignora scripts de extensões
+    if (ev && /ResizeObserver loop/.test(String(ev.message))) return;
+    reportar((ev && ev.error) || (ev && ev.message), "janela");
+  });
+  window.addEventListener("unhandledrejection", function(ev){ reportar(ev && ev.reason, "promessa"); });
+
+  // ---- aviso "Nova versão disponível": o service worker novo assume sozinho; a página só recarrega se a pessoa pedir
+  function avisaNovaVersao(){
+    if (document.getElementById("ng-atualiza")) return;
+    var box = document.createElement("div");
+    box.id = "ng-atualiza"; box.className = "ng-atualiza"; box.setAttribute("role", "status");
+    var tx = document.createElement("span"); tx.textContent = "Nova versão disponível.";
+    var ok = document.createElement("button"); ok.type = "button"; ok.className = "btn small primary"; ok.textContent = "Atualizar";
+    var dp = document.createElement("button"); dp.type = "button"; dp.className = "btn small ghost"; dp.textContent = "Depois";
+    ok.addEventListener("click", function(){ location.reload(); });
+    dp.addEventListener("click", function(){ box.remove(); });
+    box.appendChild(tx); box.appendChild(ok); box.appendChild(dp);
+    (document.body || document.documentElement).appendChild(box);
+  }
+  window.ngAvisaNovaVersao = avisaNovaVersao;
+
   // abre sem internet depois da 1ª visita (só em https ou localhost)
   try {
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-      window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+      var tinhaControle = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener("controllerchange", function(){
+        if (tinhaControle) avisaNovaVersao();        // 1ª instalação não conta: só troca de versão
+        tinhaControle = true;
+      });
+      window.addEventListener("load", function(){
+        navigator.serviceWorker.register("sw.js").then(function(reg){
+          var checa = function(){ try { reg.update().catch(function(){}); } catch(e){} };
+          document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") checa(); });
+          setInterval(checa, 3600000);
+        }).catch(function(){});
+      });
     }
   } catch(e){}
 

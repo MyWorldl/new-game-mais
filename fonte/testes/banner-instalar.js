@@ -26,7 +26,7 @@ const txt = (p, s) => p.evaluate((s) => (document.querySelector(s) || {}).innerT
   t('botão "Como instalar"; passos fechados', (await txt(p, '#ng-ib-btn')) === 'Como instalar' && await p.locator('#ng-ib-passos').isHidden());
   await p.click('#ng-ib-btn');
   t('abre o passo a passo do iPhone (Compartilhar → Adicionar à Tela de Início); aria-expanded=true', /Adicionar à Tela de Início/.test(await txt(p, '#ng-ib-passos')) && (await p.getAttribute('#ng-ib-btn', 'aria-expanded')) === 'true');
-  if (axeSrc) { await p.addScriptTag({ content: axeSrc }); const v = await p.evaluate(async () => (await axe.run('#ng-install-banner', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: banner sem violações', v.length === 0, v.join(',')); await p.locator('#ng-install-banner').screenshot({ path: (process.env.SP || '/tmp') + '/banner-instalar.png' }); }
+  if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#ng-install-banner', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: banner sem violações', v.length === 0, v.join(',')); await p.locator('#ng-install-banner').screenshot({ path: (process.env.SP || '/tmp') + '/banner-instalar.png' }); }
   const hs = await p.evaluate(() => [...document.querySelectorAll('#ng-install-banner button')].map(x => Math.round(x.getBoundingClientRect().height)));
   t('botões com altura >= 36 px e sem rolagem lateral', hs.every(h => h >= 36) && await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), hs.join(','));
   await p.click('#ng-ib-fechar');

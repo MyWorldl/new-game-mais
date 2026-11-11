@@ -47,7 +47,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   t('Análise: clicar no filtro NÃO joga a página para o topo', Math.abs((await y(p)) - y0) <= 3, y0 + ' -> ' + (await y(p)));
   if (prog) { await p.click('#analise-treino-body [data-anf="progredindo"]'); await p.waitForTimeout(300); const nomes = await p.locator('#analise-treino-body .an-ex .chip').allInnerTexts(); t('Análise: filtro "Progredindo" mostra só progredindo', nomes.length > 0 && nomes.every(x => /Progredindo/.test(x)), nomes.join()); }
   await p.click('#analise-treino-body details.an-ex >> nth=0 >> summary'); t('Análise: tocar no nome abre o detalhe', (await p.locator('#analise-treino-body details.an-ex[open]').count()) === 1);
-  if (axeSrc) { await p.waitForTimeout(600); await p.addScriptTag({ content: axeSrc }); const v = await p.evaluate(async () => (await axe.run('#analise-treino-card', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: Análise do treino sem violações', v.length === 0, v.join(',')); }
+  if (axeSrc) { await p.waitForTimeout(600); await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#analise-treino-card', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: Análise do treino sem violações', v.length === 0, v.join(',')); }
 
   // ---------------- D) proteção contra salto ao topo
   await p.evaluate(() => { window.scrollTo(0, 900); });
@@ -90,7 +90,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   await p.click('.fz-nav.fz-next'); await p.waitForTimeout(250);
   const cap2 = await p.locator('.fz-cap').innerText(); t('› troca para a outra foto', cap2 !== cap, cap + ' | ' + cap2);
   await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(200); t('seta ← também troca de foto', (await p.locator('.fz-cap').innerText()) === cap);
-  if (axeSrc) { await p.addScriptTag({ content: axeSrc }); const v = await p.evaluate(async () => (await axe.run('dialog.foto-zoom', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: foto ampliada sem violações', v.length === 0, v.join(',')); }
+  if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('dialog.foto-zoom', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: foto ampliada sem violações', v.length === 0, v.join(',')); }
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   t('Esc fecha e devolve o foco para a miniatura', (await p.locator('dialog.foto-zoom').count()) === 0 && (await p.evaluate(() => document.activeElement && document.activeElement.dataset.fotozoom != null)));
   await p.click('#fotos-grid .foto-cmpbtn >> nth=0'); await p.waitForTimeout(300);

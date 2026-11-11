@@ -2710,6 +2710,8 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 /* ---- Acessibilidade: skip link e foco visível na trilha da semana ---- */
 .skip-link{position:absolute; left:8px; top:-64px; z-index:10000; padding:10px 16px; background:var(--surface); color:var(--ink); border:2px solid var(--accent); border-radius:10px; font-weight:700; text-decoration:none;}
 .skip-link:focus{top:8px;}
+.ng-sem-popover .info-tip{display:none !important;}
+.ng-sem-dialog .cmdk-chip{display:none !important;}
 .week-trail-node:focus{outline:none;}
 .week-trail-node:focus-visible .week-trail-circle{outline:3px solid var(--accent); outline-offset:3px;}
 </style>
@@ -3495,6 +3497,18 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       </div>
       <div class="import-panel" id="import-panel" tabindex="-1" role="region" aria-live="polite" aria-label="Importação de backup" hidden></div>
     </div>
+    <div class="card" id="cfg-diag-card">
+      <div class="card-head">
+        <h2>Diagnóstico</h2>
+        <span class="hint">para pedir ajuda</span>
+      </div>
+      <div class="hint u-mb10" id="cfg-diag-resumo" role="status" aria-live="polite"></div>
+      <div class="data-actions">
+        <button class="btn" id="cfg-diag-copiar" type="button">Copiar relatório</button>
+        <button class="btn ghost" id="cfg-diag-limpar" type="button">Limpar</button>
+      </div>
+      <label class="u-mt8" id="cfg-diag-wrap" hidden>Relatório (selecione e copie)<textarea id="cfg-diag-texto" rows="6" readonly></textarea></label>
+    </div>
   </section>
   </main>
 
@@ -3821,6 +3835,8 @@ function num(v, digits){
   if(v===null||v===undefined||isNaN(v)) return "—";
   return v.toLocaleString("pt-BR",{minimumFractionDigits:digits||0, maximumFractionDigits:digits||0});
 }
+// Registra um erro no diagnóstico local (Config → Diagnóstico) e, se houver, no RUM. Nunca lança.
+function ngReporta(e, ctx){ try{ if(window.reportar) window.reportar(e, ctx); }catch(_){} }
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
@@ -4803,7 +4819,7 @@ async function initStore(){
   unsubs.push(db.doc("config/perfil").onSnapshot(snap=>{
     state.perfil = snap.exists ? snap.data() : null;
     { const fx = corrigirPerfilAltura(state.perfil);   // v97: altura salva em metros (1,52) vira 152 cm
-      if(fx){ state.perfil = fx; try{ if(state.db) Promise.resolve(state.db.doc("config/perfil").set(fx)).catch(()=>{}); }catch(e){} } }
+      if(fx){ state.perfil = fx; try{ if(state.db) Promise.resolve(state.db.doc("config/perfil").set(fx)).catch(e=>ngReporta(e,"perfil:gravar")); }catch(e){ ngReporta(e,"perfil:gravar"); } } }
     ajustarRotinaExemplo();
     perfilRecebido = true;
     render(); marca("perfil");
@@ -4826,7 +4842,7 @@ async function initStore(){
     const r = {};
     qsnap.docs.forEach(d=>{ r[d.id] = d.data(); });
     for(const k of DAYS){ if(!r[k]) r[k] = state.rotina[k] || {nome:DAY_FULL[k], ativo:false, exercicios:[]}; }
-    migrarNomesDias(r).forEach(k=>{ try{ if(state.db) Promise.resolve(state.db.doc("rotina/"+k).set(r[k])).catch(()=>{}); }catch(e){} });   // v96: grava só os dias renomeados (sem aviso: quem só lê, vê o nome novo e nada quebra)
+    migrarNomesDias(r).forEach(k=>{ try{ if(state.db) Promise.resolve(state.db.doc("rotina/"+k).set(r[k])).catch(e=>ngReporta(e,"rotina:migrar")); }catch(e){ ngReporta(e,"rotina:migrar"); } });   // v96: grava só os dias renomeados (sem aviso: quem só lê, vê o nome novo e nada quebra)
     state.rotina = r;
     state.rotinaIsExample = false;
     render(); marca("rotina");
@@ -5265,7 +5281,7 @@ function tipBtn(k){
   const temPopover = !!(pop && typeof pop.showPopover === "function");
   if(!temPopover){
     // navegador sem Popover API: esconde os botões "?" (o Glossário continua explicando tudo)
-    const st = document.createElement("style"); st.textContent = ".info-tip{display:none !important;}"; document.head.appendChild(st);
+    document.documentElement.classList.add("ng-sem-popover");   // esconde os "?" via CSS (sem criar <style>: compatível com CSP)
     return;
   }
   const temAncora = !!(window.CSS && CSS.supports && CSS.supports("position-area","top"));
@@ -5325,7 +5341,7 @@ function tipBtn(k){
   const dlg = document.getElementById("cmdk"), help = document.getElementById("keyshelp");
   const inp = document.getElementById("cmdk-input"), list = document.getElementById("cmdk-list");
   if(!dlg || typeof dlg.showModal !== "function"){   // sem <dialog>: o app segue normal, só sem a paleta
-    const st = document.createElement("style"); st.textContent = ".cmdk-chip{display:none !important;}"; document.head.appendChild(st);
+    document.documentElement.classList.add("ng-sem-dialog");   // esconde o atalho da paleta via CSS (sem criar <style>)
     return;
   }
   const norm = t => String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
@@ -7580,7 +7596,7 @@ window.addEventListener("resize", ()=>{
   _chartResizeT = setTimeout(()=>{
     if(Math.abs(window.innerWidth-_chartLastW) < 40) return;
     _chartLastW = window.innerWidth;
-    try{ renderWeightChart(); renderEvolucaoChart(); renderCargaChart(); }catch(e){}
+    try{ renderWeightChart(); renderEvolucaoChart(); renderCargaChart(); }catch(e){ ngReporta(e,"graficos"); }
   }, 250);
 });
 document.addEventListener("pointerdown", (e)=>{
@@ -7848,12 +7864,12 @@ function aplicaAcaoHoje(estado, nDone, total, leve){
 function renderSemanaResumo(){
   const el = document.getElementById("semana-resumo"), lab = document.getElementById("week-label");
   if(!el) return;
-  let streak = 0; try{ streak = computeStreakEngine().streak; }catch(e){}
+  let streak = 0; try{ streak = computeStreakEngine().streak; }catch(e){ ngReporta(e,"streak"); }
   const base = lab ? lab.textContent.replace(" concluídos","").replace(" concluído","") : "";
   el.textContent = (base ? base+" · " : "")+"sequência "+streak;
 }
 function renderTodayCard(){
-  try{ renderPerdidoCard(); }catch(e){}
+  try{ renderPerdidoCard(); }catch(e){ ngReporta(e,"cartao-perdido"); }
   const iso = todayISO();
   const key = treinoKey(iso);
   const day = state.rotina[key];
@@ -11835,6 +11851,26 @@ async function exportarDadosJSON(){
   URL.revokeObjectURL(url);
 }
 document.getElementById("cfg-export-btn").addEventListener("click", exportarDadosJSON);
+// ---- Diagnóstico local: erros ficam só neste aparelho (nada é enviado); o relatório não leva treinos nem dados pessoais
+(function setupDiagnostico(){
+  const card = document.getElementById("cfg-diag-card"), res = document.getElementById("cfg-diag-resumo");
+  const cp = document.getElementById("cfg-diag-copiar"), lp = document.getElementById("cfg-diag-limpar");
+  const wrap = document.getElementById("cfg-diag-wrap"), area = document.getElementById("cfg-diag-texto");
+  if(!card || !res || !window.ngErros){ if(card) card.hidden = true; return; }
+  const atualiza = ()=>{
+    const n = window.ngErros.listar().length;
+    res.textContent = (n ? n+" tipo(s) de erro registrado(s) neste aparelho." : "Nenhum erro registrado neste aparelho.")+" Os erros ficam só aqui; nada é enviado automaticamente.";
+    lp.disabled = !n;
+  };
+  atualiza();
+  const aba = document.getElementById("tab-config"); if(aba) aba.addEventListener("click", atualiza);
+  cp.addEventListener("click", async ()=>{
+    const t = window.ngErros.texto();
+    try{ await navigator.clipboard.writeText(t); showToast("Relatório copiado."); }
+    catch(e){ area.value = t; wrap.hidden = false; area.focus(); area.select(); }
+  });
+  lp.addEventListener("click", ()=>{ window.ngErros.limpar(); wrap.hidden = true; atualiza(); showToast("Diagnóstico limpo."); });
+})();
 
 /* ============================================================
    IMPORTAR BACKUP (.json) — v73
@@ -12894,7 +12930,7 @@ function resumoParaTreinador(){
   };
 }
 window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
-try{ if(localStorage.getItem("ng_test_hooks") === "1") window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino}; }catch(e){}
+try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino}; }catch(e){}
 })();
 </script>
 

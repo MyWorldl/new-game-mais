@@ -1,0 +1,91 @@
+name: CI
+
+# Impede dois erros que já aconteceram: publicar com o site/ fora de dia com o fonte, e dizer "está no ar" sem o deploy ter chegado.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: O site/ gerado está em dia com o fonte/
+        run: |
+          sh fonte/build.sh
+          if ! git diff --exit-code --stat -- site; then
+            echo "::error::site/ está desatualizado em relação a fonte/. Rode 'sh fonte/build.sh' e faça commit do resultado."
+            exit 1
+          fi
+
+      - name: A VERSAO do sw.js mudou quando o site mudou (só em pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          base="origin/${{ github.base_ref }}"
+          mudou=$(git diff --name-only "$base"...HEAD -- site ':!site/sw.js' | wc -l)
+          if [ "$mudou" -gt 0 ]; then
+            antes=$(git show "$base:site/sw.js" | grep -o 'VERSAO = "[^"]*"' | head -1)
+            agora=$(grep -o 'VERSAO = "[^"]*"' site/sw.js | head -1)
+            echo "VERSAO antes: $antes · agora: $agora"
+            if [ "$antes" = "$agora" ]; then
+              echo "::error::arquivos de site/ mudaram, mas a VERSAO em site/sw.js continua a mesma; o app instalado não atualizaria."
+              exit 1
+            fi
+          fi
+
+      - name: Instala Playwright e o Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null
+          npm install playwright@1.63.0 --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
+
+      - name: Testes (site servido com os cabeçalhos de produção, inclusive a CSP)
+        run: sh fonte/testes/rodar-todos.sh
+
+  verifica-deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Espera o site publicado mostrar a VERSAO deste commit
+        run: |
+          esperada=$(grep -o 'VERSAO = "[^"]*"' site/sw.js | head -1)
+          for i in $(seq 1 40); do
+            atual=$(curl -fsS --max-time 20 https://new-game-mais.sombrasplays.workers.dev/sw.js | grep -o 'VERSAO = "[^"]*"' | head -1 || true)
+            echo "tentativa $i: no ar=[$atual] esperado=[$esperada]"
+            if [ "$atual" = "$esperada" ]; then exit 0; fi
+            sleep 15
+          done
+          echo "::error::o deploy não chegou ao ar em 10 minutos (esperado: $esperada)."
+          exit 1
+
+      - name: Confere cabeçalhos e arquivos no site publicado
+        run: |
+          s=https://new-game-mais.sombrasplays.workers.dev
+          csp=$(curl -fsSI "$s/" | grep -i '^content-security-policy' || true)
+          echo "$csp"
+          echo "$csp" | grep -q "script-src 'self';" || { echo "::error::CSP sem script-src 'self' estrito"; exit 1; }
+          js=$(grep -o 'app\.[0-9a-f]*\.js' site/index.html | head -1)
+          curl -fsSI "$s/$js" | grep -i '^cache-control' | grep -qi immutable || { echo "::error::$js sem cache immutable"; exit 1; }
+          echo "ok: $js"

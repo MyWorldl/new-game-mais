@@ -40,7 +40,7 @@ const HOJE = '2026-11-11', SEG = '2026-11-09', TER = '2026-11-10';
   const lista = (await p.locator('.reag-lista').innerText()).replace(/\s+/g, ' ');
   t('confirmação mostra o novo plano: hoje B, quinta C, sexta D', /Hoje Treino B/.test(lista) && /Qui Treino C/.test(lista) && /Sex Treino D/.test(lista), lista);
   t('sábado (E) não muda e nada fica de fora', !/Sáb/.test(lista) && !/Fora/.test(lista), lista);
-  if (axeSrc) { await p.addScriptTag({ content: axeSrc }); const v = await p.evaluate(async () => (await axe.run('#modal-root', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: confirmação sem violações', v.length === 0, v.join(',')); }
+  if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#modal-root', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: confirmação sem violações', v.length === 0, v.join(',')); }
   await p.click('#reag-cancel'); await p.waitForTimeout(200);
   t('cancelar não muda nada', (await cfg(p)) === null && /Treino C/.test(await p.locator('#today-title').innerText()));
   await p.click('#hoje-perdido [data-hp=fazer]'); await p.waitForTimeout(300); await p.click('#reag-ok'); await p.waitForTimeout(600);
@@ -134,7 +134,7 @@ const HOJE = '2026-11-11', SEG = '2026-11-09', TER = '2026-11-10';
 
   // desktop: sem rolagem lateral e axe no aviso
   ({ c, p } = await mk({ rotina: rot1, checkins: chk1, w: 1440 }));
-  if (axeSrc) { await p.addScriptTag({ content: axeSrc }); const v = await p.evaluate(async () => (await axe.run('#hoje-perdido', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: aviso na tela Hoje sem violações', v.length === 0, v.join(',')); }
+  if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#hoje-perdido', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe: aviso na tela Hoje sem violações', v.length === 0, v.join(',')); }
   t('desktop: sem rolagem lateral', await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1));
   await p.screenshot({ path: (process.env.SP || '/tmp') + '/reagenda-hoje.png' }); await c.close();
   console.log(`\n${ok} ok / ${bad} falhas`); await b.close(); process.exit(bad ? 1 : 0);
