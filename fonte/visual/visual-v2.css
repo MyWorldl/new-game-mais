@@ -578,3 +578,24 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   .brand .sync-pill{ order:6; margin-inline-start:0; }
   .top-avatar{ order:7; }
 }
+
+/* ---------- 28. Menu lateral de altura total (desktop) ---------- */
+/* A partir de 768 px o menu cobre toda a lateral esquerda: colado na borda, do topo ao rodapé da janela. O conteúdo ocupa o resto. */
+@media (min-width:768px){
+  :root{ --nav-w:76px; }
+  .bottomnav{
+    position:fixed; inset-block:0; inset-inline-start:0; z-index:40; inline-size:var(--nav-w); block-size:100dvh; max-block-size:none;
+    margin:0; border-radius:0; border-width:0 1px 0 0; border-style:solid; border-color:var(--line-strong, var(--line));
+    padding:18px 10px calc(14px + env(safe-area-inset-bottom,0px)); gap:12px;
+    background:color-mix(in oklab, var(--surface) 96%, transparent); box-shadow:8px 0 30px -22px rgb(0 0 0 / .9);
+  }
+  body{ padding-inline-start:calc(var(--nav-w) + 28px); }
+  .app{ grid-template-columns:minmax(0,1fr); column-gap:0; max-width:1240px; margin-inline:auto; }
+  .topbar{ grid-column:1; }
+  .app > main{ grid-column:1; }
+}
+@media (min-width:1024px){
+  :root:not([data-nav="rail"]){ --nav-w:248px; }
+  :root[data-nav="rail"]{ --nav-w:76px; }
+  :root:not([data-nav="rail"]) .app, :root[data-nav="rail"] .app{ grid-template-columns:minmax(0,1fr); }
+}

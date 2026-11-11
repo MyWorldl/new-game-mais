@@ -643,6 +643,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--focus); outline-
 .seg{display:flex; border:1px solid var(--control-border); border-radius:10px; overflow:hidden; width:fit-content;}
 .seg button{border:none; background:var(--surface); color:var(--ink-soft); padding:var(--sp-2) 13px; font-size:var(--fs-sm); font-weight:600; cursor:pointer;}
 .seg button.active{background:var(--ink); color:var(--bg);}
+.seg-full{width:100%;}
+.seg-full button{flex:1 1 0; min-width:0; min-height:38px; padding-inline:8px;}
 .seg button + button{border-left:1px solid var(--line-strong);}
 
 /* dieta — abas de objetivo calórico (sublinhado) */
@@ -1034,6 +1036,29 @@ button.biblio-ex-chip.on{background:var(--accent-soft); border-color:var(--accen
 .fotos-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(86px, 1fr)); gap:10px;}
 .foto-item{position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:var(--surface-2); aspect-ratio:3/4;}
 .foto-item img{width:100%; height:100%; object-fit:cover; display:block;}
+.foto-open{position:absolute; inset:0; padding:0; border:0; background:none; cursor:zoom-in; display:block; width:100%; color:inherit;}
+.foto-open:focus-visible, .foto-cmpbtn:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+.foto-zoom-ic{position:absolute; right:6px; bottom:6px; width:26px; height:26px; border-radius:50%; display:grid; place-items:center; background:rgba(0,0,0,.55); color:var(--on-color);}
+.foto-zoom-ic svg{width:16px; height:16px;}
+.foto-cmpbtn{position:absolute; top:4px; left:4px; z-index:1; min-height:26px; padding:0 8px; border-radius:13px; border:none; background:rgba(0,0,0,.55); color:var(--on-color); font-size:var(--fs-2xs); font-weight:700; cursor:pointer;}
+.foto-cmpbtn:hover{background:rgba(0,0,0,.75);}
+dialog.foto-zoom{border:0; padding:0; margin:0; max-width:none; max-height:none; width:100vw; height:100dvh; background:rgba(8,10,12,.97); color:#fff; overflow:hidden;}
+dialog.foto-zoom::backdrop{background:rgba(0,0,0,.85);}
+.fz-stage{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; touch-action:none; overflow:hidden; cursor:zoom-in; user-select:none; -webkit-user-select:none;}
+.fz-stage.zoomed{cursor:grab;}
+.fz-img{max-width:100%; max-height:100%; object-fit:contain; transform-origin:center center; will-change:transform; -webkit-user-drag:none; user-select:none;}
+.fz-top{position:absolute; z-index:2; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center; gap:12px; padding:calc(10px + env(safe-area-inset-top,0px)) 14px 22px; background:linear-gradient(rgba(0,0,0,.7), transparent); pointer-events:none;}
+.fz-top > *{pointer-events:auto;}
+.fz-cap{font:600 14px 'IBM Plex Mono',monospace; letter-spacing:.04em;}
+.fz-tools{display:flex; gap:8px;}
+.fz-btn, .fz-nav{appearance:none; min-width:44px; min-height:44px; padding:0 12px; border-radius:22px; border:1px solid rgba(255,255,255,.35); background:rgba(20,22,24,.78); color:#fff; font:700 20px/1 'Work Sans',sans-serif; cursor:pointer;}
+.fz-btn:hover, .fz-nav:hover{background:rgba(60,64,68,.9);}
+.fz-btn:focus-visible, .fz-nav:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+.fz-reset{font-size:14px; font-variant-numeric:tabular-nums; min-width:56px;}
+.fz-nav{position:absolute; top:50%; transform:translateY(-50%); z-index:2;}
+.fz-prev{left:calc(12px + env(safe-area-inset-left,0px));}
+.fz-next{right:calc(12px + env(safe-area-inset-right,0px));}
+.fz-hint{position:absolute; z-index:2; bottom:calc(12px + env(safe-area-inset-bottom,0px)); left:0; right:0; text-align:center; font-size:12px; color:rgba(255,255,255,.78); pointer-events:none; padding:0 70px;}
 .foto-date{position:absolute; left:0; right:0; bottom:0; background:linear-gradient(transparent, rgba(0,0,0,.65)); color:var(--on-color); font-size:var(--fs-2xs); padding:10px 6px var(--sp-1); text-align:center; font-family:'IBM Plex Mono',monospace;}
 .foto-remove{position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(0,0,0,.55); color:var(--on-color); font-size:var(--fs-14); line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;}
 
@@ -2055,7 +2080,13 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
 .sl-btns{display:flex; flex-wrap:wrap; gap:8px;}
 .sl-btns .btn{flex:1 1 120px; min-height:44px;}
 .sl-acoes{display:flex; gap:8px; flex-wrap:wrap;}
-.an-sum{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+.an-sum{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+.an-sum .an-f{appearance:none; font:inherit; font-weight:600; cursor:pointer; min-height:36px; border:1px solid transparent;}
+.an-sum .an-f[aria-pressed="true"]{box-shadow:inset 0 0 0 2px currentColor;}
+.an-sum .an-f:not([aria-pressed="true"]){opacity:.78;}
+.an-sum .an-f:hover{opacity:1;}
+.an-sum .an-f:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.an-count{font-size:var(--fs-xs,.75rem); color:var(--ink-soft); margin:0 0 10px;}
 .an-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
 .an-ex{border:1px solid var(--line-strong); border-radius:12px; background:var(--surface);}
 .an-ex>summary{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; min-height:var(--touch-min,44px); cursor:pointer; list-style:none;}
@@ -3239,6 +3270,27 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   .brand .sync-pill{ order:6; margin-inline-start:0; }
   .top-avatar{ order:7; }
 }
+
+/* ---------- 28. Menu lateral de altura total (desktop) ---------- */
+/* A partir de 768 px o menu cobre toda a lateral esquerda: colado na borda, do topo ao rodapé da janela. O conteúdo ocupa o resto. */
+@media (min-width:768px){
+  :root{ --nav-w:76px; }
+  .bottomnav{
+    position:fixed; inset-block:0; inset-inline-start:0; z-index:40; inline-size:var(--nav-w); block-size:100dvh; max-block-size:none;
+    margin:0; border-radius:0; border-width:0 1px 0 0; border-style:solid; border-color:var(--line-strong, var(--line));
+    padding:18px 10px calc(14px + env(safe-area-inset-bottom,0px)); gap:12px;
+    background:color-mix(in oklab, var(--surface) 96%, transparent); box-shadow:8px 0 30px -22px rgb(0 0 0 / .9);
+  }
+  body{ padding-inline-start:calc(var(--nav-w) + 28px); }
+  .app{ grid-template-columns:minmax(0,1fr); column-gap:0; max-width:1240px; margin-inline:auto; }
+  .topbar{ grid-column:1; }
+  .app > main{ grid-column:1; }
+}
+@media (min-width:1024px){
+  :root:not([data-nav="rail"]){ --nav-w:248px; }
+  :root[data-nav="rail"]{ --nav-w:76px; }
+  :root:not([data-nav="rail"]) .app, :root[data-nav="rail"] .app{ grid-template-columns:minmax(0,1fr); }
+}
 </style>
 
 <div class="app">
@@ -4000,6 +4052,20 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
       </div>
     </div>
 
+    <div class="card" id="cfg-local-card">
+      <div class="card-head">
+        <h2>Onde você treina</h2>
+        <span class="hint">adapta a semana inteira</span>
+      </div>
+      <div class="hint u-mb10">Escolha onde vai treinar e o app troca, de uma vez, os exercícios de <b>toda a sua rotina</b> pelos equivalentes sem academia (ex.: supino reto → supino com halteres). Exercícios sem versão equivalente, como prancha, continuam iguais. Voltar para <b>Academia</b> restaura os seus exercícios originais.</div>
+      <div class="seg seg-full" id="cfg-local-seg" role="group" aria-label="Onde você treina">
+        <button type="button" data-v="academia" aria-pressed="false">Academia</button>
+        <button type="button" data-v="casa" aria-pressed="false">Em casa</button>
+        <button type="button" data-v="pouco" aria-pressed="false">Pouco equipamento</button>
+      </div>
+      <div class="hint u-mt8" id="cfg-local-resumo" role="status" aria-live="polite"></div>
+    </div>
+
     <div class="card">
       <div class="card-head">
         <h2>Periodização avançada <span class="hint">(opcional)</span></h2>
@@ -4048,11 +4114,13 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
       <div class="hint u-mb10" id="cfg-conta-info" role="status"></div>
       <div class="data-actions">
         <button class="btn" id="cfg-conta-sync" type="button">Sincronizar agora</button>
-        <button class="btn ghost" id="cfg-conta-sair" type="button">Sair da conta</button>
+        <button class="btn ghost" id="cfg-conta-politica" type="button">Política de privacidade</button>
       </div>
       <div class="data-actions u-mt8">
-        <button class="btn ghost" id="cfg-conta-politica" type="button">Política de privacidade</button>
         <button class="btn" id="cfg-conta-resetar" type="button" style="border-color:var(--warn);">Resetar meus dados</button>
+      </div>
+      <div class="data-actions u-mt8">
+        <button class="btn ghost" id="cfg-conta-sair" type="button">Sair da conta</button>
       </div>
       <div class="hint u-mt8">Resetar apaga seus registros e fotos, mas <b>mantém a conta</b>. Excluir remove também o login.</div>
       <div class="data-actions u-mt8">
@@ -6993,6 +7061,15 @@ function renderConfigExtras(){
     seg.querySelectorAll("button").forEach(b=> b.classList.toggle("active", b.dataset.v === idioma));
   }
 
+  const lt = localTreinoAtual();
+  const modoLocal = lt ? lt.modo : "academia";
+  document.querySelectorAll("#cfg-local-seg button").forEach(b=>{ const on = b.dataset.v === modoLocal; b.classList.toggle("active", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
+  const localResumo = document.getElementById("cfg-local-resumo");
+  if(localResumo){
+    localResumo.textContent = state.rotinaIsExample
+      ? "Você ainda não salvou uma rotina: o plano de exemplo já segue a sua escolha."
+      : (lt ? "Semana adaptada para "+LOCAL_TREINO_NOMES[lt.modo].toLowerCase()+": "+lt.trocados+" de "+lt.total+" exercícios trocados. Os outros seguem iguais." : "Sua rotina está como você montou (academia).");
+  }
   const periodizacao = (state.settings && state.settings.periodizacao) || {ativo:false, blocos:[]};
   const periodSeg = document.getElementById("cfg-periodizacao-seg");
   if(periodSeg){
@@ -7026,6 +7103,9 @@ document.querySelectorAll("#cfg-idioma-seg button").forEach(btn=>{
     if(val === "en") showToast("Preferência salva. A tradução completa ainda não está pronta e chega numa próxima versão.");
     renderConfigExtras();
   });
+});
+document.querySelectorAll("#cfg-local-seg button").forEach(btn=>{
+  btn.addEventListener("click", ()=> aplicarLocalTreino(btn.dataset.v));
 });
 document.querySelectorAll("#cfg-periodizacao-seg button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
@@ -9093,6 +9173,96 @@ function saveTroca(iso, idx, nome){
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
 }
+/* Onde você treina (Config): adapta a SEMANA INTEIRA de uma vez. Troca, em todos os dias da rotina, os exercícios que têm
+   equivalente sem academia (mesma tabela do plano inicial: SUBST_LOCAL). É como trocar o "cardápio" da semana: o que tem versão
+   muda, o que não tem (prancha, abdominal) fica. Guardamos os exercícios originais em config/settings.localTreino para
+   "Academia" desfazer tudo — sem apagar o que você editou depois (só volta o que ainda é a troca). */
+const LOCAL_TREINO_NOMES = {academia:"Academia", casa:"Em casa", pouco:"Pouco equipamento"};
+function localTreinoAtual(){
+  const l = state.settings && state.settings.localTreino;
+  return l && SUBST_LOCAL[l.modo] ? l : null;   // null = rotina original (academia)
+}
+function adaptarSemanaLocal(rotinaBase, modo){
+  const tab = SUBST_LOCAL[modo];
+  const rotina = {}, originais = {};
+  let trocados = 0, total = 0;
+  DAYS.forEach(k=>{
+    const d = rotinaBase[k];
+    if(!d){ return; }
+    const exs = d.exercicios || [];
+    total += exs.length;
+    const nomes = new Set(exs.map(e=> e.nome));
+    const bk = [];
+    const novos = exs.map((e, i)=>{
+      const sub = tab[e.nome];
+      if(!sub || sub[0] === e.nome || nomes.has(sub[0])) return e;   // sem versão, ou já existe o mesmo exercício no dia
+      nomes.add(sub[0]);
+      const ne = Object.assign({}, e, {nome: sub[0]});
+      if(sub[1]) ne.reps = sub[1];
+      delete ne.nota;
+      ne.metaReps = metaRepsDe(ne.series, ne.reps, e.metaReps);
+      bk.push({i, de:e.nome, para:ne.nome, reps:e.reps == null ? null : e.reps, nota:e.nota == null ? null : e.nota, metaReps:e.metaReps == null ? null : e.metaReps, repsNovo:ne.reps, metaNovo:ne.metaReps});
+      trocados++;
+      return ne;
+    });
+    if(bk.length){ originais[k] = bk; rotina[k] = Object.assign({}, d, {exercicios: novos}); } else rotina[k] = d;
+  });
+  return {rotina, originais, trocados, total};
+}
+function restaurarSemanaLocal(rotinaAtual, originais){
+  const rotina = {};
+  let restaurados = 0;
+  DAYS.forEach(k=>{
+    const d = rotinaAtual[k];
+    if(!d){ return; }
+    const bk = (originais && originais[k]) || [];
+    if(!bk.length){ rotina[k] = d; return; }
+    const exs = (d.exercicios || []).slice();
+    bk.forEach(o=>{
+      let j = exs[o.i] && exs[o.i].nome === o.para ? o.i : exs.findIndex(e=> e.nome === o.para);
+      if(j < 0) return;   // você mudou esse exercício depois: respeitamos a sua edição
+      const ex = exs[j], ne = Object.assign({}, ex, {nome: o.de});
+      if(o.nota == null) delete ne.nota; else ne.nota = o.nota;
+      if(ex.reps === o.repsNovo){ if(o.reps != null) ne.reps = o.reps; if(ex.metaReps === o.metaNovo && o.metaReps != null) ne.metaReps = o.metaReps; }
+      exs[j] = ne;
+      restaurados++;
+    });
+    rotina[k] = Object.assign({}, d, {exercicios: exs});
+  });
+  return {rotina, restaurados};
+}
+function aplicarLocalTreino(modo){
+  if(!LOCAL_TREINO_NOMES[modo]) return;
+  const atual = localTreinoAtual();
+  if(modo === (atual ? atual.modo : "academia")) return;
+  const jobs = [];
+  if(state.perfil){   // mantém o cadastro em sintonia (o plano exemplo e o "Onde você treina" do Perfil seguem esta escolha)
+    state.perfil = Object.assign({}, state.perfil, {local: modo});
+    jobs.push(saveDoc("config/perfil", state.perfil));
+  }
+  if(state.rotinaIsExample){   // ainda não há rotina salva: o plano de exemplo já nasce do local escolhido
+    ajustarRotinaExemplo();
+    render();
+    showToast("Pronto: o plano de exemplo já usa "+LOCAL_TREINO_NOMES[modo].toLowerCase()+".");
+    return;
+  }
+  let base = {}, restaurados = 0;
+  DAYS.forEach(k=>{ base[k] = state.rotina[k]; });
+  if(atual){ const r = restaurarSemanaLocal(base, atual.originais); base = r.rotina; restaurados = r.restaurados; }
+  let res = {rotina: base, originais: null, trocados: 0, total: 0};
+  if(modo !== "academia") res = adaptarSemanaLocal(base, modo);
+  DAYS.forEach(k=>{
+    if(res.rotina[k] && res.rotina[k] !== state.rotina[k]){ state.rotina[k] = res.rotina[k]; jobs.push(saveDoc("rotina/"+k, res.rotina[k])); }
+  });
+  state.settings = Object.assign({}, state.settings, {localTreino: modo === "academia" ? null : {modo, aplicadoEm: todayISO(), originais: res.originais, trocados: res.trocados, total: res.total}});
+  jobs.push(saveDoc("config/settings", state.settings));
+  hapticPulse(12);
+  playSound("tick");
+  render();
+  if(modo === "academia") showToast("Semana de volta à academia: "+restaurados+" exercício"+(restaurados===1?"":"s")+" original"+(restaurados===1?"":"is")+" restaurado"+(restaurados===1?"":"s")+".");
+  else showToast("Semana adaptada para "+LOCAL_TREINO_NOMES[modo].toLowerCase()+": "+res.trocados+" de "+res.total+" exercício"+(res.total===1?"":"s")+" trocado"+(res.trocados===1?"":"s")+"."+(res.trocados < res.total ? " Os outros seguem iguais." : ""));
+  return Promise.all(jobs);
+}
 async function tornarTrocaPermanente(iso, idx, after){
   const key = dayKeyFromISO(iso);
   const day = state.rotina[key];
@@ -9308,6 +9478,9 @@ function analiseExercicio(nome, musculos, totaisPlan){
 const ANALISE_ESTADO = {
   progredindo:{t:"↑ Progredindo", c:"good"}, estavel:{t:"→ Estável", c:"info"}, estagnado:{t:"⚠ Estagnado", c:"warn"}, "sem-dados":{t:"… Sem dados", c:"neutral"}
 };
+/* Análise do treino: os selos de resumo viram filtros. Só aparece o grupo escolhido (padrão: o que pede atenção primeiro) —
+   "Todos" mostra tudo. Cada exercício vem fechado; toque no nome para abrir o detalhe. */
+let analiseFiltro = null;
 function renderAnaliseTreino(){
   const el = document.getElementById("analise-treino-body"); if(!el) return;
   const exList = allActiveExercises();
@@ -9323,13 +9496,19 @@ function renderAnaliseTreino(){
   if(!comDados){
     h += '<div class="empty-note">Assim que você registrar séries nos treinos, aparece aqui o que está progredindo, o que está parado e por quê.</div>';
   } else {
-    h += '<div class="an-sum" role="list" aria-label="Resumo">'+
-      ["progredindo","estavel","estagnado","sem-dados"].filter(k=> cont[k]).map(k=>'<span role="listitem" class="chip '+ANALISE_ESTADO[k].c+'">'+ANALISE_ESTADO[k].t+' · '+cont[k]+'</span>').join("")+'</div>';
-    h += '<ul class="an-list">'+itens.map(i=>{
+    const ORD_F = ["estagnado","progredindo","estavel","sem-dados"];
+    let filtro = analiseFiltro;
+    if(filtro !== "todos" && !(filtro && cont[filtro])) filtro = ORD_F.find(k=> cont[k]) || "todos";
+    const vis = filtro === "todos" ? itens : itens.filter(i=> i.cls.estado === filtro);
+    h += '<div class="an-sum" role="group" aria-label="Filtrar a análise por situação">'+
+      ["estagnado","progredindo","estavel","sem-dados"].filter(k=> cont[k]).map(k=>'<button type="button" class="chip an-f '+ANALISE_ESTADO[k].c+'" data-anf="'+k+'" aria-pressed="'+(filtro === k)+'">'+ANALISE_ESTADO[k].t+' · '+cont[k]+'</button>').join("")+
+      '<button type="button" class="chip an-f neutral" data-anf="todos" aria-pressed="'+(filtro === "todos")+'">Todos · '+itens.length+'</button></div>';
+    h += '<div class="an-count" role="status" aria-live="polite">Mostrando '+vis.length+' de '+itens.length+' exercícios — toque em um nome para ver o detalhe.</div>';
+    h += '<ul class="an-list">'+vis.map(i=>{
       const st = ANALISE_ESTADO[i.cls.estado];
       const tab = i.sess.length ? '<div class="an-tabw" tabindex="0" role="region" aria-label="Últimas sessões de '+escapeHtml(i.nome)+'"><table class="an-tab"><thead><tr><th scope="col">Data</th><th scope="col">Carga</th><th scope="col">Reps por série</th><th scope="col">RPE</th></tr></thead><tbody>'+
         i.sess.slice(-ANALISE_JANELA).reverse().map(x=>'<tr><td>'+escapeHtml(fmtDateBR(x.iso))+'</td><td>'+(x.peso != null ? fmtKg(x.peso)+' kg' : '—')+'</td><td>'+x.sets.join(" · ")+(x.unid==="s" ? " s" : "")+'</td><td>'+(x.rpe != null ? x.rpe : '—')+'</td></tr>').join("")+'</tbody></table></div>' : '';
-      return '<li><details class="an-ex"'+(i.cls.estado === "estagnado" ? ' open' : '')+'><summary><span class="an-name">'+escapeHtml(i.nome)+'</span><span class="chip '+st.c+'">'+st.t+'</span></summary>'+
+      return '<li><details class="an-ex"><summary><span class="an-name">'+escapeHtml(i.nome)+'</span><span class="chip '+st.c+'">'+st.t+'</span></summary>'+
         '<div class="an-body"><p class="an-resumo">'+escapeHtml(i.resumo)+'</p>'+
         (i.tendencia ? '<p class="an-tend">'+escapeHtml(i.tendencia)+'</p>' : '')+
         (i.linhas.length ? '<ul class="an-linhas">'+i.linhas.map(l=>'<li>'+escapeHtml(l)+'</li>').join("")+'</ul>' : '')+tab+'</div></details></li>';
@@ -9348,6 +9527,16 @@ function renderAnaliseTreino(){
   if(linhasVol) h += '<h3 class="an-h3">Volume desta semana (realizado × planejado)</h3><div class="an-volwrap">'+linhasVol+'</div>';
   el.innerHTML = h;
 }
+document.addEventListener("click", (e)=>{
+  const b = e.target.closest && e.target.closest("[data-anf]");
+  if(!b || !b.closest("#analise-treino-body")) return;
+  analiseFiltro = b.dataset.anf;
+  const y = window.scrollY;
+  renderAnaliseTreino();
+  const nb = document.querySelector('#analise-treino-body [data-anf="'+analiseFiltro+'"]');
+  if(nb) nb.focus({preventScroll:true});
+  window.scrollTo(0, y);
+});
 /* análise rápida ao concluir o dia: compara cada exercício de hoje com a última vez */
 function analiseDoDiaHtml(iso, day){
   const exs = (day && day.exercicios) || [];
@@ -12614,6 +12803,108 @@ function renderFotoComparador(idsRecentes){
   stage.addEventListener("pointerup", ()=>{ drag = false; });
   stage.addEventListener("pointercancel", ()=>{ drag = false; });
 }
+/* Foto ampliada (lightbox): toque/clique alterna 1× ↔ 2,5× no ponto tocado; arraste para mover; pinça ou roda do mouse para zoom;
+   ‹ › trocam de foto; Esc ou toque fora fecha. Usa <dialog> (foco preso e Esc nativos). */
+function abrirFotoZoom(ids, idx, opener){
+  const velho = document.querySelector("dialog.foto-zoom"); if(velho) velho.remove();
+  if(!ids || !ids.length || idx < 0) return;
+  const dlg = document.createElement("dialog");
+  dlg.className = "foto-zoom";
+  dlg.setAttribute("aria-label", "Foto de progresso ampliada");
+  dlg.innerHTML =
+    '<div class="fz-top"><span class="fz-cap" role="status" aria-live="polite"></span><div class="fz-tools">'+
+      '<button type="button" class="fz-btn" data-fz="out" aria-label="Diminuir zoom">−</button>'+
+      '<button type="button" class="fz-btn fz-reset" data-fz="reset" aria-label="Voltar ao tamanho da tela">1×</button>'+
+      '<button type="button" class="fz-btn" data-fz="in" aria-label="Aumentar zoom">+</button>'+
+      '<button type="button" class="fz-btn" data-fz="close" aria-label="Fechar foto">×</button></div></div>'+
+    '<div class="fz-stage"><img class="fz-img" alt="" draggable="false"></div>'+
+    '<button type="button" class="fz-nav fz-prev" data-fz="prev" aria-label="Foto anterior">‹</button>'+
+    '<button type="button" class="fz-nav fz-next" data-fz="next" aria-label="Próxima foto">›</button>'+
+    '<div class="fz-hint">Toque na foto para ampliar · arraste para mover · pinça ou roda do mouse para zoom</div>';
+  document.body.appendChild(dlg);
+  const st = dlg.querySelector(".fz-stage"), im = dlg.querySelector(".fz-img"), cap = dlg.querySelector(".fz-cap"), rs = dlg.querySelector(".fz-reset");
+  let i = idx, sc = 1, tx = 0, ty = 0, moved = false, drag = null, pinch0 = null;
+  const MAX = 6, ptrs = new Map();
+  const rel = (x, y)=>{ const r = st.getBoundingClientRect(); return {x: x - (r.left + r.width/2), y: y - (r.top + r.height/2)}; };
+  function aplica(){
+    const mx = Math.max(0, (im.clientWidth*sc - st.clientWidth)/2), my = Math.max(0, (im.clientHeight*sc - st.clientHeight)/2);
+    tx = Math.min(mx, Math.max(-mx, tx)); ty = Math.min(my, Math.max(-my, ty));
+    im.style.transform = "translate("+tx+"px,"+ty+"px) scale("+sc+")";
+    st.classList.toggle("zoomed", sc > 1.01);
+    rs.textContent = (Math.round(sc*10)/10).toString().replace(".", ",")+"×";
+  }
+  function zoomEm(ns, cx, cy){
+    ns = Math.min(MAX, Math.max(1, ns));
+    const k = ns/sc; tx = cx - (cx - tx)*k; ty = cy - (cy - ty)*k; sc = ns;
+    if(sc <= 1.001){ sc = 1; tx = 0; ty = 0; }
+    aplica();
+  }
+  function mostra(n){
+    i = (n + ids.length) % ids.length;
+    const f = state.fotos[ids[i]]; if(!f) return;
+    im.src = fotoSrc(f);
+    im.alt = "Foto de progresso de "+fmtDateBR(f.iso);
+    cap.textContent = fmtDateBR(f.iso)+(ids.length > 1 ? " · "+(i+1)+" de "+ids.length : "");
+    sc = 1; tx = 0; ty = 0; aplica();
+  }
+  function fecha(){ try{ dlg.close(); }catch(_){ dlg.remove(); } }
+  dlg.querySelectorAll(".fz-nav").forEach(b=>{ b.hidden = ids.length < 2; });
+  dlg.addEventListener("click", (e)=>{
+    const b = e.target.closest("[data-fz]"); if(!b) return;
+    const a = b.dataset.fz;
+    if(a === "close") fecha();
+    else if(a === "prev") mostra(i-1);
+    else if(a === "next") mostra(i+1);
+    else if(a === "in") zoomEm(sc*1.5, 0, 0);
+    else if(a === "out") zoomEm(sc/1.5, 0, 0);
+    else if(a === "reset") zoomEm(1, 0, 0);
+  });
+  st.addEventListener("pointerdown", (e)=>{
+    try{ st.setPointerCapture(e.pointerId); }catch(_){}
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY}); moved = false;
+    if(ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = {d: Math.hypot(a.x-b.x, a.y-b.y) || 1, s: sc}; drag = null; }
+    else if(ptrs.size === 1) drag = {x:e.clientX, y:e.clientY, tx, ty};
+  });
+  st.addEventListener("pointermove", (e)=>{
+    if(!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(ptrs.size === 2 && pinch0){
+      const [a, b] = [...ptrs.values()], c = rel((a.x+b.x)/2, (a.y+b.y)/2);
+      zoomEm(pinch0.s * (Math.hypot(a.x-b.x, a.y-b.y) / pinch0.d), c.x, c.y); moved = true;
+    } else if(drag && ptrs.size === 1){
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if(Math.abs(dx) + Math.abs(dy) > 5) moved = true;
+      if(sc > 1){ tx = drag.tx + dx; ty = drag.ty + dy; aplica(); }
+    }
+  });
+  const solta = (e)=>{
+    ptrs.delete(e.pointerId);
+    if(ptrs.size < 2) pinch0 = null;
+    if(ptrs.size === 1){ const r = [...ptrs.values()][0]; drag = {x:r.x, y:r.y, tx, ty}; } else drag = null;
+  };
+  st.addEventListener("pointerup", solta); st.addEventListener("pointercancel", solta);
+  st.addEventListener("click", (e)=>{
+    if(moved){ moved = false; return; }
+    // pointer capture redireciona o "click" para o palco: decide pela posição, não pelo alvo
+    const r = im.getBoundingClientRect();
+    const dentro = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    if(dentro){ const c = rel(e.clientX, e.clientY); zoomEm(sc > 1.05 ? 1 : 2.5, c.x, c.y); }
+    else fecha();   // toque fora da foto fecha
+  });
+  st.addEventListener("wheel", (e)=>{ e.preventDefault(); const c = rel(e.clientX, e.clientY); zoomEm(sc * Math.exp(-e.deltaY * 0.0015), c.x, c.y); }, {passive:false});
+  dlg.addEventListener("keydown", (e)=>{
+    if(e.key === "ArrowLeft"){ mostra(i-1); e.preventDefault(); }
+    else if(e.key === "ArrowRight"){ mostra(i+1); e.preventDefault(); }
+    else if(e.key === "+" || e.key === "="){ zoomEm(sc*1.5, 0, 0); e.preventDefault(); }
+    else if(e.key === "-"){ zoomEm(sc/1.5, 0, 0); e.preventDefault(); }
+    else if(e.key === "0"){ zoomEm(1, 0, 0); e.preventDefault(); }
+  });
+  dlg.addEventListener("close", ()=>{ dlg.remove(); if(opener && opener.isConnected) opener.focus({preventScroll:true}); });
+  window.addEventListener("resize", aplica, {passive:true});
+  dlg.showModal();
+  mostra(i);
+  im.addEventListener("load", aplica);
+}
 function renderFotosProgresso(){
   const el = document.getElementById("fotos-grid");
   if(!el) return;
@@ -12623,16 +12914,23 @@ function renderFotosProgresso(){
   el.innerHTML = ids.map(id=>{
     const f = state.fotos[id];
     const src = fotoSrc(f);
-    return '<div class="foto-item'+(id===fotoCmp.a?' cmp-a':(id===fotoCmp.b?' cmp-b':''))+'" data-fotosel="'+id+'">'+
-      '<img src="'+src+'" alt="Foto de progresso de '+fmtDateBR(f.iso)+'" loading="lazy">'+
-      '<div class="foto-date">'+fmtDateBR(f.iso)+'</div>'+
+    return '<div class="foto-item'+(id===fotoCmp.a?' cmp-a':(id===fotoCmp.b?' cmp-b':''))+'">'+
+      '<button type="button" class="foto-open" data-fotozoom="'+id+'" aria-label="Ampliar a foto de '+fmtDateBR(f.iso)+'">'+
+        '<img src="'+src+'" alt="Foto de progresso de '+fmtDateBR(f.iso)+'" loading="lazy">'+
+        '<span class="foto-zoom-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M11 8.5v5M8.5 11h5"/></svg></span>'+
+        '<span class="foto-date">'+fmtDateBR(f.iso)+'</span>'+
+      '</button>'+
+      (ids.length > 1 ? '<button type="button" class="foto-cmpbtn" data-fotosel="'+id+'" aria-label="Usar a foto de '+fmtDateBR(f.iso)+' no comparador">Comparar</button>' : '')+
       '<button type="button" class="foto-remove" data-fotorm="'+id+'" aria-label="Remover foto">×</button>'+
     '</div>';
   }).join("");
   el.querySelectorAll("[data-fotorm]").forEach(btn=>{
     btn.addEventListener("click", (e)=>{ e.stopPropagation(); removeFotoProgresso(btn.dataset.fotorm); });
   });
-  // v94 V5: tocar numa miniatura a coloca no comparador (a mais antiga vira "antes", a mais nova "depois")
+  el.querySelectorAll("[data-fotozoom]").forEach(btn=>{
+    btn.addEventListener("click", ()=> abrirFotoZoom(ids, ids.indexOf(btn.dataset.fotozoom), btn));
+  });
+  // v94 V5: "Comparar" numa miniatura a coloca no comparador (a mais antiga vira "antes", a mais nova "depois")
   el.querySelectorAll("[data-fotosel]").forEach(it=>{
     it.addEventListener("click", ()=>{
       if(ids.length < 2) return;
@@ -13257,6 +13555,26 @@ window.addEventListener("resize", ()=>{
   trailResizeTimer = setTimeout(renderWeekTrail, 150);
 });
 
+
+/* Segura a posição da página depois de um clique. Quando um clique redesenha a seção (ou os dados chegam da nuvem) e a página
+   encolhe por um instante, o navegador pode jogar a rolagem para o topo. Se isso acontecer logo depois de um clique em algo da
+   própria tela (não em navegação entre abas/atalhos) e sem a pessoa ter rolado, voltamos para onde ela estava. */
+(function seguraRolagem(){
+  let alvo = null, ate = 0;
+  const NAV = '[data-tab],[data-goto],[data-empty-go],[data-subtab],[data-go],a[href],.tab-btn,.cmdk-chip,.top-avatar,.top-icon';
+  document.addEventListener("click", (e)=>{
+    const t = e.target;
+    if(!t || !t.closest || t.closest(NAV) || !t.closest(".view")) return;
+    alvo = window.scrollY; ate = performance.now() + 2500;
+  }, true);
+  const solta = ()=>{ alvo = null; };
+  ["wheel","touchmove","keydown"].forEach(ev=> addEventListener(ev, solta, {passive:true, capture:true}));
+  addEventListener("scroll", ()=>{
+    if(alvo == null) return;
+    if(performance.now() > ate){ alvo = null; return; }
+    if(window.scrollY < 8 && alvo > 200){ const y = alvo; window.scrollTo(0, y); }
+  }, {passive:true});
+})();
 
 /* cabeçalho que some ao rolar pra baixo e reaparece ao rolar pra cima — só em
    telas de toque; no topo da página (ou ao trocar de aba) fica sempre visível */

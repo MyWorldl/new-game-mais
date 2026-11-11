@@ -829,9 +829,55 @@
     if (pas.hidden) { pas.innerHTML = passos(plataforma()); pas.hidden = false; } else pas.hidden = true;
     btn.setAttribute("aria-expanded", pas.hidden ? "false" : "true");
   }
+  /* Banner "Instalar o app" no topo do Hoje. Só aparece no celular (ou quando o navegador oferece instalar), nunca se o app já está
+   * instalado, e "Agora não" esconde por 14 dias. É um lembrete gentil: a instalação em si usa a mesma janela oficial / o mesmo passo a passo do card em Configurações. */
+  var CH_BANNER = "ng_banner_instalar_ate", instalando = false;
+  function bannerAdiado(){ try { var t = Number(localStorage.getItem(CH_BANNER)); return t && Date.now() < t; } catch(e){ return false; } }
+  function bannerDispensar(){ try { localStorage.setItem(CH_BANNER, String(Date.now() + 14 * 86400000)); } catch(e){} }
+  function bannerPinta(){
+    var host = $("view-painel"); if (!host) return;
+    var el = $("ng-install-banner"), pl = plataforma();
+    var mostra = !(instalado || instalando || jaInstalado()) && !bannerAdiado() && (pl.ios || pl.android || !!adiado);
+    if (!mostra) { if (el) el.remove(); return; }
+    if (!el) {
+      el = document.createElement("div"); el.id = "ng-install-banner"; el.className = "card"; el.setAttribute("role", "region"); el.setAttribute("aria-label", "Instalar o app");
+      el.innerHTML = '<div class="card-head"><h2>Instale o NG+ no celular</h2></div>' +
+        '<div class="hint u-mb10" id="ng-ib-info">Abre pelo ícone na tela inicial, em tela cheia e sem depender da internet.</div>' +
+        '<div class="data-actions"><button class="btn primary small" id="ng-ib-btn" type="button" aria-expanded="false" aria-controls="ng-ib-passos"></button>' +
+        '<button class="btn ghost small" id="ng-ib-fechar" type="button">Agora não</button></div>' +
+        '<div class="hint u-mt8" id="ng-ib-passos" role="region" aria-label="Passo a passo para instalar" hidden></div>';
+      host.insertBefore(el, host.firstChild);
+      $("ng-ib-btn").addEventListener("click", bannerClicou);
+      $("ng-ib-fechar").addEventListener("click", function(){ bannerDispensar(); var e = $("ng-install-banner"); if (e) e.remove(); });
+    }
+    var btn = $("ng-ib-btn"), pas = $("ng-ib-passos");
+    btn.textContent = adiado ? "Instalar agora" : "Como instalar";
+    if (adiado) { btn.removeAttribute("aria-controls"); btn.setAttribute("aria-expanded", "false"); if (pas) pas.hidden = true; }
+    else { btn.setAttribute("aria-controls", "ng-ib-passos"); btn.setAttribute("aria-expanded", pas && !pas.hidden ? "true" : "false"); }
+  }
+  async function bannerClicou(){
+    var pas = $("ng-ib-passos"), btn = $("ng-ib-btn"), info = $("ng-ib-info");
+    if (adiado) {
+      var ev = adiado; adiado = null; btn.disabled = true;
+      try {
+        await ev.prompt();
+        var r = await ev.userChoice;
+        if (r && r.outcome === "accepted") { instalando = true; var e = $("ng-install-banner"); if (e) e.remove(); pinta(); return; }
+        info.textContent = "Tudo bem, fica para depois. Você também encontra isso em Configurações → Instalar no celular.";
+      } catch(e){ if (pas) { pas.innerHTML = passos(plataforma()); pas.hidden = false; } }
+      btn.disabled = false; btn.textContent = "Como instalar"; btn.setAttribute("aria-controls", "ng-ib-passos"); btn.setAttribute("aria-expanded", pas && !pas.hidden ? "true" : "false");
+      pinta();
+      return;
+    }
+    if (!pas) return;
+    if (pas.hidden) { pas.innerHTML = passos(plataforma()); pas.hidden = false; } else pas.hidden = true;
+    btn.setAttribute("aria-expanded", pas.hidden ? "false" : "true");
+  }
+  var _pinta = pinta;
+  pinta = function(){ _pinta(); bannerPinta(); };
   window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); adiado = e; pinta(); });
   window.addEventListener("appinstalled", function(){ instalado = true; adiado = null; pinta(); });
-  function liga(){ var b = $("cfg-inst-btn"); if (!b || b.dataset.ligado) return; b.dataset.ligado = "1"; b.addEventListener("click", clicou); pinta(); }
+  function liga(){ bannerPinta(); var b = $("cfg-inst-btn"); if (!b || b.dataset.ligado) return; b.dataset.ligado = "1"; b.addEventListener("click", clicou); pinta(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", liga); else liga();
-  window.ngInstalar = {pinta: pinta, plataforma: plataforma};
+  window.ngInstalar = {pinta: function(){ pinta(); }, plataforma: plataforma};
 })();
