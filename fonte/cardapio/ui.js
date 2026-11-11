@@ -119,6 +119,12 @@ function renderCardapio(kcalAlvo, macros){
     const b = ev.target.closest("[data-cdp]");
     if(!b) return;
     const act = b.dataset.cdp, cfg = cdpCfg();
+    const yAntes = window.scrollY;   // Safari não ancora a rolagem: se a página encolher no redesenho, ela pularia
+    // outro dia/jeito pode ter menos linhas e a página encolher, empurrando a rolagem para cima: o card guarda a altura
+    // que tinha até a pessoa voltar a rolar
+    el.style.minHeight = el.offsetHeight+"px";
+    const soltaAltura = ()=>{ el.style.minHeight = ""; ["wheel","touchmove","keydown"].forEach(ev=> removeEventListener(ev, soltaAltura, true)); };
+    ["wheel","touchmove","keydown"].forEach(ev=> addEventListener(ev, soltaAltura, {passive:true, capture:true, once:true}));
     if(act === "dia"){
       cdpDia = Number(b.dataset.v) || 0;
       if(cdpUltimo) renderCardapio(cdpUltimo.k, cdpUltimo.m);
@@ -130,6 +136,8 @@ function renderCardapio(kcalAlvo, macros){
       renderDieta();
     }
     playSound("tick");
-    const f = el.querySelector('[data-cdp="'+act+'"][data-v="'+b.dataset.v+'"]'); if(f) f.focus();
+    window.scrollTo(0, yAntes);
+    const f = el.querySelector('[data-cdp="'+act+'"][data-v="'+b.dataset.v+'"]'); if(f) f.focus({preventScroll:true});
+    requestAnimationFrame(()=>{ if(Math.abs(window.scrollY - yAntes) > 2) window.scrollTo(0, yAntes); });
   });
 })();
