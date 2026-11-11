@@ -5,9 +5,9 @@ PWA de arquivo único (HTML + CSS + JS embutidos), publicada na Cloudflare (Work
 Site no ar: https://new-game-mais.sombrasplays.workers.dev
 
 ## Estrutura
-- `site/` — **o que vai ao ar**: `index.html` (gerado), `app.<hash>.js` e `app.<hash>.css` (gerados), `ng-nuvem.css`, `bff-runtime.js` (camada de dados local/IndexedDB), `ng-nuvem.js` (login e sincronização),
+- `site/` — **o que vai ao ar**: `index.html` (gerado), `app.<hash>.js`, `app.<hash>.css` e `cardapio.<hash>.js` (gerados), `ng-nuvem.css`, `bff-runtime.js` (camada de dados local/IndexedDB), `ng-nuvem.js` (login e sincronização),
   `vendor-supabase.js` (supabase-js fixado), `sw.js` (service worker), `manifest.webmanifest`, `_headers` (cabeçalhos e CSP), `fonts/`, ícones.
-- `fonte/` — **de onde o site nasce** (não vai ao ar): `candidato-prd.html` (fonte do app) e `cardapio/` (módulo ES do cardápio: `engine.js` + `ui.js`, empacotado pelo esbuild no build), `visual/` (tema v2), `aplica-standalone.py`, `build.sh`,
+- `fonte/` — **de onde o site nasce** (não vai ao ar): `candidato-prd.html` (fonte do app) e `cardapio/` (módulo ES do cardápio: `engine.js` + `ui.js`, empacotado pelo esbuild em `cardapio.<hash>.js` e carregado sob demanda pela aba Dieta), `visual/` (tema v2), `aplica-standalone.py`, `build.sh`,
   `testes/` (Playwright e testes unitários), `supabase/` (Edge Functions e SQL) e `docs/`. Detalhes em `fonte/README-fonte.md`.
 - `package.json` e `package-lock.json` — só as ferramentas de build (esbuild, versão exata); o app não tem dependências de execução.
 - `wrangler.jsonc` — diz à Cloudflare para publicar a pasta `site/` (nome do projeto: `new-game-mais`).

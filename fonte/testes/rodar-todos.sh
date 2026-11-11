@@ -22,6 +22,7 @@ for t in reagenda scroll-dieta lateral-foto-analise semana-casa banner-instalar 
 done
 roda cardapio-e2e node cardapio-e2e.js http://localhost:8791
 roda cardapio-nos node cardapio-nos.js http://localhost:8791
+roda cardapio-sob-demanda node cardapio-sob-demanda.js http://localhost:8791
 roda cardapio-sim node cardapio-sim.mjs
 roda cardapio-modulo node cardapio-modulo.mjs
 roda unit-lembretes node --experimental-strip-types unit-lembretes.mjs
