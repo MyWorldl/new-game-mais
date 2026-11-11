@@ -7,7 +7,7 @@
 // Qualquer outra chamada recebe 401 ANTES de ler inscrições ou enviar push.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
-import { decidir } from "./logica.ts";
+import { decidir, chaveTreino } from "./logica.ts";
 
 // CORS restrito ao site do app (e localhost para desenvolvimento). Extras: segredo CORS_ORIGENS (lista separada por vírgula).
 const PERMITIDAS = ["https://new-game-mais.sombrasplays.workers.dev", ...(Deno.env.get("CORS_ORIGENS") || "").split(",").map((s) => s.trim()).filter(Boolean)];
@@ -65,10 +65,12 @@ Deno.serve(async (req) => {
         // só consulta os dados da pessoa quando a hora bate (evita leituras à toa)
         const pre = decidir(s, agora, { ativo: true, exercicios: [1] }, null);
         if (pre.motivo === "fora-da-hora" || pre.motivo === "ja-enviado") { res.pulados++; continue; }
-        const dia = pre.local.dia;
-        const docs = await admin.from("user_docs").select("path,data").eq("user_id", s.user_id).in("path", ["rotina/" + dia, "checkins/" + pre.local.iso]);
+        // o treino de hoje pode ter sido remanejado em "Reagendar" (config/settings.reagenda): lê as configurações e as 7 rotinas de uma vez
+        const docs = await admin.from("user_docs").select("path,data").eq("user_id", s.user_id)
+          .in("path", ["config/settings", "checkins/" + pre.local.iso, ...["seg", "ter", "qua", "qui", "sex", "sab", "dom"].map((k) => "rotina/" + k)]);
         const m = {}; (docs.data || []).forEach((d) => { m[d.path] = d.data; });
-        const dec = decidir(s, agora, m["rotina/" + dia] || null, m["checkins/" + pre.local.iso] || null);
+        const chave = chaveTreino(m["config/settings"], pre.local.iso, pre.local.dia);
+        const dec = decidir(s, agora, m["rotina/" + chave] || null, m["checkins/" + pre.local.iso] || null);
         if (!dec.enviar) {
           if (dec.marcar) await admin.from("push_subs").update({ ultimo_envio: dec.local.iso }).eq("user_id", s.user_id).eq("endpoint", s.endpoint);
           res.pulados++; continue;
