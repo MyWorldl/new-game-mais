@@ -1046,6 +1046,9 @@ dialog.foto-zoom{border:0; padding:0; margin:0; max-width:none; max-height:none;
 dialog.foto-zoom::backdrop{background:rgba(0,0,0,.85);}
 /* Reagendar: treino perdido feito hoje */
 .perdido-card{display:flex; align-items:center; gap:12px 14px; flex-wrap:wrap; border-inline-start:3px solid var(--warn, #d9a441);}
+.perdido-card{flex-direction:column; align-items:stretch;}
+.perdido-card .hp-row{display:flex; align-items:center; gap:12px 14px; flex-wrap:wrap;}
+.perdido-card .hp-row + .hp-row{padding-top:12px; border-top:1px solid var(--line);}
 .perdido-card .hp-body{flex:1 1 220px; min-width:0; display:flex; flex-direction:column; gap:2px;}
 .perdido-card .hp-body b{font-size:var(--fs-base);}
 .perdido-card .hp-body span{font-size:var(--fs-xs); color:var(--ink-2, inherit);}
@@ -3312,6 +3315,12 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   :root:not([data-nav="rail"]){ --nav-w:248px; }
   :root[data-nav="rail"]{ --nav-w:76px; }
   :root:not([data-nav="rail"]) .app, :root[data-nav="rail"] .app{ grid-template-columns:minmax(0,1fr); }
+}
+
+/* 29. Cabeçalho do desktop sem véu: o fundo translúcido + desfoque cobria o brilho do degradê só dentro da faixa
+   e deixava uma emenda visível no topo; no desktop o cabeçalho rola junto, então fica transparente (o degradê corre contínuo). */
+@media (min-width:768px){
+  .topbar{ background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
 }
 </style>
 
@@ -6247,28 +6256,58 @@ function abrirReagenda(missIso){
   body.querySelector("#reag-cancel").addEventListener("click", closeModal);
   body.querySelector("#reag-ok").addEventListener("click", ()=>{ closeModal(); aplicaReagenda(plano); });
 }
+function reagendaAtiva(){
+  const hoje = todayISO(), dias = reagendaCfg().dias;
+  return Object.keys(dias).some(d=> d >= hoje && dias[d] !== dayKeyFromISO(d));
+}
+function desfazerReagenda(){
+  const hoje = todayISO(), cfg = reagendaCfg();
+  const livre = hojeLivreParaReagendar();
+  const de = livre ? hoje : addDaysISO(hoje, 1);
+  const dias = {};
+  Object.keys(cfg.dias).forEach(d=>{ if(d < de) dias[d] = cfg.dias[d]; });
+  const seg = mondayOfISO(hoje);
+  // só devolve o aviso do treino perdido se hoje voltou ao normal (senão o treino de hoje já foi a reposição)
+  const recuperados = livre ? cfg.recuperados.filter(d=> d < seg || d >= hoje) : cfg.recuperados;
+  state.settings = Object.assign({}, state.settings, {reagenda:{dias, recuperados}});
+  saveDoc("config/settings", state.settings);
+  selectedTrailDay = null;
+  render();
+  showToast(livre ? "Pronto: a semana voltou à rotina normal." : "Pronto: os próximos dias voltaram à rotina normal.");
+}
 function renderPerdidoCard(){
   const el = document.getElementById("hoje-perdido");
   if(!el) return;
   const hoje = todayISO();
+  const livre = hojeLivreParaReagendar();
   const lista = treinosPerdidos().filter(p=> p.iso >= addDaysISO(hoje, -3));
   const p = lista[lista.length - 1];
   let dispensado = null; try{ dispensado = localStorage.getItem("ng_perdido_dispensado"); }catch(e){}
-  if(!p || !hojeLivreParaReagendar() || dispensado === p.iso+"|"+hoje){ el.hidden = true; el.innerHTML = ""; return; }
-  const ontem = p.iso === addDaysISO(hoje, -1);
-  const quando = ontem ? "Ontem" : DAY_FULL[dayKeyFromISO(p.iso)];
-  const plano = planoReagenda(p.iso);
-  const hojeKey = plano.orig[0];
-  const nota = treinoAtivoKey(hojeKey) ? "O treino de hoje ("+rotuloTreino(hojeKey)+") vai para amanhã e a semana segue na ordem." : "Hoje seria descanso: dá para repor sem mexer no resto.";
-  el.innerHTML =
-    '<div class="hp-body"><b id="hp-t">'+quando+' ficou sem treino: '+escapeHtml(p.nome)+'</b><span>Imprevistos acontecem. Quer fazer esse treino hoje? '+escapeHtml(nota)+'</span></div>'+
-    '<div class="hp-act"><button type="button" class="btn small primary" data-hp="fazer" data-iso="'+p.iso+'">Fazer hoje</button>'+
-    '<button type="button" class="link-btn" data-hp="dispensar" data-iso="'+p.iso+'">Agora não</button></div>';
+  let html = "";
+  if(p && livre && dispensado !== p.iso+"|"+hoje){
+    const ontem = p.iso === addDaysISO(hoje, -1);
+    const quando = ontem ? "Ontem" : DAY_FULL[dayKeyFromISO(p.iso)];
+    const plano = planoReagenda(p.iso);
+    const hojeKey = plano.orig[0];
+    const nota = treinoAtivoKey(hojeKey) ? "O treino de hoje ("+rotuloTreino(hojeKey)+") vai para amanhã e a semana segue na ordem." : "Hoje seria descanso: dá para repor sem mexer no resto.";
+    html += '<div class="hp-row"><div class="hp-body"><b id="hp-t">'+quando+' ficou sem treino: '+escapeHtml(p.nome)+'</b><span>Imprevistos acontecem. Quer fazer esse treino hoje? '+escapeHtml(nota)+'</span></div>'+
+      '<div class="hp-act"><button type="button" class="btn small primary" data-hp="fazer" data-iso="'+p.iso+'">Fazer hoje</button>'+
+      '<button type="button" class="link-btn" data-hp="dispensar" data-iso="'+p.iso+'">Agora não</button></div></div>';
+  }
+  if(reagendaAtiva()){
+    const k = treinoKey(hoje);
+    const hojeTxt = (k !== dayKeyFromISO(hoje) && treinoAtivoKey(k)) ? "Hoje: "+rotuloTreino(k)+" (treino de "+DAY_FULL[k]+")." : (treinoAtivoKey(k) ? "Hoje: "+rotuloTreino(k)+"." : "Hoje é descanso.");
+    html += '<div class="hp-row"><div class="hp-body"'+(html ? '' : ' id="hp-t"')+'><b>Esta semana foi reorganizada</b><span>'+escapeHtml(hojeTxt)+(livre ? '' : ' O treino de hoje já foi feito; dá para desfazer só os próximos dias.')+'</span></div>'+
+      '<div class="hp-act"><button type="button" class="btn small" data-reagdesf="1">'+(livre ? 'Voltar à rotina normal' : 'Desfazer os próximos dias')+'</button></div></div>';
+  }
+  if(!html){ el.hidden = true; el.innerHTML = ""; return; }
+  el.innerHTML = html;
   el.hidden = false;
 }
 document.addEventListener("click", (e)=>{
   const r = e.target.closest && e.target.closest("[data-recup]");
   if(r){ abrirReagenda(r.dataset.recup); return; }
+  if(e.target.closest && e.target.closest("[data-reagdesf]")){ desfazerReagenda(); return; }
   const h = e.target.closest && e.target.closest("[data-hp]");
   if(!h) return;
   if(h.dataset.hp === "fazer") abrirReagenda(h.dataset.iso);
@@ -10513,6 +10552,9 @@ function renderWeekTrailDetail(){
     bodyHtml += '<div class="wtd-actions u-mt8"><button type="button" class="btn small primary" data-recup="'+info.dateForKey+'">Fazer este treino hoje</button></div>'+
       '<div class="empty-note">Você faz '+escapeHtml(day.nome||"este treino")+' hoje e o treino de hoje vai para amanhã, seguindo a ordem da semana.</div>';
   }
+  if(isToday && reagendaAtiva()){
+    bodyHtml += '<div class="wtd-actions u-mt8"><button type="button" class="link-btn" data-reagdesf="1">Voltar à rotina normal da semana</button></div>';
+  }
   const faseNum = DAYS.indexOf(key) + 1;
   const remanej = (info.dateForKey && treinoKey(info.dateForKey) !== key) ? ' · remanejado' : '';
   const subLabel = "Fase "+faseNum+" · " + (isToday ? (DAY_FULL[key]+" · hoje") : fmtDateBR(info.dateForKey)) + remanej;
@@ -12216,6 +12258,12 @@ function renderCardapio(kcalAlvo, macros){
     const b = ev.target.closest("[data-cdp]");
     if(!b) return;
     const act = b.dataset.cdp, cfg = cdpCfg();
+    const yAntes = window.scrollY;   // Safari não ancora a rolagem: se a página encolher no redesenho, ela pularia
+    // outro dia/jeito pode ter menos linhas e a página encolher, empurrando a rolagem para cima: o card guarda a altura
+    // que tinha até a pessoa voltar a rolar
+    el.style.minHeight = el.offsetHeight+"px";
+    const soltaAltura = ()=>{ el.style.minHeight = ""; ["wheel","touchmove","keydown"].forEach(ev=> removeEventListener(ev, soltaAltura, true)); };
+    ["wheel","touchmove","keydown"].forEach(ev=> addEventListener(ev, soltaAltura, {passive:true, capture:true, once:true}));
     if(act === "dia"){
       cdpDia = Number(b.dataset.v) || 0;
       if(cdpUltimo) renderCardapio(cdpUltimo.k, cdpUltimo.m);
@@ -12227,7 +12275,9 @@ function renderCardapio(kcalAlvo, macros){
       renderDieta();
     }
     playSound("tick");
-    const f = el.querySelector('[data-cdp="'+act+'"][data-v="'+b.dataset.v+'"]'); if(f) f.focus();
+    window.scrollTo(0, yAntes);
+    const f = el.querySelector('[data-cdp="'+act+'"][data-v="'+b.dataset.v+'"]'); if(f) f.focus({preventScroll:true});
+    requestAnimationFrame(()=>{ if(Math.abs(window.scrollY - yAntes) > 2) window.scrollTo(0, yAntes); });
   });
 })();
 
@@ -13897,14 +13947,26 @@ window.addEventListener("resize", ()=>{
     const t = e.target;
     if(!t || !t.closest || t.closest(NAV) || !t.closest(".view")) return;
     alvo = window.scrollY; ate = performance.now() + 2500;
+    if(!loop){ loop = true; requestAnimationFrame(tick); }
   }, true);
+  // a página pode encolher e só voltar a crescer alguns quadros depois (conteúdo montado em etapas): enquanto a
+  // janela de 2,5 s estiver aberta, a cada quadro devolve a rolagem se ela tiver despencado
+  let loop = false;
+  function tick(){
+    if(alvo == null || performance.now() > ate){ loop = false; return; }
+    if(window.scrollY < alvo - 120 && document.documentElement.scrollHeight - window.innerHeight >= alvo - 2) window.scrollTo(0, alvo);
+    requestAnimationFrame(tick);
+  }
   const solta = ()=>{ alvo = null; };
-  ["wheel","touchmove","keydown"].forEach(ev=> addEventListener(ev, solta, {passive:true, capture:true}));
+  ["wheel","touchmove","keydown","pointerdown"].forEach(ev=> addEventListener(ev, solta, {passive:true, capture:true}));   // pointerdown: arrastar a barra de rolagem também é rolagem da pessoa
   addEventListener("scroll", ()=>{
     if(alvo == null) return;
     if(performance.now() > ate){ alvo = null; return; }
-    if(window.scrollY < 8 && alvo > 200){ const y = alvo; window.scrollTo(0, y); }
+    if(window.scrollY < alvo - 120){ const y = alvo; window.scrollTo(0, y); }   // salto brusco para cima (ex.: página encolheu por um instante): volta
   }, {passive:true});
+  // navegação feita pelo próprio app (scrollIntoView/scrollTo) não deve ser desfeita
+  const sIV = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function(){ alvo = null; return sIV.apply(this, arguments); };
 })();
 
 /* cabeçalho que some ao rolar pra baixo e reaparece ao rolar pra cima — só em

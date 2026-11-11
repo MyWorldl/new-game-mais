@@ -47,7 +47,7 @@ const HOJE = '2026-11-11', SEG = '2026-11-09', TER = '2026-11-10';
   const cf = await cfg(p);
   t('salvou o remanejamento: hoje=ter, quinta=qua, sexta=qui', cf && cf.dias[HOJE] === 'ter' && cf.dias['2026-11-12'] === 'qua' && cf.dias['2026-11-13'] === 'qui' && !cf.dias['2026-11-14'] && cf.recuperados.includes(TER), J(cf));
   t('Hoje agora mostra o treino B (remanejado)', /Treino B/.test(await p.locator('#today-title').innerText()) && /remanejado/.test(await p.locator('#today-hint').innerText()), await p.locator('#today-hint').innerText());
-  t('o aviso some depois de repor', !(await card.isVisible()));
+  t('o aviso do treino perdido some depois de repor (fica só o de voltar ao normal)', !/ficou sem treino/.test(await card.innerText()) && (await p.locator('[data-hp=fazer]').count()) === 0);
   t('toast oferece Desfazer', (await p.locator('#toast .toast-act').count()) === 1);
   // trilha: quinta mostra C (remanejado), sexta D, sábado E
   await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(700);
@@ -108,6 +108,29 @@ const HOJE = '2026-11-11', SEG = '2026-11-09', TER = '2026-11-10';
   await p.click('#hoje-perdido [data-hp=fazer]'); await p.waitForTimeout(300);
   const l3 = (await p.locator('.reag-lista').innerText()).replace(/\s+/g, ' ');
   t('hoje descanso: só hoje muda', /Hoje Treino B/.test(l3) && !/Qui/.test(l3), l3); await c.close();
+
+
+  // desfazer permanente: depois de trocar, sempre dá para voltar à rotina normal
+  ({ c, p } = await mk({ rotina: rot1, checkins: chk1 }));
+  await p.click('#hoje-perdido [data-hp=fazer]'); await p.waitForTimeout(300); await p.click('#reag-ok'); await p.waitForTimeout(600);
+  await p.waitForTimeout(6500);   // o aviso rápido já sumiu
+  const cardRev = p.locator('#hoje-perdido');
+  t('depois que o aviso rápido some, o cartão de Hoje continua oferecendo "Voltar à rotina normal"', await cardRev.isVisible() && (await p.locator('[data-reagdesf]').count()) === 1, (await cardRev.innerText()).replace(/\s+/g, ' '));
+  await p.click('[data-reagdesf]'); await p.waitForTimeout(500);
+  const cf3 = await cfg(p);
+  t('voltar à rotina normal limpa o remanejamento e devolve o treino C a hoje', cf3 && Object.keys(cf3.dias).length === 0 && /Treino C/.test(await p.locator('#today-title').innerText()), J(cf3));
+  t('o aviso do treino perdido (terça) volta a aparecer', await p.locator('#hoje-perdido [data-hp=fazer]').count() === 1);
+  // trocar de novo e concluir o treino de hoje: só dá para desfazer os próximos dias
+  await p.click('#hoje-perdido [data-hp=fazer]'); await p.waitForTimeout(300); await p.click('#reag-ok'); await p.waitForTimeout(500);
+  await p.click('#btn-quick-checkin'); await p.waitForTimeout(600);
+  t('com o treino de hoje já feito, o botão passa a "Desfazer os próximos dias"', /Desfazer os próximos dias/.test(await p.locator('#hoje-perdido').innerText()));
+  await p.click('[data-reagdesf]'); await p.waitForTimeout(500);
+  const cf4 = await cfg(p);
+  t('desfazer os próximos dias mantém a reposição de hoje', cf4 && cf4.dias['2026-11-11'] === 'ter' && !cf4.dias['2026-11-12'] && !cf4.dias['2026-11-13'], J(cf4));
+  // pela trilha
+  await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(600);
+  t('sem remanejamento ativo, o link "Voltar à rotina normal" da trilha não aparece', (await p.locator('.week-trail-node.selected').count()) >= 0);
+  await c.close();
 
   // desktop: sem rolagem lateral e axe no aviso
   ({ c, p } = await mk({ rotina: rot1, checkins: chk1, w: 1440 }));

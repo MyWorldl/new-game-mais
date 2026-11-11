@@ -599,3 +599,9 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   :root[data-nav="rail"]{ --nav-w:76px; }
   :root:not([data-nav="rail"]) .app, :root[data-nav="rail"] .app{ grid-template-columns:minmax(0,1fr); }
 }
+
+/* 29. Cabeçalho do desktop sem véu: o fundo translúcido + desfoque cobria o brilho do degradê só dentro da faixa
+   e deixava uma emenda visível no topo; no desktop o cabeçalho rola junto, então fica transparente (o degradê corre contínuo). */
+@media (min-width:768px){
+  .topbar{ background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
+}
