@@ -7603,11 +7603,12 @@ function renderDieta(){
    CARDÁPIO DA SEMANA — 7 dias + lista de compras, por jeito de comer (onívoro, vegetariano, vegano, low carb),
    rotina (marmita, dia corrido, orçamento enxuto, almoço fora) e restrições. A meta (kcal e proteína) vem da
    aba Dieta. Valores por 100 g da TACO (NEPA/UNICAMP, via Tabela TACO Online); itens com * usam valor típico
-   de rótulo. Cópia testável do motor: fonte/cardapio/engine.js (teste: fonte/testes/cardapio-sim.js).
+   de rótulo. FONTE ÚNICA: o motor está em fonte/cardapio/engine.js e a tela em fonte/cardapio/ui.js; o build (inclui.py) os insere aqui nos marcadores de inclusão logo abaixo — NÃO edite uma cópia dentro deste arquivo (teste do motor: fonte/testes/cardapio-sim.js).
    É um exemplo, não prescrição individual.
    ============================================================ */
 const CDPE = (function(){
-// Motor de cardápio NG+ (semana completa). Em produção vive embutido em candidato-prd.html (bloco CARDÁPIO DA SEMANA); este arquivo é a cópia testável. Valores por 100 g de alimento preparado: [kcal, P, C, G]
+var module = {exports:{}};   // o motor também roda em Node (module.exports); aqui o IIFE devolve o mesmo objeto
+// Motor de cardápio NG+ (semana completa). Este arquivo é a FONTE ÚNICA: o build (fonte/inclui.py) o insere em candidato-prd.html no marcador do bloco CARDÁPIO DA SEMANA, e o fonte/testes/cardapio-sim.js o testa direto por require. Valores por 100 g de alimento preparado: [kcal, P, C, G]
 // TACO (NEPA/UNICAMP) conforme tabelatacoonline.com.br; itens com * = valor típico de rótulo.
 var TVP_CHEAP = false; // preço de referência ainda não confirmado
 var FOODS = {
@@ -7882,7 +7883,7 @@ function fmtQty(it) {
   return it.g + (f.liq ? ' ml' : ' g');
 }
 if (typeof module !== 'undefined') module.exports = { FOODS: FOODS, OBJ: OBJ, STYLE: STYLE, ROUT: ROUT, SLOT: SLOT, DAYS: DAYS, TRAIN: TRAIN, targets: targets, dayTargets: dayTargets, buildDay: buildDay, shopping: shopping, fmtQty: fmtQty, allowed: allowed };
-return {FOODS:FOODS, STYLE:STYLE, ROUT:ROUT, SLOT:SLOT, DAYS:DAYS, TRAIN:TRAIN, targets:targets, buildDay:buildDay, shopping:shopping};
+return module.exports;
 })();
 /* Tela do cardápio da semana (aba Dieta). Usa o motor CDPE e a meta que o app já calcula (kcalAlvo + macros).
    Escolhas salvas em settings.cardapio = {jeito, rotina, restricoes:{lactose, gluten}} (entra no backup junto com as configurações). */
