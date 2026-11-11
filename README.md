@@ -7,13 +7,14 @@ Site no ar: https://new-game-mais.sombrasplays.workers.dev
 ## Estrutura
 - `site/` — **o que vai ao ar**: `index.html` (gerado), `app.<hash>.js` e `app.<hash>.css` (gerados), `ng-nuvem.css`, `bff-runtime.js` (camada de dados local/IndexedDB), `ng-nuvem.js` (login e sincronização),
   `vendor-supabase.js` (supabase-js fixado), `sw.js` (service worker), `manifest.webmanifest`, `_headers` (cabeçalhos e CSP), `fonts/`, ícones.
-- `fonte/` — **de onde o site nasce** (não vai ao ar): `candidato-prd.html` (fonte do app) e `cardapio/` (módulo do cardápio, incluído no build por `inclui.py`), `visual/` (tema v2), `aplica-standalone.py`, `build.sh`,
+- `fonte/` — **de onde o site nasce** (não vai ao ar): `candidato-prd.html` (fonte do app) e `cardapio/` (módulo ES do cardápio: `engine.js` + `ui.js`, empacotado pelo esbuild no build), `visual/` (tema v2), `aplica-standalone.py`, `build.sh`,
   `testes/` (Playwright e testes unitários), `supabase/` (Edge Functions e SQL) e `docs/`. Detalhes em `fonte/README-fonte.md`.
+- `package.json` e `package-lock.json` — só as ferramentas de build (esbuild, versão exata); o app não tem dependências de execução.
 - `wrangler.jsonc` — diz à Cloudflare para publicar a pasta `site/` (nome do projeto: `new-game-mais`).
 
 ## Fluxo de trabalho
 1. Editar `fonte/candidato-prd.html` (ou `fonte/cardapio/engine.js` e `ui.js` para o cardápio, `fonte/visual/`, `site/ng-nuvem.js`, `site/bff-runtime.js`, etc.).
-2. Gerar o site: `sh fonte/build.sh`. Ele reescreve `site/index.html` (pequeno, ~64 KB) e separa o CSS e o JS em `site/app.<hash>.css` e `site/app.<hash>.js` (`fonte/externaliza.py`), regravando também a lista de pré-cache do `sw.js`. **Não edite esses arquivos à mão.** Se o ambiente não deixar apagar, os `app.*` antigos ficam para trás: apague-os antes do commit.
+2. Gerar o site: `sh fonte/build.sh` (precisa de Node 22+; na primeira vez o script roda `npm ci` para instalar o esbuild, fixado em `package.json`/`package-lock.json`). Ele reescreve `site/index.html` (pequeno, ~64 KB) e separa o CSS e o JS em `site/app.<hash>.css` e `site/app.<hash>.js` (`fonte/externaliza.py`), regravando também a lista de pré-cache do `sw.js`. **Não edite esses arquivos à mão.** Se o ambiente não deixar apagar, os `app.*` antigos ficam para trás: apague-os antes do commit.
 3. Rodar os testes: `sh fonte/testes/rodar-todos.sh` (sobe o `site/` com os cabeçalhos de produção, inclusive a CSP; precisa de Node 22+, `playwright` e Chromium). Testes avulsos: `node fonte/testes/<teste>.js`.
 4. Trocar `VERSAO` em `site/sw.js` (é o que faz o celular pegar a versão nova e mostrar o aviso "Nova versão disponível").
 5. `git add` (só o que mudou, inclusive os `app.*` novos) → `git commit` → `git push origin main`. A Cloudflare publica sozinha.

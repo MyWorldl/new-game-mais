@@ -21,6 +21,8 @@ for t in reagenda scroll-dieta lateral-foto-analise semana-casa banner-instalar 
   roda "$t" node "$t.js"
 done
 roda cardapio-e2e node cardapio-e2e.js http://localhost:8791
+roda cardapio-sim node cardapio-sim.mjs
+roda cardapio-modulo node cardapio-modulo.mjs
 roda unit-lembretes node --experimental-strip-types unit-lembretes.mjs
 roda unit-treinador node --experimental-strip-types unit-treinador.mjs
 echo "------ testes com falha: $falhas"
