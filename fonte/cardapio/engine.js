@@ -1,4 +1,4 @@
-// Motor de cardápio NG+ (semana completa). Este arquivo é a FONTE ÚNICA: o build (fonte/inclui.py) o insere em candidato-prd.html no marcador do bloco CARDÁPIO DA SEMANA, e o fonte/testes/cardapio-sim.js o testa direto por require. Valores por 100 g de alimento preparado: [kcal, P, C, G]
+// Motor de cardápio NG+ (semana completa). Módulo ES, FONTE ÚNICA do motor: o esbuild o empacota junto com ui.js (fonte/build.sh) e o fonte/testes/cardapio-sim.js o testa direto por import. Sem dependência do app nem do navegador. Valores por 100 g de alimento preparado: [kcal, P, C, G]
 // TACO (NEPA/UNICAMP) conforme tabelatacoonline.com.br; itens com * = valor típico de rótulo.
 var TVP_CHEAP = false; // preço de referência ainda não confirmado
 var FOODS = {
@@ -272,4 +272,4 @@ function fmtQty(it) {
   }
   return it.g + (f.liq ? ' ml' : ' g');
 }
-if (typeof module !== 'undefined') module.exports = { FOODS: FOODS, OBJ: OBJ, STYLE: STYLE, ROUT: ROUT, SLOT: SLOT, DAYS: DAYS, TRAIN: TRAIN, targets: targets, dayTargets: dayTargets, buildDay: buildDay, shopping: shopping, fmtQty: fmtQty, allowed: allowed };
+export { FOODS, OBJ, STYLE, ROUT, SLOT, DAYS, TRAIN, targets, dayTargets, buildDay, shopping, fmtQty, allowed };

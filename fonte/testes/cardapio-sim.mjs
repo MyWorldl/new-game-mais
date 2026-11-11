@@ -1,6 +1,6 @@
 // Simulação do motor do cardápio com as metas do app (calorieTarget + calcMacros).
-// Uso: node fonte/testes/cardapio-sim.js
-const e = require('../cardapio/engine.js');
+// Uso: node fonte/testes/cardapio-sim.mjs
+import * as e from '../cardapio/engine.js';
 const styles = ['omni', 'veg', 'vegan', 'lowc'], routs = ['marmita', 'corrido', 'budget', 'fora'];
 const restr = [[0, 0], [1, 0], [0, 1], [1, 1]];
 // perfis (peso kg, TDEE, idade): adultos de portes diferentes e menores de 18

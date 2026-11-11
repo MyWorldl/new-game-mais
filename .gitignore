@@ -9,3 +9,5 @@ node_modules/
 *.log
 *.tmp
 /tmp/
+# saída intermediária do esbuild (gerada por fonte/build.sh)
+fonte/.build/

@@ -10768,15 +10768,19 @@ function renderDieta(){
    CARDÁPIO DA SEMANA — 7 dias + lista de compras, por jeito de comer (onívoro, vegetariano, vegano, low carb),
    rotina (marmita, dia corrido, orçamento enxuto, almoço fora) e restrições. A meta (kcal e proteína) vem da
    aba Dieta. Valores por 100 g da TACO (NEPA/UNICAMP, via Tabela TACO Online); itens com * usam valor típico
-   de rótulo. FONTE ÚNICA: o motor está em fonte/cardapio/engine.js e a tela em fonte/cardapio/ui.js; o build (inclui.py) os insere aqui nos marcadores de inclusão logo abaixo — NÃO edite uma cópia dentro deste arquivo (teste do motor: fonte/testes/cardapio-sim.js).
+   de rótulo. FONTE ÚNICA: o motor está em fonte/cardapio/engine.js e a tela em fonte/cardapio/ui.js (módulos ES); o build empacota os dois com esbuild e o inclui.py insere o resultado no marcador logo abaixo — NÃO edite uma cópia dentro deste arquivo (testes: fonte/testes/cardapio-sim.mjs e cardapio-modulo.mjs).
    É um exemplo, não prescrição individual.
    ============================================================ */
-const CDPE = (function(){
-var module = {exports:{}};   // o motor também roda em Node (module.exports); aqui o IIFE devolve o mesmo objeto
-/*@inclui cardapio/engine.js*/
-return module.exports;
-})();
-/*@inclui cardapio/ui.js*/
+/*@inclui .build/cardapio.bundle.js*/
+const CARDAPIO = NGCardapio.criaCardapio({   // fronteira do módulo: a tela do cardápio só enxerga o app por aqui
+  estado: ()=> state,
+  objetivo: ()=> objetivoAtual,
+  salvaSettings: (next)=>{ state.settings = next; saveDoc("config/settings", state.settings); },
+  redesenhaDieta: ()=> renderDieta(),
+  tocaSom: (nome)=> playSound(nome),
+  num, escapeHtml, menorDeIdade
+});
+function renderCardapio(kcalAlvo, macros){ CARDAPIO.render(kcalAlvo, macros); }
 
 /* ============================================================
    AJUSTE PELO RESULTADO — em vez de presumir "biotipo", compara a

@@ -1,0 +1,8 @@
+{
+  "name": "new-game-mais",
+  "private": true,
+  "description": "Ferramentas de build do NG+ (o app em si não tem dependências de execução).",
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
