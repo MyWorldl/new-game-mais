@@ -78,4 +78,18 @@ rep('function renderNivel(){\n', nav+acoes+'function renderNivel(){\n')
 rep('renderNivel();            // aparece','renderNivel(); renderNavExtras();            // aparece')
 rep('if(mainName === "treino") renderWeekTrail();','navTitulo(name);\n  if(mainName === "treino") renderWeekTrail();')
 
+# ===== Fase 3 (v3) — tela Hoje: anel duplo, carrossel de métricas e missões de hoje =====
+hoje=open(base+'/ng-hoje.js',encoding='utf8').read()
+rep('<circle class="today-ring-fill" id="today-ring" cx="40" cy="40" r="34"/>',
+    '<circle class="today-ring-fill" id="today-ring" cx="40" cy="40" r="34"/>\n          <circle class="today-ring-track today-ring-track2" cx="40" cy="40" r="25"/>\n          <circle class="today-ring-fill today-ring-fill2" id="today-ring-semana" cx="40" cy="40" r="25"/>')
+rep('<div class="today-ring">','<div class="today-ring" id="today-ring-box" role="img" aria-label="">')
+rep('  if(hero) hero.classList.toggle("is-done", !!done);\n}',
+    '  if(hero) hero.classList.toggle("is-done", !!done);\n  hojeAtualizaAnelSemana(cur, total);\n}')
+rep('<section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>\n\n    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n',
+    '<section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>\n\n    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n\n'
+    '    <section class="hoje-metricas" id="hoje-metricas" aria-labelledby="hm-t">\n      <h2 class="sr-only" id="hm-t">Resumo de hoje</h2>\n      <div class="hm-trilho" id="hm-trilho" role="group" aria-roledescription="carrossel" aria-label="Métricas de hoje"></div>\n      <div class="hm-dots" id="hm-dots" aria-hidden="true"></div>\n    </section>\n\n'
+    '    <section class="card hoje-missoes" id="hoje-missoes" aria-labelledby="hmi-t">\n      <div class="card-head"><h2 id="hmi-t">Missões de hoje</h2><span class="hint" id="hmi-count"></span></div>\n      <ul class="hmi-lista" id="hmi-lista"></ul>\n    </section>\n')
+rep('function renderNivel(){\n', hoje+'function renderNivel(){\n')
+rep('renderTodayCard, renderChallenges','renderTodayCard, renderHojeMetricas, renderHojeMissoes, renderChallenges')
+
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))

@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.e7921bfa56.css">
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.59bd51aecd.css">
 <link rel="stylesheet" id="ng-nuvem-css" href="ng-nuvem.css"></head><body>
 <title>NG+ (New Game+)</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
@@ -40,10 +40,12 @@
   <main id="main" tabindex="-1">
   <section class="view" id="view-painel" role="tabpanel" aria-labelledby="tab-painel" tabindex="-1">
     <div class="card today-card today-hero" id="today-hero">
-      <div class="today-ring">
+      <div class="today-ring" id="today-ring-box" role="img" aria-label="">
         <svg viewBox="0 0 80 80" aria-hidden="true">
           <circle class="today-ring-track" cx="40" cy="40" r="34"/>
           <circle class="today-ring-fill" id="today-ring" cx="40" cy="40" r="34"/>
+          <circle class="today-ring-track today-ring-track2" cx="40" cy="40" r="25"/>
+          <circle class="today-ring-fill today-ring-fill2" id="today-ring-semana" cx="40" cy="40" r="25"/>
         </svg>
         <b id="today-ring-label">0/0</b>
       </div>
@@ -69,6 +71,17 @@
     <section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>
 
     <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>
+
+    <section class="hoje-metricas" id="hoje-metricas" aria-labelledby="hm-t">
+      <h2 class="sr-only" id="hm-t">Resumo de hoje</h2>
+      <div class="hm-trilho" id="hm-trilho" role="group" aria-roledescription="carrossel" aria-label="Métricas de hoje"></div>
+      <div class="hm-dots" id="hm-dots" aria-hidden="true"></div>
+    </section>
+
+    <section class="card hoje-missoes" id="hoje-missoes" aria-labelledby="hmi-t">
+      <div class="card-head"><h2 id="hmi-t">Missões de hoje</h2><span class="hint" id="hmi-count"></span></div>
+      <ul class="hmi-lista" id="hmi-lista"></ul>
+    </section>
 
     <button type="button" class="nivel-mini" id="nivel-mini" data-goto="perfil" style="--tier-color: var(--t1);" aria-label="Ver sua patente no Perfil">
       <span class="nivel-shield">
@@ -973,6 +986,6 @@
 <script src="vendor-supabase.js"></script>
 <script src="ng-nuvem.js"></script>
 <script src="bff-runtime.js"></script>
-<script src="app.09aca9335c.js"></script>
+<script src="app.4946db67b8.js"></script>
 
 </body></html>
