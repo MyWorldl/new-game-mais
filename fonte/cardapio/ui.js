@@ -19,9 +19,10 @@
    (botão ao lado dos filtros) escolhe refeição, alimento e alternativa; o card principal não ganha nenhum controle por alimento. */
 import * as CDPE from "./engine.js";
 const CDP_JEITOS = [["omni","Onívoro"],["veg","Vegetariano"],["vegan","Vegano"],["lowc","Low carb"]];
-const CDP_ROTINAS = [["marmita","Marmita da semana"],["corrido","Dia corrido"],["budget","Orçamento enxuto"],["fora","Almoço fora"]];
+const CDP_ROTINAS = [["tradicional","Dia tradicional"],["marmita","Marmita da semana"],["corrido","Dia corrido"],["budget","Orçamento enxuto"],["fora","Almoço fora"]];
 const CDP_RESTR = [["lactose","Sem lactose"],["gluten","Sem glúten"]];
 const CDP_ROT_DESC = {
+  tradicional:"5 refeições do dia a dia, com arroz e feijão no almoço e no jantar; cada dia tem o seu cardápio, sem lotes.",
   marmita:"5 refeições; cozinhe no domingo e na quinta e use em lotes.",
   corrido:"4 refeições de preparo rápido, para dias apertados.",
   budget:"5 refeições só com alimentos de custo menor.",

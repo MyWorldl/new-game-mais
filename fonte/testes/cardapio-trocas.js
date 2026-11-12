@@ -36,11 +36,17 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     t(L + 'botão fica dentro da área dos filtros', bb && fb && bb.y >= fb.y - 1 && bb.y + bb.height <= fb.y + fb.height + 1, JSON.stringify([bb, fb]));
     t(L + 'botão fica logo abaixo dos filtros e acima dos dias, com a frase ao lado', await p.evaluate(() => { const r = document.querySelector('[data-cdp="restr"]').getBoundingClientRect(), b = document.querySelector('[data-cdp="editar"]').getBoundingClientRect(), d = document.querySelector('.cdp-days').getBoundingClientRect(); return b.top >= r.bottom - 1 && b.bottom <= d.top + 1; }));
     if (w >= 1000) t(L + 'no desktop os chips da Rotina ficam em até 2 linhas (filtros não espremidos)', await p.evaluate(() => { const cs = [...document.querySelectorAll('[data-cdp="rotina"]')].map(x => Math.round(x.getBoundingClientRect().top)); return new Set(cs).size <= 2; }));
+    if (w >= 700) t(L + 'filtros alinhados: Jeito de comer, Rotina e Restrições começam na mesma altura', await p.evaluate(() => { const tops = [...document.querySelectorAll('.cdp-controls .cdp-lbl')].map(x => Math.round(x.getBoundingClientRect().top)); return tops.length === 3 && Math.max(...tops) - Math.min(...tops) <= 1; }));
+    t(L + 'Rotina tem 5 opções, a primeira é "Dia tradicional"', await p.locator('[data-cdp="rotina"]').count() === 5 && /Dia tradicional/.test(await p.locator('[data-cdp="rotina"]').first().innerText()));
     t(L + 'card começa sem trocas', /Troque qualquer alimento/.test(await p.locator('[data-r="trocasinfo"]').innerText()));
 
     await p.click('.cdp-day[data-v="1"]'); await p.waitForTimeout(150);
     const baseTer = await refeicaoTxt(p, 1);
     await p.click('.cdp-day[data-v="0"]'); await p.waitForTimeout(150);
+    await p.click('[data-cdp="rotina"][data-v="tradicional"]'); await p.waitForTimeout(400);
+    t(L + 'Dia tradicional: ligado, 5 refeições, descrição visível', await p.locator('[data-cdp="rotina"][data-v="tradicional"].on').count() === 1 && await p.locator('.cdp-meal').count() === 5 && /arroz e feijão/.test(await p.locator('[data-r="rotdesc"]').innerText()));
+    t(L + 'Dia tradicional: feijão/lentilha no almoço e no jantar', /Feij|Lentilha/.test(await refeicaoTxt(p, 1)) && /Feij|Lentilha/.test(await refeicaoTxt(p, 3)));
+    await p.click('[data-cdp="rotina"][data-v="marmita"]'); await p.waitForTimeout(400);
     // abre o pop-up
     await btn.scrollIntoViewIfNeeded(); await p.waitForTimeout(150);
     const y0 = await p.evaluate(() => scrollY);

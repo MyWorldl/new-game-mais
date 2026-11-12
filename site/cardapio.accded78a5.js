@@ -43,6 +43,8 @@ var OBJ = {
 };
 var STYLE = { omni: "Onívoro", veg: "Vegetariano", vegan: "Vegano", lowc: "Low carb moderado" };
 var ROUT = {
+  tradicional: { n: "Dia tradicional", meals: ["cafe", "almoco", "lanche", "jantar", "ceia"] },
+  // dia a dia brasileiro: arroz e feijão no almoço e no jantar, sem lotes e sem filtro de preço ou pressa
   marmita: { n: "Marmita da semana", meals: ["cafe", "almoco", "lanche", "jantar", "ceia"] },
   corrido: { n: "Dia corrido", meals: ["cafe", "almoco", "lanche", "jantar"] },
   budget: { n: "Orçamento enxuto", meals: ["cafe", "almoco", "lanche", "jantar", "ceia"] },
@@ -93,6 +95,9 @@ function rolePool(role, cfg, slot) {
   if (role === "carb") {
     if (slot === "cafe" || slot === "lanche") out = out.filter(function(id2) {
       return ["pao", "aveia", "cuscuz", "batataD"].indexOf(id2) >= 0;
+    });
+    else if (cfg.rout === "tradicional") out = out.filter(function(id2) {
+      return ["arroz", "arrozI", "mandioca", "batata", "batataD"].indexOf(id2) >= 0;
     });
     else out = out.filter(function(id2) {
       return ["pao", "aveia"].indexOf(id2) < 0;
@@ -193,7 +198,7 @@ function buildMeal(slotKey, d, cfg, dt, mealIdx) {
   };
   var vegId = has("veg") ? pick(rolePool("veg", cfg, slotKey), seed) : null;
   var fruitId = has("fruit") ? pick(rolePool("fruit", cfg, slotKey), seed + 1) : null;
-  var legId = has("leg") && slotKey === "almoco" ? pick(rolePool("leg", cfg, slotKey), seed) : null;
+  var legId = has("leg") && slotKey === "almoco" || cfg.rout === "tradicional" && slotKey === "jantar" ? pick(rolePool("leg", cfg, slotKey), seed + (slotKey === "jantar" ? 1 : 0)) : null;
   if (vegId) items.push({ id: vegId, g: 90, role: "veg" });
   if (fruitId) items.push({ id: fruitId, g: qty(fruitId, slotKey === "lanche" ? 120 : 100), role: "fruit" });
   if (legId) items.push({ id: legId, g: 100, role: "leg" });
@@ -440,9 +445,10 @@ function shopping(week) {
 
 // cardapio/ui.js
 var CDP_JEITOS = [["omni", "Onívoro"], ["veg", "Vegetariano"], ["vegan", "Vegano"], ["lowc", "Low carb"]];
-var CDP_ROTINAS = [["marmita", "Marmita da semana"], ["corrido", "Dia corrido"], ["budget", "Orçamento enxuto"], ["fora", "Almoço fora"]];
+var CDP_ROTINAS = [["tradicional", "Dia tradicional"], ["marmita", "Marmita da semana"], ["corrido", "Dia corrido"], ["budget", "Orçamento enxuto"], ["fora", "Almoço fora"]];
 var CDP_RESTR = [["lactose", "Sem lactose"], ["gluten", "Sem glúten"]];
 var CDP_ROT_DESC = {
+  tradicional: "5 refeições do dia a dia, com arroz e feijão no almoço e no jantar; cada dia tem o seu cardápio, sem lotes.",
   marmita: "5 refeições; cozinhe no domingo e na quinta e use em lotes.",
   corrido: "4 refeições de preparo rápido, para dias apertados.",
   budget: "5 refeições só com alimentos de custo menor.",

@@ -21,7 +21,7 @@ t('low carb: carboidrato só entre os permitidos', !E.podeTrocar('batataD', 'arr
 t('orçamento enxuto NÃO bloqueia a troca (a pessoa decide)', E.podeTrocar('frango', 'patinho', 'almoco', cfgDe('omni', 'budget', false, false)));
 
 // 2) varredura: toda troca possível, em todas as combinações, mantém restrições e números sãos
-const estilos = ['omni', 'veg', 'vegan', 'lowc'], rotinas = ['marmita', 'corrido', 'budget', 'fora'];
+const estilos = ['omni', 'veg', 'vegan', 'lowc'], rotinas = ['tradicional', 'marmita', 'corrido', 'budget', 'fora'];
 let testadas = 0, violacoes = [], fora = 0, piorKcal = 0, duplicados = 0, ruins = 0, pioraMuita = 0;
 const proibido = (id, c) => { const f = E.FOODS[id]; return (c.style === 'vegan' && !f.vegan) || (c.style === 'veg' && !f.veg) || (c.nolact && f.lact) || (c.nogluten && f.gluten); };
 for (const st of estilos) for (const ro of rotinas) for (const [nl, ng] of [[false, false], [true, true]]) {
