@@ -11,7 +11,7 @@ const UA = {
 };
 async function abre(b, { ua, standalone } = {}) {
   const c = await b.newContext({ viewport: { width: 400, height: 850 }, userAgent: ua });
-  await c.addInitScript((st) => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) {}
+  await c.addInitScript((st) => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) {}
     if (st) { const mm = window.matchMedia.bind(window); window.matchMedia = (q) => /display-mode:\s*standalone/.test(q) ? { matches: true, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} } : mm(q); } }, !!standalone);
   const p = await c.newPage(); p.errs = []; p.on('pageerror', e => p.errs.push(e.message));
   await p.goto(URL_); await p.waitForTimeout(1500);

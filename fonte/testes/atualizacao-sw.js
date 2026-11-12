@@ -15,7 +15,7 @@ const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
   await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const U = 'http://localhost:' + srv.address().port + '/';
   const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1100, height: 800 } });
-  await ctx.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) {} });
+  await ctx.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) {} });
   const p = await ctx.newPage(); p.setDefaultTimeout(10000);
   await p.goto(U); await p.waitForTimeout(1000);
   await p.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/perfil').set({ nomeCompleto: 'Teste', nomeUsuario: 't.t', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', pesoMetaKg: 80 }); });

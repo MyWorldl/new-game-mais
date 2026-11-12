@@ -2860,22 +2860,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 
     </section>
 
-    <details class="card cc recup-card" id="cc-recup" data-cc="recup" hidden>
-      <summary class="card-head"><h2>Como você está hoje?</h2><span class="hint" id="recup-hint">opcional</span><svg class="cc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-      <div class="recup-rows" id="recup-rows"></div>
-      <div class="recup-msg info" id="recup-msg" aria-live="polite"></div>
-      <div class="recup-plans">
-        <button type="button" class="recup-plan" id="btn-dia-leve">
-          <b>Dia leve</b>
-          <span>Caminhada, cárdio leve ou mobilidade. Mantém a sequência e rende metade do XP.</span>
-        </button>
-        <button type="button" class="recup-plan" id="btn-sessao-rapida">
-          <b>Sessão rápida</b>
-          <span>Full Body curto: 1 exercício por grupo, 3 séries. Conta como o treino de hoje.</span>
-        </button>
-      </div>
-    </details>
-
     <div class="grid grid-4" id="quick-stats"></div>
 
     <section class="card" id="cc-missoes" aria-labelledby="missoes-t">
@@ -3424,6 +3408,17 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div class="field-row" style="align-items:end;">
         <label>Apelido / nome de usuário<input type="text" id="cfg-usuario" placeholder="Como podemos te chamar?" maxlength="24"></label>
         <button class="btn primary" id="cfg-usuario-save">Salvar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Como você está hoje</h2>
+        <span class="hint">sono, energia e dor articular</span>
+      </div>
+      <div class="hint u-mb10" id="cfg-recup-info" role="status"></div>
+      <div class="data-actions">
+        <button class="btn" id="cfg-recup-btn" type="button">Ajustar como estou hoje</button>
       </div>
     </div>
 
@@ -4769,6 +4764,7 @@ let carregando = false, _carregTimer = null, perfilRecebido = false;
 /* só pergunta "é a primeira vez?" depois de o banco ter respondido sobre o perfil (ou de não haver banco) */
 function verificaOnboarding(){
   if(perfilRecebido && !state.perfil && !document.querySelector(".modal-backdrop")) openOnboarding();
+  else if(perfilRecebido && state.perfil) verificaComoEstou();
 }
 function iniciaCarregamento(){
   carregando = true;
@@ -5796,26 +5792,80 @@ function recupFeedback(r){
   if(n === 3) return {tom:"ok", txt:"Tudo certo para treinar hoje."};
   return {tom:"info", txt:"Anotado. Responda o resto se quiser."};
 }
-function renderRecup(){
-  const card = document.getElementById("cc-recup");
-  if(!card) return;
-  const iso = todayISO();
-  const day = state.rotina[treinoKey(iso)];
-  const ativo = !!(day && day.ativo), done = !!state.checkins[iso]?.concluido;
-  card.hidden = !ativo || done;
-  if(card.hidden) return;
-  const r = (state.checkins[iso] && state.checkins[iso].recup) || {};
-  document.getElementById("recup-rows").innerHTML = RECUP_CAMPOS.map(c=>
-    '<div class="recup-row"><span class="recup-lbl" id="recup-l-'+c.k+'">'+c.rot+'</span>'+
-    '<div class="seg" role="group" aria-labelledby="recup-l-'+c.k+'">'+
-      c.ops.map((o,i)=> '<button type="button" data-rec="'+c.k+'" data-v="'+i+'" aria-pressed="'+(r[c.k] === i)+'"'+(r[c.k] === i ? ' class="active"' : '')+'>'+o+'</button>').join("")+
-    '</div></div>').join("");
-  const fb = recupFeedback(r);
-  const msg = document.getElementById("recup-msg");
-  msg.className = "recup-msg "+fb.tom;
-  msg.innerHTML = escapeHtml(fb.txt)+(fb.leve ? ' <button type="button" class="btn small" data-recup-leve>Registrar dia leve</button>' : '');
-  const n = ["sono","energia","dor"].filter(k=> r[k] != null).length;
-  document.getElementById("recup-hint").textContent = n ? n+" de 3 respostas" : "opcional";
+/* ---- "Como você está hoje?" (sono, energia, dor articular) ----
+   Aparece como uma tela rápida na 1ª abertura de cada dia de treino (depois do cadastro) e fica sempre disponível em
+   Configurações → "Ajustar como estou hoje", para corrigir se a pessoa respondeu errado. Não fica mais no Painel. */
+const K_RECUP_PULO = "ng_recup_pulo";   // por aparelho: último dia em que a tela de abertura já foi mostrada
+function recupDia(iso){ return (state.checkins[iso] && state.checkins[iso].recup) || {}; }
+function recupContagem(r){ return ["sono","energia","dor"].filter(k=> r[k] != null).length; }
+function recupResumo(r){
+  if(!recupContagem(r)) return "Ainda não respondido hoje.";
+  return "Hoje: "+RECUP_CAMPOS.filter(c=> r[c.k] != null).map(c=> c.rot.toLowerCase()+" "+c.ops[r[c.k]].toLowerCase()).join(" · ")+".";
+}
+function recupDeveAbrir(){
+  const iso = todayISO(), day = state.rotina[treinoKey(iso)];
+  if(!(day && day.ativo)) return false;                       // só em dia de treino
+  if(state.checkins[iso] && state.checkins[iso].concluido) return false;
+  if(recupContagem(recupDia(iso))) return false;              // já respondeu hoje
+  try{ if((localStorage.getItem(K_RECUP_PULO) || "") >= iso) return false; }catch(e){}
+  return true;
+}
+function verificaComoEstou(){
+  if(carregando || !state.perfil || document.querySelector(".modal-backdrop")) return;
+  if(!recupDeveAbrir()) return;
+  try{ localStorage.setItem(K_RECUP_PULO, todayISO()); }catch(e){}   // no máximo uma vez por dia neste aparelho
+  abrirComoEstou("abertura");
+}
+// depois do cadastro (futuro: o tutorial entra aqui, antes desta tela)
+function aposCadastro(){ setTimeout(verificaComoEstou, 400); }
+function abrirComoEstou(modo){
+  const iso = todayISO(), key = treinoKey(iso);
+  const planos = !!(state.rotina[key] && state.rotina[key].ativo) && !(state.checkins[iso] && state.checkins[iso].concluido);
+  const body = document.createElement("div");
+  body.innerHTML = '<h2>Como você está hoje?</h2>'+
+    '<div class="sub">'+(modo === "abertura" ? 'Antes de treinar, 3 toques ajustam o dia ao seu corpo. ' : '')+'É opcional e sem cobrança. Você pode mudar quando quiser em Configurações.</div>'+
+    '<div class="recup-rows" id="recup-rows"></div>'+
+    '<div class="recup-msg info" id="recup-msg" aria-live="polite"></div>'+
+    (planos
+      ? '<div class="recup-plans">'+
+          '<button type="button" class="recup-plan" data-plano="leve"><b>Dia leve</b><span>Caminhada, cárdio leve ou mobilidade. Mantém a sequência e rende metade do XP.</span></button>'+
+          '<button type="button" class="recup-plan" data-plano="rapida"><b>Sessão rápida</b><span>Full Body curto: 1 exercício por grupo, 3 séries. Conta como o treino de hoje.</span></button>'+
+        '</div>'
+      : '')+
+    '<div class="modal-actions"><button class="btn primary" id="recup-fechar" type="button"></button></div>';
+  function desenha(){
+    const r = recupDia(iso);
+    body.querySelector("#recup-rows").innerHTML = RECUP_CAMPOS.map(c=>
+      '<div class="recup-row"><span class="recup-lbl" id="recup-l-'+c.k+'">'+c.rot+'</span>'+
+      '<div class="seg" role="group" aria-labelledby="recup-l-'+c.k+'">'+
+        c.ops.map((o,i)=> '<button type="button" data-rec="'+c.k+'" data-v="'+i+'" aria-pressed="'+(r[c.k] === i)+'"'+(r[c.k] === i ? ' class="active"' : '')+'>'+o+'</button>').join("")+
+      '</div></div>').join("");
+    const fb = recupFeedback(r);
+    const msg = body.querySelector("#recup-msg");
+    msg.className = "recup-msg "+fb.tom;
+    msg.innerHTML = escapeHtml(fb.txt)+((fb.leve && planos) ? ' <button type="button" class="btn small" data-recup-leve>Registrar dia leve</button>' : '');
+    body.querySelector("#recup-fechar").textContent = recupContagem(r) ? "Pronto" : (modo === "abertura" ? "Agora não" : "Fechar");
+  }
+  body.addEventListener("click", (e)=>{
+    const b = e.target.closest("button[data-rec]");
+    if(b){
+      saveRecup(iso, b.dataset.rec, Number(b.dataset.v));
+      desenha();
+      const nb = body.querySelector('button[data-rec="'+b.dataset.rec+'"][data-v="'+b.dataset.v+'"]');
+      if(nb) nb.focus({preventScroll:true});
+      return;
+    }
+    if(e.target.closest("[data-recup-leve]")){ closeModal(); registrarDiaLeve(); return; }
+    const pl = e.target.closest("button[data-plano]");
+    if(pl){ closeModal(); if(pl.dataset.plano === "leve") registrarDiaLeve(); else abrirSessaoRapida(); return; }
+    if(e.target.closest("#recup-fechar")){ closeModal(); renderRecupConfig(); }
+  });
+  openModal(body);
+  desenha();
+}
+function renderRecupConfig(){
+  const el = document.getElementById("cfg-recup-info");
+  if(el) el.textContent = recupResumo(recupDia(todayISO()));
 }
 
 /* ---- hábitos opcionais (v95 C2): sono, passos e cárdio leve em checkins/<iso>.hab — sem XP, fora da sequência ---- */
@@ -5997,17 +6047,7 @@ function abrirSessaoRapida(){
   const on = (id, ev, fn)=>{ const el = document.getElementById(id); if(el) el.addEventListener(ev, fn); };
   on("wg-minus", "click", ()=> ajustarMeta(-1));
   on("wg-plus", "click", ()=> ajustarMeta(1));
-  on("btn-dia-leve", "click", ()=> registrarDiaLeve());
-  on("btn-sessao-rapida", "click", ()=> abrirSessaoRapida());
-  on("recup-msg", "click", (e)=>{ if(e.target.closest("[data-recup-leve]")) registrarDiaLeve(); });
-  on("recup-rows", "click", (e)=>{
-    const b = e.target.closest("button[data-rec]");
-    if(!b) return;
-    saveRecup(todayISO(), b.dataset.rec, Number(b.dataset.v));
-    renderRecup();
-    const nb = document.querySelector('#recup-rows button[data-rec="'+b.dataset.rec+'"][data-v="'+b.dataset.v+'"]');
-    if(nb) nb.focus({preventScroll:true});
-  });
+  on("cfg-recup-btn", "click", ()=> abrirComoEstou("config"));
 })();
 
 /* ============================================================
@@ -11217,6 +11257,7 @@ function openOnboarding(){
       closeModal();
       showTab("painel");
       render();
+      aposCadastro();
     });
   }
 
@@ -12413,13 +12454,13 @@ function renderFontes(){
 /* v94 P1: render por seção. Antes, cada clique refazia as 33 funções de desenho (tela inteira, inclusive abas ocultas).
    Agora só a aba visível é redesenhada; as demais ficam marcadas e são desenhadas quando abertas (showTab). */
 const SECTION_RENDERERS = {
-  painel: [renderPlanoPorque, renderStreak, renderNarrator, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderRecup, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
+  painel: [renderPlanoPorque, renderStreak, renderNarrator, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
   treino: [renderPlanoPorque, renderFormatoCard, renderWeekGrid, renderCargas, renderAnaliseTreino, renderVolume, renderHeatmap, renderBibliotecaExercicios],
   corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderEvolucaoChart, renderFotosProgresso, renderTabelaMedicoes],
   dieta: [renderDieta],
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
   perfil: [renderAttrs, renderPerfilSummary, renderAchievements],
-  config: [renderTemas, renderSkins, renderConfigExtras],
+  config: [renderTemas, renderSkins, renderConfigExtras, renderRecupConfig],
   glossario: [renderGlossario]
 };
 function renderSection(id){

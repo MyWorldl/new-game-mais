@@ -7,7 +7,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   const b = await chromium.launch();
   for (const [w, h] of [[1440, 900], [400, 800]]) {
     const c = await b.newContext({ viewport: { width: w, height: h } });
-    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
+    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
     const p = await c.newPage(); p.errs = []; p.on('pageerror', e => p.errs.push(e.message));
     await p.goto(URL_); await p.waitForTimeout(1200);
     const hoje = iso(Date.now());
@@ -33,7 +33,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   // salto brusco para cima logo depois de um clique (Safari): é desfeito; rolar de propósito não é bloqueado
   {
     const c = await b.newContext({ viewport: { width: 1440, height: 900 } });
-    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
+    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
     const p = await c.newPage(); await p.goto(URL_); await p.waitForTimeout(1200);
     await p.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/perfil').set({ nomeCompleto: 'Teste', nomeUsuario: 't', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', pesoMetaKg: 80, experiencia: 'intermediario', local: 'academia', criadoEm: '2026-10-01' }); const x = new Date(); const hj = x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); await db.doc('medicoes/' + hj).set({ data: hj, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 }); });
     await p.reload(); await p.waitForTimeout(1800); await p.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); document.getElementById('tab-dieta').click(); }); await p.waitForTimeout(600);

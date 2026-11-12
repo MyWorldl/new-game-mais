@@ -8,7 +8,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   const b = await chromium.launch();
   for (const [w, h] of [[1440, 900], [400, 800]]) {
     const c = await b.newContext({ viewport: { width: w, height: h } });
-    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
+    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
     const p = await c.newPage(); p.errs = []; p.on('pageerror', e => p.errs.push(e.message));
     await p.goto(URL_); await p.waitForTimeout(1200);
     const hoje = iso(Date.now());

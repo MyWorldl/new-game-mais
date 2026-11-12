@@ -4,7 +4,7 @@ let ok=0,bad=0; const t=(n,c,x='')=>{(c?ok++:bad++); console.log((c?'PASS ':'FAI
 (async()=>{
  const VERS=/VERSAO\s*=\s*"([^"]+)"/.exec(await (await fetch('http://localhost:8792/sw.js')).text())[1];
  const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:1100,height:800},serviceWorkers:'allow'});
- await ctx.addInitScript(()=>{try{localStorage.setItem('ng_dev_semnuvem','1');localStorage.setItem('ng_test_hooks','1');}catch(e){}});
+ await ctx.addInitScript(()=>{try{localStorage.setItem('ng_dev_semnuvem','1'); localStorage.setItem('ng_recup_pulo','9999-12-31');localStorage.setItem('ng_test_hooks','1');}catch(e){}});
  const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
  await p.goto('http://localhost:8792/'); await p.waitForTimeout(1200);
  await p.evaluate(async()=>{const db=await window.claude.use('db'); await db.doc('config/perfil').set({nomeCompleto:'Teste',nomeUsuario:'t.t',sexo:'M',idade:30,alturaCm:178,ativo:true,nivelAtividade:'ativo',objetivo:'manutencao',pesoMetaKg:80});});
