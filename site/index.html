@@ -155,22 +155,6 @@
 
     </section>
 
-    <details class="card cc recup-card" id="cc-recup" data-cc="recup" hidden>
-      <summary class="card-head"><h2>Como você está hoje?</h2><span class="hint" id="recup-hint">opcional</span><svg class="cc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-      <div class="recup-rows" id="recup-rows"></div>
-      <div class="recup-msg info" id="recup-msg" aria-live="polite"></div>
-      <div class="recup-plans">
-        <button type="button" class="recup-plan" id="btn-dia-leve">
-          <b>Dia leve</b>
-          <span>Caminhada, cárdio leve ou mobilidade. Mantém a sequência e rende metade do XP.</span>
-        </button>
-        <button type="button" class="recup-plan" id="btn-sessao-rapida">
-          <b>Sessão rápida</b>
-          <span>Full Body curto: 1 exercício por grupo, 3 séries. Conta como o treino de hoje.</span>
-        </button>
-      </div>
-    </details>
-
     <div class="grid grid-4" id="quick-stats"></div>
 
     <section class="card" id="cc-missoes" aria-labelledby="missoes-t">
@@ -748,6 +732,17 @@
 
     <div class="card">
       <div class="card-head">
+        <h2>Como você está hoje</h2>
+        <span class="hint">sono, energia e dor articular</span>
+      </div>
+      <div class="hint u-mb10" id="cfg-recup-info" role="status"></div>
+      <div class="data-actions">
+        <button class="btn" id="cfg-recup-btn" type="button">Ajustar como estou hoje</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
         <h2>Personalização</h2>
         <span class="hint">ajustes de aparência do app</span>
       </div>
@@ -959,6 +954,6 @@
 <script src="vendor-supabase.js"></script>
 <script src="ng-nuvem.js"></script>
 <script src="bff-runtime.js"></script>
-<script src="app.d0e0d40d61.js"></script>
+<script src="app.470aa610c1.js"></script>
 
 </body></html>

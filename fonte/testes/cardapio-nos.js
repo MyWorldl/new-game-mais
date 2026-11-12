@@ -8,7 +8,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
-  await ctx.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); } catch (e) {} });
+  await ctx.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); } catch (e) {} });
   const p = await ctx.newPage(); p.setDefaultTimeout(8000);
   const errs = []; p.on('pageerror', e => errs.push('PE ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('CE ' + m.text()); });
   await p.goto(URL_); await p.waitForTimeout(1200);

@@ -8,7 +8,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
-  await ctx.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); } catch (e) {} });
+  await ctx.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); } catch (e) {} });
   const p = await ctx.newPage(); p.setDefaultTimeout(8000);
   const errs = [], reqs = [];
   p.on('pageerror', e => errs.push('PE ' + e.message));
@@ -49,7 +49,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
 
   // 4) falha de download: aviso claro, sem erro de JS, e nova tentativa ao reabrir a Dieta
   const ctx2 = await b.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
-  await ctx2.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); } catch (e) {} });
+  await ctx2.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); } catch (e) {} });
   const q = await ctx2.newPage(); q.setDefaultTimeout(8000);
   const errs2 = []; q.on('pageerror', e => errs2.push('PE ' + e.message));
   let bloquear = true;

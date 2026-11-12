@@ -11,7 +11,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   const b = await chromium.launch();
   const mk = async (w = 1440, h = 900, fotos = 2) => {
     const c = await b.newContext({ viewport: { width: w, height: h } });
-    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
+    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
     const p = await c.newPage(); p.errs = []; p.on('pageerror', e => p.errs.push('PE ' + e.message));
     await p.goto(URL_); await p.waitForTimeout(1200);
     const datas = [4, 3, 2, 1].map(n => iso(Date.now() - n * 7 * 86400000));
@@ -106,7 +106,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   t('com 1 foto: abre o zoom, sem setas e sem "Comparar"', (await p.locator('dialog.foto-zoom[open]').count()) === 1 && (await p.locator('.fz-nav').first().isHidden()) && (await p.locator('#fotos-grid .foto-cmpbtn').count()) === 0);
   await c.close();
   // celular: zoom por toque cabe na tela
-  { const c2 = await b.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true }); await c2.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
+  { const c2 = await b.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true }); await c2.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
     const p2 = await c2.newPage(); await p2.goto(URL_); await p2.waitForTimeout(1200);
     await p2.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/perfil').set({ nomeCompleto: 'T', nomeUsuario: 't', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', experiencia: 'intermediario', local: 'academia', criadoEm: '2026-01-01' }); const c = document.createElement('canvas'); c.width = 300; c.height = 400; c.getContext('2d').fillRect(0, 0, 300, 400); await db.doc('fotos/f0').set({ iso: '2026-11-05', criadoEm: 1, localUrl: c.toDataURL() }); });
     await p2.reload(); await p2.waitForTimeout(1500); await p2.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); document.getElementById('tab-perfil').click(); });

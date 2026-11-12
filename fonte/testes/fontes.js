@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); let bad = 0; const t = (n, c, x = '') => { if (!c) bad++; console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 250) : '')); };
   const c = await b.newContext({ viewport: { width: 400, height: 900 } });
-  await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); } catch (e) { } });
+  await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); } catch (e) { } });
   const p = await c.newPage(); const reqs = [];
   p.on('request', r => reqs.push(r.url()));
   await p.goto((process.argv[2] || 'http://localhost:8791') + '/index.html'); await p.waitForTimeout(2500);

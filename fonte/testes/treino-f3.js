@@ -13,7 +13,7 @@ const S = (a) => a.map(r => ({ r }));
   const b = await chromium.launch();
   const mk = async (perfil) => {
     const c = await b.newContext({ viewport: { width: 400, height: 900 } });
-    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
+    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
     const p = await c.newPage(); p.errs = [];
     p.on('pageerror', e => p.errs.push('PE ' + e.message)); p.on('console', m => { if (m.type() === 'error') p.errs.push('CE ' + m.text().slice(0, 200)); });
     await p.goto(URL_); await p.waitForTimeout(1200);

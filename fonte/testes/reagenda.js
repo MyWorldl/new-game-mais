@@ -12,7 +12,7 @@ const HOJE = '2026-11-11', SEG = '2026-11-09', TER = '2026-11-10';
   const mk = async ({ rotina, checkins = {}, w = 400, hora = '10:00' }) => {
     const c = await b.newContext({ viewport: { width: w, height: 900 } });
     await c.clock.setFixedTime(new Date(HOJE + 'T' + hora + ':00'));
-    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
+    await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem', '1'); localStorage.setItem('ng_recup_pulo', '9999-12-31'); localStorage.setItem('bff_rest_auto', '0'); localStorage.setItem('ng_test_hooks', '1'); } catch (e) { } });
     const p = await c.newPage(); p.errs = []; p.on('pageerror', e => p.errs.push('PE ' + e.message));
     await p.goto(URL_); await p.waitForTimeout(1200);
     await p.evaluate(async ([rotina, checkins]) => {
