@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.8d539d7912.css">
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.4f2101bcb9.css">
 <link rel="stylesheet" id="ng-nuvem-css" href="ng-nuvem.css"></head><body>
 <title>NG+ (New Game+)</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
@@ -120,8 +120,9 @@
         </button>
       </div>
       <div class="card week-progress">
-        <div class="eyebrow">Esta semana</div>
+        <div class="wk-head"><div class="eyebrow">Esta semana</div><span class="wk-range" id="wk-range"></span></div>
         <div class="dots" id="week-dots"></div>
+        <div class="wk-next" id="wk-next" hidden></div>
         <div class="rings-row">
           <div class="rings-wrap">
             <svg viewBox="0 0 200 200">
@@ -133,13 +134,13 @@
             <div class="rings-label"><b id="week-pct">0%</b><span>semana</span></div>
           </div>
           <div class="rings-legend">
-            <div class="li"><span class="sw u-bg-good"></span><span id="week-label">0 de 0 treinos concluídos</span></div>
-            <div class="li"><span class="sw u-bg-blue"></span><span id="month-label">0 de 0 treinos concluídos (mês)</span></div>
+            <div class="li wk-li"><span class="sw u-bg-good"></span><div class="wk-li-body"><span id="week-label">0 de 0 treinos concluídos</span><div class="wk-bar" aria-hidden="true"><i id="wk-bar-w"></i></div></div></div>
+            <div class="li wk-li"><span class="sw u-bg-blue"></span><div class="wk-li-body"><span id="month-label">0 de 0 treinos concluídos (mês)</span><div class="wk-bar blue" aria-hidden="true"><i id="wk-bar-m"></i></div></div></div>
           </div>
         </div>
         <div class="week-goal" id="week-goal">
           <div class="wg-top">
-            <span class="wg-title">Meta da semana<button type="button" class="info-tip" popovertarget="tip-pop" data-tip="meta" aria-label="O que é a meta da semana?" aria-expanded="false">?</button></span>
+            <span class="wg-title">Meta da semana<b class="wg-count" id="wg-count"></b><button type="button" class="info-tip" popovertarget="tip-pop" data-tip="meta" aria-label="O que é a meta da semana?" aria-expanded="false">?</button></span>
             <span class="wg-step" role="group" aria-label="Ajustar a meta semanal">
               <button type="button" id="wg-minus" aria-label="Diminuir a meta semanal">−</button>
               <b id="wg-val">0</b><small>treinos</small>
@@ -498,6 +499,7 @@
         <button type="button" class="btn small ghost" id="med-csv" title="Baixar o histórico (como está filtrado e ordenado) em CSV, para abrir no Excel">Exportar CSV</button>
       </div>
       <div class="med-count" id="med-count" aria-live="polite"></div>
+      <div class="med-resumo" id="med-resumo" aria-label="Resumo do período" hidden></div>
       <div class="table-scroll" id="med-scroll" tabindex="0" role="region" aria-label="Histórico de medições (role para o lado e para baixo)">
         <table id="tabela-medicoes">
           <thead><tr>
@@ -834,24 +836,29 @@
         <span class="hint">seus dados em todos os aparelhos</span>
       </div>
       <div class="hint u-mb10" id="cfg-conta-info" role="status"></div>
-      <div class="data-actions">
-        <button class="btn" id="cfg-conta-sync" type="button">Sincronizar agora</button>
-        <button class="btn ghost" id="cfg-conta-politica" type="button">Política de privacidade</button>
+      <div class="conta-grupo">
+        <h3 class="conta-h">Sincronização</h3>
+        <div class="conta-btns">
+          <button class="btn" id="cfg-conta-sync" type="button">Sincronizar agora</button>
+          <button class="btn ghost" id="cfg-conta-politica" type="button">Política de privacidade</button>
+        </div>
       </div>
-      <div class="data-actions u-mt8">
-        <button class="btn" id="cfg-conta-resetar" type="button" style="border-color:var(--warn);">Resetar meus dados</button>
-      </div>
-      <div class="data-actions u-mt8">
-        <button class="btn ghost" id="cfg-conta-sair" type="button">Sair da conta</button>
-      </div>
-      <div class="u-mt8">
+      <div class="conta-grupo">
+        <h3 class="conta-h">Sessão</h3>
         <label class="hint" for="cfg-relogin" style="display:block;margin-bottom:6px">Pedir e-mail e código de novo</label>
         <select id="cfg-relogin" class="carga-chart-select" style="max-width:100%"><option value="0">Nunca (continuar conectado)</option><option value="30">Depois de 30 minutos fora do app</option><option value="480">Depois de 8 horas fora do app</option><option value="10080">Depois de 7 dias fora do app</option></select>
         <div class="hint u-mt4" id="cfg-relogin-info" role="status"></div>
+        <div class="conta-btns u-mt8">
+          <button class="btn" id="cfg-conta-sair" type="button">Sair da conta</button>
+        </div>
       </div>
-      <div class="hint u-mt8">Resetar apaga seus registros e fotos, mas <b>mantém a conta</b>. Excluir remove também o login.</div>
-      <div class="data-actions u-mt8">
-        <button class="btn" id="cfg-conta-excluir" type="button" style="border-color:var(--crit);">Excluir minha conta e dados</button>
+      <div class="conta-grupo conta-perigo">
+        <h3 class="conta-h">Zona de perigo</h3>
+        <p class="hint">Resetar apaga seus registros e fotos, mas <b>mantém a conta</b>. Excluir remove também o login. Nenhuma das duas ações pode ser desfeita.</p>
+        <div class="conta-btns">
+          <button class="btn conta-warn" id="cfg-conta-resetar" type="button">Resetar meus dados</button>
+          <button class="btn conta-crit" id="cfg-conta-excluir" type="button">Excluir minha conta e dados</button>
+        </div>
       </div>
     </div>
 
@@ -964,6 +971,6 @@
 <script src="vendor-supabase.js"></script>
 <script src="ng-nuvem.js"></script>
 <script src="bff-runtime.js"></script>
-<script src="app.9dc7e7309d.js"></script>
+<script src="app.3137b13652.js"></script>
 
 </body></html>

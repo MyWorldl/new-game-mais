@@ -2858,8 +2858,9 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         </button>
       </div>
       <div class="card week-progress">
-        <div class="eyebrow">Esta semana</div>
+        <div class="wk-head"><div class="eyebrow">Esta semana</div><span class="wk-range" id="wk-range"></span></div>
         <div class="dots" id="week-dots"></div>
+        <div class="wk-next" id="wk-next" hidden></div>
         <div class="rings-row">
           <div class="rings-wrap">
             <svg viewBox="0 0 200 200">
@@ -2871,13 +2872,13 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
             <div class="rings-label"><b id="week-pct">0%</b><span>semana</span></div>
           </div>
           <div class="rings-legend">
-            <div class="li"><span class="sw u-bg-good"></span><span id="week-label">0 de 0 treinos concluídos</span></div>
-            <div class="li"><span class="sw u-bg-blue"></span><span id="month-label">0 de 0 treinos concluídos (mês)</span></div>
+            <div class="li wk-li"><span class="sw u-bg-good"></span><div class="wk-li-body"><span id="week-label">0 de 0 treinos concluídos</span><div class="wk-bar" aria-hidden="true"><i id="wk-bar-w"></i></div></div></div>
+            <div class="li wk-li"><span class="sw u-bg-blue"></span><div class="wk-li-body"><span id="month-label">0 de 0 treinos concluídos (mês)</span><div class="wk-bar blue" aria-hidden="true"><i id="wk-bar-m"></i></div></div></div>
           </div>
         </div>
         <div class="week-goal" id="week-goal">
           <div class="wg-top">
-            <span class="wg-title">Meta da semana<button type="button" class="info-tip" popovertarget="tip-pop" data-tip="meta" aria-label="O que é a meta da semana?" aria-expanded="false">?</button></span>
+            <span class="wg-title">Meta da semana<b class="wg-count" id="wg-count"></b><button type="button" class="info-tip" popovertarget="tip-pop" data-tip="meta" aria-label="O que é a meta da semana?" aria-expanded="false">?</button></span>
             <span class="wg-step" role="group" aria-label="Ajustar a meta semanal">
               <button type="button" id="wg-minus" aria-label="Diminuir a meta semanal">−</button>
               <b id="wg-val">0</b><small>treinos</small>
@@ -3219,6 +3220,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         <button type="button" class="btn small ghost" id="med-csv" title="Baixar o histórico (como está filtrado e ordenado) em CSV, para abrir no Excel">Exportar CSV</button>
       </div>
       <div class="med-count" id="med-count" aria-live="polite"></div>
+      <div class="med-resumo" id="med-resumo" aria-label="Resumo do período" hidden></div>
       <div class="table-scroll" id="med-scroll" tabindex="0" role="region" aria-label="Histórico de medições (role para o lado e para baixo)">
         <table id="tabela-medicoes">
           <thead><tr>
@@ -5785,6 +5787,7 @@ function renderMetaSemana(){
   box.hidden = sm.cap === 0;
   if(sm.cap === 0) return;
   document.getElementById("wg-val").textContent = sm.meta;
+  const wc = document.getElementById("wg-count"); if(wc) wc.textContent = sm.feitos+"/"+sm.meta;
   document.getElementById("wg-minus").disabled = sm.meta <= 1;
   document.getElementById("wg-plus").disabled = sm.meta >= diasAtivos().length;
   let pips = "";
@@ -6368,17 +6371,13 @@ function getCinturaEvolucao(){
 function renderAttrs(){
   const el = document.getElementById("attrs-grid");
   if(!el) return;
-  const today = todayISO();
-  const scheduled = activeDaysInRange(addDaysISO(today, -29), today);
-  const done = scheduled.filter(iso=> state.checkins[iso]?.concluido).length;
-  const consistPct = scheduled.length ? Math.round((done/scheduled.length)*100) : null;
-  const bestCarga = getBestCargaGlobal();
-  const cinturaDelta = getCinturaEvolucao();
-
+  const f = fichaDados(), m = f.maiorCarga;
+  const tile = (ic, val, lab, sub) => '<div class="attr-tile"><span class="attr-ic" aria-hidden="true">'+ic+'</span><span class="attr-val">'+val+'</span><span class="attr-label">'+lab+'</span><span class="attr-sub">'+sub+'</span></div>';
+  const rec = f.recordes30;
   el.innerHTML =
-    '<div class="attr-tile"><span class="attr-ic" aria-hidden="true">'+ICON_BOLT+'</span><span class="attr-val">'+(consistPct==null?"—":consistPct+"%")+'</span><span class="attr-label">Consistência</span><span class="attr-sub">'+(scheduled.length? done+" de "+scheduled.length+" nos últimos 30 dias" : "sem treinos agendados ainda")+'</span></div>'+
-    '<div class="attr-tile"><span class="attr-ic" aria-hidden="true">'+ICON_DUMBBELL+'</span><span class="attr-val">'+(bestCarga? fmtKg(bestCarga.peso)+" kg" : "—")+'</span><span class="attr-label">Força</span><span class="attr-sub">'+(bestCarga? escapeHtml(bestCarga.nome) : "registre uma carga no treino")+'</span></div>'+
-    '<div class="attr-tile"><span class="attr-ic'+(cinturaDelta==null?"":(cinturaDelta<=0?" good":" warn"))+'" aria-hidden="true">'+(cinturaDelta==null?ICON_TAPE:(cinturaDelta<=0?ICON_TREND_DN:ICON_TREND_UP))+'</span><span class="attr-val">'+(cinturaDelta==null?"—":(cinturaDelta>0?"+":"")+num(cinturaDelta,1)+" cm")+'</span><span class="attr-label">Evolução</span><span class="attr-sub">'+(cinturaDelta==null?"registre 2+ medições de cintura":"cintura desde a 1ª medição")+'</span></div>';
+    tile(ICON_DUMBBELL, m ? fmtKg(m.pr)+" kg" : "—", "Maior carga", m ? escapeHtml(m.nome) : "registre uma carga no treino") +
+    tile(ICON_TROPHY, String(rec.length), "Recordes em 30 dias", rec.length ? escapeHtml(rec.slice(0,2).map(r=>r.nome).join(", "))+(rec.length > 2 ? " e +"+(rec.length-2) : "") : "bata uma carga nova e ela aparece aqui") +
+    tile(ICON_BOLT, String(f.ouros), "Séries de ouro em 30 dias", f.exSess ? "em "+f.exSess+" exercício"+(f.exSess===1?"":"s")+" registrado"+(f.exSess===1?"":"s") : "registre séries no treino");
 }
 
 /* ============================================================
@@ -7307,6 +7306,24 @@ document.getElementById("btn-share-streak").addEventListener("click", ()=>{
   });
 });
 
+/* "Treino de hoje" ou "Próximo treino" no cartão Esta semana */
+function renderProximoTreino(){
+  const el = document.getElementById("wk-next");
+  if(!el) return;
+  const hoje = todayISO();
+  let achou = null;
+  for(let i = 0; i < 14 && !achou; i++){
+    const iso = addDaysISO(hoje, i), dia = state.rotina[treinoKey(iso)];
+    if(!dia || !dia.ativo) continue;
+    if(i === 0 && state.checkins[iso] && state.checkins[iso].concluido) continue;
+    achou = {iso, dia, i};
+  }
+  if(!achou){ el.hidden = true; el.innerHTML = ""; return; }
+  const wd = dayKeyFromISO(achou.iso), nEx = (achou.dia.exercicios || []).length;
+  const rot = achou.i === 0 ? "Treino de hoje" : (achou.i === 1 ? "Próximo treino · amanhã" : "Próximo treino");
+  el.innerHTML = '<span class="wk-next-l">'+rot+'</span><b>'+DAY_FULL[wd]+' — '+escapeHtml(achou.dia.nome || "")+'</b><small>'+nEx+' exercício'+(nEx === 1 ? '' : 's')+'</small>';
+  el.hidden = false;
+}
 function renderWeekDots(){
   const days = weekRange(todayISO());
   const wrap = document.getElementById("week-dots");
@@ -7323,7 +7340,8 @@ function renderWeekDots(){
     const el = document.createElement("div");
     el.className = "dot" + (isDone?" done":"") + (isDone && state.checkins[iso].leve ? " leve" : "") + (!ativo?" rest":"") + (isToday?" today":"") + (isFrozen?" frozen":"");
     const wd = dayKeyFromISO(iso);
-    if(isFrozen) el.innerHTML = ic("snow"); else el.textContent = DAY_LABEL[wd][0];
+    const glifo = isFrozen ? ic("snow") : (isDone ? "✓" : (ativo ? "·" : ""));
+    el.innerHTML = '<span class="d-n">'+DAY_LABEL[wd]+'</span><span class="d-s" aria-hidden="true">'+glifo+'</span>';
     el.title = DAY_FULL[wd] + (isFrozen ? " — protegido por congelamento" : (ativo ? (isDone ? (state.checkins[iso].leve ? " — dia leve" : " — concluído") : " — pendente") : " — descanso"));
     wrap.appendChild(el);
   });
@@ -7351,6 +7369,10 @@ function renderWeekDots(){
   // anéis concêntricos: semana (externo) e mês (interno)
   setRing("ring-week", 88, pct);
   setRing("ring-month", 64, mpct);
+  const bw = document.getElementById("wk-bar-w"); if(bw) bw.style.width = pct+"%";
+  const bm = document.getElementById("wk-bar-m"); if(bm) bm.style.width = mpct+"%";
+  const rg = document.getElementById("wk-range"); if(rg) rg.textContent = fmtDateBR(days[0])+" – "+fmtDateBR(days[6]);
+  renderProximoTreino();
 
   // mensagem de status da semana (preenche o rodapé do card)
   const statusEl = document.getElementById("week-status");
@@ -9859,24 +9881,44 @@ function allActiveExercises(){
   return list;
 }
 
+/* "há 3 dias" / "ontem" / "hoje" para a data da última carga */
+function cargaQuando(iso){
+  const d = Math.round((new Date(todayISO()+"T12:00:00") - new Date(iso+"T12:00:00"))/864e5);
+  if(d <= 0) return "hoje";
+  if(d === 1) return "ontem";
+  if(d < 31) return "há "+d+" dias";
+  return fmtDateBR(iso);
+}
+/* séries da última sessão do exercício, coloridas pelo ranking (ouro, prata, bronze, cinza) */
+function cargaMedalhasHtml(ex, iso){
+  const c = state.checkins[iso]; if(!c) return "";
+  const dia = state.rotina[c.dia || treinoKey(iso)];
+  const lista = (dia && dia.exercicios) || [];
+  const idx = lista.findIndex(e=> e.nome === ex.nome);
+  if(idx < 0) return "";
+  const sets = setsDe(c, idx, lista[idx]);
+  if(!sets.length) return "";
+  const rk = rankSeries(sets), seg = faixaDeReps(lista[idx].reps).unid === "s";
+  return '<div class="carga-sets" role="group" aria-label="Séries da última sessão, coloridas pelo ranking: ouro, prata, bronze e cinza"><span class="carga-sets-t">Última sessão</span>'+
+    sets.map((s,k)=>'<span class="cs sl-'+rk[k].k+'" title="'+(k+1)+'ª série: '+s.r+(seg?' s':' reps')+' — '+rk[k].t+'">'+s.r+(seg?' s':'')+'</span>').join("")+'</div>';
+}
 function cargaSparklineHtml(hist){
-  const w = 56, h = 22, padX = 3, padY = 3;
-  if(hist.length<2){
-    if(hist.length===1){
-      return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><line class="no-data" x1="'+padX+'" y1="'+(h/2)+'" x2="'+(w-padX)+'" y2="'+(h/2)+'"/><circle cx="'+(w-padX)+'" cy="'+(h/2)+'" r="2.4"/></svg>';
-    }
-    return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><line class="no-data" x1="'+padX+'" y1="'+(h/2)+'" x2="'+(w-padX)+'" y2="'+(h/2)+'"/></svg>';
+  const w = 104, h = 32, padX = 5, padY = 6;
+  const dados = hist.slice(-8), n = dados.length;
+  if(n < 2){
+    const base = '<line class="no-data" x1="'+padX+'" y1="'+(h/2)+'" x2="'+(w-padX)+'" y2="'+(h/2)+'"/>';
+    return '<svg viewBox="0 0 '+w+' '+h+'">'+base+(n === 1 ? '<circle class="last" cx="'+(w-padX)+'" cy="'+(h/2)+'" r="3"/>' : '')+'</svg>';
   }
-  const pesos = hist.map(h=>h.peso);
-  const min = Math.min(...pesos), max = Math.max(...pesos);
-  const range = (max-min) || 1;
-  const n = pesos.length;
-  const pts = pesos.map((p,i)=>{
-    const x = padX + (i/(n-1))*(w-padX*2);
-    const y = h-padY - ((p-min)/range)*(h-padY*2);
-    return x.toFixed(1)+","+y.toFixed(1);
-  }).join(" ");
-  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><polyline points="'+pts+'"/></svg>';
+  const pesos = dados.map(d=>d.peso);
+  const min = Math.min(...pesos), max = Math.max(...pesos), range = (max-min) || 1;
+  const X = i => padX + (i/(n-1))*(w-padX*2);
+  const Y = p => h-padY - ((p-min)/range)*(h-padY*2);
+  const pts = pesos.map((p,i)=> X(i).toFixed(1)+","+Y(p).toFixed(1));
+  const area = 'M'+X(0).toFixed(1)+','+(h-1)+' L'+pts.join(' L')+' L'+X(n-1).toFixed(1)+','+(h-1)+' Z';
+  let iPr = -1; pesos.forEach((p,i)=>{ if(p === max) iPr = i; });
+  return '<svg viewBox="0 0 '+w+' '+h+'"><path class="area" d="'+area+'"/><polyline points="'+pts.join(" ")+'"/>'+
+    (iPr !== n-1 ? '<circle class="pr" cx="'+X(iPr).toFixed(1)+'" cy="'+Y(max).toFixed(1)+'" r="3.2"/>' : '')+
+    '<circle class="last" cx="'+X(n-1).toFixed(1)+'" cy="'+Y(pesos[n-1]).toFixed(1)+'" r="3.2"/></svg>';
 }
 
 function updateCargaChartExercise(exList){
@@ -10014,27 +10056,31 @@ function renderCargas(){
     const rows = day.exercicios.map(ex=>{
       const hist = getCargaHistory(ex.nome);
       const isSelected = ex.nome === cargaChartExercise;
-      const sparkHtml = '<div class="carga-spark">'+cargaSparklineHtml(hist)+'</div>';
+      const nomeH = '<span class="carga-name">'+escapeHtml(ex.nome)+'</span>';
       if(!hist.length){
-        return '<div class="carga-row'+(isSelected?' selected':'')+'" data-ex="'+escapeHtml(ex.nome)+'"><span class="carga-name">'+escapeHtml(ex.nome)+'</span>'+
-          sparkHtml+
-          '<div class="carga-stats"><span class="hint">Sem registro ainda</span></div></div>';
+        return '<div class="carga-row sem-reg'+(isSelected?' selected':'')+'" data-ex="'+escapeHtml(ex.nome)+'"><div class="carga-head">'+nomeH+'</div>'+
+          '<div class="carga-stats"><span class="hint">Sem registro ainda — a 1ª carga vira a sua referência.</span></div></div>';
       }
-      const last = hist[hist.length-1].peso;
+      const lastH = hist[hist.length-1], last = lastH.peso;
       const pr = Math.max(...hist.map(h=>h.peso));
-      let trendHtml = '<span class="carga-trend flat">— estável</span>';
+      const prH = hist.filter(h=>h.peso===pr)[0];
+      const ehPr = hist.length >= 2 && last >= pr;
+      let trendHtml = hist.length >= 2 ? '<span class="carga-trend flat" title="Igual à sessão anterior">— estável</span>' : '';
       if(hist.length>=2){
         const prev = hist[hist.length-2].peso;
-        if(last>prev) trendHtml = '<span class="carga-trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>+'+fmtKg(last-prev)+' kg</span>';
-        else if(last<prev) trendHtml = '<span class="carga-trend down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>'+fmtKg(last-prev)+' kg</span>';
+        if(last>prev) trendHtml = '<span class="carga-trend up" title="Em relação à sessão anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>+'+fmtKg(last-prev)+' kg</span>';
+        else if(last<prev) trendHtml = '<span class="carga-trend down" title="Em relação à sessão anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>'+fmtKg(last-prev)+' kg</span>';
       }
-      return '<div class="carga-row'+(isSelected?' selected':'')+'" data-ex="'+escapeHtml(ex.nome)+'"><span class="carga-name">'+escapeHtml(ex.nome)+'</span>'+
-        sparkHtml+
+      const pctPr = pr > 0 ? Math.min(100, Math.round(last/pr*100)) : 100;
+      const barHtml = (hist.length >= 2 && !ehPr)
+        ? '<div class="carga-pctr"><div class="carga-pctr-bar" role="img" aria-label="Última carga: '+pctPr+'% do recorde"><i style="width:'+pctPr+'%"></i></div><small>'+pctPr+'% do recorde</small></div>' : '';
+      return '<div class="carga-row'+(isSelected?' selected':'')+(ehPr?' is-pr':'')+'" data-ex="'+escapeHtml(ex.nome)+'">'+
+        '<div class="carga-head">'+nomeH+(ehPr?'<span class="carga-pr">'+ICON_TROPHY+'Recorde</span>':'')+trendHtml+'</div>'+
+        '<div class="carga-body"><div class="carga-spark" aria-hidden="true">'+cargaSparklineHtml(hist)+'</div>'+
         '<div class="carga-stats">'+
-          '<div class="carga-stat"><b>'+fmtKg(last)+' kg</b><span>Última</span></div>'+
-          '<div class="carga-stat"><b>'+fmtKg(pr)+' kg</b><span>Recorde</span></div>'+
-          trendHtml+
-        '</div></div>';
+          '<div class="carga-stat"><b>'+fmtKg(last)+' kg</b><span>Última · '+cargaQuando(lastH.iso)+'</span></div>'+
+          '<div class="carga-stat"><b>'+fmtKg(pr)+' kg</b><span>Recorde · '+fmtDateBR(prH.iso)+'</span></div>'+
+        '</div></div>'+barHtml+cargaMedalhasHtml(ex, lastH.iso)+'</div>';
     }).join("");
     const aberto = cargasAbertos.has(key);
     const nEx = day.exercicios.length;
@@ -10597,6 +10643,27 @@ let medPeriodo = "all";   // v88 C1: "30" | "90" | "365" | "all"
 let medLinhasVisiveis = [];   // v88 C1: o que está na tela agora (base do CSV)
 let medVtNames = false;   // v85: true só durante a transição de ordenação (nomes de view-transition nas linhas)
 const MED_SORT_LABEL = {data:"Data", peso:"Peso", cintura:"Cintura", quadril:"Quadril", imc:"IMC", rcq:"RCQ", bf:"% Gordura"};
+/* resumo do período (acima da tabela): valor mais recente e variação desde a 1ª medição do período */
+function renderMedResumo(linhas){
+  const box = document.getElementById("med-resumo");
+  if(!box) return;
+  if(!linhas.length){ box.hidden = true; box.innerHTML = ""; return; }
+  const a = linhas[0], b = linhas[linhas.length-1], varias = linhas.length > 1;
+  const item = (rot, v, v0, un, dec) => {
+    if(v == null || !isFinite(v)) return "";
+    let d;
+    if(varias && v0 != null && isFinite(v0)){
+      const x = v - v0;
+      if(Math.abs(x) < Math.pow(10, -dec)/2) d = '<small class="mr-d flat">igual desde '+fmtDateBR(a.iso)+'</small>';
+      else d = '<small class="mr-d '+(x < 0 ? "down" : "up")+'">'+(x < 0 ? "▼ " : "▲ ")+num(Math.abs(x), dec)+(un ? " "+un : "")+' desde '+fmtDateBR(a.iso)+'</small>';
+    } else d = '<small class="mr-d flat">'+(varias ? "sem base para comparar" : "sua 1ª medição")+'</small>';
+    return '<div class="mr-i"><span class="mr-l">'+rot+'</span><b>'+num(v, dec)+(un ? '<i> '+un+'</i>' : '')+'</b>'+d+'</div>';
+  };
+  const html = item("Peso", b.peso, a.peso, "kg", 1) + item("Cintura", b.cintura, a.cintura, "cm", 1) +
+    item("% de gordura", b.bf, a.bf, "%", 1) + item("IMC", b.imc, a.imc, "", 1);
+  box.innerHTML = html;
+  box.hidden = !html;
+}
 function renderTabelaMedicoes(){
   const tbody = document.querySelector("#tabela-medicoes tbody");
   const empty = document.getElementById("tabela-empty");
@@ -10619,8 +10686,10 @@ function renderTabelaMedicoes(){
       rcq: calcRCQ(m.cinturaCm, m.quadrilCm),
       bf: p ? calcBFNavy(p.sexo, m.cinturaCm, m.quadrilCm, m.pescocoCm, p.alturaCm) : null,
       diff: (prev && prev.pesoKg!=null && m.pesoKg!=null) ? m.pesoKg - prev.pesoKg : null,
+      gap: prev ? Math.round((new Date(m.iso+"T12:00:00") - new Date(prev.iso+"T12:00:00"))/864e5) : null,
     };
   });
+  linhas.forEach((l,i)=>{ const a = linhas[i-1]; const d = (x,y)=> (a && x!=null && y!=null && isFinite(x) && isFinite(y)) ? x-y : null; l.dC = d(l.cintura, a && a.cintura); l.dQ = d(l.quadril, a && a.quadril); l.dB = d(l.bf, a && a.bf); });
   // v88 C1: filtro de período (a variação ▲▼ acima já foi calculada contra a medição anterior de verdade, então não muda)
   const totalLinhas = linhas.length;
   if(medPeriodo !== "all"){
@@ -10635,6 +10704,7 @@ function renderTabelaMedicoes(){
   if(countEl) countEl.textContent = linhas.length === totalLinhas ? totalLinhas+" mediç"+(totalLinhas===1?"ão":"ões") : linhas.length+" de "+totalLinhas+" medições";
   if(vazioFiltro) vazioFiltro.hidden = linhas.length > 0;
   if(scrollBox) scrollBox.hidden = linhas.length === 0;
+  renderMedResumo(linhas.slice());
   const col = medSort.col, mult = medSort.dir === "asc" ? 1 : -1;
   const valOf = l => col === "data" ? l.iso : l[col];
   const vazio = v => v == null || v === "" || (typeof v === "number" && !isFinite(v));
@@ -10655,11 +10725,13 @@ function renderTabelaMedicoes(){
       const cls = l.diff<0 ? "down" : "up";
       delta = '<span class="hist-delta '+cls+'">'+(l.diff<0?"▼":"▲")+num(Math.abs(l.diff),1)+'</span>';
     }
+    const mini = (x, dec, neutro) => (x == null || Math.abs(x) < 0.05) ? '' : '<span class="hist-delta '+(neutro ? 'flat' : (x<0 ? 'down' : 'up'))+'">'+(x<0?'▼':'▲')+num(Math.abs(x),dec)+'</span>';
+    const flag = (l.diff != null && Math.abs(l.diff) >= 3 && l.gap != null && l.gap <= 14) ? '<span class="hist-flag" tabindex="0" role="img" aria-label="Variação grande desde a medição anterior; confira se digitou certo" title="Variação grande desde a medição anterior. Confira se digitou certo.">!</span>' : '';
     const td = (k, html) => '<td class="num'+(col===k?' is-sorted':'')+'">'+html+'</td>';
     const ano = l.iso.slice(0,4) !== anoAtual ? '/'+l.iso.slice(2,4) : '';   // ordenando por valor, linhas de anos diferentes se misturam
     return '<tr data-iso="'+l.iso+'"'+(medVtNames?' style="view-transition-name:mrow-'+l.iso+'"':'')+'><td'+(col==="data"?' class="is-sorted"':'')+'>'+fmtDateBR(l.iso)+ano+'</td>'+
-      td("peso", num(l.peso,1)+delta)+td("cintura", num(l.cintura,1))+td("quadril", num(l.quadril,1))+
-      td("imc", l.imc?num(l.imc,1):"—")+td("rcq", num(l.rcq,2))+td("bf", l.bf!=null?num(l.bf,1)+"%":"—")+'</tr>';
+      td("peso", num(l.peso,1)+delta+flag)+td("cintura", num(l.cintura,1)+mini(l.dC,1))+td("quadril", num(l.quadril,1)+mini(l.dQ,1,true))+
+      td("imc", l.imc?num(l.imc,1):"—")+td("rcq", num(l.rcq,2))+td("bf", l.bf!=null?num(l.bf,1)+"%"+mini(l.dB,1):"—")+'</tr>';
   }).join("");
   document.querySelectorAll("#tabela-medicoes th").forEach(th=>{
     const b = th.querySelector("[data-sort]");
