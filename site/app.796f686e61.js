@@ -1185,7 +1185,10 @@ let carregando = false, _carregTimer = null, perfilRecebido = false;
 /* só pergunta "é a primeira vez?" depois de o banco ter respondido sobre o perfil (ou de não haver banco) */
 function verificaOnboarding(){
   if(perfilRecebido && !state.perfil && !document.querySelector(".modal-backdrop")) openOnboarding();
-  else if(perfilRecebido && state.perfil) verificaComoEstou();
+  else if(perfilRecebido && state.perfil){
+    if(tutorialPendente() && !tourAtivo && !document.querySelector(".modal-backdrop")) iniciarTutorial(verificaComoEstou);
+    else verificaComoEstou();
+  }
 }
 function iniciaCarregamento(){
   carregando = true;
@@ -2241,13 +2244,19 @@ function recupDeveAbrir(){
   return true;
 }
 function verificaComoEstou(){
-  if(carregando || !state.perfil || document.querySelector(".modal-backdrop")) return;
+  if(carregando || !state.perfil || tourAtivo || document.querySelector(".modal-backdrop")) return;
   if(!recupDeveAbrir()) return;
   try{ localStorage.setItem(K_RECUP_PULO, todayISO()); }catch(e){}   // no máximo uma vez por dia neste aparelho
   abrirComoEstou("abertura");
 }
-// depois do cadastro (futuro: o tutorial entra aqui, antes desta tela)
-function aposCadastro(){ setTimeout(verificaComoEstou, 400); }
+// depois do cadastro: tutorial (uma vez por conta) → "Como você está hoje?"
+function aposCadastro(){
+  setTimeout(()=>{
+    if(tutorialVisto()){ verificaComoEstou(); return; }
+    marcarTutorial(false);   // pendente: se o app fechar no meio, o tour volta na próxima abertura
+    iniciarTutorial(verificaComoEstou);
+  }, 400);
+}
 function abrirComoEstou(modo){
   const iso = todayISO(), key = treinoKey(iso);
   const planos = !!(state.rotina[key] && state.rotina[key].ativo) && !(state.checkins[iso] && state.checkins[iso].concluido);
@@ -2526,6 +2535,7 @@ function abrirSessaoRapida(){
   on("wg-minus", "click", ()=> ajustarMeta(-1));
   on("wg-plus", "click", ()=> ajustarMeta(1));
   on("cfg-recup-btn", "click", ()=> abrirComoEstou("config"));
+  on("cfg-tour-btn", "click", ()=> iniciarTutorial(null));
 })();
 
 /* ============================================================
@@ -7799,6 +7809,148 @@ function renderMetaPeso(med, p, kcalAlvo, tdee){
         '<div class="metaring-eta">'+etaTxt+'</div>'+
       '</div>'+
     '</div>';
+}
+
+/* ============================================================
+   TUTORIAL — tour guiado logo após o cadastro
+   Analogia: o instrutor que te mostra a academia no 1º dia — passa em cada aparelho, aponta e explica em uma frase.
+   Cada passo abre a aba certa, destaca a função e mostra um balão acima dela (abaixo, se faltar espaço).
+   "Pular tutorial" em todo balão; "Rever o tutorial" em Configurações. O que já foi visto fica na conta
+   (config/settings.tutorial), então trocar de aparelho não repete. Ao terminar, abre o "Como você está hoje?".
+   ============================================================ */
+const TOUR_PASSOS = [
+  {aba:"painel", alvo:null, t:"Bem-vindo(a) ao NG+", x:"Em cerca de 1 minuto mostramos onde fica cada coisa. Você pode pular quando quiser e rever depois em Configurações."},
+  {aba:"painel", alvo:"#today-hero", t:"Treino de hoje", x:"Aqui aparece o treino do dia. Abra para ver os exercícios e, ao terminar, marque como concluído: isso soma XP e mantém sua sequência."},
+  {aba:"painel", alvo:"#cc-semana", t:"Sua semana", x:"Os dias de treino da semana: feitos, perdidos e os que vêm. Perdeu um? O app oferece fazer o treino em outro dia."},
+  {aba:"painel", alvo:"#cc-missoes", t:"Missões", x:"Desafios curtos que rendem XP extra. São opcionais: ajudam a manter o ritmo, não são cobrança."},
+  {aba:"painel", alvo:"#main-tabs", t:"Navegação", x:"Use esta barra para trocar entre Hoje, Treino, Dieta, Corpo e Perfil."},
+  {aba:"treino", alvo:{h2:"Rotina semanal"}, t:"Sua rotina", x:"Os treinos de cada dia da semana. Dá para editar exercícios, séries e repetições, ou trocar um exercício de vez."},
+  {aba:"treino", alvo:{h2:"Cargas"}, t:"Carga, repetições e RPE", x:"Registre o peso e as repetições de cada série. RPE é o quanto a série foi difícil, de 1 a 10: perto de 8 (sobram umas 2 repetições) é o ponto certo. Suba a carga aos poucos, só quando completar as repetições com boa técnica."},
+  {aba:"treino", alvo:"#analise-treino-card", t:"Análise do treino", x:"Mostra se o volume de cada músculo está na faixa recomendada e como suas cargas evoluem com o tempo."},
+  {aba:"dieta", alvo:{h2:"Objetivo calórico"}, t:"Dieta", x:"Calorias e macronutrientes calculados pelo seu perfil e objetivo. É uma estimativa: o app ajusta pelo seu resultado. Para menores de 18 anos não há sugestão de déficit calórico."},
+  {aba:"dieta", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras."},
+  {aba:"corpo", alvo:{h2:"Nova medição"}, t:"Medidas e fotos", x:"Registre peso e medidas, de preferência sempre no mesmo horário, para ver a evolução nos gráficos. As fotos de progresso ficam só na sua conta."},
+  {aba:"perfil", alvo:{h2:"Ficha de personagem"}, t:"Seu personagem", x:"Nível, XP e atributos sobem com a constância. As conquistas desbloqueiam quando você bate marcos."},
+  {aba:"perfil", alvo:"#perfil-mais", t:"Mais do app", x:"No celular, o Glossário (termos de treino explicados) e as Configurações ficam aqui."},
+  {aba:"config", alvo:"#cfg-conta", t:"Seus dados", x:"Tudo é salvo primeiro no aparelho, por isso o app funciona sem internet, e vai para a nuvem quando houver conexão. Aqui você sincroniza, sai da conta e pode pedir o código de novo depois de um tempo fora do app."},
+  {aba:"config", alvo:"#cfg-instalar", t:"Instalar no celular", x:"Instale na tela inicial para abrir em tela cheia e usar sem internet. No iPhone: Compartilhar → Adicionar à Tela de Início."},
+  {aba:"painel", alvo:null, t:"Antes de começar", x:"O NG+ orienta, mas não substitui profissional de educação física, nutrição ou saúde. Sentiu dor forte? Não force: faça um dia leve e procure um profissional. Bom treino!"}
+];
+let tourAtivo = false;
+function tutorialVisto(){ return !!(state.settings && state.settings.tutorial && state.settings.tutorial.visto); }
+function tutorialPendente(){ return !!(state.settings && state.settings.tutorial && state.settings.tutorial.visto === false); }
+function marcarTutorial(visto){
+  state.settings = Object.assign({}, state.settings, {tutorial: visto ? {visto:true, em:todayISO(), v:1} : {visto:false}});
+  saveDoc("config/settings", state.settings);
+}
+function tourAlvo(p){
+  if(!p.alvo) return null;
+  let el = null;
+  if(p.alvo.h2){
+    const v = document.getElementById("view-"+p.aba);
+    const h = v && Array.from(v.querySelectorAll("h2")).find(x=> x.textContent.trim().indexOf(p.alvo.h2) === 0);
+    el = h && (h.closest(".card") || h.closest("details") || h);
+  } else el = document.querySelector(p.alvo);
+  if(!el || el.closest("[hidden]") || !el.getClientRects().length) return null;   // função não aparece agora: balão no centro
+  return el;
+}
+function iniciarTutorial(depois){
+  if(tourAtivo) return;
+  tourAtivo = true;
+  let i = 0, alvo = null, tPos1 = 0, tPos2 = 0;
+  const root = document.createElement("div");
+  root.id = "tour-root"; root.className = "tour-root";
+  root.innerHTML = '<div class="tour-spot" aria-hidden="true"></div>'+
+    '<div class="tour-pop" role="dialog" aria-modal="true" aria-labelledby="tour-t" aria-describedby="tour-x" tabindex="-1">'+
+      '<div class="tour-cont" id="tour-cont"></div><h2 id="tour-t"></h2><p id="tour-x"></p>'+
+      '<div class="tour-act"><button type="button" class="btn ghost small" data-tour="pular">Pular tutorial</button><span class="tour-sp"></span>'+
+      '<button type="button" class="btn small" data-tour="voltar">Voltar</button><button type="button" class="btn primary small" data-tour="prox">Próximo</button></div>'+
+    '</div>';
+  document.body.appendChild(root);
+  const app = document.querySelector(".app"); if(app) app.inert = true;
+  const spot = root.querySelector(".tour-spot"), pop = root.querySelector(".tour-pop");
+  function posiciona(){
+    const vw = document.documentElement.clientWidth, vh = window.innerHeight, M = 12;
+    if(!alvo){ spot.hidden = true; root.classList.add("sem-alvo"); pop.classList.add("centro"); pop.style.top = ""; pop.style.left = ""; return; }
+    spot.hidden = false; root.classList.remove("sem-alvo"); pop.classList.remove("centro");
+    const r = alvo.getBoundingClientRect();
+    const t = Math.max(r.top - 6, 4), l = Math.max(r.left - 6, 4), d = Math.min(r.right + 6, vw - 4);
+    let b = Math.min(r.bottom + 6, vh - 4);
+    const ph = pop.offsetHeight, pw = pop.offsetWidth;
+    let y, x = Math.min(Math.max(8, r.left + r.width/2 - pw/2), vw - pw - 8);
+    if(t - ph - M >= 8) y = t - ph - M;                    // acima da função (preferido)
+    else if(b + M + ph <= vh - 8) y = b + M;               // abaixo, se faltar espaço em cima
+    else if(d + M + pw <= vw - 8){ x = d + M; y = Math.min(Math.max(8, t), vh - ph - 8); }   // ao lado (ex.: menu lateral do computador)
+    else if(vh - ph - M - 8 - t >= 80){ b = vh - ph - M - 8; y = b + M; }   // cartão alto: destaca só o começo dele e o balão vem logo abaixo
+    else y = Math.max(8, vh - ph - 8);                     // sem espaço nenhum: balão no rodapé, por cima
+    spot.style.top = t+"px"; spot.style.left = l+"px"; spot.style.width = Math.max(d - l, 0)+"px"; spot.style.height = Math.max(b - t, 0)+"px";
+    pop.style.top = Math.round(y)+"px"; pop.style.left = Math.round(Math.max(8, x))+"px";
+  }
+  function fixoNaTela(el){
+    for(let n = el; n && n !== document.body; n = n.parentElement){ const ps = getComputedStyle(n).position; if(ps === "fixed" || ps === "sticky") return true; }
+    return false;
+  }
+  function rola(){
+    if(!alvo){ window.scrollTo({top:0, behavior:"instant"}); return; }
+    if(fixoNaTela(alvo)) return;   // barra de navegação fixa: rolar não muda nada (e pode escondê-la no celular)
+    // deixa espaço para o balão acima: o topo da função fica logo abaixo da altura do balão
+    const r = alvo.getBoundingClientRect(), vh = window.innerHeight;
+    const desejado = Math.min(vh * 0.45, pop.offsetHeight + 28);
+    window.scrollTo({top: Math.max(0, window.scrollY + r.top - desejado), behavior:"instant"});
+  }
+  function mostra(){
+    const p = TOUR_PASSOS[i];
+    if(p.aba) showTab(p.aba);
+    alvo = tourAlvo(p);
+    root.querySelector("#tour-cont").textContent = "Passo "+(i+1)+" de "+TOUR_PASSOS.length;
+    root.querySelector("#tour-t").textContent = p.t;
+    root.querySelector("#tour-x").textContent = p.x;
+    root.querySelector('[data-tour="voltar"]').hidden = i === 0;
+    root.querySelector('[data-tour="prox"]').textContent = i === TOUR_PASSOS.length - 1 ? "Concluir" : "Próximo";
+    pop.classList.toggle("centro", !alvo);
+    rola();
+    posiciona();
+    // novas passadas: a aba recém-aberta e a barra do topo/rodapé terminam de se acomodar depois da rolagem
+    requestAnimationFrame(posiciona);
+    clearTimeout(tPos1); clearTimeout(tPos2);
+    tPos1 = setTimeout(posiciona, 180); tPos2 = setTimeout(posiciona, 480);
+    pop.focus({preventScroll:true});
+  }
+  function fim(){
+    clearTimeout(tPos1); clearTimeout(tPos2);
+    window.removeEventListener("resize", posiciona); window.removeEventListener("scroll", posiciona);
+    document.removeEventListener("keydown", tecla, true);
+    root.remove();
+    if(app) app.inert = false;
+    tourAtivo = false;
+    marcarTutorial(true);   // concluído ou pulado: não repete (dá para rever em Configurações)
+    showTab("painel"); window.scrollTo({top:0, behavior:"instant"});
+    const tb = document.getElementById("tab-painel"); if(tb) tb.focus({preventScroll:true});
+    if(typeof depois === "function") setTimeout(depois, 300);
+  }
+  function tecla(e){
+    if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fim(); return; }
+    if(e.key === "ArrowRight" && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)){ e.preventDefault(); root.querySelector('[data-tour="prox"]').click(); return; }
+    if(e.key === "ArrowLeft" && i > 0){ e.preventDefault(); i--; mostra(); return; }
+    if(e.key === "Tab"){   // foco preso no balão
+      const it = Array.from(pop.querySelectorAll("button")).filter(x=> !x.hidden);
+      if(!it.length) return;
+      const a = it[0], z = it[it.length - 1];
+      if(e.shiftKey && (document.activeElement === a || document.activeElement === pop)){ e.preventDefault(); z.focus(); }
+      else if(!e.shiftKey && document.activeElement === z){ e.preventDefault(); a.focus(); }
+      else if(!pop.contains(document.activeElement)){ e.preventDefault(); a.focus(); }
+    }
+  }
+  root.addEventListener("click", (e)=>{
+    const b = e.target.closest("[data-tour]"); if(!b) return;
+    if(b.dataset.tour === "pular") fim();
+    else if(b.dataset.tour === "voltar"){ if(i > 0){ i--; mostra(); } }
+    else if(i < TOUR_PASSOS.length - 1){ i++; mostra(); }
+    else fim();
+  });
+  window.addEventListener("resize", posiciona); window.addEventListener("scroll", posiciona, {passive:true});
+  document.addEventListener("keydown", tecla, true);
+  mostra();
 }
 
 /* ============================================================
