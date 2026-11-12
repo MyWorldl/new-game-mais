@@ -2172,6 +2172,7 @@ function renderMetaSemana(){
   box.hidden = sm.cap === 0;
   if(sm.cap === 0) return;
   document.getElementById("wg-val").textContent = sm.meta;
+  const wc = document.getElementById("wg-count"); if(wc) wc.textContent = sm.feitos+"/"+sm.meta;
   document.getElementById("wg-minus").disabled = sm.meta <= 1;
   document.getElementById("wg-plus").disabled = sm.meta >= diasAtivos().length;
   let pips = "";
@@ -2343,7 +2344,7 @@ function salvarHabitos(){
   render();
   showToast(Object.keys(hab).length ? "Hábitos de "+fmtDateBR(iso)+" salvos." : "Hábitos de "+fmtDateBR(iso)+" removidos.");
 }
-/* NG+ — grade de hábitos das últimas 12 semanas. Só leitura de checkins/<iso>.hab (inclui o novo campo opcional "agua").
+/* NG+ — grade de hábitos das últimas 12 semanas. Só leitura de checkins/<iso>.hab (inclui o campo opcional "agua").
    Cada quadradinho é uma semana; o número é quantos dias daquela semana tiveram o hábito registrado (sem meta, sem culpa). */
 const HAB_GRADE = [
   {k:"sono",   nome:"Sono"},
@@ -2351,19 +2352,18 @@ const HAB_GRADE = [
   {k:"cardio", nome:"Cárdio leve"},
   {k:"agua",   nome:"Água"}
 ];
+const HAB_MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function renderGradeHabitos(){
   const box = document.getElementById("hab-grade");
   if(!box) return;
   const hoje = todayISO();
   const seg0 = addDaysISO(mondayOfISO(hoje), -7*11);
   const semanas = [];
-  for(let w = 0; w < 12; w++){
-    const ini = addDaysISO(seg0, w*7);
-    semanas.push(ini);
-  }
-  const html = HAB_GRADE.map(h=>{
-    let total = 0;
-    const cels = semanas.map(ini=>{
+  for(let w = 0; w < 12; w++) semanas.push(addDaysISO(seg0, w*7));
+  const nvDe = c => c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3;
+  const dias = c => c+(c === 1 ? " dia" : " dias");
+  const dados = HAB_GRADE.map(h=>{
+    const cont = semanas.map(ini=>{
       let c = 0;
       for(let i = 0; i < 7; i++){
         const iso = addDaysISO(ini, i);
@@ -2371,21 +2371,42 @@ function renderGradeHabitos(){
         const x = habDe(iso);
         if(x && x[h.k] != null) c++;
       }
-      total += c;
-      const nv = c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3;
-      const rot = "Semana de "+fmtDateBR(ini)+": "+c+(c === 1 ? " dia" : " dias")+" com registro";
-      return '<span class="hg-c l'+nv+'" role="listitem" aria-label="'+rot+'" title="'+rot+'">'+(c ? c : "")+'</span>';
+      return c;
+    });
+    const total = cont.reduce((t,c)=> t+c, 0);
+    const max = Math.max.apply(null, cont);
+    let iBest = -1;
+    if(max > 0) for(let i = cont.length-1; i >= 0; i--) if(cont[i] === max){ iBest = i; break; }
+    const primeira = cont.findIndex(c=> c > 0);
+    const media = primeira >= 0 ? total/(12-primeira) : 0;
+    return {h, cont, total, max, iBest, media};
+  });
+  const lider = dados.slice().sort((a,b)=> b.total - a.total)[0];
+  const html = dados.map(d=>{
+    const cels = d.cont.map((c,w)=>{
+      const ini = semanas[w];
+      const rot = "Semana de "+fmtDateBR(ini)+": "+dias(c)+" com registro"+(w === 11 ? " (semana atual, em andamento)" : "")+(w === d.iBest ? " — sua semana mais constante" : "");
+      return '<span class="hg-c l'+nvDe(c)+(w === 11 ? ' now' : '')+(w === d.iBest ? ' best' : '')+'" role="listitem" aria-label="'+rot+'" title="'+rot+'">'+(c ? c : "")+'</span>';
     }).join("");
+    const st = d.total
+      ? '<div class="hg-st"><span>Esta semana <b>'+d.cont[11]+'</b></span><span>Média <b>'+num(d.media, 1)+'</b>/semana</span><span>Melhor <b>'+d.max+'</b> dias</span></div>'
+      : '';
     return '<div class="hg-row">'+
-      '<div class="hg-top"><b>'+h.nome+'</b><span>'+(total ? total+(total === 1 ? " dia registrado" : " dias registrados") : "sem registros ainda")+'</span></div>'+
-      '<div class="hg-cells" role="list" aria-label="'+h.nome+": dias com registro por semana, das últimas 12 semanas"+'">'+cels+'</div>'+
+      '<div class="hg-top"><b>'+d.h.nome+'</b><span>'+(d.total ? dias(d.total)+" registrados" : "sem registros ainda")+'</span></div>'+
+      '<div class="hg-cells" role="list" aria-label="'+d.h.nome+": dias com registro por semana, das últimas 12 semanas"+'">'+cels+'</div>'+st+
     '</div>';
   }).join("");
+  let mesAnt = -1;
+  const meses = semanas.map(ini=>{ const m = Number(ini.slice(5,7)) - 1; const novo = m !== mesAnt; mesAnt = m; return '<span>'+(novo ? HAB_MES[m] : '')+'</span>'; }).join("");
   box.innerHTML =
     '<h3 class="hg-h">Últimas 12 semanas</h3>'+
-    '<p class="hg-sub">Cada quadradinho é uma semana; o número mostra em quantos dias você registrou. Registrar já conta, não há meta.</p>'+
+    '<p class="hg-sub">Cada quadradinho é uma semana; o número mostra em quantos dias você registrou. Registrar já conta, não há meta.'+
+      (lider && lider.total ? ' Hábito que você mais registrou: <b>'+lider.h.nome+'</b>.' : '')+'</p>'+
     html+
-    '<div class="hg-eixo" aria-hidden="true"><span>há 12 semanas</span><span>esta semana</span></div>';
+    '<div class="hg-meses" aria-hidden="true">'+meses+'</div>'+
+    '<div class="hg-leg" aria-hidden="true"><span>Dias por semana:</span>'+
+      '<span class="hg-lg"><i class="hg-sw l0"></i>0</span><span class="hg-lg"><i class="hg-sw l1"></i>1–2</span><span class="hg-lg"><i class="hg-sw l2"></i>3–4</span><span class="hg-lg"><i class="hg-sw l3"></i>5–7</span>'+
+      '<span class="hg-lg"><i class="hg-sw now"></i>semana atual</span><span class="hg-lg"><i class="hg-sw best"></i>melhor semana</span></div>';
 }
 function renderHabitos(){
   const box = document.getElementById("hab-resumo");
@@ -2873,80 +2894,115 @@ function getCinturaEvolucao(){
   if(first.cinturaCm==null || last.cinturaCm==null) return null;
   return last.cinturaCm - first.cinturaCm;
 }
-/* ---- NG+ visual v2 · Fase 3: radar da Ficha de personagem (somente leitura; nenhum dado novo é salvo) ---- */
+/* ---- NG+ visual v4 · Ficha de personagem: atributos de RPG calculados só de dados reais (nenhum dado novo é salvo) ---- */
+function fichaDados(){
+  const hoje = todayISO(), ini30 = addDaysISO(hoje, -29);
+  const porEx = {};
+  Object.keys(state.checkins||{}).sort().forEach(iso=>{
+    const c = state.checkins[iso]; if(!c || !c.cargas) return;
+    Object.keys(c.cargas).forEach(nome=>{
+      const peso = Number(c.cargas[nome]); if(!(peso > 0)) return;
+      (porEx[nome] = porEx[nome] || []).push({iso, peso});
+    });
+  });
+  const exs = Object.keys(porEx).map(nome=>{
+    const h = porEx[nome], pr = Math.max.apply(null, h.map(x=>x.peso));
+    const prIso = h.filter(x=>x.peso === pr)[0].iso;
+    return {nome, n:h.length, pr, prIso, last:h[h.length-1].peso, novo: prIso >= ini30 && h.some(x=>x.iso < prIso)};
+  });
+  const comHist = exs.filter(e=> e.n >= 2);
+  const forca = comHist.length ? Math.round(100*comHist.reduce((t,e)=> t + Math.min(1, e.last/e.pr), 0)/comHist.length) : 0;
+  const top = exs.slice().sort((a,b)=> b.pr - a.pr || (a.nome < b.nome ? -1 : 1));
+  // séries: feitas x previstas (treinos agendados dos últimos 30 dias, com a rotina atual) e séries de ouro
+  let sPrev = 0, sFeito = 0, ouros = 0, exSess = 0;
+  activeDaysInRange(ini30, hoje).filter(iso=> iso < hoje || state.checkins[iso]).forEach(iso=>{
+    const c = state.checkins[iso];
+    const dia = state.rotina[(c && c.dia) || dayKeyFromISO(iso)];
+    ((dia && dia.exercicios) || []).forEach((ex,i)=>{
+      sPrev += Math.max(1, Number(ex.series)||1);
+      if(c){ const e = estadoEx(c, i, ex); sFeito += Math.min(e.n, Math.max(1, Number(ex.series)||1)); }
+    });
+  });
+  Object.keys(state.checkins||{}).forEach(iso=>{
+    if(iso < ini30 || iso > hoje) return;
+    const c = state.checkins[iso]; if(!c) return;
+    const dia = state.rotina[c.dia || treinoKey(iso)];
+    ((dia && dia.exercicios) || []).forEach((ex,i)=>{
+      const sets = setsDe(c, i, ex); if(!sets.length) return;
+      exSess++; ouros += rankSeries(sets).filter(m=> m.k === "ouro").length;
+    });
+  });
+  return {exs, top, maiorCarga: top[0] || null, forca, nComHist: comHist.length, recordes30: exs.filter(e=> e.novo).sort((a,b)=> b.prIso < a.prIso ? -1 : 1), sPrev, sFeito, ouros, exSess};
+}
 function radarAxes(){
-  const today = todayISO();
-  // 1) Consistência — treinos feitos / agendados nos últimos 30 dias
+  const today = todayISO(), f = fichaDados();
   const sched30 = activeDaysInRange(addDaysISO(today, -29), today);
   const done30 = sched30.filter(iso=> state.checkins[iso]?.concluido).length;
-  // 2) Semana — treinos feitos / treinos ativos da semana corrente (seg–dom)
-  const wk = weekRange(today);
-  const wkAtivos = wk.filter(iso=> state.rotina[dayKeyFromISO(iso)]?.ativo);
-  const wkDone = wkAtivos.filter(iso=> state.checkins[iso]?.concluido).length;
-  // 3) Hábitos — dias com algum hábito registrado nos últimos 7 dias
   let habDias = 0;
-  for(let i=0;i<7;i++){ if(habDe(addDaysISO(today, -i))) habDias++; }
-  // 4) Medições — semanas (das últimas 4) com pelo menos uma medição
+  for(let i=0;i<14;i++){ if(habDe(addDaysISO(today, -i))) habDias++; }
   const medIsos = Object.keys(state.medicoes||{});
   let medSem = 0;
   for(let w=0; w<4; w++){
     const a = addDaysISO(today, -(7*w+6)), b = addDaysISO(today, -7*w);
     if(medIsos.some(iso=> iso>=a && iso<=b)) medSem++;
   }
-  // 5) Patente — progresso dentro da patente atual
-  const info = computeNivelInfo();
-  const patPct = info.isMax ? 100 : Math.min(100, Math.round((info.xpInTier/info.tierNeed)*100));
   const pct = (a,b)=> b>0 ? Math.round(Math.min(1, a/b)*100) : 0;
   return [
-    {k:"Consistência", v:pct(done30, sched30.length), sub: sched30.length ? done30+" de "+sched30.length+" treinos em 30 dias" : "sem treinos agendados ainda"},
-    {k:"Semana", v:pct(wkDone, wkAtivos.length), sub: wkAtivos.length ? wkDone+" de "+wkAtivos.length+" treinos desta semana" : "sem treinos nesta semana"},
-    {k:"Hábitos", v:pct(habDias, 7), sub: habDias+" de 7 dias com hábitos registrados"},
-    {k:"Medições", v:pct(medSem, 4), sub: medSem+" de 4 semanas com medição"},
-    {k:"Patente", v:patPct, sub: info.isMax ? "patente máxima atingida" : info.tierName+" · "+num(info.xpInTier)+" de "+num(info.tierNeed)+" XP"}
+    {k:"Força", ab:"FOR", v:f.forca, sub: f.nComHist ? "carga atual em "+f.forca+"% do seu pico (média de "+f.nComHist+" exercício"+(f.nComHist===1?"":"s")+")" : "registre cargas em 2 ou mais treinos"},
+    {k:"Resistência", ab:"RES", v:pct(f.sFeito, f.sPrev), sub: f.sPrev ? f.sFeito+" de "+f.sPrev+" séries previstas em 30 dias" : "sem treinos agendados ainda"},
+    {k:"Disciplina", ab:"DIS", v:pct(done30, sched30.length), sub: sched30.length ? done30+" de "+sched30.length+" treinos em 30 dias" : "sem treinos agendados ainda"},
+    {k:"Vitalidade", ab:"VIT", v:pct(habDias, 14), sub: habDias+" de 14 dias com hábitos registrados"},
+    {k:"Foco", ab:"FOC", v:pct(medSem, 4), sub: medSem+" de 4 semanas com medição"}
   ];
 }
 function renderRadar(){
   const el = document.getElementById("attrs-radar");
   if(!el) return;
-  const axes = radarAxes();
+  const axes = radarAxes(), f = fichaDados();
   const W = 360, H = 270, cx = 180, cy = 142, R = 88, n = axes.length;
   const ang = i => (-90 + i*360/n) * Math.PI/180;
   const pt = (i, r) => [cx + r*Math.cos(ang(i)), cy + r*Math.sin(ang(i))];
-  const f = v => (Math.round(v*10)/10);
-  const ring = frac => axes.map((_,i)=>{ const p = pt(i, R*frac); return f(p[0])+","+f(p[1]); }).join(" ");
+  const fx = v => (Math.round(v*10)/10);
+  const ring = frac => axes.map((_,i)=>{ const p = pt(i, R*frac); return fx(p[0])+","+fx(p[1]); }).join(" ");
   let svg = '<svg class="radar-svg" viewBox="0 0 '+W+' '+H+'" aria-hidden="true" focusable="false">';
   [0.25,0.5,0.75,1].forEach(fr=>{ svg += '<polygon class="radar-ring'+(fr===1?' outer':'')+'" points="'+ring(fr)+'"/>'; });
-  axes.forEach((_,i)=>{ const p = pt(i, R); svg += '<line class="radar-spoke" x1="'+cx+'" y1="'+cy+'" x2="'+f(p[0])+'" y2="'+f(p[1])+'"/>'; });
-  const poly = axes.map((a,i)=>{ const p = pt(i, R*Math.max(a.v,3)/100); return f(p[0])+","+f(p[1]); }).join(" ");
+  axes.forEach((_,i)=>{ const p = pt(i, R); svg += '<line class="radar-spoke" x1="'+cx+'" y1="'+cy+'" x2="'+fx(p[0])+'" y2="'+fx(p[1])+'"/>'; });
+  const poly = axes.map((a,i)=>{ const p = pt(i, R*Math.max(a.v,3)/100); return fx(p[0])+","+fx(p[1]); }).join(" ");
   svg += '<polygon class="radar-area" points="'+poly+'"/>';
-  axes.forEach((a,i)=>{ const p = pt(i, R*Math.max(a.v,3)/100); svg += '<circle class="radar-dot" cx="'+f(p[0])+'" cy="'+f(p[1])+'" r="4"/>'; });
+  axes.forEach((a,i)=>{ const p = pt(i, R*Math.max(a.v,3)/100); svg += '<circle class="radar-dot" cx="'+fx(p[0])+'" cy="'+fx(p[1])+'" r="4"/>'; });
   axes.forEach((a,i)=>{
     const p = pt(i, R+14), c = Math.cos(ang(i));
     const anchor = Math.abs(c) < 0.2 ? "middle" : (c > 0 ? "start" : "end");
     const dy = (i===0) ? -14 : (Math.sin(ang(i)) > 0.5 ? 6 : -4);
-    svg += '<text class="radar-lbl" x="'+f(p[0])+'" y="'+f(p[1]+dy)+'" text-anchor="'+anchor+'">'+escapeHtml(a.k)+'<tspan class="radar-val" x="'+f(p[0])+'" dy="14">'+a.v+'%</tspan></text>';
+    svg += '<text class="radar-lbl" x="'+fx(p[0])+'" y="'+fx(p[1]+dy)+'" text-anchor="'+anchor+'">'+a.ab+'<tspan class="radar-val" x="'+fx(p[0])+'" dy="14">'+a.v+'%</tspan></text>';
   });
   svg += '</svg>';
+  const dom = axes.slice().sort((a,b)=> b.v - a.v)[0];
+  const info = computeNivelInfo();
+  const patPct = info.isMax ? 100 : Math.min(100, Math.round((info.xpInTier/info.tierNeed)*100));
+  const head = '<div class="fi-head"><div class="fi-pat"><span class="fi-eb">Patente</span><b>'+escapeHtml(info.tierName)+'</b></div>'+
+    '<div class="fi-xp"><div class="radar-li-bar" role="img" aria-label="Progresso na patente: '+patPct+'%"><i style="width:'+patPct+'%"></i></div><small>'+(info.isMax ? "patente máxima atingida" : num(info.xpInTier)+" de "+num(info.tierNeed)+" XP")+'</small></div>'+
+    (dom && dom.v > 0 ? '<div class="fi-dom"><span class="fi-eb">Atributo dominante</span><b>'+escapeHtml(dom.k)+'</b></div>' : '')+'</div>';
   const list = '<ul class="radar-list" aria-label="Atributos da ficha de personagem">'+axes.map(a=>
-    '<li><div class="radar-li-top"><span>'+escapeHtml(a.k)+'</span><b>'+a.v+'%</b></div>'+
+    '<li><div class="radar-li-top"><span><em class="ab">'+a.ab+'</em>'+escapeHtml(a.k)+'</span><b><i class="nv">Nv '+Math.max(1, Math.ceil(a.v/20))+'</i>'+a.v+'%</b></div>'+
     '<div class="radar-li-bar" aria-hidden="true"><i style="width:'+a.v+'%"></i></div>'+
     '<small>'+escapeHtml(a.sub)+'</small></li>').join("")+'</ul>';
-  el.innerHTML = svg + list;
+  const hall = f.top.length
+    ? '<div class="radar-hall"><h3>Hall de cargas</h3><ol>'+f.top.slice(0,3).map((e,i)=>
+        '<li><i class="sl-dot sl-'+MEDALHAS[i].k+'" aria-hidden="true"></i><span class="hn"><span class="sr-only">'+(i+1)+'º lugar: </span>'+escapeHtml(e.nome)+'</span><b>'+fmtKg(e.pr)+' kg</b><small>'+fmtDateBR(e.prIso)+'</small></li>').join("")+'</ol></div>'
+    : '<div class="radar-hall"><h3>Hall de cargas</h3><p class="hint">Registre cargas nos treinos para montar o seu Hall.</p></div>';
+  el.innerHTML = head + svg + list + hall;
 }
 function renderAttrs(){
   const el = document.getElementById("attrs-grid");
   if(!el) return;
-  const today = todayISO();
-  const scheduled = activeDaysInRange(addDaysISO(today, -29), today);
-  const done = scheduled.filter(iso=> state.checkins[iso]?.concluido).length;
-  const consistPct = scheduled.length ? Math.round((done/scheduled.length)*100) : null;
-  const bestCarga = getBestCargaGlobal();
-  const cinturaDelta = getCinturaEvolucao();
-
+  const f = fichaDados(), m = f.maiorCarga;
+  const tile = (ic, val, lab, sub) => '<div class="attr-tile"><span class="attr-ic" aria-hidden="true">'+ic+'</span><span class="attr-val">'+val+'</span><span class="attr-label">'+lab+'</span><span class="attr-sub">'+sub+'</span></div>';
+  const rec = f.recordes30;
   el.innerHTML =
-    '<div class="attr-tile"><span class="attr-ic" aria-hidden="true">'+ICON_BOLT+'</span><span class="attr-val">'+(consistPct==null?"—":consistPct+"%")+'</span><span class="attr-label">Consistência</span><span class="attr-sub">'+(scheduled.length? done+" de "+scheduled.length+" nos últimos 30 dias" : "sem treinos agendados ainda")+'</span></div>'+
-    '<div class="attr-tile"><span class="attr-ic" aria-hidden="true">'+ICON_DUMBBELL+'</span><span class="attr-val">'+(bestCarga? fmtKg(bestCarga.peso)+" kg" : "—")+'</span><span class="attr-label">Força</span><span class="attr-sub">'+(bestCarga? escapeHtml(bestCarga.nome) : "registre uma carga no treino")+'</span></div>'+
-    '<div class="attr-tile"><span class="attr-ic'+(cinturaDelta==null?"":(cinturaDelta<=0?" good":" warn"))+'" aria-hidden="true">'+(cinturaDelta==null?ICON_TAPE:(cinturaDelta<=0?ICON_TREND_DN:ICON_TREND_UP))+'</span><span class="attr-val">'+(cinturaDelta==null?"—":(cinturaDelta>0?"+":"")+num(cinturaDelta,1)+" cm")+'</span><span class="attr-label">Evolução</span><span class="attr-sub">'+(cinturaDelta==null?"registre 2+ medições de cintura":"cintura desde a 1ª medição")+'</span></div>';
+    tile(ICON_DUMBBELL, m ? fmtKg(m.pr)+" kg" : "—", "Maior carga", m ? escapeHtml(m.nome) : "registre uma carga no treino") +
+    tile(ICON_TROPHY, String(rec.length), "Recordes em 30 dias", rec.length ? escapeHtml(rec.slice(0,2).map(r=>r.nome).join(", "))+(rec.length > 2 ? " e +"+(rec.length-2) : "") : "bata uma carga nova e ela aparece aqui") +
+    tile(ICON_BOLT, String(f.ouros), "Séries de ouro em 30 dias", f.exSess ? "em "+f.exSess+" exercício"+(f.exSess===1?"":"s")+" registrado"+(f.exSess===1?"":"s") : "registre séries no treino");
 }
 
 /* ============================================================
@@ -3985,6 +4041,24 @@ document.getElementById("btn-share-streak").addEventListener("click", ()=>{
   });
 });
 
+/* "Treino de hoje" ou "Próximo treino" no cartão Esta semana */
+function renderProximoTreino(){
+  const el = document.getElementById("wk-next");
+  if(!el) return;
+  const hoje = todayISO();
+  let achou = null;
+  for(let i = 0; i < 14 && !achou; i++){
+    const iso = addDaysISO(hoje, i), dia = state.rotina[treinoKey(iso)];
+    if(!dia || !dia.ativo) continue;
+    if(i === 0 && state.checkins[iso] && state.checkins[iso].concluido) continue;
+    achou = {iso, dia, i};
+  }
+  if(!achou){ el.hidden = true; el.innerHTML = ""; return; }
+  const wd = dayKeyFromISO(achou.iso), nEx = (achou.dia.exercicios || []).length;
+  const rot = achou.i === 0 ? "Treino de hoje" : (achou.i === 1 ? "Próximo treino · amanhã" : "Próximo treino");
+  el.innerHTML = '<span class="wk-next-l">'+rot+'</span><b>'+DAY_FULL[wd]+' — '+escapeHtml(achou.dia.nome || "")+'</b><small>'+nEx+' exercício'+(nEx === 1 ? '' : 's')+'</small>';
+  el.hidden = false;
+}
 function renderWeekDots(){
   const days = weekRange(todayISO());
   const wrap = document.getElementById("week-dots");
@@ -4001,7 +4075,8 @@ function renderWeekDots(){
     const el = document.createElement("div");
     el.className = "dot" + (isDone?" done":"") + (isDone && state.checkins[iso].leve ? " leve" : "") + (!ativo?" rest":"") + (isToday?" today":"") + (isFrozen?" frozen":"");
     const wd = dayKeyFromISO(iso);
-    if(isFrozen) el.innerHTML = ic("snow"); else el.textContent = DAY_LABEL[wd][0];
+    const glifo = isFrozen ? ic("snow") : (isDone ? "✓" : (ativo ? "·" : ""));
+    el.innerHTML = '<span class="d-n">'+DAY_LABEL[wd]+'</span><span class="d-s" aria-hidden="true">'+glifo+'</span>';
     el.title = DAY_FULL[wd] + (isFrozen ? " — protegido por congelamento" : (ativo ? (isDone ? (state.checkins[iso].leve ? " — dia leve" : " — concluído") : " — pendente") : " — descanso"));
     wrap.appendChild(el);
   });
@@ -4029,6 +4104,10 @@ function renderWeekDots(){
   // anéis concêntricos: semana (externo) e mês (interno)
   setRing("ring-week", 88, pct);
   setRing("ring-month", 64, mpct);
+  const bw = document.getElementById("wk-bar-w"); if(bw) bw.style.width = pct+"%";
+  const bm = document.getElementById("wk-bar-m"); if(bm) bm.style.width = mpct+"%";
+  const rg = document.getElementById("wk-range"); if(rg) rg.textContent = fmtDateBR(days[0])+" – "+fmtDateBR(days[6]);
+  renderProximoTreino();
 
   // mensagem de status da semana (preenche o rodapé do card)
   const statusEl = document.getElementById("week-status");
@@ -6537,24 +6616,44 @@ function allActiveExercises(){
   return list;
 }
 
+/* "há 3 dias" / "ontem" / "hoje" para a data da última carga */
+function cargaQuando(iso){
+  const d = Math.round((new Date(todayISO()+"T12:00:00") - new Date(iso+"T12:00:00"))/864e5);
+  if(d <= 0) return "hoje";
+  if(d === 1) return "ontem";
+  if(d < 31) return "há "+d+" dias";
+  return fmtDateBR(iso);
+}
+/* séries da última sessão do exercício, coloridas pelo ranking (ouro, prata, bronze, cinza) */
+function cargaMedalhasHtml(ex, iso){
+  const c = state.checkins[iso]; if(!c) return "";
+  const dia = state.rotina[c.dia || treinoKey(iso)];
+  const lista = (dia && dia.exercicios) || [];
+  const idx = lista.findIndex(e=> e.nome === ex.nome);
+  if(idx < 0) return "";
+  const sets = setsDe(c, idx, lista[idx]);
+  if(!sets.length) return "";
+  const rk = rankSeries(sets), seg = faixaDeReps(lista[idx].reps).unid === "s";
+  return '<div class="carga-sets" role="group" aria-label="Séries da última sessão, coloridas pelo ranking: ouro, prata, bronze e cinza"><span class="carga-sets-t">Última sessão</span>'+
+    sets.map((s,k)=>'<span class="cs sl-'+rk[k].k+'" title="'+(k+1)+'ª série: '+s.r+(seg?' s':' reps')+' — '+rk[k].t+'">'+s.r+(seg?' s':'')+'</span>').join("")+'</div>';
+}
 function cargaSparklineHtml(hist){
-  const w = 56, h = 22, padX = 3, padY = 3;
-  if(hist.length<2){
-    if(hist.length===1){
-      return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><line class="no-data" x1="'+padX+'" y1="'+(h/2)+'" x2="'+(w-padX)+'" y2="'+(h/2)+'"/><circle cx="'+(w-padX)+'" cy="'+(h/2)+'" r="2.4"/></svg>';
-    }
-    return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><line class="no-data" x1="'+padX+'" y1="'+(h/2)+'" x2="'+(w-padX)+'" y2="'+(h/2)+'"/></svg>';
+  const w = 104, h = 32, padX = 5, padY = 6;
+  const dados = hist.slice(-8), n = dados.length;
+  if(n < 2){
+    const base = '<line class="no-data" x1="'+padX+'" y1="'+(h/2)+'" x2="'+(w-padX)+'" y2="'+(h/2)+'"/>';
+    return '<svg viewBox="0 0 '+w+' '+h+'">'+base+(n === 1 ? '<circle class="last" cx="'+(w-padX)+'" cy="'+(h/2)+'" r="3"/>' : '')+'</svg>';
   }
-  const pesos = hist.map(h=>h.peso);
-  const min = Math.min(...pesos), max = Math.max(...pesos);
-  const range = (max-min) || 1;
-  const n = pesos.length;
-  const pts = pesos.map((p,i)=>{
-    const x = padX + (i/(n-1))*(w-padX*2);
-    const y = h-padY - ((p-min)/range)*(h-padY*2);
-    return x.toFixed(1)+","+y.toFixed(1);
-  }).join(" ");
-  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><polyline points="'+pts+'"/></svg>';
+  const pesos = dados.map(d=>d.peso);
+  const min = Math.min(...pesos), max = Math.max(...pesos), range = (max-min) || 1;
+  const X = i => padX + (i/(n-1))*(w-padX*2);
+  const Y = p => h-padY - ((p-min)/range)*(h-padY*2);
+  const pts = pesos.map((p,i)=> X(i).toFixed(1)+","+Y(p).toFixed(1));
+  const area = 'M'+X(0).toFixed(1)+','+(h-1)+' L'+pts.join(' L')+' L'+X(n-1).toFixed(1)+','+(h-1)+' Z';
+  let iPr = -1; pesos.forEach((p,i)=>{ if(p === max) iPr = i; });
+  return '<svg viewBox="0 0 '+w+' '+h+'"><path class="area" d="'+area+'"/><polyline points="'+pts.join(" ")+'"/>'+
+    (iPr !== n-1 ? '<circle class="pr" cx="'+X(iPr).toFixed(1)+'" cy="'+Y(max).toFixed(1)+'" r="3.2"/>' : '')+
+    '<circle class="last" cx="'+X(n-1).toFixed(1)+'" cy="'+Y(pesos[n-1]).toFixed(1)+'" r="3.2"/></svg>';
 }
 
 function updateCargaChartExercise(exList){
@@ -6692,27 +6791,31 @@ function renderCargas(){
     const rows = day.exercicios.map(ex=>{
       const hist = getCargaHistory(ex.nome);
       const isSelected = ex.nome === cargaChartExercise;
-      const sparkHtml = '<div class="carga-spark">'+cargaSparklineHtml(hist)+'</div>';
+      const nomeH = '<span class="carga-name">'+escapeHtml(ex.nome)+'</span>';
       if(!hist.length){
-        return '<div class="carga-row'+(isSelected?' selected':'')+'" data-ex="'+escapeHtml(ex.nome)+'"><span class="carga-name">'+escapeHtml(ex.nome)+'</span>'+
-          sparkHtml+
-          '<div class="carga-stats"><span class="hint">Sem registro ainda</span></div></div>';
+        return '<div class="carga-row sem-reg'+(isSelected?' selected':'')+'" data-ex="'+escapeHtml(ex.nome)+'"><div class="carga-head">'+nomeH+'</div>'+
+          '<div class="carga-stats"><span class="hint">Sem registro ainda — a 1ª carga vira a sua referência.</span></div></div>';
       }
-      const last = hist[hist.length-1].peso;
+      const lastH = hist[hist.length-1], last = lastH.peso;
       const pr = Math.max(...hist.map(h=>h.peso));
-      let trendHtml = '<span class="carga-trend flat">— estável</span>';
+      const prH = hist.filter(h=>h.peso===pr)[0];
+      const ehPr = hist.length >= 2 && last >= pr;
+      let trendHtml = hist.length >= 2 ? '<span class="carga-trend flat" title="Igual à sessão anterior">— estável</span>' : '';
       if(hist.length>=2){
         const prev = hist[hist.length-2].peso;
-        if(last>prev) trendHtml = '<span class="carga-trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>+'+fmtKg(last-prev)+' kg</span>';
-        else if(last<prev) trendHtml = '<span class="carga-trend down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>'+fmtKg(last-prev)+' kg</span>';
+        if(last>prev) trendHtml = '<span class="carga-trend up" title="Em relação à sessão anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>+'+fmtKg(last-prev)+' kg</span>';
+        else if(last<prev) trendHtml = '<span class="carga-trend down" title="Em relação à sessão anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>'+fmtKg(last-prev)+' kg</span>';
       }
-      return '<div class="carga-row'+(isSelected?' selected':'')+'" data-ex="'+escapeHtml(ex.nome)+'"><span class="carga-name">'+escapeHtml(ex.nome)+'</span>'+
-        sparkHtml+
+      const pctPr = pr > 0 ? Math.min(100, Math.round(last/pr*100)) : 100;
+      const barHtml = (hist.length >= 2 && !ehPr)
+        ? '<div class="carga-pctr"><div class="carga-pctr-bar" role="img" aria-label="Última carga: '+pctPr+'% do recorde"><i style="width:'+pctPr+'%"></i></div><small>'+pctPr+'% do recorde</small></div>' : '';
+      return '<div class="carga-row'+(isSelected?' selected':'')+(ehPr?' is-pr':'')+'" data-ex="'+escapeHtml(ex.nome)+'">'+
+        '<div class="carga-head">'+nomeH+(ehPr?'<span class="carga-pr">'+ICON_TROPHY+'Recorde</span>':'')+trendHtml+'</div>'+
+        '<div class="carga-body"><div class="carga-spark" aria-hidden="true">'+cargaSparklineHtml(hist)+'</div>'+
         '<div class="carga-stats">'+
-          '<div class="carga-stat"><b>'+fmtKg(last)+' kg</b><span>Última</span></div>'+
-          '<div class="carga-stat"><b>'+fmtKg(pr)+' kg</b><span>Recorde</span></div>'+
-          trendHtml+
-        '</div></div>';
+          '<div class="carga-stat"><b>'+fmtKg(last)+' kg</b><span>Última · '+cargaQuando(lastH.iso)+'</span></div>'+
+          '<div class="carga-stat"><b>'+fmtKg(pr)+' kg</b><span>Recorde · '+fmtDateBR(prH.iso)+'</span></div>'+
+        '</div></div>'+barHtml+cargaMedalhasHtml(ex, lastH.iso)+'</div>';
     }).join("");
     const aberto = cargasAbertos.has(key);
     const nEx = day.exercicios.length;
@@ -7394,6 +7497,27 @@ let medPeriodo = "all";   // v88 C1: "30" | "90" | "365" | "all"
 let medLinhasVisiveis = [];   // v88 C1: o que está na tela agora (base do CSV)
 let medVtNames = false;   // v85: true só durante a transição de ordenação (nomes de view-transition nas linhas)
 const MED_SORT_LABEL = {data:"Data", peso:"Peso", cintura:"Cintura", quadril:"Quadril", imc:"IMC", rcq:"RCQ", bf:"% Gordura"};
+/* resumo do período (acima da tabela): valor mais recente e variação desde a 1ª medição do período */
+function renderMedResumo(linhas){
+  const box = document.getElementById("med-resumo");
+  if(!box) return;
+  if(!linhas.length){ box.hidden = true; box.innerHTML = ""; return; }
+  const a = linhas[0], b = linhas[linhas.length-1], varias = linhas.length > 1;
+  const item = (rot, v, v0, un, dec) => {
+    if(v == null || !isFinite(v)) return "";
+    let d;
+    if(varias && v0 != null && isFinite(v0)){
+      const x = v - v0;
+      if(Math.abs(x) < Math.pow(10, -dec)/2) d = '<small class="mr-d flat">igual desde '+fmtDateBR(a.iso)+'</small>';
+      else d = '<small class="mr-d '+(x < 0 ? "down" : "up")+'">'+(x < 0 ? "▼ " : "▲ ")+num(Math.abs(x), dec)+(un ? " "+un : "")+' desde '+fmtDateBR(a.iso)+'</small>';
+    } else d = '<small class="mr-d flat">'+(varias ? "sem base para comparar" : "sua 1ª medição")+'</small>';
+    return '<div class="mr-i"><span class="mr-l">'+rot+'</span><b>'+num(v, dec)+(un ? '<i> '+un+'</i>' : '')+'</b>'+d+'</div>';
+  };
+  const html = item("Peso", b.peso, a.peso, "kg", 1) + item("Cintura", b.cintura, a.cintura, "cm", 1) +
+    item("% de gordura", b.bf, a.bf, "%", 1) + item("IMC", b.imc, a.imc, "", 1);
+  box.innerHTML = html;
+  box.hidden = !html;
+}
 function renderTabelaMedicoes(){
   const tbody = document.querySelector("#tabela-medicoes tbody");
   const empty = document.getElementById("tabela-empty");
@@ -7416,8 +7540,10 @@ function renderTabelaMedicoes(){
       rcq: calcRCQ(m.cinturaCm, m.quadrilCm),
       bf: p ? calcBFNavy(p.sexo, m.cinturaCm, m.quadrilCm, m.pescocoCm, p.alturaCm) : null,
       diff: (prev && prev.pesoKg!=null && m.pesoKg!=null) ? m.pesoKg - prev.pesoKg : null,
+      gap: prev ? Math.round((new Date(m.iso+"T12:00:00") - new Date(prev.iso+"T12:00:00"))/864e5) : null,
     };
   });
+  linhas.forEach((l,i)=>{ const a = linhas[i-1]; const d = (x,y)=> (a && x!=null && y!=null && isFinite(x) && isFinite(y)) ? x-y : null; l.dC = d(l.cintura, a && a.cintura); l.dQ = d(l.quadril, a && a.quadril); l.dB = d(l.bf, a && a.bf); });
   // v88 C1: filtro de período (a variação ▲▼ acima já foi calculada contra a medição anterior de verdade, então não muda)
   const totalLinhas = linhas.length;
   if(medPeriodo !== "all"){
@@ -7432,6 +7558,7 @@ function renderTabelaMedicoes(){
   if(countEl) countEl.textContent = linhas.length === totalLinhas ? totalLinhas+" mediç"+(totalLinhas===1?"ão":"ões") : linhas.length+" de "+totalLinhas+" medições";
   if(vazioFiltro) vazioFiltro.hidden = linhas.length > 0;
   if(scrollBox) scrollBox.hidden = linhas.length === 0;
+  renderMedResumo(linhas.slice());
   const col = medSort.col, mult = medSort.dir === "asc" ? 1 : -1;
   const valOf = l => col === "data" ? l.iso : l[col];
   const vazio = v => v == null || v === "" || (typeof v === "number" && !isFinite(v));
@@ -7452,11 +7579,13 @@ function renderTabelaMedicoes(){
       const cls = l.diff<0 ? "down" : "up";
       delta = '<span class="hist-delta '+cls+'">'+(l.diff<0?"▼":"▲")+num(Math.abs(l.diff),1)+'</span>';
     }
+    const mini = (x, dec, neutro) => (x == null || Math.abs(x) < 0.05) ? '' : '<span class="hist-delta '+(neutro ? 'flat' : (x<0 ? 'down' : 'up'))+'">'+(x<0?'▼':'▲')+num(Math.abs(x),dec)+'</span>';
+    const flag = (l.diff != null && Math.abs(l.diff) >= 3 && l.gap != null && l.gap <= 14) ? '<span class="hist-flag" tabindex="0" role="img" aria-label="Variação grande desde a medição anterior; confira se digitou certo" title="Variação grande desde a medição anterior. Confira se digitou certo.">!</span>' : '';
     const td = (k, html) => '<td class="num'+(col===k?' is-sorted':'')+'">'+html+'</td>';
     const ano = l.iso.slice(0,4) !== anoAtual ? '/'+l.iso.slice(2,4) : '';   // ordenando por valor, linhas de anos diferentes se misturam
     return '<tr data-iso="'+l.iso+'"'+(medVtNames?' style="view-transition-name:mrow-'+l.iso+'"':'')+'><td'+(col==="data"?' class="is-sorted"':'')+'>'+fmtDateBR(l.iso)+ano+'</td>'+
-      td("peso", num(l.peso,1)+delta)+td("cintura", num(l.cintura,1))+td("quadril", num(l.quadril,1))+
-      td("imc", l.imc?num(l.imc,1):"—")+td("rcq", num(l.rcq,2))+td("bf", l.bf!=null?num(l.bf,1)+"%":"—")+'</tr>';
+      td("peso", num(l.peso,1)+delta+flag)+td("cintura", num(l.cintura,1)+mini(l.dC,1))+td("quadril", num(l.quadril,1)+mini(l.dQ,1,true))+
+      td("imc", l.imc?num(l.imc,1):"—")+td("rcq", num(l.rcq,2))+td("bf", l.bf!=null?num(l.bf,1)+"%"+mini(l.dB,1):"—")+'</tr>';
   }).join("");
   document.querySelectorAll("#tabela-medicoes th").forEach(th=>{
     const b = th.querySelector("[data-sort]");
