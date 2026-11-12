@@ -21,7 +21,7 @@ Site no ar: https://new-game-mais.sombrasplays.workers.dev
 6. A conferência é automática **depois de ativar o CI**: copie `fonte/ci/ci.yml` para `.github/workflows/ci.yml` (o Claude não consegue gravar nessa pasta protegida). O workflow refaz o build (o `site/` precisa estar em dia), roda os testes e, depois do push na `main`, espera o `sw.js` ao vivo mostrar a `VERSAO` nova.
 
 ## Segurança do site
-- CSP sem `unsafe-inline` em scripts e em `<style>`: todo script e todo CSS vêm de arquivos próprios (`script-src 'self'`, `style-src 'self'`); só atributos `style=""` seguem permitidos (`style-src-attr`). Por isso o app não usa `onclick=` nem cria `<style>` por script.
+- CSP sem `unsafe-inline` em scripts e em `<style>`: todo script e todo CSS vêm de arquivos próprios (`script-src 'self'`, mais o domínio `challenges.cloudflare.com` só para o widget Turnstile do login; `style-src 'self'`); só atributos `style=""` seguem permitidos (`style-src-attr`). Por isso o app não usa `onclick=` nem cria `<style>` por script.
 - O gancho de teste `window.__ngTest` só existe em `localhost`.
 - Erros do app ficam no aparelho (`reportar()` → Config → Diagnóstico); nada é enviado. Para ligar um RUM (Datadog) é preciso liberar o domínio na CSP, carregar o SDK e atualizar a política de privacidade: `reportar()` já repassa para `window.DD_RUM.addError` quando ele existir.
 

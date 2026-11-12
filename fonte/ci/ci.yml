@@ -85,7 +85,7 @@ jobs:
           s=https://new-game-mais.sombrasplays.workers.dev
           csp=$(curl -fsSI "$s/" | grep -i '^content-security-policy' || true)
           echo "$csp"
-          echo "$csp" | grep -q "script-src 'self';" || { echo "::error::CSP sem script-src 'self' estrito"; exit 1; }
+          echo "$csp" | grep -Eq "script-src 'self'( https://challenges\.cloudflare\.com)?;" || { echo "::error::CSP: script-src deve ser 'self' (+ só o Turnstile da Cloudflare)"; exit 1; }
           js=$(grep -o 'app\.[0-9a-f]*\.js' site/index.html | head -1)
           curl -fsSI "$s/$js" | grep -i '^cache-control' | grep -qi immutable || { echo "::error::$js sem cache immutable"; exit 1; }
           echo "ok: $js"

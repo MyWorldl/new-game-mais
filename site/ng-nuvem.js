@@ -21,6 +21,7 @@
   var KEY = "sb_publishable_vIVq8zRxpaB1FrWGi4U18w_2W3WmAq2";
   var REF = "gjoxrgnkwmjvcfiywtcs";
   var BUCKET = "fotos-progresso";
+  var TS_KEY = "0x4AAAAAAF9sIQ9t2NQabaoT";   // chave PÚBLICA do Cloudflare Turnstile (a secreta fica só no painel do Supabase)
 
   // chave de teste: só em localhost, para a bateria automática do app (não existe em produção)
   try { if (location.hostname === "localhost" && localStorage.getItem("ng_dev_semnuvem") === "1") return; } catch(e){}
@@ -44,10 +45,29 @@
     if (/failed to fetch|network|load failed|fetch/.test(m) || navigator.onLine === false) return "Sem conexão com a internet. Confira a rede e tente de novo.";
     if (/signups? not allowed|not allowed for otp|user not found/.test(m)) return "Este e-mail ainda não foi liberado no NG+. Peça o convite a quem administra o app.";
     if (/not authorized|email address not/.test(m)) return "O envio de e-mails ainda não está liberado para este endereço. Fale com quem administra o app.";
+    if (/captcha/.test(m)) return "A verificação de segurança não passou. Aguarde o selo \u201cConcluído\u201d aparecer e tente de novo. Se não carregar, desative bloqueadores de anúncio para este site ou troque de rede.";
     if (st === 429 || /rate limit|too many|seconds|security purposes/.test(m)) return "Muitos pedidos seguidos. Espere cerca de um minuto e tente de novo.";
     if (contexto === "codigo" && /expired|invalid|token/.test(m)) return "Código inválido ou vencido. Confira os números ou peça um novo e-mail.";
     if (/invalid.*email|unable to validate email/.test(m)) return "Esse e-mail não parece válido. Confira e tente de novo.";
     return contexto === "codigo" ? "Não consegui validar o código agora. Tente de novo." : "Não consegui enviar o e-mail agora. Tente de novo em instantes.";
+  }
+
+  /* ---------------- verificação "não sou robô" (Cloudflare Turnstile) ----------------
+     Analogia: o porteiro do prédio. Quase todo mundo passa sem nem perceber; só quem parece robô recebe um desafio.
+     O widget entrega um "crachá" (token) de uso único, que seguimos para o Supabase junto com o pedido do e-mail.
+     Se o porteiro não carregar (bloqueador de anúncios, rede restrita), ainda tentamos enviar: o Supabase decide. */
+  var tsPromessa = null;
+  function carregaTurnstile(){
+    if (tsPromessa) return tsPromessa;
+    tsPromessa = new Promise(function(resolve){
+      if (window.turnstile) { resolve(window.turnstile); return; }
+      var sc = document.createElement("script"), fim = setTimeout(function(){ resolve(null); }, 12000);
+      sc.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"; sc.async = true;
+      sc.onload = function(){ clearTimeout(fim); resolve(window.turnstile || null); };
+      sc.onerror = function(){ clearTimeout(fim); resolve(null); };
+      document.head.appendChild(sc);
+    });
+    return tsPromessa;
   }
 
   /* ---------------- sessão e tela de login ---------------- */
@@ -100,6 +120,7 @@
             '<p id="ng-login-p">Digite o e-mail liberado para você. Vamos enviar um link e um código de acesso — não precisa de senha.</p>' +
             '<form id="ng-login-f" novalidate>' +
               '<div><label for="ng-login-e">E-mail</label><input id="ng-login-e" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required></div>' +
+              '<div id="ng-login-ts"></div>' +
               '<div id="ng-login-cod" hidden><label for="ng-login-c">Código do e-mail</label><input id="ng-login-c" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]*" aria-describedby="ng-login-m"></div>' +
               '<button class="ng-btn" type="submit" id="ng-login-ok">Enviar link e código</button>' +
               '<button class="ng-btn ghost" type="button" id="ng-login-reenv" hidden>Reenviar e-mail</button>' +
@@ -114,6 +135,22 @@
         $("ng-login-pol").addEventListener("click", abrirPolitica);
         function msg(t, erro){ m.textContent = t || ""; m.className = "ng-login-m" + (erro ? " err" : ""); }
         function trava(b){ ok.disabled = b; reenv.disabled = b || cooldown > 0; }
+        var tsId = null, tsToken = null, tsFalhou = false, tsPronto = false;
+        carregaTurnstile().then(function(T){
+          if (!T) { tsFalhou = true; return; }
+          try {
+            tsId = T.render("#ng-login-ts", {
+              sitekey: TS_KEY, theme: "auto", size: "flexible", language: "pt-br",
+              callback: function(t){ tsToken = t; tsPronto = true; },
+              "expired-callback": function(){ tsToken = null; try { T.reset(tsId); } catch(e){} },
+              "error-callback": function(){ tsToken = null; tsFalhou = true; return true; }
+            });
+          } catch(e){ tsFalhou = true; }
+        });
+        function tsNovo(){   // o crachá vale uma vez só: pede outro para a próxima tentativa
+          tsToken = null;
+          try { if (window.turnstile && tsId !== null) { tsFalhou = false; window.turnstile.reset(tsId); } } catch(e){}
+        }
         function ticCool(){
           clearInterval(tCool);
           reenv.textContent = cooldown > 0 ? "Reenviar e-mail (" + cooldown + " s)" : "Reenviar e-mail";
@@ -130,15 +167,23 @@
           var e = inE.value.trim().toLowerCase();
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { msg("Digite um e-mail válido.", true); inE.focus(); return; }
           if (navigator.onLine === false) { msg("Sem internet. Conecte-se para entrar pela primeira vez neste aparelho.", true); return; }
+          if (!tsToken && !tsFalhou) {   // widget carregou mas ainda está conferindo: espera um pouco
+            trava(true); msg("Conferindo a verificação de segurança…");
+            for (var k = 0; k < 40 && !tsToken && !tsFalhou; k++) await sleep(250);
+            if (!tsToken && !tsFalhou) { msg("A verificação de segurança ainda não terminou. Aguarde um instante e toque de novo.", true); trava(false); return; }
+          }
           trava(true); msg("Enviando…");
           try {
-            var r = await client.auth.signInWithOtp({email: e, options: {shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname}});
+            var opts = {shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname};
+            if (tsToken) opts.captchaToken = tsToken;
+            var r = await client.auth.signInWithOtp({email: e, options: opts});
+            tsNovo();
             if (r.error) throw r.error;
             enviadoPara = e; cooldown = 30; ticCool();
             inE.readOnly = true; box.hidden = false; reenv.hidden = false; outro.hidden = false; ok.textContent = "Entrar com o código";
             p.textContent = "Enviamos um e-mail para " + e + ". Toque no link que veio nele ou digite aqui o código de números.";
             msg("E-mail enviado. Confira também a caixa de spam."); inC.focus();
-          } catch(err){ msg(msgErro(err, "email"), true); }
+          } catch(err){ tsNovo(); msg(msgErro(err, "email"), true); }
           trava(false);
         }
         f.addEventListener("submit", async function(ev){
