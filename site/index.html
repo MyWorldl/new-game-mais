@@ -839,6 +839,11 @@
       <div class="data-actions u-mt8">
         <button class="btn ghost" id="cfg-conta-sair" type="button">Sair da conta</button>
       </div>
+      <div class="u-mt8">
+        <label class="hint" for="cfg-relogin" style="display:block;margin-bottom:6px">Pedir e-mail e código de novo</label>
+        <select id="cfg-relogin" class="carga-chart-select" style="max-width:100%"><option value="0">Nunca (continuar conectado)</option><option value="30">Depois de 30 minutos fora do app</option><option value="480">Depois de 8 horas fora do app</option><option value="10080">Depois de 7 dias fora do app</option></select>
+        <div class="hint u-mt4" id="cfg-relogin-info" role="status"></div>
+      </div>
       <div class="hint u-mt8">Resetar apaga seus registros e fotos, mas <b>mantém a conta</b>. Excluir remove também o login.</div>
       <div class="data-actions u-mt8">
         <button class="btn" id="cfg-conta-excluir" type="button" style="border-color:var(--crit);">Excluir minha conta e dados</button>
