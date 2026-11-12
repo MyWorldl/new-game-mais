@@ -37,3 +37,11 @@ Ver o resumo da Fase 0 no chat (lista de 10 componentes, ordem de fases e pergun
 - Tokens de movimento em `:root`: `--dur-fast 120ms`, `--dur-base 220ms`, `--dur-slow 420ms`, `--ease-out cubic-bezier(.22,1,.36,1)`; com `prefers-reduced-motion` as durações caem para ~0.
 - Correção de passagem: `.sl-chip-n` (número da série não selecionada) usava `--muted`, com contraste ~3,9:1 sobre o fundo de medalha; agora usa `--ink-soft`.
 - Teste novo `fonte/testes/paletas.js` (25 verificações, entra no `rodar-todos.sh`): botões, atributos, persistência, pastel limpa a paleta, tokens de movimento e contraste AA (axe) em 5 telas por paleta.
+
+## Fase 2 — barra inferior de 4 itens e menu de ações rápidas (celular, < 768 px)
+- Barra: Hoje, Treino, [botão central], Dieta, Corpo. O Perfil sai da barra e fica no avatar do topo, que já abria o Perfil; agora ele fica marcado (`aria-current="page"`) quando o Perfil está aberto. A partir de 768 px nada muda: menu lateral completo, sem botão central.
+- Botão central "+" (60 px, `aria-haspopup="menu"`): abre um menu de 4 ações, cada uma reaproveitando o botão ou a função que o app já tem, sem regra nova de dados: (1) Começar/Continuar treino (o mesmo botão grande do Hoje; se não há treino em aberto vira "Abrir o treino"), (2) Registrar medição (leva ao campo de peso), (3) Hábitos do dia (leva ao campo de sono), (4) Marcar treino como feito (o mesmo botão "Já treinei").
+- A ação 4 fica desligada (`aria-disabled`) quando não há treino em aberto, com a explicação em texto ("Já registrado hoje" ou "Sem treino em aberto hoje"), nunca só por cor.
+- Teclado: Esc fecha e devolve o foco ao botão; setas, Home e End movem; Tab e clique fora fecham. Animação só com `transform` e `opacity`, usando os tokens `--dur-base` e `--ease-out`; com movimento reduzido abre e fecha sem animar.
+- Sem dimmer atrás do menu: a barra usa `backdrop-filter`, que prende elementos `position:fixed` dentro dela. Fechar clicando fora resolve sem precisar do véu.
+- Teste novo `fonte/testes/nav-acoes.js` (37 verificações, entra no `rodar-todos.sh`): 320 e 390 px, alvos ≥ 44 px, botão central centralizado e sem cobrir itens, foco, teclado, as 4 ações, movimento reduzido, desktop inalterado e axe com o menu aberto (Lima e pastel rosa claro).

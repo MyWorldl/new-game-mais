@@ -3509,3 +3509,53 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   --accent:#e5b83d; --accent-ink:#1a1300; --accent-soft:#2b2209;
   --viz-1:#bd8a0c; --viz-2:#4a98e4; --viz-3:#d65f8c;
 }
+
+/* ============================================================
+   VISUAL V3 · Fase 2 — barra inferior de 4 itens + botão central com menu de ações rápidas (celular)
+   O Perfil sai da barra e fica no avatar do topo (que já abre o Perfil). A partir de 768 px nada muda: o menu lateral segue completo.
+   ============================================================ */
+.nav-fab, .nav-acoes{ display:none; }
+.top-avatar.on{ background:var(--accent); color:var(--accent-ink); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+@media (max-width:767px){
+  .bottomnav{ overflow:visible; }
+  .bottomnav #tab-perfil{ display:none; }
+  .bottomnav .tabs{ grid-template-columns:repeat(2,minmax(0,1fr)) 72px repeat(2,minmax(0,1fr)); }
+  .bottomnav #tab-dieta{ grid-column:4; }
+  .bottomnav #tab-corpo{ grid-column:5; }
+  .nav-fab{
+    display:grid; place-items:center; position:absolute; left:50%; top:-26px; margin-left:-30px;
+    inline-size:60px; block-size:60px; padding:0; border-radius:50%; cursor:pointer;
+    background:var(--accent); color:var(--accent-ink); border:4px solid var(--bg);
+    box-shadow:0 10px 24px -8px color-mix(in srgb, var(--accent) 80%, transparent), 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+    transition:transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .nav-fab svg{ inline-size:26px; block-size:26px; transition:transform var(--dur-base) var(--ease-out); }
+  .nav-fab[aria-expanded="true"] svg{ transform:rotate(45deg); }
+  .nav-fab:active{ transform:scale(.94); }
+  .nav-fab:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; }
+  .nav-acoes{
+    display:flex; flex-direction:column; gap:4px; position:absolute; inset-inline:0; margin-inline:auto; inline-size:min(344px,100%);
+    bottom:calc(100% + 24px); padding:8px; border-radius:22px;
+    background:color-mix(in srgb, var(--surface) 96%, transparent); border:1px solid var(--line-strong);
+    box-shadow:0 22px 48px -16px rgba(0,0,0,.8), 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+    opacity:0; transform:translateY(10px) scale(.98); transform-origin:50% 100%;
+    transition:opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  }
+  .nav-acoes[hidden]{ display:none; }
+  .nav-acoes.on{ opacity:1; transform:none; }
+  .na-item{
+    display:flex; align-items:center; gap:12px; inline-size:100%; min-block-size:56px; padding:8px 10px; text-align:start;
+    border:0; border-radius:16px; background:transparent; color:var(--ink); cursor:pointer; font:inherit;
+  }
+  .na-item:hover, .na-item:focus-visible{ background:var(--accent-soft); }
+  .na-item:focus-visible{ outline:2px solid var(--focus); outline-offset:-2px; }
+  .na-ic{ flex:none; inline-size:40px; block-size:40px; display:grid; place-items:center; border-radius:12px; background:var(--accent-soft); color:var(--accent-fg,var(--accent)); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  .na-ic svg{ inline-size:22px; block-size:22px; }
+  .na-tx{ display:flex; flex-direction:column; gap:2px; min-inline-size:0; }
+  .na-tx b{ font-size:var(--fs-sm); font-weight:700; line-height:1.2; }
+  .na-tx small{ font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.25; }
+  .na-item[aria-disabled="true"]{ cursor:default; }
+  .na-item[aria-disabled="true"] .na-tx b{ color:var(--ink-soft); }
+  .na-item[aria-disabled="true"] .na-ic{ opacity:.6; }
+}

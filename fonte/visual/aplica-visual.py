@@ -70,9 +70,11 @@ rep('<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialo
     '<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialog" aria-label="Abrir paleta de comandos (Ctrl K)">'+IC_SEARCH+'<span>Buscar ou ir para…</span> <kbd>Ctrl K</kbd></button>\n      <button type="button" class="top-icon top-search" id="top-search" aria-haspopup="dialog" aria-label="Buscar ou ir para (paleta de comandos)">'+IC_SEARCH+'</button>\n      <button type="button" class="top-avatar" id="top-avatar" data-goto="perfil" aria-label="Abrir o perfil"><span id="top-avatar-ini">—</span></button>\n    </div>')
 rep('<div class="bottomnav" id="bottomnav">\n    <nav class="tabs"',
     '<div class="bottomnav" id="bottomnav" role="navigation" aria-label="Navegação principal">\n    <div class="side-brand" aria-hidden="true"><div class="mark">BFF</div><div class="side-name"><b>BFF</b><small>New Game+</small></div></div>\n    <nav class="tabs"')
+IC_MAIS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
 rep('    </nav>\n    <!-- v98 Fase 3: o botão "Mais" saiu;',
-    '    </nav>\n    <div class="side-streak" id="side-streak" role="group" aria-label="Sequência atual"></div>\n    <!-- v98 Fase 3: o botão "Mais" saiu;')
-rep('function renderNivel(){\n', nav+'function renderNivel(){\n')
+    '    </nav>\n    <div class="side-streak" id="side-streak" role="group" aria-label="Sequência atual"></div>\n    <button type="button" class="nav-fab" id="nav-fab" aria-haspopup="menu" aria-expanded="false" aria-controls="nav-acoes" aria-label="Ações rápidas">'+IC_MAIS+'</button>\n    <div class="nav-acoes" id="nav-acoes" role="menu" aria-label="Ações rápidas" hidden></div>\n    <!-- v98 Fase 3: o botão "Mais" saiu;')
+acoes=open(base+'/ng-acoes.js',encoding='utf8').read()
+rep('function renderNivel(){\n', nav+acoes+'function renderNivel(){\n')
 rep('renderNivel();            // aparece','renderNivel(); renderNavExtras();            // aparece')
 rep('if(mainName === "treino") renderWeekTrail();','navTitulo(name);\n  if(mainName === "treino") renderWeekTrail();')
 
