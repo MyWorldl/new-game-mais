@@ -17,7 +17,7 @@ roda() {   # nome, comando...
   echo "=== $nome (rc=$rc)"; echo "$saida" | tail -2
   if [ $rc -ne 0 ] || echo "$saida" | grep -q '^FAIL'; then falhas=$((falhas+1)); echo "!!! $nome FALHOU"; echo "$saida" | grep '^FAIL' | head -5; fi
 }
-for t in reagenda scroll-dieta rolagem-render login-turnstile relogin-inatividade como-estou-hoje tutorial lateral-foto-analise semana-casa banner-instalar treino-f1 treino-f2 treino-f3 politica instalar fontes acessibilidade-sw atualizacao-sw; do
+for t in reagenda scroll-dieta rolagem-render login-turnstile relogin-inatividade como-estou-hoje tutorial lateral-foto-analise semana-casa banner-instalar treino-f1 ranking-series treino-f2 treino-f3 politica instalar fontes acessibilidade-sw atualizacao-sw; do
   roda "$t" node "$t.js"
 done
 roda cardapio-e2e node cardapio-e2e.js http://localhost:8791
