@@ -45,6 +45,7 @@ var OBJ = {
 };
 var STYLE = { omni: 'Onívoro', veg: 'Vegetariano', vegan: 'Vegano', lowc: 'Low carb moderado' };
 var ROUT = {
+  tradicional: { n: 'Dia tradicional', meals: ['cafe', 'almoco', 'lanche', 'jantar', 'ceia'] },   // dia a dia brasileiro: arroz e feijão no almoço e no jantar, sem lotes e sem filtro de preço ou pressa
   marmita: { n: 'Marmita da semana', meals: ['cafe', 'almoco', 'lanche', 'jantar', 'ceia'] },
   corrido: { n: 'Dia corrido',       meals: ['cafe', 'almoco', 'lanche', 'jantar'] },
   budget:  { n: 'Orçamento enxuto',  meals: ['cafe', 'almoco', 'lanche', 'jantar', 'ceia'] },
@@ -95,6 +96,7 @@ function rolePool(role, cfg, slot) {
   for (var id in FOODS) if (FOODS[id].role === role && allowed(id, cfg)) out.push(id);
   if (role === 'carb') {
     if (slot === 'cafe' || slot === 'lanche') out = out.filter(function (id) { return ['pao', 'aveia', 'cuscuz', 'batataD'].indexOf(id) >= 0; });
+    else if (cfg.rout === 'tradicional') out = out.filter(function (id) { return ['arroz', 'arrozI', 'mandioca', 'batata', 'batataD'].indexOf(id) >= 0; });   // prato tradicional: arroz, mandioca ou batata
     else out = out.filter(function (id) { return ['pao', 'aveia'].indexOf(id) < 0; });
     if (cfg.style === 'lowc') out = out.filter(function (id) { return ['batataD', 'cuscuz', 'aveia'].indexOf(id) >= 0; });
   }
@@ -165,7 +167,7 @@ function buildMeal(slotKey, d, cfg, dt, mealIdx) {
   var has = function (r) { return S.comp.indexOf(r) >= 0; };
   var vegId = has('veg') ? pick(rolePool('veg', cfg, slotKey), seed) : null;
   var fruitId = has('fruit') ? pick(rolePool('fruit', cfg, slotKey), seed + 1) : null;
-  var legId = has('leg') && slotKey === 'almoco' ? pick(rolePool('leg', cfg, slotKey), seed) : null;
+  var legId = (has('leg') && slotKey === 'almoco') || (cfg.rout === 'tradicional' && slotKey === 'jantar') ? pick(rolePool('leg', cfg, slotKey), seed + (slotKey === 'jantar' ? 1 : 0)) : null;   // no dia tradicional o feijão também vai no jantar
   if (vegId) items.push({ id: vegId, g: 90, role: 'veg' });
   if (fruitId) items.push({ id: fruitId, g: qty(fruitId, slotKey === 'lanche' ? 120 : 100), role: 'fruit' });
   if (legId) items.push({ id: legId, g: 100, role: 'leg' });
