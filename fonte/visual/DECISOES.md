@@ -54,3 +54,16 @@ Ver o resumo da Fase 0 no chat (lista de 10 componentes, ordem de fases e pergun
 - Sem cadastro (primeira vez): carrossel mostra "—" e a missão vira "Fazer o seu cadastro"; nada quebra.
 - Teste novo `fonte/testes/hoje-v3.js` (54 verificações): anéis (valores e descrição), carrossel (4 cartões, valores reais, encaixe, pontos, grade no desktop, 320/390/1280 px), missões, as 4 ações, atualização após concluir o treino, estado sem cadastro e axe (Lima, Violeta, rosa pastel claro).
 - Observação de teste: `cardapio-trocas` (axe do pop-up de trocas no tema azul claro) falhou uma vez na bateria completa e passou isolado e em reexecuções; os estilos desta fase não tocam o pop-up. Tratar como intermitente de animação sob carga; se repetir no CI, investigar.
+
+## Fase 4 · Hábitos (grade de 12 semanas)
+
+**Decisão do Gabriel:** "manter como está". Interpretação: a estrutura não muda (4 linhas de hábito, 12 semanas, semana atual destacada com tracejado, melhor semana com moldura dourada, número do dia dentro de cada quadradinho) e apenas se acrescenta camada visual.
+
+**O que foi acrescentado (só visual/derivado, nenhum dado novo gravado):**
+- Brilho (glow) suave nos quadradinhos de nível 2 e 3 no modo jogo, com a cor de destaque da paleta ativa; nível 0/1 sem brilho para o brilho significar "semana forte".
+- Selo de % por hábito = dias registrados ÷ dias desde o primeiro registro daquele hábito (teto 100%). É descritivo, não meta: o texto da tela continua dizendo "registrar já conta, não há meta". Tem `role="img"` e `aria-label` por extenso (nunca só cor/número solto).
+- "Semanas seguidas": semanas consecutivas com ao menos um registro; a semana em andamento nunca zera a contagem (tom sem culpa).
+- Animação de acendimento (opacity/transform, escalonada de 30 ms) só na primeira renderização da sessão; desliga com prefers-reduced-motion (tokens de duração ≈ 0).
+
+**Verificação:** `fonte/testes/habitos-v3.js` (33 checagens: estrutura mantida, % com aria-label, semanas seguidas, glow, animação só 1ª vez, sem overflow em 320/390/1280, axe AA em Lima, Violeta, Ouro, roxo claro e azul escuro). Antes/depois: `antes-depois/depois-f4-habitos.jpg` (Lima, Violeta, Ouro no celular + desktop).
+

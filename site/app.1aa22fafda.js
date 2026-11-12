@@ -2353,6 +2353,7 @@ const HAB_GRADE = [
   {k:"agua",   nome:"Água"}
 ];
 const HAB_MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+let hgJaAnimou = false;   // o "acender" das células roda só na primeira vez; depois não repete a cada gravação
 function renderGradeHabitos(){
   const box = document.getElementById("hab-grade");
   if(!box) return;
@@ -2363,13 +2364,14 @@ function renderGradeHabitos(){
   const nvDe = c => c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3;
   const dias = c => c+(c === 1 ? " dia" : " dias");
   const dados = HAB_GRADE.map(h=>{
+    let primeiroIso = null;
     const cont = semanas.map(ini=>{
       let c = 0;
       for(let i = 0; i < 7; i++){
         const iso = addDaysISO(ini, i);
         if(iso > hoje) break;
         const x = habDe(iso);
-        if(x && x[h.k] != null) c++;
+        if(x && x[h.k] != null){ c++; if(primeiroIso === null) primeiroIso = iso; }
       }
       return c;
     });
@@ -2379,7 +2381,16 @@ function renderGradeHabitos(){
     if(max > 0) for(let i = cont.length-1; i >= 0; i--) if(cont[i] === max){ iBest = i; break; }
     const primeira = cont.findIndex(c=> c > 0);
     const media = primeira >= 0 ? total/(12-primeira) : 0;
-    return {h, cont, total, max, iBest, media};
+    // % dos dias com registro desde o primeiro registro (só descreve; não é meta)
+    let pct = null;
+    if(primeiroIso !== null){
+      const nDias = Math.round((new Date(hoje+"T12:00:00") - new Date(primeiroIso+"T12:00:00")) / 864e5) + 1;
+      pct = Math.min(100, Math.round(total / Math.max(1, nDias) * 100));
+    }
+    // semanas seguidas com registro; a semana em andamento nunca zera a conta (como a sequência de treinos)
+    let seg = 0, k = cont[11] > 0 ? 11 : 10;
+    while(k >= 0 && cont[k] > 0){ seg++; k--; }
+    return {h, cont, total, max, iBest, media, pct, seg};
   });
   const lider = dados.slice().sort((a,b)=> b.total - a.total)[0];
   const html = dados.map(d=>{
@@ -2389,15 +2400,18 @@ function renderGradeHabitos(){
       return '<span class="hg-c l'+nvDe(c)+(w === 11 ? ' now' : '')+(w === d.iBest ? ' best' : '')+'" role="listitem" aria-label="'+rot+'" title="'+rot+'">'+(c ? c : "")+'</span>';
     }).join("");
     const st = d.total
-      ? '<div class="hg-st"><span>Esta semana <b>'+d.cont[11]+'</b></span><span>Média <b>'+num(d.media, 1)+'</b>/semana</span><span>Melhor <b>'+d.max+'</b> dias</span></div>'
+      ? '<div class="hg-st"><span>Esta semana <b>'+d.cont[11]+'</b></span><span>Média <b>'+num(d.media, 1)+'</b>/semana</span><span>Melhor <b>'+d.max+'</b> dias</span><span>Semanas seguidas <b>'+d.seg+'</b></span></div>'
       : '';
     return '<div class="hg-row">'+
-      '<div class="hg-top"><b>'+d.h.nome+'</b><span>'+(d.total ? dias(d.total)+" registrados" : "sem registros ainda")+'</span></div>'+
+      '<div class="hg-top"><b>'+d.h.nome+'</b><span>'+(d.total ? dias(d.total)+" registrados" : "sem registros ainda")+'</span>'+
+        (d.pct !== null ? '<span class="hg-pct" role="img" aria-label="Registrou em '+d.pct+'% dos dias desde o primeiro registro" title="Dias com registro desde o primeiro registro">'+d.pct+'%</span>' : '')+'</div>'+
       '<div class="hg-cells" role="list" aria-label="'+d.h.nome+": dias com registro por semana, das últimas 12 semanas"+'">'+cels+'</div>'+st+
     '</div>';
   }).join("");
   let mesAnt = -1;
   const meses = semanas.map(ini=>{ const m = Number(ini.slice(5,7)) - 1; const novo = m !== mesAnt; mesAnt = m; return '<span>'+(novo ? HAB_MES[m] : '')+'</span>'; }).join("");
+  box.classList.toggle("hg-anim", !hgJaAnimou);
+  hgJaAnimou = true;
   box.innerHTML =
     '<h3 class="hg-h">Últimas 12 semanas</h3>'+
     '<p class="hg-sub">Cada quadradinho é uma semana; o número mostra em quantos dias você registrou. Registrar já conta, não há meta.'+
