@@ -94,12 +94,32 @@
   function quandoDom(fn){ if (document.body) fn(); else document.addEventListener("DOMContentLoaded", fn, {once: true}); }
   function travaApp(on){ var a = document.querySelector(".app"); if (a) { if (on) a.setAttribute("inert", ""); else a.removeAttribute("inert"); } }
 
+  /* ---------------- "Pedir e-mail e código de novo" depois de um tempo fora do app ----------------
+     Analogia: o cofre da academia que tranca sozinho se você sai e demora. Config → Conta escolhe o tempo (por aparelho).
+     O app marca "visto pela última vez" a cada 30 s enquanto está aberto e ao sair; ao voltar, se passou do limite, a sessão
+     DESTE aparelho é encerrada (os dados locais ficam, e voltam quando a mesma conta entra de novo). Sem internet não há como
+     receber o código: a tela de entrada avisa. Lembretes por notificação continuam, pois são enviados pelo servidor. */
+  var K_REL = "ng_relogin_min", K_ATIV = "ng_atividade", K_MOTIVO = "ng_motivo_relogin";
+  function lerReloginMin(){ try { var n = parseInt(localStorage.getItem(K_REL) || "0", 10); return n > 0 ? n : 0; } catch(e){ return 0; } }
+  function marcaAtividade(){ try { localStorage.setItem(K_ATIV, String(Date.now())); } catch(e){} }
+  function expirou(){
+    var lim = lerReloginMin(); if (!lim) return false;
+    try { var u = parseInt(localStorage.getItem(K_ATIV) || "0", 10); return u > 0 && Date.now() - u > lim * 60000; } catch(e){ return false; }
+  }
+  async function encerraSessaoLocal(mail){
+    try { localStorage.setItem(K_MOTIVO, mail || ""); } catch(e){}
+    try { await client.auth.signOut({scope: "local"}); } catch(e){}
+    try { localStorage.removeItem("sb-" + REF + "-auth-token"); } catch(e){}
+  }
+
   var sessaoP = null;
   function sessao(){
     if (sessaoP) return sessaoP;
     sessaoP = (async function(){
       var s = await lerSessao();
+      if (s && expirou()) { await encerraSessaoLocal(s.email); s = null; }
       if (!s) s = await pedirLogin();
+      marcaAtividade();
       uid = s.uid; email = s.email; logado = true;
       return s;
     })();
@@ -133,6 +153,11 @@
         var f = $("ng-login-f"), inE = $("ng-login-e"), inC = $("ng-login-c"), box = $("ng-login-cod"), ok = $("ng-login-ok"),
             reenv = $("ng-login-reenv"), outro = $("ng-login-outro"), m = $("ng-login-m"), p = $("ng-login-p");
         $("ng-login-pol").addEventListener("click", abrirPolitica);
+        var motivo = null; try { motivo = localStorage.getItem(K_MOTIVO); localStorage.removeItem(K_MOTIVO); } catch(e){}
+        if (motivo !== null) {
+          if (motivo) inE.value = motivo;
+          p.textContent = "Por segurança, pedimos o login de novo depois de um tempo fora do app. Vamos enviar um novo código para o seu e-mail." + (navigator.onLine === false ? " Você está sem internet: conecte-se para entrar." : "");
+        }
         function msg(t, erro){ m.textContent = t || ""; m.className = "ng-login-m" + (erro ? " err" : ""); }
         function trava(b){ ok.disabled = b; reenv.disabled = b || cooldown > 0; }
         var tsId = null, tsToken = null, tsFalhou = false, tsPedeToque = false;
@@ -410,8 +435,13 @@
     window.addEventListener("online", function(){ atualizaEstado(); flush(); sincronizar(); });
     window.addEventListener("offline", atualizaEstado);
     document.addEventListener("visibilitychange", function(){
-      if (document.visibilityState === "visible") { flush(); if (Date.now() - ultimoPull > 20000) sincronizar(); }
+      if (document.visibilityState === "visible") {
+        if (expirou()) { travaDeNovo(); return; }
+        marcaAtividade(); flush(); if (Date.now() - ultimoPull > 20000) sincronizar();
+      } else marcaAtividade();
     });
+    window.addEventListener("pagehide", marcaAtividade);
+    setInterval(function(){ if (document.visibilityState === "visible") marcaAtividade(); }, 30000);
     atualizaEstado(); flush();
     quandoDom(ligaConfig);
   }
@@ -590,9 +620,30 @@
     await dialogo('<h2>Dados resetados</h2><p>Tudo foi apagado' + (manter ? ', menos o seu perfil' : '') + '. Sua conta continua ativa. O app vai recarregar para você recomeçar.</p><div class="ng-dlg-act"><button class="ng-btn" data-r="ok">Recomeçar</button></div>', null, "Dados resetados");
     location.reload();
   }
+  async function travaDeNovo(){
+    travaApp(true);
+    try { await Promise.race([flush(), sleep(4000)]); } catch(e){}   // tenta mandar o que ficou pendente antes de trancar
+    await encerraSessaoLocal(email);
+    location.reload();
+  }
+  var TXT_REL = {"0": "Neste aparelho você continua conectado até tocar em Sair da conta.",
+    "30": "Se ficar mais de 30 minutos fora do app, ele pede e-mail e código de novo.",
+    "480": "Se ficar mais de 8 horas fora do app, ele pede e-mail e código de novo.",
+    "10080": "Se ficar mais de 7 dias fora do app, ele pede e-mail e código de novo."};
+  function pintaRelogin(){
+    var sel = $("cfg-relogin"), info = $("cfg-relogin-info"); if (!sel || !info) return;
+    var v = String(lerReloginMin());
+    info.textContent = (TXT_REL[v] || TXT_REL["0"]) + (v !== "0" ? " Sem internet não dá para entrar de novo (o código vem por e-mail). Vale só neste aparelho." : "");
+  }
   function ligaConfig(){
     var card = $("cfg-conta"); if (!card) return;
     card.hidden = false; pintaConta();
+    var rl = $("cfg-relogin");
+    if (rl) {
+      rl.value = String(lerReloginMin()); if (rl.value !== String(lerReloginMin())) rl.value = "0";
+      pintaRelogin();
+      rl.addEventListener("change", function(){ try { localStorage.setItem(K_REL, rl.value); } catch(e){} marcaAtividade(); pintaRelogin(); });
+    }
     $("cfg-conta-sync").addEventListener("click", async function(){ var b = this; b.disabled = true; await sincronizar(); await flush(); b.disabled = false; });
     $("cfg-conta-sair").addEventListener("click", sair);
     var pol = $("cfg-conta-politica"); if (pol) pol.addEventListener("click", abrirPolitica);
