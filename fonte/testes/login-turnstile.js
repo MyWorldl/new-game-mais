@@ -35,5 +35,17 @@ async function abre(b, modo, otpResp) {
     await p.fill('#ng-login-e', 'teste@example.com'); await p.waitForTimeout(600); await p.click('#ng-login-ok'); await p.waitForTimeout(900);
     const m = await p.textContent('#ng-login-m');
     t('captcha recusado pelo Supabase mostra mensagem clara', /verificação de segurança/.test(m), m); await c.close(); }
+  { // o widget pede um toque (desafio interativo): a mensagem manda marcar a caixa e nada é enviado até o token chegar
+    const c = await b.newContext({ viewport: { width: 400, height: 800 } }); const p = await c.newPage(); p.otp = [];
+    await p.route('**/challenges.cloudflare.com/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: "window.turnstile={render:function(s,o){window.__o=o;setTimeout(function(){o['before-interactive-callback']()},100);return 'w1'},reset:function(){}};" }));
+    await p.route('**/gjoxrgnkwmjvcfiywtcs.supabase.co/**', r => { if (/\/auth\/v1\/otp/.test(r.request().url())) p.otp.push(JSON.parse(r.request().postData() || '{}')); return r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); });
+    await p.goto(URL_); await p.waitForSelector('#ng-login-e'); await p.waitForTimeout(500);
+    t('widget interativo: aviso para marcar a caixa aparece sozinho', /Marque a caixa/.test(await p.textContent('#ng-login-m')), await p.textContent('#ng-login-m'));
+    await p.fill('#ng-login-e', 'teste@example.com'); await p.click('#ng-login-ok'); await p.waitForTimeout(400);
+    t('sem token, nada é enviado e o aviso continua', p.otp.length === 0 && /Marque a caixa/.test(await p.textContent('#ng-login-m')));
+    await p.evaluate(() => window.__o.callback('TOKEN-X')); await p.waitForTimeout(200);
+    t('depois de marcar a caixa, o aviso some', (await p.textContent('#ng-login-m')) === '');
+    await p.click('#ng-login-ok'); await p.waitForTimeout(700);
+    t('com o token, o e-mail é enviado', p.otp.length === 1 && p.otp[0].gotrue_meta_security.captcha_token === 'TOKEN-X'); await c.close(); }
   console.log(`\n${ok} ok / ${bad} falhas`); await b.close(); process.exit(bad ? 1 : 0);
 })();

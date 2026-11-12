@@ -135,20 +135,22 @@
         $("ng-login-pol").addEventListener("click", abrirPolitica);
         function msg(t, erro){ m.textContent = t || ""; m.className = "ng-login-m" + (erro ? " err" : ""); }
         function trava(b){ ok.disabled = b; reenv.disabled = b || cooldown > 0; }
-        var tsId = null, tsToken = null, tsFalhou = false, tsPronto = false;
+        var tsId = null, tsToken = null, tsFalhou = false, tsPedeToque = false;
+        var AVISO_CAIXA = "Marque a caixa \u201cConfirme que é humano\u201d acima e toque em enviar de novo.";
         carregaTurnstile().then(function(T){
           if (!T) { tsFalhou = true; return; }
           try {
             tsId = T.render("#ng-login-ts", {
               sitekey: TS_KEY, theme: "auto", size: "flexible", language: "pt-br",
-              callback: function(t){ tsToken = t; tsPronto = true; },
+              "before-interactive-callback": function(){ tsPedeToque = true; if (!enviadoPara) msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
+              callback: function(t){ tsToken = t; tsPedeToque = false; if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
               "expired-callback": function(){ tsToken = null; try { T.reset(tsId); } catch(e){} },
               "error-callback": function(){ tsToken = null; tsFalhou = true; return true; }
             });
           } catch(e){ tsFalhou = true; }
         });
         function tsNovo(){   // o crachá vale uma vez só: pede outro para a próxima tentativa
-          tsToken = null;
+          tsToken = null; tsPedeToque = false;
           try { if (window.turnstile && tsId !== null) { tsFalhou = false; window.turnstile.reset(tsId); } } catch(e){}
         }
         function ticCool(){
@@ -167,10 +169,11 @@
           var e = inE.value.trim().toLowerCase();
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { msg("Digite um e-mail válido.", true); inE.focus(); return; }
           if (navigator.onLine === false) { msg("Sem internet. Conecte-se para entrar pela primeira vez neste aparelho.", true); return; }
+          if (!tsToken && !tsFalhou && tsPedeToque) { msg(AVISO_CAIXA, true); return; }   // o widget pediu um toque: não adianta esperar
           if (!tsToken && !tsFalhou) {   // widget carregou mas ainda está conferindo: espera um pouco
             trava(true); msg("Conferindo a verificação de segurança…");
             for (var k = 0; k < 40 && !tsToken && !tsFalhou; k++) await sleep(250);
-            if (!tsToken && !tsFalhou) { msg("A verificação de segurança ainda não terminou. Aguarde um instante e toque de novo.", true); trava(false); return; }
+            if (!tsToken && !tsFalhou) { msg(tsPedeToque ? AVISO_CAIXA : "A verificação de segurança ainda não terminou. Aguarde um instante e toque de novo.", true); trava(false); return; }
           }
           trava(true); msg("Enviando…");
           try {
