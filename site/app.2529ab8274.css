@@ -1988,6 +1988,22 @@ html[data-vt="back"]::view-transition-new(root){animation:vt-in-l .24s var(--eas
 .tip-pop .tip-src{display:block; margin-top:var(--sp-2); font-size:var(--fs-2xs); color:var(--muted);}
 .tip-pop .tip-more{display:inline-block; margin-top:var(--sp-2); font-size:var(--fs-xs); font-weight:700; color:var(--accent-fg,var(--accent)); background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
 .tip-pop .tip-more:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+/* tutorial: tour guiado logo após o cadastro (um balão por função, com destaque no que está sendo explicado) */
+.tour-root{position:fixed; inset:0; z-index:400;}
+.tour-root.sem-alvo{background:rgb(3 6 14 / .62);}
+.tour-spot{position:fixed; border-radius:14px; box-shadow:0 0 0 9999px rgb(3 6 14 / .62); outline:2px solid var(--accent); outline-offset:2px; pointer-events:none;
+  transition:top .25s var(--ease), left .25s var(--ease), width .25s var(--ease), height .25s var(--ease);}
+.tour-pop{position:fixed; inline-size:min(360px, calc(100vw - 16px)); padding:16px; border-radius:var(--r-lg, 16px); background:var(--surface); color:var(--ink);
+  border:1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); box-shadow:var(--sh-3, var(--shadow));}
+.tour-pop.centro{top:50%; left:50%; transform:translate(-50%, -50%);}
+.tour-pop h2{font-size:var(--fs-h3, 18px); margin:4px 0 6px;}
+.tour-pop p{margin:0; color:var(--ink-soft); font-size:var(--fs-sm); line-height:1.5;}
+.tour-cont{font-size:var(--fs-xs); color:var(--muted); font-weight:600; letter-spacing:.02em;}
+.tour-act{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px;}
+.tour-act .tour-sp{flex:1 1 auto;}
+.tour-pop:focus{outline:none;}
+.tour-pop:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){ .tour-spot{transition:none;} }
 .streak-stat{position:relative;}
 .streak-stat .info-tip{position:absolute; top:-6px; right:-6px; margin:0;}
 #tabela-medicoes thead th{white-space:nowrap;}
