@@ -5743,6 +5743,12 @@ function rotuloFaixa(r, ex){
 function semFocoEmCampo(fn){
   return ()=>{ const a = document.activeElement; if(a && a.matches && a.matches("input,select,textarea") && a.closest("#week-trail-detail, .live-workout")) return; fn(); };
 }
+/* ranking das séries do exercício: maior desempenho = ouro, 2º = prata, 3º = bronze, 4º em diante = cinza; valores iguais dividem a mesma posição */
+const MEDALHAS = [{k:'ouro', t:'melhor desempenho (ouro)'}, {k:'prata', t:'2º melhor (prata)'}, {k:'bronze', t:'3º melhor (bronze)'}, {k:'cinza', t:'demais séries (cinza)'}];
+function rankSeries(sets){
+  const vals = Array.from(new Set((sets||[]).map(s=>s.r))).sort((a,b)=>b-a);
+  return (sets||[]).map(s=>MEDALHAS[Math.min(vals.indexOf(s.r), 3)]);
+}
 function serieLogHtml(i, ex, c, pfx){
   const e = estadoEx(c, i, ex), f = faixaDeReps(ex.reps);
   const un = f.unid === "s" ? " s" : "", unLong = f.unid === "s" ? "segundos" : "repetições";
@@ -5752,16 +5758,17 @@ function serieLogHtml(i, ex, c, pfx){
   const draft = setDraft[i] != null ? setDraft[i] : String(editK != null ? e.sets[editK].r : alvo);
   const pct = Math.min(100, Math.round(e.n/e.prev*100));
   const faixaTxt = f.max ? "meta "+(f.min === f.max ? f.min : f.min+"–"+f.max)+(f.unid === "s" ? " s" : " reps")+" por série" : "";
+  const ranks = rankSeries(e.sets);
   const chips = e.sets.map((s,k)=>{
-    const rf = rotuloFaixa(s.r, ex);
-    return '<li><button type="button" class="sl-chip'+(editK===k?' on':'')+'" data-slchip="'+k+'" aria-pressed="'+(editK===k)+'" aria-label="Série '+(k+1)+': '+s.r+' '+unLong+(rf ? ', '+rf.t : '')+'. Toque para editar.">'+
+    const rf = rotuloFaixa(s.r, ex), md = ranks[k];
+    return '<li><button type="button" class="sl-chip sl-'+md.k+(editK===k?' on':'')+'" data-medalha="'+md.k+'" data-slchip="'+k+'" aria-pressed="'+(editK===k)+'" aria-label="Série '+(k+1)+': '+s.r+' '+unLong+(rf ? ', '+rf.t : '')+', '+md.t+'. Toque para editar.">'+
       '<span class="sl-chip-n">'+(k+1)+'ª</span><b>'+s.r+un+'</b>'+(rf ? '<small aria-hidden="true">'+rf.s+'</small>' : '')+'</button></li>';
   }).join("");
   let h = '<div class="sl" data-sl="'+i+'" data-pfx="'+pfx+'">'+
     '<div class="sl-top"><span class="sl-count" tabindex="-1"><b>'+e.n+'</b> de '+e.prev+' série'+(e.prev===1?'':'s')+'</span>'+(faixaTxt ? '<span class="sl-faixa">'+faixaTxt+'</span>' : '')+'</div>'+
     '<div class="quest-track" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
     (e.n ? '<ul class="sl-sets" aria-label="Séries registradas">'+chips+'</ul>' : '');
-  if(e.n && f.max) h += '<div class="sl-leg">▼ abaixo · ● na faixa · ▲ acima da faixa — sem certo ou errado</div>';
+  if(e.n && f.max) h += '<div class="sl-leg"><span class="sl-rk"><i class="sl-dot sl-ouro"></i>melhor</span><span class="sl-rk"><i class="sl-dot sl-prata"></i>2º</span><span class="sl-rk"><i class="sl-dot sl-bronze"></i>3º</span><span class="sl-rk"><i class="sl-dot sl-cinza"></i>demais</span><span class="sl-rg">▼ abaixo · ● na faixa · ▲ acima da faixa — sem certo ou errado</span></div>';
   if(e.status === "parcial" || e.status === "pulado"){
     const m = (c && c.motivo && c.motivo[i]) || null;
     h += '<div class="sl-status '+e.status+'" role="status"><b>'+(e.status === "parcial" ? 'Encerrado aqui' : 'Exercício pulado')+'</b> — '+
