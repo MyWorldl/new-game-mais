@@ -9275,14 +9275,24 @@ function visibleViewId(){
   const v = document.querySelector(".view:not([hidden])");
   return v ? v.id.replace("view-","") : "painel";
 }
-function render(){
-  applyAccentSkin();
-  applyGameMode();
-  renderNivel(); renderNavExtras();            // aparece no Perfil e no Painel (card de patente compacto) — sempre atual
-  const cur = visibleViewId();
-  Object.keys(SECTION_RENDERERS).forEach(id=>{ if(id === cur) renderSection(id); else dirtyViews.add(id); });
+/* Safari/WebKit: quando um redesenho troca o conteúdo de vários cartões de uma vez, o navegador perde a posição da página
+   (vai ao topo, às vezes ao fim) sem nenhum comando de rolagem do app. O Chrome não faz isso (ancora a rolagem). Guardamos o scrollY
+   antes de redesenhar e devolvemos no mesmo instante, antes de pintar: a pessoa não vê nada. Só age se a posição mudou de fato. */
+function preservandoRolagem(fn){
+  const y = window.scrollY;
+  try{ fn(); }
+  finally{ if(Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y); }
 }
-function renderAll(){ Object.keys(SECTION_RENDERERS).forEach(renderSection); applyAccentSkin(); applyGameMode(); renderNivel(); }   // impressão/exportação e testes
+function render(){
+  preservandoRolagem(()=>{
+    applyAccentSkin();
+    applyGameMode();
+    renderNivel(); renderNavExtras();            // aparece no Perfil e no Painel (card de patente compacto) — sempre atual
+    const cur = visibleViewId();
+    Object.keys(SECTION_RENDERERS).forEach(id=>{ if(id === cur) renderSection(id); else dirtyViews.add(id); });
+  });
+}
+function renderAll(){ preservandoRolagem(()=>{ Object.keys(SECTION_RENDERERS).forEach(renderSection); applyAccentSkin(); applyGameMode(); renderNivel(); }); }   // impressão/exportação e testes
 
 /* v83: luz que acompanha o ponteiro nos cards (só mouse/trackpad) */
 (function cardSpotlight(){
