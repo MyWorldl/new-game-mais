@@ -14,9 +14,7 @@ rep('<div class="attrs-grid" id="attrs-grid"></div>','<div class="attrs-radar" i
 rep('function renderAttrs(){\n', js+'function renderAttrs(){\n')
 rep('perfil: [renderAttrs, renderPerfilSummary, renderAchievements]','perfil: [renderRadar, renderAttrs, renderPerfilSummary, renderAchievements]')
 
-# Fase 4 — bolinha do tema padrão acompanha o novo verde-limão (era o azul-ciano antigo)
-assert src.count('sw(["#05070d","#141b2e","#22b8cf"])')==2
-src=src.replace('sw(["#05070d","#141b2e","#22b8cf"])','sw(["#06080a","#151b1f","#a3e635"])')
+# (a bolinha das paletas agora nasce em app.html: PALETAS.lima/violeta/ouro)
 # Fase 6 — gráfico/tile de peso usam a série 1 (limão no tema padrão; azul nos demais)
 rep('label:"Peso", color:"var(--s-blue)",','label:"Peso", color:"var(--viz-1)",')
 rep('statTileV2({eyebrow:"Peso atual", value:num(med.pesoKg,1), unit:"kg", accent:"var(--s-blue)", iconBg:"color-mix(in srgb, var(--s-blue) 18%, transparent)", iconColor:"var(--s-blue)"','statTileV2({eyebrow:"Peso atual", value:num(med.pesoKg,1), unit:"kg", accent:"var(--viz-1)", iconBg:"color-mix(in srgb, var(--viz-1) 18%, transparent)", iconColor:"var(--viz-1)"')
