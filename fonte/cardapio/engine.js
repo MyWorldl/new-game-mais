@@ -231,6 +231,99 @@ function buildMeal(slotKey, d, cfg, dt, mealIdx) {
   return { slot: slotKey, name: S.n, items: items, m: m, target: { kcal: Kt, P: Pt } };
 }
 
+
+/* ---------- TROCAS DE ALIMENTO (escolhas da pessoa) ----------
+   cfg.trocas = [{ d: -1 (todos os dias) | 0..6, s: refeição, de: alimento, para: alimento }]. Valem só entre alimentos da MESMA categoria
+   (proteína por proteína, carboidrato por carboidrato...). A porção é recalculada para manter o que o alimento original entregava
+   (proteína, carboidrato ou gordura, conforme a categoria), respeitando os tetos de porção. Restrições de saúde e de jeito de comer
+   (vegano, vegetariano, sem lactose, sem glúten, low carb) continuam valendo: uma troca que deixou de combinar com os filtros é ignorada.
+   Os filtros de ROTINA (orçamento enxuto, preparo rápido) não bloqueiam a troca: a pessoa decidiu, o app só avisa. */
+function semRotina(cfg) { return Object.assign({}, cfg, { rout: 'marmita' }); }
+function alternativasIds(role, slot, cfg) {
+  var c = semRotina(cfg), out;
+  if (role === 'prot') {
+    var main = slot === 'almoco' || slot === 'jantar';
+    out = (PREF[slot] || []).filter(function (id) { return allowed(id, c); });
+    if (cfg.style === 'omni' || cfg.style === 'lowc') out = out.filter(function (id) { return ['tofu', 'tvp', 'leiteS'].indexOf(id) < 0; });
+    if (main && (cfg.style === 'veg' || cfg.style === 'vegan')) POWDER.forEach(function (id) { if (allowed(id, c) && out.indexOf(id) < 0) out.push(id); });
+    if (main && (cfg.style === 'omni' || cfg.style === 'lowc')) out = out.filter(function (id) { return POWDER.indexOf(id) < 0; });
+  } else {
+    out = rolePool(role, c, slot);
+  }
+  return out;
+}
+function podeTrocar(de, para, slot, cfg) {
+  var a = FOODS[de], b = FOODS[para];
+  if (!a || !b || de === para || !SLOT[slot] || a.role !== b.role) return false;
+  return alternativasIds(a.role, slot, cfg).indexOf(para) >= 0;
+}
+function gramasTroca(it, para) {
+  var a = FOODS[it.id].v, b = FOODS[para].v, g = it.g / 100, ng = it.g;
+  if (it.role === 'prot' && b[1] > 0) ng = (a[1] * g / b[1]) * 100;
+  else if ((it.role === 'carb' || it.role === 'leg' || it.role === 'fruit') && b[2] > 0) ng = (a[2] * g / b[2]) * 100;
+  else if (it.role === 'fat' && b[3] > 0) ng = (a[3] * g / b[3]) * 100;
+  var novo = { id: para, role: it.role };
+  var cap = capOf(novo), u = FOODS[para].unit ? FOODS[para].unit[0] : 5;
+  if (para === 'azeite') return Math.max(13, Math.min(Math.round(ng / 13) * 13, 39));
+  ng = qty(para, ng);
+  if (ng > cap) ng = Math.max(u, cap - (cap % u));
+  return ng;
+}
+function trocasDoDia(cfg, d) {
+  var t = cfg.trocas || [];
+  return t.filter(function (x) { return x.d === -1; }).concat(t.filter(function (x) { return x.d === d; }));
+}
+function aplicaTrocas(meals, d, cfg) {
+  trocasDoDia(cfg, d).forEach(function (tr) {
+    meals.forEach(function (ml) {
+      if (ml.slot !== tr.s) return;
+      var it = null;
+      for (var i = 0; i < ml.items.length; i++) if (ml.items[i].id === tr.de) { it = ml.items[i]; break; }
+      if (!it || !podeTrocar(tr.de, tr.para, ml.slot, cfg)) return;
+      if (ml.items.some(function (o) { return o !== it && o.id === tr.para; })) return;   // não repete o mesmo alimento na refeição
+      var ng = gramasTroca(it, tr.para);
+      it.orig = it.orig || it.id; it.id = tr.para; it.g = ng; it.troca = true;
+    });
+  });
+}
+/* Lê o que veio salvo e devolve só trocas bem formadas (no máximo 120). */
+function normalizaTrocas(lista) {
+  if (!Array.isArray(lista)) return [];
+  var out = [];
+  lista.forEach(function (x) {
+    if (out.length >= 120 || !x || typeof x !== 'object') return;
+    var d = Number(x.d);
+    if (!(d === -1 || (d >= 0 && d <= 6 && Math.floor(d) === d))) return;
+    if (!SLOT[x.s] || !FOODS[x.de] || !FOODS[x.para] || x.de === x.para || FOODS[x.de].role !== FOODS[x.para].role) return;
+    out.push({ d: d, s: x.s, de: x.de, para: x.para });
+  });
+  return out;
+}
+/* Volta pela cadeia de trocas que levou ao alimento atual. soDia = só desfaz as trocas daquele dia (para nas "todos os dias"). */
+function desfazCadeia(trocas, d, s, idAtual, soDia) {
+  var out = trocas.slice(), cur = idAtual, g = 0, escopo = { dia: false, todos: false };
+  while (g++ < 30) {
+    var i = -1, k;
+    for (k = out.length - 1; k >= 0; k--) if (out[k].s === s && out[k].d === d && out[k].para === cur) { i = k; break; }
+    if (i < 0 && !soDia) for (k = out.length - 1; k >= 0; k--) if (out[k].s === s && out[k].d === -1 && out[k].para === cur) { i = k; break; }
+    if (i < 0) break;
+    if (out[i].d === -1) escopo.todos = true; else escopo.dia = true;
+    cur = out[i].de; out.splice(i, 1);
+  }
+  return { trocas: out, id: cur, escopo: escopo };
+}
+/* Registra "trocar o alimento que aparece agora (atual) por `para`" e devolve a nova lista. escopo: 'dia' | 'todos'. */
+function registraTroca(trocas, d, s, atual, para, escopo) {
+  if (escopo === 'todos') {
+    var r = desfazCadeia(trocas, d, s, atual, false);
+    if (para === r.id) return r.trocas;
+    return r.trocas.concat([{ d: -1, s: s, de: r.id, para: para }]);
+  }
+  var r2 = desfazCadeia(trocas, d, s, atual, true);
+  if (para === r2.id) return r2.trocas;
+  return r2.trocas.concat([{ d: d, s: s, de: r2.id, para: para }]);
+}
+
 function dayTotals(meals) {
   var s = { kcal: 0, P: 0, C: 0, F: 0 };
   meals.forEach(function (ml) { var m = ml.m || macros(ml.items); s.kcal += m.kcal; s.P += m.P; s.C += m.C; s.F += m.F; });
@@ -239,6 +332,8 @@ function dayTotals(meals) {
 function buildDay(d, cfg) {
   var t = targets(cfg), dt = dayTargets(t, d);
   var meals = ROUT[cfg.rout].meals.map(function (k, i) { return buildMeal(k, d, cfg, dt, i); });
+  aplicaTrocas(meals, d, cfg);
+  meals.forEach(function (ml) { ml.m = macros(ml.items); });
   // fecha as calorias do dia escalando carboidrato/fruta (e gordura quando preciso), respeitando tetos
   for (var pass = 0; pass < 4; pass++) {
     var tot = dayTotals(meals);
@@ -272,4 +367,4 @@ function fmtQty(it) {
   }
   return it.g + (f.liq ? ' ml' : ' g');
 }
-export { FOODS, OBJ, STYLE, ROUT, SLOT, DAYS, TRAIN, targets, dayTargets, buildDay, shopping, fmtQty, allowed };
+export { FOODS, OBJ, STYLE, ROUT, SLOT, DAYS, TRAIN, targets, dayTargets, buildDay, shopping, fmtQty, allowed, alternativasIds, podeTrocar, normalizaTrocas, desfazCadeia, registraTroca };
