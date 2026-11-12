@@ -7664,7 +7664,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.46af40d362.js";
+const CARDAPIO_URL = "./cardapio.a32ec3c9fe.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)

@@ -550,7 +550,10 @@ function montaPopup(e, h, sel) {
   const escopo = sel && sel.escopo === "todos" ? "todos" : "dia";
   const refeicao = cur.meals.find((m) => sel && m.slot === sel.slot) || cur.meals[0];
   const item = refeicao.items.find((i) => sel && i.id === sel.itemId) || refeicao.items[0];
-  const sinal = (v, un) => (v >= 0 ? "+" : "−") + num(Math.abs(v), 0) + " " + un;
+  const sinal = (v, un) => {
+    const r = Math.round(v);
+    return (r === 0 ? "±" : r > 0 ? "+" : "−") + num(Math.abs(r), 0) + " " + un;
+  };
   const nomeHtml = (id) => {
     const f = FOODS[id];
     const rot = /\*$/.test(f.n);

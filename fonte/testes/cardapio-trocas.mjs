@@ -1,6 +1,7 @@
 // Teste do motor de TROCA de alimentos do cardápio (fonte/cardapio/engine.js), sem navegador.
 // Uso: node fonte/testes/cardapio-trocas.mjs
 import * as E from '../cardapio/engine.js';
+import { montaPopup, montaVisao, normalizaCfg } from '../cardapio/ui.js';
 let ok = 0, falhas = 0;
 const t = (nome, cond, extra = '') => { if (cond) { ok++; console.log('PASS', nome); } else { falhas++; console.log('FAIL', nome, extra); } };
 
@@ -110,6 +111,36 @@ t('varredura: desvio de calorias do dia nunca passa de 25%', piorKcal <= 0.25, (
   t('normalizaTrocas aceita não-lista', E.normalizaTrocas(undefined).length === 0 && E.normalizaTrocas('x').length === 0);
   const muitos = []; for (let i = 0; i < 300; i++) muitos.push({ d: -1, s: 'cafe', de: 'ovo', para: 'iogurte' });
   t('normalizaTrocas limita a 120', E.normalizaTrocas(muitos).length === 120);
+}
+
+
+// 7) visão pura do pop-up (sem DOM)
+{
+  const h = { num: (v, d) => Number(v).toFixed(d || 0), escapeHtml: (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])), menorDeIdade: (i) => i < 18 };
+  const macros = { proteina: { g: 134, gkg: 1.8 } };
+  const mk = (cardapio, dia) => ({ kcalAlvo: 3043, macros, cfg: normalizaCfg({ cardapio }), perfil: { idade: 30 }, objetivo: 'superavit', dia: dia == null ? 0 : dia });
+  const e = mk({ jeito: 'omni', rotina: 'marmita', restricoes: {}, trocas: [] });
+  const r = montaPopup(e, h, { slot: 'almoco', itemId: 'nao-existe', escopo: 'dia' });
+  t('pop-up corrige alimento inválido para o primeiro da refeição', r.sel.slot === 'almoco' && !!E.FOODS[r.sel.itemId]);
+  const r2 = montaPopup(e, h, { slot: 'xx', itemId: 'frango', escopo: 'qualquer' });
+  t('pop-up corrige refeição inválida e escopo desconhecido', r2.sel.slot === 'cafe' && r2.sel.escopo === 'dia');
+  t('pop-up mostra o efeito de cada alternativa e o dia', /kcal · [+−±]\d+ g prot/.test(r.html) && /Seg \(dia de treino\)/.test(r.html));
+  t('sem trocas: não oferece "Restaurar" nem "Voltar ao sugerido"', r.html.indexOf('data-pop="restaurar"') < 0 && r.html.indexOf('data-pop="voltar"') < 0);
+  const e2 = mk({ jeito: 'omni', rotina: 'marmita', restricoes: {}, trocas: [{ d: 0, s: 'almoco', de: 'patinho', para: 'frango' }, { d: 3, s: 'cafe', de: 'ovo', para: 'queijo' }] });
+  const r3 = montaPopup(e2, h, { slot: 'almoco', itemId: 'frango', escopo: 'dia' });
+  t('com troca: oferece "Voltar ao sugerido" e "Restaurar todas (2)"', r3.html.indexOf('data-pop="voltar"') > 0 && /Restaurar todas \(2\)/.test(r3.html));
+  t('com troca: mostra a sugestão original', /Sugestão original: <b>Patinho grelhado/.test(r3.html));
+  const ev = mk({ jeito: 'vegan', rotina: 'marmita', restricoes: { lactose: true, gluten: true }, trocas: [] });
+  let carne = false;
+  for (const sl of ['cafe', 'almoco', 'lanche', 'jantar', 'ceia']) { const rv = montaPopup(ev, h, { slot: sl, itemId: null, escopo: 'dia' }); if (/frango|patinho|acém|sardinha|abadejo|pintado|ovo|queijo|iogurte|whey|pão/i.test(rv.html.split('3. Trocar por')[1] || '')) carne = true; }
+  t('vegano sem lactose/glúten: nenhuma alternativa proibida em nenhuma refeição', !carne);
+  const vis = montaVisao(e2, h);
+  t('card informa "2 trocas feitas."', /2 trocas feitas\./.test(vis.trocasinfo));
+  const vis0 = montaVisao(e, h);
+  t('card sem trocas convida a trocar', /Troque qualquer alimento/.test(vis0.trocasinfo));
+  const eign = mk({ jeito: 'vegan', rotina: 'marmita', restricoes: {}, trocas: [{ d: -1, s: 'almoco', de: 'tofu', para: 'frango' }] });
+  t('card avisa troca guardada que não combina mais', /não combina/.test(montaVisao(eign, h).trocasinfo));
+  t('orçamento enxuto: alternativa cara recebe aviso no pop-up', /fora do orçamento enxuto/.test(montaPopup(mk({ jeito: 'omni', rotina: 'budget', restricoes: {}, trocas: [] }), h, { slot: 'almoco', itemId: 'acem', escopo: 'dia' }).html));
 }
 
 console.log(ok + ' ok, ' + falhas + ' falhas');
