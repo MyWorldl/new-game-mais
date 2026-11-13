@@ -9576,7 +9576,9 @@ function renderWeekTrail(){
   // domingo pra fora da tela: o diâmetro acompanha o espaço entre os nós
   const trailSpacing = (trailW - TRAIL_MARGIN_X*2) / (n-1);
   const circleD = Math.max(28, Math.min(TRAIL_CIRCLE_D, Math.floor(trailSpacing - 3)));
-  const nodeW = Math.min(60, Math.floor(trailSpacing));
+  // alvo de toque: em aparelho de toque a área do nó tem ao menos 44 px de largura (o círculo visível continua encolhendo; áreas vizinhas se sobrepõem só nas bordas)
+  const toqueMin = (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 44 : 0;
+  const nodeW = Math.min(60, Math.max(toqueMin, Math.floor(trailSpacing)));
   wrap.style.setProperty("--tc", circleD+"px");
   const centers = DAYS.map((_,i)=> trailNodeCenter(i, n, trailW));
 

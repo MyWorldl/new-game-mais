@@ -1069,3 +1069,12 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .cdp-troca .cdp-meal{ animation:cdp-entra var(--dur-base) var(--ease-out) both; }
 .cdp-troca .cdp-meal:nth-child(2){ animation-delay:40ms; } .cdp-troca .cdp-meal:nth-child(3){ animation-delay:80ms; } .cdp-troca .cdp-meal:nth-child(4){ animation-delay:120ms; } .cdp-troca .cdp-meal:nth-child(5){ animation-delay:160ms; }
 @media (prefers-reduced-motion:reduce){ .cdp-troca .cdp-meal{ animation:none; } }
+
+/* ===== VISUAL V3 · Fase 10 — auditoria final: alvos de toque ≥ 44 px que ainda faltavam (só aparelhos de toque) ===== */
+@media (pointer:coarse){
+  .an-f{ min-block-size:44px; }
+  .cdp-days{ grid-template-columns:repeat(auto-fit,minmax(44px,1fr)); }
+  .th-sort{ min-block-size:44px; }
+  .cm-fontes a, a.glos-src{ display:inline-flex; align-items:center; min-block-size:44px; }
+  .skin-swatch{ inline-size:44px; block-size:44px; }
+}

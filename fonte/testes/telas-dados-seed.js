@@ -2,8 +2,8 @@ const { chromium } = require('playwright');
 const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
 const MAP = ['dom','seg','ter','qua','qui','sex','sab'];
 const URL_ = (process.argv[2] || 'http://localhost:8791') + '/index.html';
-module.exports.abre = async (b, w = 400, modo='dark') => {
-  const c = await b.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 1, colorScheme: modo });
+module.exports.abre = async (b, w = 400, modo='dark', toque=false) => {
+  const c = await b.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 1, colorScheme: modo, ...(toque ? { hasTouch: true, isMobile: true } : {}) });
   await c.addInitScript(() => { try { localStorage.setItem('ng_dev_semnuvem','1'); localStorage.setItem('ng_recup_pulo','9999-12-31'); localStorage.setItem('bff_rest_auto','0'); localStorage.setItem('ng_tutorial_visto','1'); } catch(e){} });
   const p = await c.newPage(); p.errs = [];
   p.on('pageerror', e => p.errs.push(e.message));

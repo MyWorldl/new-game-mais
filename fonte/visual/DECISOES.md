@@ -123,3 +123,19 @@ Ver o resumo da Fase 0 no chat (lista de 10 componentes, ordem de fases e pergun
 - **Animação do anel** só na primeira renderização (flag JS + classe removida por timeout), para não repetir ao voltar à aba.
 - **Teste novo:** `fonte/testes/dieta-v3.js` (41 verificações: arcos somam 100%, legenda, ícones, fatias somam ≈100%, troca de dia, sem overflow em 320/390/1280, movimento reduzido, estado vazio, axe em 5 paletas, sem erro de console). Incluído em `rodar-todos.sh`.
 - Capturas: `antes-depois/depois-f6-anel.jpg` e `depois-f6-refeicoes.jpg`.
+
+
+## Fase 10 — Auditoria final
+
+Teste único e repetível: `fonte/testes/auditoria-v3.js` (50 verificações, ~7 min; entra na bateria de `rodar-todos.sh` com limite de 900 s).
+
+**O que a auditoria cobre:** 7 abas × 320/390/768/1024/1280/1440 px sem rolagem horizontal e sem erro de console; texto em 100/125/150% do tamanho-base (390 px); contraste, nomes e ARIA (axe) nas 7 abas nas 3 paletas do jogo e nos 3 pastéis em modo escuro e claro; alvos de toque ≥ 44 px em aparelho de toque a 320 e 390 px; movimento reduzido sem nenhuma animação em execução; abertura offline com service worker; carga < 3 s, primeira pintura < 2 s, bundles de CSS/JS dentro do orçamento, nenhuma requisição a host externo e CLS < 0,1 ao trocar de aba com toques reais.
+
+**Achados e correções (só visual/ergonomia):**
+- Alvos de toque que ainda ficavam abaixo de 44 px em `pointer:coarse`: chips de filtro do Treino (`.an-f`), cabeçalhos ordenáveis da tabela do Corpo (`.th-sort`), links de fonte do Corpo e do Glossário, amostras de skin (`.skin-swatch`), dias do cardápio (`.cdp-days`, agora em grade auto-fit que quebra em 2 linhas quando faltam 44 px por dia) e os nós da trilha semanal (`renderWeekTrail`: a área de toque tem ao menos 44 px de largura; o círculo visível continua encolhendo em telas estreitas).
+- O teste de toque passou a usar contexto com `hasTouch/isMobile`, porque as regras de 44 px do app só valem para `pointer:coarse`.
+- O tema é trocado pelos botões do próprio app (Config); a primeira versão do teste alterava só os atributos do `<html>` e misturava modo claro e escuro, gerando falsos alertas de contraste no azul claro.
+- O CLS de 0,106 da primeira rodada era artefato de clique programático (que reseta a rolagem). Com cliques reais, os toques do usuário não contam como deslocamento inesperado.
+- "3 tamanhos de texto" foram testados como 100%, 125% e 150% do tamanho-base da página.
+
+**Resultado:** 50 verificações, 0 falhas contra o build desta fase.

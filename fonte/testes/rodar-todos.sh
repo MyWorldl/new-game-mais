@@ -13,13 +13,14 @@ sleep 1
 falhas=0
 roda() {   # nome, comando...
   nome="$1"; shift
-  saida=$(timeout 280 "$@" 2>&1); rc=$?
+  saida=$(timeout "${TEMPO:-280}" "$@" 2>&1); rc=$?
   echo "=== $nome (rc=$rc)"; echo "$saida" | tail -2
   if [ $rc -ne 0 ] || echo "$saida" | grep -q '^FAIL'; then falhas=$((falhas+1)); echo "!!! $nome FALHOU"; echo "$saida" | grep '^FAIL' | head -5; fi
 }
 for t in reagenda scroll-dieta rolagem-render login-turnstile relogin-inatividade como-estou-hoje tutorial lateral-foto-analise semana-casa banner-instalar treino-f1 ranking-series telas-dados paletas nav-acoes hoje-v3 habitos-v3 corpo-v3 perfil-v3 dieta-v3 treino-anel treino-f2 treino-f3 politica instalar fontes acessibilidade-sw atualizacao-sw; do
   roda "$t" node "$t.js"
 done
+TEMPO=900; roda auditoria-v3 node auditoria-v3.js http://localhost:8791; TEMPO=280   # auditoria final do redesign v3 (~7 min)
 roda cardapio-e2e node cardapio-e2e.js http://localhost:8791
 roda cardapio-nos node cardapio-nos.js http://localhost:8791
 roda cardapio-sob-demanda node cardapio-sob-demanda.js http://localhost:8791
