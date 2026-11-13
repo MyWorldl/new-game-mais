@@ -59,6 +59,7 @@ function radarAxes(){
     {k:"Foco", ab:"FOC", v:pct(medSem, 4), sub: medSem+" de 4 semanas com medição"}
   ];
 }
+let rdJaAnimou = false;
 function renderRadar(){
   const el = document.getElementById("attrs-radar");
   if(!el) return;
@@ -95,5 +96,8 @@ function renderRadar(){
     ? '<div class="radar-hall"><h3>Hall de cargas</h3><ol>'+f.top.slice(0,3).map((e,i)=>
         '<li><i class="sl-dot sl-'+MEDALHAS[i].k+'" aria-hidden="true"></i><span class="hn"><span class="sr-only">'+(i+1)+'º lugar: </span>'+escapeHtml(e.nome)+'</span><b>'+fmtKg(e.pr)+' kg</b><small>'+fmtDateBR(e.prIso)+'</small></li>').join("")+'</ol></div>'
     : '<div class="radar-hall"><h3>Hall de cargas</h3><p class="hint">Registre cargas nos treinos para montar o seu Hall.</p></div>';
+  const rdAnimar = !rdJaAnimou; rdJaAnimou = true;
+  el.classList.toggle("rd-anim", rdAnimar);
   el.innerHTML = head + svg + list + hall;
+  if(rdAnimar) setTimeout(()=> el.classList.remove("rd-anim"), 1200);   // não repete ao voltar para a aba
 }

@@ -103,4 +103,13 @@ rep('<div class="card">\n      <div class="card-head"><h2>Evolução</h2></div>'
 rep('function renderNivel(){\n', corpo+'function renderNivel(){\n')
 rep('corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderEvolucaoChart,','corpo: [renderCorpoKpis, renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderMusculosSemana, renderEvolucaoChart,')
 
+# ===== Fases 8 e 9 (v3) — Perfil: moldura do avatar (CSS puro) =====
+perf=open(base+'/ng-perfil.js',encoding='utf8').read()
+rep('<div class="perfil-avatar" id="perfil-avatar-initials">—</div>',
+    '<div class="perfil-avatar-wrap" id="perfil-avatar-wrap" role="img" aria-label="Moldura do avatar" data-moldura="1">'
+    '<span class="pa-orn" aria-hidden="true"></span><span class="pa-xp" aria-hidden="true"></span><span class="pa-gems" aria-hidden="true"></span>'
+    '<div class="perfil-avatar" id="perfil-avatar-initials">—</div><span class="pa-lv" aria-hidden="true">1</span></div>')
+rep('function renderNivel(){\n', perf+'function renderNivel(){\n')
+rep('renderNivel(); renderNavExtras();            // aparece','renderNivel(); renderNavExtras(); renderMolduras();            // aparece')
+
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))

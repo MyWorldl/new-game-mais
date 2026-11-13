@@ -96,3 +96,16 @@ Ver o resumo da Fase 0 no chat (lista de 10 componentes, ordem de fases e pergun
 
 **Efeito colateral encontrado na regressão (Fase 7):** com o resumo no topo, o card "Nova medição" desceu na tela e, no desktop de 1440 px, o tutorial passou a colocar o balão ao lado do card (antes ia embaixo). O balão não cobre o card, mas o teste `tutorial.js` só comparava a sobreposição na vertical. O teste agora compara os dois eixos (retângulos que realmente se cruzam); o comportamento do tutorial não mudou.
 
+## Fases 8 e 9 · Perfil (moldura do avatar, caminho em etapas, vitrine e radar)
+
+**Decisão do Gabriel:** "pode seguir" com o plano proposto (avatar com moldura; nível/XP e roadmap; vitrine; radar). As duas fases do plano original (Perfil e molduras ornamentais) foram feitas juntas porque a moldura é parte do Perfil.
+
+**O que foi acrescentado (só visual; nenhum dado novo é gravado, as contas de patente/XP/conquistas são as do app):**
+- **Moldura do avatar, CSS puro, sem imagem de terceiros.** O avatar do Perfil ficou circular dentro de uma moldura de 80 px com anel de XP (conic-gradient, preenchido com a % do caminho até a próxima patente, igual à barra do card de patente), emblema com o nível (1 a 10) e ornamentos que crescem com a patente: 1–2 anel simples; 3–4 anel duplo; 5–6 marcas ao redor; 7–8 marcas e quatro gemas; 9–10 brilho e giro lento das gemas (transform; desligado com movimento reduzido). A moldura é `role="img"` com descrição por extenso ("patente Platina, nível 6 de 10, 21% do caminho…"); o nível nunca depende só da cor. O avatar do topo (botão do Perfil) ganhou só o anel de XP.
+- **Caminho em 4 etapas** (card "Próximos marcos"): linha do tempo vertical numerada com "Você está aqui" (patente atual, nível, XP total, sequência), próxima patente, próximo marco de sequência e conquista mais perto. As 3 últimas já existiam; a 1ª etapa é nova e a primeira vem marcada com `aria-current="step"`.
+- **Vitrine de conquistas:** as desbloqueadas ficam numa prateleira ("Na vitrine") e as demais em "Em progresso", com a barra do quanto falta. Nenhuma conquista foi removida e tocar ainda abre o detalhe. Sem nenhuma conquista, aparece uma mensagem acolhedora.
+- **Radar da ficha:** abertura suave (opacity/transform) só na primeira vez; sem mudar os atributos nem as contas.
+- Decisão: a moldura segue a patente (e não o nível de conquistas) porque a patente é o único progresso contínuo e já tem cor própria (`--t1` a `--t10`).
+
+**Verificação:** `fonte/testes/perfil-v3.js` (51 checagens: moldura com descrição e nível igual ao do escudo, anel de XP igual à barra do card, ornamentos por patente 1–10, movimento reduzido, caminho numerado, vitrine sem perder conquistas e com detalhe funcionando, usuário novo (vitrine vazia), sem cadastro, 320/390/1280 px e axe nas 5 paletas). Antes/depois: `antes-depois/depois-f8-perfil.jpg` e `depois-f8-molduras.jpg` (as 10 molduras lado a lado); antes: `antes-m-perfil.jpg`.
+

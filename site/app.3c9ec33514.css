@@ -3699,3 +3699,86 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .ck-insights h3{ margin:0 0 var(--sp-2); font:700 var(--fs-sm,14px)/1.2 'Barlow Condensed',system-ui,sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
 .ck-insights ul{ margin:0; padding-inline-start:1.1em; display:flex; flex-direction:column; gap:6px; font-size:var(--fs-sm); line-height:1.45; }
 .ck-nota{ margin:var(--sp-2) 0 0; font-size:var(--fs-xs); color:var(--muted); line-height:1.4; }
+
+/* ===== VISUAL V3 · Fases 8 e 9 — Perfil: moldura do avatar, caminho em etapas, vitrine e radar ===== */
+.perfil-avatar-wrap{ --pa:80px; position:relative; flex:none; inline-size:var(--pa); block-size:var(--pa); display:grid; place-items:center; }
+.perfil-avatar-wrap .perfil-avatar{ position:relative; inline-size:52px; block-size:52px; border-radius:50%; font-size:var(--fs-lg,1.125rem); }
+.pa-orn, .pa-xp, .pa-gems{ position:absolute; border-radius:50%; pointer-events:none; }
+.pa-xp{
+  inset:7px;
+  background:conic-gradient(var(--mc,var(--accent)) calc(var(--xp,0)*1%), color-mix(in srgb, var(--mc,var(--accent)) 16%, var(--line-strong)) 0);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+}
+.pa-orn{ inset:0; }
+.pa-gems{ inset:0; display:none; }
+/* 3–4 (Bronze, Prata): anel duplo */
+.perfil-avatar-wrap:is([data-moldura="3"],[data-moldura="4"]) .pa-orn{ inset:2px; border:1px solid color-mix(in srgb, var(--mc) 45%, transparent); }
+/* 5–10 (Ouro em diante): marcas ao redor */
+.perfil-avatar-wrap:is([data-moldura="5"],[data-moldura="6"],[data-moldura="7"],[data-moldura="8"],[data-moldura="9"],[data-moldura="10"]) .pa-orn{
+  background:repeating-conic-gradient(var(--mc) 0 1.8deg, transparent 1.8deg 15deg);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+}
+/* 7–10 (Diamante em diante): quatro gemas nos pontos cardeais */
+.perfil-avatar-wrap:is([data-moldura="7"],[data-moldura="8"],[data-moldura="9"],[data-moldura="10"]) .pa-gems{
+  display:block;
+  background:
+    radial-gradient(circle at 50% 3px, var(--mc) 0 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 3px) 50%, var(--mc) 0 3px, transparent 3.6px),
+    radial-gradient(circle at 50% calc(100% - 3px), var(--mc) 0 3px, transparent 3.6px),
+    radial-gradient(circle at 3px 50%, var(--mc) 0 3px, transparent 3.6px);
+}
+/* 9–10 (Imortal, Radiante): brilho e giro lento das gemas */
+.perfil-avatar-wrap:is([data-moldura="9"],[data-moldura="10"]){ filter:drop-shadow(0 0 7px color-mix(in srgb, var(--mc) 55%, transparent)); }
+.perfil-avatar-wrap:is([data-moldura="9"],[data-moldura="10"]) .pa-gems{ animation:pa-gira 24s linear infinite; }
+@keyframes pa-gira{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce){ .perfil-avatar-wrap .pa-gems{ animation:none !important; } }
+.pa-lv{
+  position:absolute; inset-inline-end:-2px; inset-block-end:-2px; min-inline-size:26px; block-size:26px; padding-inline:4px; border-radius:13px;
+  display:grid; place-items:center; background:var(--mc,var(--accent)); color:var(--ink-on-light);
+  font:700 14px/1 'Barlow Condensed',system-ui,sans-serif; border:2px solid var(--surface);
+}
+/* avatar do topo: só o anel de XP */
+.top-avatar{ position:relative; }
+.top-avatar[data-moldura]::after{
+  content:""; position:absolute; inset:-5px; border-radius:50%; pointer-events:none;
+  background:conic-gradient(var(--mc) calc(var(--xp,0)*1%), color-mix(in srgb, var(--mc) 14%, transparent) 0);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+@media (max-width:360px){ .perfil-avatar-wrap{ --pa:72px; } .perfil-avatar-wrap .perfil-avatar{ inline-size:46px; block-size:46px; } }
+
+/* caminho em etapas (Próximos marcos) */
+.marcos-list{ counter-reset:etapa; padding-inline-start:38px; gap:20px; }
+.marco{ counter-increment:etapa; position:relative; }
+.marco::before{
+  content:counter(etapa); position:absolute; inset-inline-start:-38px; inset-block-start:0; inline-size:26px; block-size:26px; border-radius:50%;
+  display:grid; place-items:center; font:700 13px/1 'Barlow Condensed',system-ui,sans-serif;
+  background:var(--surface-2); border:2px solid var(--line-strong); color:var(--ink-soft);
+}
+.marco::after{ content:""; position:absolute; inset-inline-start:-26px; inset-block-start:30px; inset-block-end:-20px; inline-size:2px; background:var(--line-strong); }
+.marco:last-child::after{ display:none; }
+.marco.atual::before{ background:var(--accent); border-color:var(--accent); color:var(--ink-on-light); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
+.marco.atual::after{ background:linear-gradient(var(--accent), var(--line-strong)); }
+
+/* vitrine de conquistas */
+#achievements-grid.badge-grid{ display:block; }
+.vit-sec + .vit-sec, .vit-vazia + .vit-sec{ margin-top:var(--sp-5,20px); }
+.vit-h{ margin:0 0 var(--sp-2); display:flex; align-items:baseline; gap:8px; font:700 var(--fs-sm,14px)/1.2 'Barlow Condensed',system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+.vit-h span{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-xs); letter-spacing:0; color:var(--muted); }
+.vit-nota{ margin:0 0 var(--sp-2); font-size:var(--fs-xs); color:var(--muted); }
+.vit-lista{ display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:14px 10px; }
+.vit-shelf{
+  padding:var(--sp-3) var(--sp-2) var(--sp-2); border-radius:18px; border:1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, var(--surface-2)) 0%, var(--surface-2) 100%);
+  box-shadow:inset 0 -6px 0 -3px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.vit-vazia{ margin:0 0 var(--sp-3); padding:var(--sp-3) var(--sp-4); border-radius:14px; border:1px dashed var(--line-strong); font-size:var(--fs-sm); color:var(--ink-soft); }
+
+/* radar da ficha: abertura suave só na primeira vez */
+@keyframes rd-abre{ from{ opacity:0; transform:scale(.55); } to{ opacity:1; transform:none; } }
+@keyframes rd-dot{ from{ opacity:0; } to{ opacity:1; } }
+.attrs-radar.rd-anim .radar-area{ transform-box:fill-box; transform-origin:center; animation:rd-abre var(--dur-slow) var(--ease-out) both; }
+.attrs-radar.rd-anim .radar-dot{ animation:rd-dot var(--dur-slow) var(--ease-out) .12s both; }
+@media (prefers-reduced-motion:reduce){ .attrs-radar.rd-anim .radar-area, .attrs-radar.rd-anim .radar-dot{ animation:none; } }

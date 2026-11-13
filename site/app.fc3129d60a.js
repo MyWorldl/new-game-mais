@@ -3106,6 +3106,28 @@ function renderMusculosSemana(){
     if(t) t.scrollIntoView({block:"start"});
   });
 })();
+/* ---- NG+ visual v3 · Fases 8 e 9 · Perfil: moldura do avatar em CSS puro (anel de XP + ornamentos por patente).
+        Tudo derivado de computeNivelInfo(); nada novo é salvo. ---- */
+function renderMolduras(){
+  let info;
+  try{ info = computeNivelInfo(); }catch(e){ return; }
+  const n = info.tierIndex + 1;
+  const pct = info.isMax ? 100 : Math.max(0, Math.min(100, Math.round((info.xpInTier / info.tierNeed) * 100)));
+  const aplica = el=>{
+    if(!el) return;
+    el.dataset.moldura = String(n);
+    el.style.setProperty("--mc", "var(--t"+n+")");
+    el.style.setProperty("--xp", String(pct));
+  };
+  const wrap = document.getElementById("perfil-avatar-wrap");
+  aplica(wrap);
+  if(wrap){
+    wrap.setAttribute("aria-label", "Moldura do avatar: patente "+info.tierName+", nível "+n+" de "+NIVEL_TIERS.length+(info.isMax ? ", patente máxima." : ", "+pct+"% do caminho até a próxima patente."));
+    const lv = wrap.querySelector(".pa-lv");
+    if(lv) lv.textContent = String(n);
+  }
+  aplica(document.getElementById("top-avatar"));
+}
 function renderNivel(){
   const info = computeNivelInfo();
   const n = info.tierIndex+1;
@@ -3387,6 +3409,7 @@ function radarAxes(){
     {k:"Foco", ab:"FOC", v:pct(medSem, 4), sub: medSem+" de 4 semanas com medição"}
   ];
 }
+let rdJaAnimou = false;
 function renderRadar(){
   const el = document.getElementById("attrs-radar");
   if(!el) return;
@@ -3423,7 +3446,10 @@ function renderRadar(){
     ? '<div class="radar-hall"><h3>Hall de cargas</h3><ol>'+f.top.slice(0,3).map((e,i)=>
         '<li><i class="sl-dot sl-'+MEDALHAS[i].k+'" aria-hidden="true"></i><span class="hn"><span class="sr-only">'+(i+1)+'º lugar: </span>'+escapeHtml(e.nome)+'</span><b>'+fmtKg(e.pr)+' kg</b><small>'+fmtDateBR(e.prIso)+'</small></li>').join("")+'</ol></div>'
     : '<div class="radar-hall"><h3>Hall de cargas</h3><p class="hint">Registre cargas nos treinos para montar o seu Hall.</p></div>';
+  const rdAnimar = !rdJaAnimou; rdJaAnimou = true;
+  el.classList.toggle("rd-anim", rdAnimar);
   el.innerHTML = head + svg + list + hall;
+  if(rdAnimar) setTimeout(()=> el.classList.remove("rd-anim"), 1200);   // não repete ao voltar para a aba
 }
 function renderAttrs(){
   const el = document.getElementById("attrs-grid");
@@ -3741,7 +3767,7 @@ function renderAchievements(){
   const prog = achProgressList();
   const unlockedCount = flags.filter(Boolean).length;
   if(countEl) countEl.textContent = unlockedCount+" de "+ACHIEVEMENTS.length+" desbloqueadas";
-  el.innerHTML = ACHIEVEMENTS.map((a,i)=>{
+  const htmls = ACHIEVEMENTS.map((a,i)=>{
     const unlocked = flags[i];
     const p = prog[a.nome] || {cur:0, max:1, un:""};
     const color = ACHIEVEMENT_COLORS[i % ACHIEVEMENT_COLORS.length];
@@ -3756,7 +3782,13 @@ function renderAchievements(){
         ? '<span class="badge-prog done" aria-hidden="true">Feita</span>'
         : '<span class="badge-bar" aria-hidden="true"><i style="width:'+Math.round(p.cur/p.max*100)+'%"></i></span><span class="badge-prog" aria-hidden="true">'+achProgTxt(p)+'</span>')+
     '</button>';
-  }).join("");
+  });
+  const secao = (titulo, lista, cls, nota)=> lista.length
+    ? '<section class="vit-sec"><h3 class="vit-h">'+titulo+' <span>'+lista.length+'</span></h3>'+(nota ? '<p class="vit-nota">'+nota+'</p>' : '')+'<div class="vit-lista '+cls+'">'+lista.join("")+'</div></section>' : '';
+  const ganhas = htmls.filter((_,i)=> flags[i]), faltam = htmls.filter((_,i)=> !flags[i]);
+  el.innerHTML = secao("Na vitrine", ganhas, "vit-shelf") +
+    (ganhas.length ? '' : '<p class="vit-vazia">A vitrine começa vazia: a primeira conquista aparece aqui assim que sair.</p>') +
+    secao("Em progresso", faltam, "vit-grid", "Toque para ver o quanto falta.");
   el.onclick = function(ev){
     const b = ev.target.closest && ev.target.closest("[data-ach]");
     if(b) abrirConquista(Number(b.dataset.ach));
@@ -3770,9 +3802,12 @@ function renderMarcos(){
   const prog = achProgressList();
   const rows = [];
   const row = (titulo, texto, ratio, sub)=>
-    '<li class="marco"><div class="marco-top"><b>'+escapeHtml(titulo)+'</b><span>'+escapeHtml(texto)+'</span></div>'+
+    '<li class="marco prox"><div class="marco-top"><b>'+escapeHtml(titulo)+'</b><span>'+escapeHtml(texto)+'</span></div>'+
     '<div class="ach-bar" aria-hidden="true"><i style="width:'+Math.round(Math.max(0, Math.min(1, ratio))*100)+'%"></i></div>'+
     (sub ? '<div class="marco-sub">'+escapeHtml(sub)+'</div>' : '')+'</li>';
+  // 0) você está aqui (etapa 1 do caminho)
+  rows.push('<li class="marco atual" aria-current="step"><div class="marco-top"><b>Você está aqui: patente '+escapeHtml(ni.tierName)+'</b><span>nível '+(ni.tierIndex+1)+' de '+NIVEL_TIERS.length+'</span></div>'+
+    '<div class="marco-sub">'+num(ni.xp)+' XP no total'+(eng.streak ? ' · sequência de '+eng.streak+(eng.streak === 1 ? ' dia' : ' dias') : '')+'.</div></li>');
   // 1) próxima patente
   if(ni.isMax){
     rows.push('<li class="marco"><div class="marco-top"><b>Patente máxima</b><span>'+escapeHtml(ni.tierName)+'</span></div><div class="marco-sub">Você chegou ao topo. Agora é manter o ritmo.</div></li>');
@@ -10061,7 +10096,7 @@ function render(){
   preservandoRolagem(()=>{
     applyAccentSkin();
     applyGameMode();
-    renderNivel(); renderNavExtras();            // aparece no Perfil e no Painel (card de patente compacto) — sempre atual
+    renderNivel(); renderNavExtras(); renderMolduras();            // aparece no Perfil e no Painel (card de patente compacto) — sempre atual
     const cur = visibleViewId();
     Object.keys(SECTION_RENDERERS).forEach(id=>{ if(id === cur) renderSection(id); else dirtyViews.add(id); });
   });
