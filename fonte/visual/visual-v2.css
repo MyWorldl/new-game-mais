@@ -737,3 +737,344 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 /* dias concluídos de "Esta semana": texto com contraste próprio em cada modo (verde claro nos escuros, verde escuro nos claros) */
 :root:not([data-game="on"]) .week-progress .dot.done{ color:var(--ink-on-light,#12100c); }
 :root:not([data-game="on"])[data-modo="claro"] .week-progress .dot.done{ color:#fff; }
+
+/* ============================================================
+   VISUAL V3 · Fase 1 — paletas do modo jogo e tokens de movimento
+   Lima = padrão (bloco 1 acima). Violeta e Ouro só redefinem variáveis; nenhuma regra de estrutura muda.
+   Séries de gráfico validadas no escuro (banda de luminosidade, separação para daltonismo, contraste ≥ 3:1).
+   ============================================================ */
+:root{ --dur-fast:120ms; --dur-base:220ms; --dur-slow:420ms; --ease-out:cubic-bezier(.22,1,.36,1); }
+@media (prefers-reduced-motion:reduce){ :root{ --dur-fast:.01ms; --dur-base:.01ms; --dur-slow:.01ms; } }
+:root[data-game="on"][data-paleta="violeta"]{
+  --bg:#0b0813; --surface:#14101f; --surface-2:#1d1730; --ink:#f1ecfb; --ink-soft:#c4b8e0; --muted:#a396c8;
+  --line:#261e3a; --line-strong:#382d54; --rest:#231c36;
+  --accent:#a78bfa; --accent-ink:#140a2e; --accent-soft:#251a45;
+  --viz-1:#9577e8; --viz-2:#de6a3a; --viz-3:#1fa97a;
+}
+:root[data-game="on"][data-paleta="ouro"]{
+  --bg:#0a0804; --surface:#14110a; --surface-2:#1d1910; --ink:#f6f0e0; --ink-soft:#cbbf9f; --muted:#a39879;
+  --line:#2a2416; --line-strong:#3d341f; --rest:#272112;
+  --accent:#e5b83d; --accent-ink:#1a1300; --accent-soft:#2b2209;
+  --viz-1:#bd8a0c; --viz-2:#4a98e4; --viz-3:#d65f8c;
+}
+
+/* ============================================================
+   VISUAL V3 · Fase 2 — barra inferior de 4 itens + botão central com menu de ações rápidas (celular)
+   O Perfil sai da barra e fica no avatar do topo (que já abre o Perfil). A partir de 768 px nada muda: o menu lateral segue completo.
+   ============================================================ */
+.nav-fab, .nav-acoes{ display:none; }
+.top-avatar.on{ background:var(--accent); color:var(--accent-ink); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+@media (max-width:767px){
+  .bottomnav{ overflow:visible; }
+  .bottomnav #tab-perfil{ display:none; }
+  .bottomnav .tabs{ grid-template-columns:repeat(2,minmax(0,1fr)) 72px repeat(2,minmax(0,1fr)); }
+  .bottomnav #tab-dieta{ grid-column:4; }
+  .bottomnav #tab-corpo{ grid-column:5; }
+  .nav-fab{
+    display:grid; place-items:center; position:absolute; left:50%; top:-26px; margin-left:-30px;
+    inline-size:60px; block-size:60px; padding:0; border-radius:50%; cursor:pointer;
+    background:var(--accent); color:var(--accent-ink); border:4px solid var(--bg);
+    box-shadow:0 10px 24px -8px color-mix(in srgb, var(--accent) 80%, transparent), 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+    transition:transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .nav-fab svg{ inline-size:26px; block-size:26px; transition:transform var(--dur-base) var(--ease-out); }
+  .nav-fab[aria-expanded="true"] svg{ transform:rotate(45deg); }
+  .nav-fab:active{ transform:scale(.94); }
+  .nav-fab:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; }
+  .nav-acoes{
+    display:flex; flex-direction:column; gap:4px; position:absolute; inset-inline:0; margin-inline:auto; inline-size:min(344px,100%);
+    bottom:calc(100% + 24px); padding:8px; border-radius:22px;
+    background:color-mix(in srgb, var(--surface) 96%, transparent); border:1px solid var(--line-strong);
+    box-shadow:0 22px 48px -16px rgba(0,0,0,.8), 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+    opacity:0; transform:translateY(10px) scale(.98); transform-origin:50% 100%;
+    transition:opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  }
+  .nav-acoes[hidden]{ display:none; }
+  .nav-acoes.on{ opacity:1; transform:none; }
+  .na-item{
+    display:flex; align-items:center; gap:12px; inline-size:100%; min-block-size:56px; padding:8px 10px; text-align:start;
+    border:0; border-radius:16px; background:transparent; color:var(--ink); cursor:pointer; font:inherit;
+  }
+  .na-item:hover, .na-item:focus-visible{ background:var(--accent-soft); }
+  .na-item:focus-visible{ outline:2px solid var(--focus); outline-offset:-2px; }
+  .na-ic{ flex:none; inline-size:40px; block-size:40px; display:grid; place-items:center; border-radius:12px; background:var(--accent-soft); color:var(--accent-fg,var(--accent)); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  .na-ic svg{ inline-size:22px; block-size:22px; }
+  .na-tx{ display:flex; flex-direction:column; gap:2px; min-inline-size:0; }
+  .na-tx b{ font-size:var(--fs-sm); font-weight:700; line-height:1.2; }
+  .na-tx small{ font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.25; }
+  .na-item[aria-disabled="true"]{ cursor:default; }
+  .na-item[aria-disabled="true"] .na-tx b{ color:var(--ink-soft); }
+  .na-item[aria-disabled="true"] .na-ic{ opacity:.6; }
+}
+
+/* ============================================================
+   VISUAL V3 · Fase 3 — tela Hoje: anel duplo, carrossel de métricas e missões de hoje
+   ============================================================ */
+/* anel duplo no cartão "Quest de hoje": por fora o dia (exercícios), por dentro a semana (meta de treinos) */
+.today-ring{ width:96px; height:96px; }
+.today-ring-track{ stroke-width:6; }
+.today-ring-fill{ stroke-width:6; transition:stroke-dashoffset var(--dur-slow) var(--ease-out), stroke var(--dur-base); }
+.today-ring-fill2{ stroke:var(--s-blue); }
+.today-ring-track2{ opacity:.85; }
+.today-hero.is-done .today-ring-fill2{ stroke:var(--s-blue); }
+.today-ring b{ font-size:var(--fs-sm); }
+
+/* carrossel de métricas (celular): desliza de lado e encaixa; a partir de 768 px vira uma grade de 4 colunas */
+.hoje-metricas{ display:flex; flex-direction:column; gap:10px; min-inline-size:0; }
+.hm-trilho{
+  display:flex; gap:10px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory;
+  padding:2px 2px 6px; margin-inline:-2px; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+}
+.hm-trilho::-webkit-scrollbar{ display:none; }
+.hm-card{
+  flex:0 0 min(76%,280px); scroll-snap-align:start; scroll-margin-inline:2px;
+  display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:14px; text-align:start; cursor:pointer;
+  color:var(--ink); font:inherit; border-radius:20px; border:1px solid var(--line);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, var(--ink)) 0%, var(--surface) 60%);
+  box-shadow:var(--shadow, none);
+  transition:transform var(--dur-fast) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+.hm-card:hover{ border-color:color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.hm-card:active{ transform:scale(.985); }
+.hm-card:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.hm-top{ display:flex; align-items:center; gap:10px; min-inline-size:0; }
+.hm-ic{ flex:none; inline-size:34px; block-size:34px; display:grid; place-items:center; border-radius:11px; background:var(--accent-soft); color:var(--accent-fg,var(--accent)); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.hm-ic svg{ inline-size:19px; block-size:19px; }
+.hm-val{ display:flex; align-items:baseline; gap:6px; }
+.hm-val b{ font:700 34px/1 'Barlow Condensed',system-ui,sans-serif; letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.hm-val small{ font-size:var(--fs-xs); color:var(--ink-soft); }
+.hm-sub{ font-size:var(--fs-xs); line-height:1.35; color:var(--ink-soft); overflow-wrap:anywhere; }
+.hm-bar{ inline-size:100%; block-size:6px; border-radius:6px; background:var(--line-strong); overflow:hidden; margin-top:auto; }
+.hm-bar i{ display:block; block-size:100%; inline-size:0; border-radius:6px; background:var(--accent-fg,var(--accent)); transition:width var(--dur-slow) var(--ease-out); }
+.hm-dots{ display:flex; justify-content:center; gap:8px; }
+.hm-dot{ inline-size:8px; block-size:8px; border-radius:50%; background:var(--line-strong); transition:transform var(--dur-base) var(--ease-out), background-color var(--dur-base); }
+.hm-dot.on{ background:var(--accent-fg,var(--accent)); transform:scale(1.35); }
+@media (min-width:768px){
+  .hm-trilho{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); overflow:visible; scroll-snap-type:none; padding:0; margin:0; }
+  .hm-card{ flex:none; }
+  .hm-dots{ display:none; }
+}
+
+/* missões de hoje */
+.hmi-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+.hmi-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:16px; background:var(--surface-2); border:1px solid var(--line); min-block-size:56px; flex-wrap:wrap; }
+.hmi-st{ flex:none; inline-size:28px; block-size:28px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--line-strong); color:var(--accent-ink); }
+.hmi-st svg{ inline-size:16px; block-size:16px; }
+.hmi-item.feita .hmi-st{ background:var(--accent); border-color:var(--accent); }
+.hmi-tx{ display:flex; flex-direction:column; gap:2px; flex:1 1 140px; min-inline-size:0; }
+.hmi-tx b{ font-size:var(--fs-sm); font-weight:700; line-height:1.25; }
+.hmi-tx small{ font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.3; overflow-wrap:anywhere; }
+.hmi-estado{ font:600 var(--fs-2xs) 'IBM Plex Mono',ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+.hmi-go{ flex:none; min-block-size:44px; }
+/* missões: o botão fica na mesma linha do texto; no celular o estado ("Em aberto"/"Feita") fica só para leitores de tela (o círculo vazio ou marcado já mostra) */
+.hmi-tx{ flex:1 1 0; }
+@media (max-width:767px){
+  .hmi-estado{ position:absolute; inline-size:1px; block-size:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .hmi-item{ position:relative; flex-wrap:nowrap; }
+}
+
+/* ============================================================
+   VISUAL V3 · Fase 4 — grade de hábitos: células que acendem, % de dias por hábito e semanas seguidas
+   O número dentro da célula continua (dias com registro naquela semana); o brilho é só reforço visual (modo jogo).
+   ============================================================ */
+.hg-top{ align-items:center; }
+.hg-pct{
+  padding:2px 8px; border-radius:999px; font:700 var(--fs-xs) 'IBM Plex Mono',ui-monospace,monospace;
+  font-variant-numeric:tabular-nums; color:var(--accent-fg,var(--accent)); background:var(--accent-soft);
+  border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.hg-top > span:nth-child(2){ margin-inline-start:auto; }
+:root[data-game="on"] .hg-c.l1{ box-shadow:0 0 8px -4px color-mix(in srgb, var(--accent) 70%, transparent); }
+:root[data-game="on"] .hg-c.l2{ box-shadow:0 0 10px -2px color-mix(in srgb, var(--accent) 60%, transparent); }
+:root[data-game="on"] .hg-c.l3{ box-shadow:0 0 14px -1px color-mix(in srgb, var(--accent) 75%, transparent); }
+:root[data-game="on"] .hg-c.best{ box-shadow:inset 0 0 0 2px #e0b020, 0 0 14px -1px color-mix(in srgb, #e0b020 60%, transparent); }
+@keyframes hg-acende{ from{ opacity:0; transform:scale(.7); } to{ opacity:1; transform:none; } }
+.hg-anim .hg-c{ animation:hg-acende var(--dur-slow) var(--ease-out) both; }
+.hg-anim .hg-c:nth-child(2){ animation-delay:30ms; } .hg-anim .hg-c:nth-child(3){ animation-delay:60ms; } .hg-anim .hg-c:nth-child(4){ animation-delay:90ms; }
+.hg-anim .hg-c:nth-child(5){ animation-delay:120ms; } .hg-anim .hg-c:nth-child(6){ animation-delay:150ms; } .hg-anim .hg-c:nth-child(7){ animation-delay:180ms; }
+.hg-anim .hg-c:nth-child(8){ animation-delay:210ms; } .hg-anim .hg-c:nth-child(9){ animation-delay:240ms; } .hg-anim .hg-c:nth-child(10){ animation-delay:270ms; }
+.hg-anim .hg-c:nth-child(11){ animation-delay:300ms; } .hg-anim .hg-c:nth-child(12){ animation-delay:330ms; }
+
+
+/* ===== VISUAL V3 · Fase 5 — timer de descanso em anel ===== */
+.rest-ring{position:relative; inline-size:44px; block-size:44px; flex:none; display:inline-grid; place-items:center; color:var(--accent-fg,var(--accent));}
+.rest-ring svg:not(.ic){position:absolute; inset:0; inline-size:100%; block-size:100%; overflow:visible;}
+.rest-ring .rr-trilho{fill:none; stroke:var(--line-strong,var(--line)); stroke-width:4;}
+.rest-ring .rr-arco{fill:none; stroke:currentColor; stroke-width:4; stroke-linecap:round;}
+:root[data-game="on"] .rest-ring .rr-arco{filter:drop-shadow(0 0 3px color-mix(in srgb,currentColor 55%,transparent));}
+.rest-ring .rr-ic{position:relative; display:grid; place-items:center;}
+.rest-ring .rr-ic .ic{inline-size:16px; block-size:16px;}
+.quest-rest-row.running{align-items:center; gap:var(--sp-3);}
+.quest-rest-row.running .quest-rest-display{font-size:var(--fs-lg,1.125rem); letter-spacing:.02em; font-variant-numeric:tabular-nums;}
+.rest-ring.fim{animation:rest-pulso var(--dur-slow) var(--ease-out) both;}
+@keyframes rest-pulso{0%{transform:scale(1);}40%{transform:scale(1.1);}100%{transform:scale(1);}}
+@media (prefers-reduced-motion:reduce){ .rest-ring.fim{animation:none;} }
+@media (max-width:767px){ .quest-rest-row.running .quest-rest-cancel{min-block-size:44px; padding-inline:var(--sp-4,16px);} }
+
+
+/* ===== VISUAL V3 · Fase 7 — Corpo: KPIs com mini-gráficos e radar de músculos ===== */
+.corpo-kpis{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-3); margin-bottom:var(--sp-4); }
+@media (min-width:768px){ .corpo-kpis{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.ck-card{
+  display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-inline-size:0; min-block-size:44px; padding:14px; text-align:start; cursor:pointer;
+  color:var(--ink); font:inherit; border-radius:20px; border:1px solid var(--line);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, var(--ink)) 0%, var(--surface) 60%);
+  box-shadow:var(--shadow, none);
+  transition:transform var(--dur-fast) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+.ck-card:hover{ border-color:color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.ck-card:active{ transform:scale(.985); }
+.ck-card:focus-visible, .ck-vazio .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.ck-rot{ font:700 var(--fs-xs,12px)/1.2 'Barlow Condensed',system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+.ck-val{ display:flex; align-items:baseline; gap:6px; }
+.ck-val b{ font:700 34px/1 'Barlow Condensed',system-ui,sans-serif; letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.ck-val small{ font-size:var(--fs-xs); color:var(--ink-soft); }
+.ck-spark{ inline-size:100%; block-size:auto; max-block-size:44px; display:block; overflow:visible; }
+.ck-linha{ fill:none; stroke:var(--accent-fg,var(--accent)); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+.ck-ponto{ fill:var(--accent-fg,var(--accent)); stroke:var(--surface); stroke-width:2; vector-effect:non-scaling-stroke; }
+.ck-sub{ font-size:var(--fs-xs); line-height:1.35; color:var(--ink-soft); overflow-wrap:anywhere; }
+.ck-vazio{ grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:14px; border-radius:20px; border:1px dashed var(--line-strong); }
+.ck-vazio p{ margin:0; flex:1 1 220px; font-size:var(--fs-sm); color:var(--ink-soft); line-height:1.45; }
+:root[data-game="on"] .ck-linha{ filter:drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 55%, transparent)); }
+@keyframes ck-acende{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+.corpo-kpis.ck-anim .ck-card{ animation:ck-acende var(--dur-slow) var(--ease-out) both; }
+.corpo-kpis.ck-anim .ck-card:nth-child(2){ animation-delay:50ms; } .corpo-kpis.ck-anim .ck-card:nth-child(3){ animation-delay:100ms; } .corpo-kpis.ck-anim .ck-card:nth-child(4){ animation-delay:150ms; }
+@media (prefers-reduced-motion:reduce){ .corpo-kpis.ck-anim .ck-card{ animation:none; } }
+.ck-radar.ck-sem-dados{ display:block; }
+.ck-vazio-txt{ margin:0; }
+.ck-insights{ grid-column:1 / -1; padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md,14px); background:var(--surface-2); border:1px solid var(--line); }
+.ck-insights h3{ margin:0 0 var(--sp-2); font:700 var(--fs-sm,14px)/1.2 'Barlow Condensed',system-ui,sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
+.ck-insights ul{ margin:0; padding-inline-start:1.1em; display:flex; flex-direction:column; gap:6px; font-size:var(--fs-sm); line-height:1.45; }
+.ck-nota{ margin:var(--sp-2) 0 0; font-size:var(--fs-xs); color:var(--muted); line-height:1.4; }
+
+/* ===== VISUAL V3 · Fases 8 e 9 — Perfil: moldura do avatar, caminho em etapas, vitrine e radar ===== */
+.perfil-avatar-wrap{ --pa:80px; position:relative; flex:none; inline-size:var(--pa); block-size:var(--pa); display:grid; place-items:center; }
+.perfil-avatar-wrap .perfil-avatar{ position:relative; inline-size:52px; block-size:52px; border-radius:50%; font-size:var(--fs-lg,1.125rem); }
+.pa-orn, .pa-xp, .pa-gems{ position:absolute; border-radius:50%; pointer-events:none; }
+.pa-xp{
+  inset:7px;
+  background:conic-gradient(var(--mc,var(--accent)) calc(var(--xp,0)*1%), color-mix(in srgb, var(--mc,var(--accent)) 16%, var(--line-strong)) 0);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+}
+.pa-orn{ inset:0; }
+.pa-gems{ inset:0; display:none; }
+/* 3–4 (Bronze, Prata): anel duplo */
+.perfil-avatar-wrap:is([data-moldura="3"],[data-moldura="4"]) .pa-orn{ inset:2px; border:1px solid color-mix(in srgb, var(--mc) 45%, transparent); }
+/* 5–10 (Ouro em diante): marcas ao redor */
+.perfil-avatar-wrap:is([data-moldura="5"],[data-moldura="6"],[data-moldura="7"],[data-moldura="8"],[data-moldura="9"],[data-moldura="10"]) .pa-orn{
+  background:repeating-conic-gradient(var(--mc) 0 1.8deg, transparent 1.8deg 15deg);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+}
+/* 7–10 (Diamante em diante): quatro gemas nos pontos cardeais */
+.perfil-avatar-wrap:is([data-moldura="7"],[data-moldura="8"],[data-moldura="9"],[data-moldura="10"]) .pa-gems{
+  display:block;
+  background:
+    radial-gradient(circle at 50% 3px, var(--mc) 0 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 3px) 50%, var(--mc) 0 3px, transparent 3.6px),
+    radial-gradient(circle at 50% calc(100% - 3px), var(--mc) 0 3px, transparent 3.6px),
+    radial-gradient(circle at 3px 50%, var(--mc) 0 3px, transparent 3.6px);
+}
+/* 9–10 (Imortal, Radiante): brilho e giro lento das gemas */
+.perfil-avatar-wrap:is([data-moldura="9"],[data-moldura="10"]){ filter:drop-shadow(0 0 7px color-mix(in srgb, var(--mc) 55%, transparent)); }
+.perfil-avatar-wrap:is([data-moldura="9"],[data-moldura="10"]) .pa-gems{ animation:pa-gira 24s linear infinite; }
+@keyframes pa-gira{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce){ .perfil-avatar-wrap .pa-gems{ animation:none !important; } }
+.pa-lv{
+  position:absolute; inset-inline-end:-2px; inset-block-end:-2px; min-inline-size:26px; block-size:26px; padding-inline:4px; border-radius:13px;
+  display:grid; place-items:center; background:var(--mc,var(--accent)); color:var(--ink-on-light);
+  font:700 14px/1 'Barlow Condensed',system-ui,sans-serif; border:2px solid var(--surface);
+}
+/* avatar do topo: só o anel de XP */
+.top-avatar{ position:relative; }
+.top-avatar[data-moldura]::after{
+  content:""; position:absolute; inset:-5px; border-radius:50%; pointer-events:none;
+  background:conic-gradient(var(--mc) calc(var(--xp,0)*1%), color-mix(in srgb, var(--mc) 14%, transparent) 0);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+@media (max-width:360px){ .perfil-avatar-wrap{ --pa:72px; } .perfil-avatar-wrap .perfil-avatar{ inline-size:46px; block-size:46px; } }
+
+/* caminho em etapas (Próximos marcos) */
+.marcos-list{ counter-reset:etapa; padding-inline-start:38px; gap:20px; }
+.marco{ counter-increment:etapa; position:relative; }
+.marco::before{
+  content:counter(etapa); position:absolute; inset-inline-start:-38px; inset-block-start:0; inline-size:26px; block-size:26px; border-radius:50%;
+  display:grid; place-items:center; font:700 13px/1 'Barlow Condensed',system-ui,sans-serif;
+  background:var(--surface-2); border:2px solid var(--line-strong); color:var(--ink-soft);
+}
+.marco::after{ content:""; position:absolute; inset-inline-start:-26px; inset-block-start:30px; inset-block-end:-20px; inline-size:2px; background:var(--line-strong); }
+.marco:last-child::after{ display:none; }
+.marco.atual::before{ background:var(--accent); border-color:var(--accent); color:var(--ink-on-light); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
+.marco.atual::after{ background:linear-gradient(var(--accent), var(--line-strong)); }
+
+/* vitrine de conquistas */
+#achievements-grid.badge-grid{ display:block; }
+.vit-sec + .vit-sec, .vit-vazia + .vit-sec{ margin-top:var(--sp-5,20px); }
+.vit-h{ margin:0 0 var(--sp-2); display:flex; align-items:baseline; gap:8px; font:700 var(--fs-sm,14px)/1.2 'Barlow Condensed',system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+.vit-h span{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:var(--fs-xs); letter-spacing:0; color:var(--muted); }
+.vit-nota{ margin:0 0 var(--sp-2); font-size:var(--fs-xs); color:var(--muted); }
+.vit-lista{ display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:14px 10px; }
+.vit-shelf{
+  padding:var(--sp-3) var(--sp-2) var(--sp-2); border-radius:18px; border:1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, var(--surface-2)) 0%, var(--surface-2) 100%);
+  box-shadow:inset 0 -6px 0 -3px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.vit-vazia{ margin:0 0 var(--sp-3); padding:var(--sp-3) var(--sp-4); border-radius:14px; border:1px dashed var(--line-strong); font-size:var(--fs-sm); color:var(--ink-soft); }
+
+/* radar da ficha: abertura suave só na primeira vez */
+@keyframes rd-abre{ from{ opacity:0; transform:scale(.55); } to{ opacity:1; transform:none; } }
+@keyframes rd-dot{ from{ opacity:0; } to{ opacity:1; } }
+.attrs-radar.rd-anim .radar-area{ transform-box:fill-box; transform-origin:center; animation:rd-abre var(--dur-slow) var(--ease-out) both; }
+.attrs-radar.rd-anim .radar-dot{ animation:rd-dot var(--dur-slow) var(--ease-out) .12s both; }
+@media (prefers-reduced-motion:reduce){ .attrs-radar.rd-anim .radar-area, .attrs-radar.rd-anim .radar-dot{ animation:none; } }
+
+/* ===== VISUAL V3 · Fase 6 — Dieta: anel de calorias e macros, refeições com ícone e fatia do dia ===== */
+.dieta-anel.is-vazio{ display:none; }
+.dieta-anel{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-4) var(--sp-5); }
+.da-anel{ position:relative; flex:none; inline-size:136px; block-size:136px; margin-inline:auto; }
+.da-anel svg{ inline-size:100%; block-size:100%; display:block; overflow:visible; }
+.da-trilho{ fill:none; stroke:var(--line-strong); stroke-width:12; }
+.da-arco{ fill:none; stroke-width:12; stroke-linecap:butt; }
+.da-arco.da-p{ stroke:var(--s-aqua); } .da-sw.da-p{ background:var(--s-aqua); }
+.da-arco.da-c{ stroke:var(--s-yellow); } .da-sw.da-c{ background:var(--s-yellow); }
+.da-arco.da-g{ stroke:var(--s-magenta); } .da-sw.da-g{ background:var(--s-magenta); }
+:root[data-game="on"] .da-anel svg{ filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 28%, transparent)); }
+.da-centro{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.da-centro b{ font:700 32px/1 'Barlow Condensed',system-ui,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.01em; }
+.da-centro small{ font-size:var(--fs-xs); color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase; }
+.da-info{ flex:1 1 220px; min-inline-size:0; }
+.da-t{ margin:0 0 var(--sp-3); display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; font:700 var(--fs-md,16px)/1.2 'Barlow Condensed',system-ui,sans-serif; }
+.da-t span{ font:600 var(--fs-xs) 'IBM Plex Mono',ui-monospace,monospace; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
+.da-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.da-lista li{ display:grid; grid-template-columns:14px auto 1fr; align-items:baseline; gap:2px 10px; }
+.da-sw{ inline-size:12px; block-size:12px; border-radius:4px; align-self:center; }
+.da-n{ font-size:var(--fs-sm); color:var(--ink); }
+.da-lista b{ justify-self:end; font:700 var(--fs-md,16px) 'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+.da-pc{ grid-column:2 / -1; font-size:var(--fs-xs); color:var(--ink-soft); }
+@keyframes da-abre{ from{ opacity:0; transform:rotate(-24deg) scale(.92); } to{ opacity:1; transform:none; } }
+.dieta-anel.da-anim .da-anel svg{ animation:da-abre var(--dur-slow) var(--ease-out) both; }
+@media (prefers-reduced-motion:reduce){ .dieta-anel.da-anim .da-anel svg{ animation:none; } }
+
+.cdp-mh h3{ display:flex; align-items:center; gap:8px; }
+.cdp-ic{ flex:none; inline-size:26px; block-size:26px; border-radius:50%; display:grid; place-items:center; background:var(--accent-soft); color:var(--accent-fg,var(--accent)); }
+.cdp-ic svg{ inline-size:15px; block-size:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.cdp-share{ display:flex; align-items:center; gap:10px; padding:8px 0 4px; }
+.cdp-share-bar{ flex:1 1 auto; block-size:6px; border-radius:6px; background:var(--line-strong); overflow:hidden; }
+.cdp-share-bar i{ display:block; block-size:100%; border-radius:6px; background:var(--accent-fg,var(--accent)); }
+.cdp-share-txt{ flex:none; font-size:var(--fs-xs); color:var(--ink-soft); white-space:nowrap; }
+@keyframes cdp-entra{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+.cdp-troca .cdp-meal{ animation:cdp-entra var(--dur-base) var(--ease-out) both; }
+.cdp-troca .cdp-meal:nth-child(2){ animation-delay:40ms; } .cdp-troca .cdp-meal:nth-child(3){ animation-delay:80ms; } .cdp-troca .cdp-meal:nth-child(4){ animation-delay:120ms; } .cdp-troca .cdp-meal:nth-child(5){ animation-delay:160ms; }
+@media (prefers-reduced-motion:reduce){ .cdp-troca .cdp-meal{ animation:none; } }
+
+/* ===== VISUAL V3 · Fase 10 — auditoria final: alvos de toque ≥ 44 px que ainda faltavam (só aparelhos de toque) ===== */
+@media (pointer:coarse){
+  .an-f{ min-block-size:44px; }
+  .cdp-days{ grid-template-columns:repeat(auto-fit,minmax(44px,1fr)); }
+  .th-sort{ min-block-size:44px; }
+  .cm-fontes a, a.glos-src{ display:inline-flex; align-items:center; min-block-size:44px; }
+  .skin-swatch{ inline-size:44px; block-size:44px; }
+}

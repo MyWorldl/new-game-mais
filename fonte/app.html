@@ -2111,7 +2111,7 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
 .sl-chip{appearance:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; min-height:var(--target-min,32px); padding:4px 10px; border-radius:var(--r-pill,999px); border:1px solid var(--line-strong); background:var(--surface-2); color:var(--ink); font:600 var(--fs-sm) 'Work Sans',sans-serif;}
 .sl-chip b{font-family:'IBM Plex Mono',monospace;}
 .sl-chip small{font-size:12px; color:var(--muted);}
-.sl-chip-n{color:var(--muted); font-size:var(--fs-xs);}
+.sl-chip-n{color:var(--ink-soft); font-size:var(--fs-xs);}
 .sl-chip.on{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 16%, var(--surface-2));}
 .sl-chip.on .sl-chip-n, .sl-chip.on small{color:var(--ink);}
 .sl-chip:focus-visible, .sl-step:focus-visible, .sl-in:focus-visible, .sl-mot:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
@@ -6288,6 +6288,35 @@ const TEMAS = {
   roxo:{nome:"Roxo pastel", sw:{claro:["#f6f2fd","#ece4fa","#b79cf0"], escuro:["#17131f","#2b2339","#c3acf2"]}},
   azul:{nome:"Azul pastel", sw:{claro:["#eff6fd","#e1eefb","#7fbcf0"], escuro:["#111820","#1f2d3b","#8cc4f2"]}},
 };
+/* v3 — PALETAS do modo jogo (HUD escuro): Lima é a padrão; Violeta e Ouro só trocam variáveis de cor (data-paleta em <html>).
+   Os temas pastel acima continuam como estavam. A cor de patente (skin) segue valendo por cima de qualquer paleta. */
+const PALETAS = {
+  lima:{nome:"Lima", sub:"padrão", sw:["#06080a","#151b1f","#a3e635"]},
+  violeta:{nome:"Violeta", sub:"escuro", sw:["#0b0813","#1d1730","#a78bfa"]},
+  ouro:{nome:"Ouro", sub:"escuro", sw:["#0a0804","#1d1910","#e5b83d"]},
+};
+function paletaAtual(){
+  let p = state.settings && state.settings.paleta;
+  if(p === undefined && !state.settingsCarregado){ try{ p = localStorage.getItem("ng-paleta"); }catch(e){} }
+  return (p && PALETAS[p]) ? p : "lima";
+}
+function setPaleta(p){
+  const novo = Object.assign({}, state.settings, {tema:"padrao", paleta:p});
+  state.settings = novo;
+  try{ localStorage.setItem("bff-tema", "padrao|"+(novo.temaModo || "claro")); localStorage.setItem("ng-paleta", p); }catch(e){}
+  applyAccentSkin(); applyGameMode();
+  saveDoc("config/settings", state.settings);
+  renderTemas(); renderSkins();
+}
+function temaBotoesHtml(atual, modo){
+  const sw = a => '<span class="theme-sw" aria-hidden="true">'+a.map(c=>'<i style="background:'+c+'"></i>').join("")+'</span>';
+  const pal = paletaAtual();
+  return Object.keys(PALETAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual==="padrao" && pal===k)+'" data-tema="padrao" data-paleta="'+k+'">'+sw(PALETAS[k].sw)+'<span>'+PALETAS[k].nome+'<br><small>'+PALETAS[k].sub+'</small></span></button>').join("")+
+    Object.keys(TEMAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual===k)+'" data-tema="'+k+'">'+sw(TEMAS[k].sw[modo])+'<span>'+TEMAS[k].nome+'</span></button>').join("");
+}
+function temaJaAtivo(b, atual){ return b.dataset.tema === "padrao" ? (atual === "padrao" && paletaAtual() === (b.dataset.paleta || "lima")) : b.dataset.tema === atual; }
+function temaEscolhe(b){ if(b.dataset.tema === "padrao") setPaleta(b.dataset.paleta || "lima"); else setTema(b.dataset.tema); }
+function temaSeletor(b){ return '[data-tema="'+b.dataset.tema+'"]'+(b.dataset.paleta ? '[data-paleta="'+b.dataset.paleta+'"]' : ''); }
 function temaGuardado(){
   try{ const v = (localStorage.getItem("bff-tema") || "").split("|"); return {tema:v[0], modo:v[1]}; }catch(e){ return {}; }
 }
@@ -6315,13 +6344,13 @@ function renderTemas(){
   if(!row) return;
   const atual = temaAtual() || "padrao", modo = temaModo();
   const sw = a => '<span class="theme-sw" aria-hidden="true">'+a.map(c=>'<i style="background:'+c+'"></i>').join("")+'</span>';
-  row.innerHTML = '<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual==="padrao")+'" data-tema="padrao">'+sw(["#05070d","#141b2e","#22b8cf"])+'<span>Modo jogo<br><small>padrão, escuro</small></span></button>'+
-    Object.keys(TEMAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual===k)+'" data-tema="'+k+'">'+sw(TEMAS[k].sw[modo])+'<span>'+TEMAS[k].nome+'</span></button>').join("");
+  row.innerHTML = temaBotoesHtml(atual, modo);
   row.querySelectorAll(".theme-opt").forEach(b=> b.addEventListener("click", ()=>{
-    const t = b.dataset.tema; if(t === atual) return;
-    setTema(t);
-    showToast(t === "padrao" ? "Modo jogo ativado." : TEMAS[t].nome+" ativado.");
-    const nb = document.querySelector('#theme-row [data-tema="'+t+'"]'); if(nb) nb.focus();
+    if(temaJaAtivo(b, atual)) return;
+    const sel = temaSeletor(b), t = b.dataset.tema;
+    temaEscolhe(b);
+    showToast(t === "padrao" ? "Paleta "+PALETAS[b.dataset.paleta || "lima"].nome+" ativada." : TEMAS[t].nome+" ativado.");
+    const nb = document.querySelector('#theme-row '+sel); if(nb) nb.focus();
   }));
   const wrap = document.getElementById("theme-modo-wrap");
   if(wrap) wrap.hidden = atual === "padrao";
@@ -6332,12 +6361,17 @@ function renderTemas(){
   });
   const hint = document.getElementById("theme-hint");
   if(hint) hint.textContent = atual === "padrao"
-    ? "Escolha um tema pastel para trocar o visual do app. Você pode voltar ao modo jogo quando quiser."
+    ? "Escolha uma paleta do modo jogo (Lima, Violeta ou Ouro) ou um tema pastel. Dá para trocar quando quiser."
     : "No tema pastel a cor de destaque vem do tema. Para usar as cores de patente, volte ao modo jogo.";
 }
 function applyGameMode(){
   const root = document.documentElement, t = temaAtual();
-  if(!t){ root.setAttribute("data-game", "on"); root.removeAttribute("data-tema"); root.removeAttribute("data-modo"); return; }
+  if(!t){
+    root.setAttribute("data-game", "on"); root.removeAttribute("data-tema"); root.removeAttribute("data-modo");
+    const pa = paletaAtual(); if(pa === "lima") root.removeAttribute("data-paleta"); else root.setAttribute("data-paleta", pa);
+    return;
+  }
+  root.removeAttribute("data-paleta");
   root.setAttribute("data-game", "off");
   root.setAttribute("data-tema", t);
   root.setAttribute("data-modo", temaModo());
@@ -9290,8 +9324,15 @@ function restTimerCellHtml(idx, exNome){
   if(t){
     const mm = String(Math.floor(t.remaining/60)).padStart(2,"0");
     const ss = String(t.remaining%60).padStart(2,"0");
+    const tot = t.total || t.remaining || 1;
+    const frac = Math.max(0, Math.min(1, t.remaining/tot));
+    const totTxt = Math.floor(tot/60)+" min"+(tot%60 ? " "+(tot%60)+" s" : "");
     return '<div class="quest-rest-row running">'+
-      '<span class="quest-rest-display">'+ic('timer')+' '+mm+':'+ss+'</span>'+
+      '<span class="rest-ring'+(t.remaining <= 5 ? ' fim' : '')+'" role="img" aria-label="Descanso: faltam '+mm+':'+ss+' de '+totTxt+'">'+
+        '<svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><circle class="rr-trilho" cx="22" cy="22" r="18" pathLength="100"/><circle class="rr-arco" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100*(1-frac)).toFixed(1)+'" transform="rotate(-90 22 22)"/></svg>'+
+        '<span class="rr-ic">'+ic('timer')+'</span>'+
+      '</span>'+
+      '<span class="quest-rest-display">'+mm+':'+ss+'</span>'+
       '<button class="btn small ghost quest-rest-cancel" type="button" data-restcancel="'+idx+'">Cancelar</button>'+
     '</div>'+restAutoHtml();
   }
@@ -9308,7 +9349,7 @@ function restTimerCellHtml(idx, exNome){
 function startRestTimer(idx, seconds, onTick){
   cancelRestTimer(idx);
   const tick = onTick || semFocoEmCampo(renderWeekTrailDetail);   // NG+: não redesenha enquanto a pessoa digita as repetições
-  restTimers[idx] = {remaining: seconds, intervalId: null};
+  restTimers[idx] = {remaining: seconds, total: seconds, intervalId: null};
   restTimers[idx].intervalId = setInterval(()=>{
     const t = restTimers[idx];
     if(!t) return;
@@ -9535,7 +9576,9 @@ function renderWeekTrail(){
   // domingo pra fora da tela: o diâmetro acompanha o espaço entre os nós
   const trailSpacing = (trailW - TRAIL_MARGIN_X*2) / (n-1);
   const circleD = Math.max(28, Math.min(TRAIL_CIRCLE_D, Math.floor(trailSpacing - 3)));
-  const nodeW = Math.min(60, Math.floor(trailSpacing));
+  // alvo de toque: em aparelho de toque a área do nó tem ao menos 44 px de largura (o círculo visível continua encolhendo; áreas vizinhas se sobrepõem só nas bordas)
+  const toqueMin = (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 44 : 0;
+  const nodeW = Math.min(60, Math.max(toqueMin, Math.floor(trailSpacing)));
   wrap.style.setProperty("--tc", circleD+"px");
   const centers = DAYS.map((_,i)=> trailNodeCenter(i, n, trailW));
 
@@ -11507,9 +11550,8 @@ function openOnboarding(){
       const row = body.querySelector("#ob-theme-row");
       function pintaTemas(){
         const atual = temaAtual() || "padrao", modo = temaModo();
-        row.innerHTML = '<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual==="padrao")+'" data-tema="padrao">'+sw(["#05070d","#141b2e","#22b8cf"])+'<span>Modo jogo<br><small>escuro</small></span></button>'+
-          Object.keys(TEMAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual===k)+'" data-tema="'+k+'">'+sw(TEMAS[k].sw[modo])+'<span>'+TEMAS[k].nome+'</span></button>').join("");
-        row.querySelectorAll(".theme-opt").forEach(b=> b.addEventListener("click", ()=>{ setTema(b.dataset.tema); pintaTemas(); const nb = row.querySelector('[data-tema="'+b.dataset.tema+'"]'); if(nb) nb.focus(); }));
+        row.innerHTML = temaBotoesHtml(atual, modo);
+        row.querySelectorAll(".theme-opt").forEach(b=> b.addEventListener("click", ()=>{ const sel = temaSeletor(b); temaEscolhe(b); pintaTemas(); const nb = row.querySelector(sel); if(nb) nb.focus(); }));
         body.querySelector("#ob-theme-modo-wrap").hidden = atual === "padrao";
         body.querySelectorAll("#ob-theme-modo button").forEach(b=>{
           const on = b.dataset.v === modo; b.classList.toggle("active", on); b.setAttribute("aria-pressed", String(on));

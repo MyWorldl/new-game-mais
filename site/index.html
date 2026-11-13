@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.4f2101bcb9.css">
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.397ffa4c7f.css">
 <link rel="stylesheet" id="ng-nuvem-css" href="ng-nuvem.css"></head><body>
 <title>NG+ (New Game+)</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
@@ -40,10 +40,12 @@
   <main id="main" tabindex="-1">
   <section class="view" id="view-painel" role="tabpanel" aria-labelledby="tab-painel" tabindex="-1">
     <div class="card today-card today-hero" id="today-hero">
-      <div class="today-ring">
+      <div class="today-ring" id="today-ring-box" role="img" aria-label="">
         <svg viewBox="0 0 80 80" aria-hidden="true">
           <circle class="today-ring-track" cx="40" cy="40" r="34"/>
           <circle class="today-ring-fill" id="today-ring" cx="40" cy="40" r="34"/>
+          <circle class="today-ring-track today-ring-track2" cx="40" cy="40" r="25"/>
+          <circle class="today-ring-fill today-ring-fill2" id="today-ring-semana" cx="40" cy="40" r="25"/>
         </svg>
         <b id="today-ring-label">0/0</b>
       </div>
@@ -69,6 +71,17 @@
     <section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>
 
     <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>
+
+    <section class="hoje-metricas" id="hoje-metricas" aria-labelledby="hm-t">
+      <h2 class="sr-only" id="hm-t">Resumo de hoje</h2>
+      <div class="hm-trilho" id="hm-trilho" role="group" aria-roledescription="carrossel" aria-label="Métricas de hoje"></div>
+      <div class="hm-dots" id="hm-dots" aria-hidden="true"></div>
+    </section>
+
+    <section class="card hoje-missoes" id="hoje-missoes" aria-labelledby="hmi-t">
+      <div class="card-head"><h2 id="hmi-t">Missões de hoje</h2><span class="hint" id="hmi-count"></span></div>
+      <ul class="hmi-lista" id="hmi-lista"></ul>
+    </section>
 
     <button type="button" class="nivel-mini" id="nivel-mini" data-goto="perfil" style="--tier-color: var(--t1);" aria-label="Ver sua patente no Perfil">
       <span class="nivel-shield">
@@ -395,6 +408,8 @@
 
   <!-- ================= CORPO ================= -->
   <section class="view" id="view-corpo" role="tabpanel" aria-labelledby="subtab-corpo" tabindex="-1" hidden>
+    <section class="corpo-kpis" id="corpo-kpis" aria-label="Resumo do corpo"></section>
+
     <div class="two-col">
       <div class="card">
         <div class="card-head"><h2>Nova medição</h2></div>
@@ -450,6 +465,11 @@
       </form>
       <div id="hab-resumo"></div>
       <div id="hab-grade"></div>
+    </div>
+
+    <div class="card" id="musculos-card">
+      <div class="card-head"><h2>Músculos da semana</h2><span class="hint">últimos 7 dias</span></div>
+      <div class="attrs-radar ck-radar" id="musculos-body"></div>
     </div>
 
     <div class="card">
@@ -528,6 +548,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v5M12 18h.01"/></svg>
       <div><strong>Você tem menos de 18 anos</strong>O corpo ainda está em crescimento, por isso o app não sugere déficit calórico nem metas de perda de peso. Os números abaixo são uma estimativa geral: para um plano alimentar de verdade, procure um(a) nutricionista ou médico(a), junto com os responsáveis.</div>
     </div>
+    <section class="card dieta-anel is-vazio" id="dieta-anel" data-dieta-dados aria-label="Resumo da meta diária"></section>
     <div class="card" data-dieta-dados>
       <div class="card-head">
         <h2>Objetivo calórico</h2>
@@ -593,7 +614,7 @@
     <div class="card">
       <div class="perfil-head">
         <div class="perfil-who">
-          <div class="perfil-avatar" id="perfil-avatar-initials">—</div>
+          <div class="perfil-avatar-wrap" id="perfil-avatar-wrap" role="img" aria-label="Moldura do avatar" data-moldura="1"><span class="pa-orn" aria-hidden="true"></span><span class="pa-xp" aria-hidden="true"></span><span class="pa-gems" aria-hidden="true"></span><div class="perfil-avatar" id="perfil-avatar-initials">—</div><span class="pa-lv" aria-hidden="true">1</span></div>
           <div>
             <div class="perfil-name-v2" id="perfil-header-name">Seu perfil</div>
             <div class="perfil-meta-v2" id="perfil-hero-meta">—</div>
@@ -931,6 +952,8 @@
       </button>
     </nav>
     <div class="side-streak" id="side-streak" role="group" aria-label="Sequência atual"></div>
+    <button type="button" class="nav-fab" id="nav-fab" aria-haspopup="menu" aria-expanded="false" aria-controls="nav-acoes" aria-label="Ações rápidas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <div class="nav-acoes" id="nav-acoes" role="menu" aria-label="Ações rápidas" hidden></div>
     <!-- v98 Fase 3: o botão "Mais" saiu; Glossário e Config ficam no card "Mais do app" do Perfil (e no menu lateral do desktop) -->
   </div>
 </div>
@@ -971,6 +994,6 @@
 <script src="vendor-supabase.js"></script>
 <script src="ng-nuvem.js"></script>
 <script src="bff-runtime.js"></script>
-<script src="app.3137b13652.js"></script>
+<script src="app.cc5c80c4e8.js"></script>
 
 </body></html>

@@ -2353,6 +2353,7 @@ const HAB_GRADE = [
   {k:"agua",   nome:"Água"}
 ];
 const HAB_MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+let hgJaAnimou = false;   // o "acender" das células roda só na primeira vez; depois não repete a cada gravação
 function renderGradeHabitos(){
   const box = document.getElementById("hab-grade");
   if(!box) return;
@@ -2363,13 +2364,14 @@ function renderGradeHabitos(){
   const nvDe = c => c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3;
   const dias = c => c+(c === 1 ? " dia" : " dias");
   const dados = HAB_GRADE.map(h=>{
+    let primeiroIso = null;
     const cont = semanas.map(ini=>{
       let c = 0;
       for(let i = 0; i < 7; i++){
         const iso = addDaysISO(ini, i);
         if(iso > hoje) break;
         const x = habDe(iso);
-        if(x && x[h.k] != null) c++;
+        if(x && x[h.k] != null){ c++; if(primeiroIso === null) primeiroIso = iso; }
       }
       return c;
     });
@@ -2379,7 +2381,16 @@ function renderGradeHabitos(){
     if(max > 0) for(let i = cont.length-1; i >= 0; i--) if(cont[i] === max){ iBest = i; break; }
     const primeira = cont.findIndex(c=> c > 0);
     const media = primeira >= 0 ? total/(12-primeira) : 0;
-    return {h, cont, total, max, iBest, media};
+    // % dos dias com registro desde o primeiro registro (só descreve; não é meta)
+    let pct = null;
+    if(primeiroIso !== null){
+      const nDias = Math.round((new Date(hoje+"T12:00:00") - new Date(primeiroIso+"T12:00:00")) / 864e5) + 1;
+      pct = Math.min(100, Math.round(total / Math.max(1, nDias) * 100));
+    }
+    // semanas seguidas com registro; a semana em andamento nunca zera a conta (como a sequência de treinos)
+    let seg = 0, k = cont[11] > 0 ? 11 : 10;
+    while(k >= 0 && cont[k] > 0){ seg++; k--; }
+    return {h, cont, total, max, iBest, media, pct, seg};
   });
   const lider = dados.slice().sort((a,b)=> b.total - a.total)[0];
   const html = dados.map(d=>{
@@ -2389,15 +2400,20 @@ function renderGradeHabitos(){
       return '<span class="hg-c l'+nvDe(c)+(w === 11 ? ' now' : '')+(w === d.iBest ? ' best' : '')+'" role="listitem" aria-label="'+rot+'" title="'+rot+'">'+(c ? c : "")+'</span>';
     }).join("");
     const st = d.total
-      ? '<div class="hg-st"><span>Esta semana <b>'+d.cont[11]+'</b></span><span>Média <b>'+num(d.media, 1)+'</b>/semana</span><span>Melhor <b>'+d.max+'</b> dias</span></div>'
+      ? '<div class="hg-st"><span>Esta semana <b>'+d.cont[11]+'</b></span><span>Média <b>'+num(d.media, 1)+'</b>/semana</span><span>Melhor <b>'+d.max+'</b> dias</span><span>Semanas seguidas <b>'+d.seg+'</b></span></div>'
       : '';
     return '<div class="hg-row">'+
-      '<div class="hg-top"><b>'+d.h.nome+'</b><span>'+(d.total ? dias(d.total)+" registrados" : "sem registros ainda")+'</span></div>'+
+      '<div class="hg-top"><b>'+d.h.nome+'</b><span>'+(d.total ? dias(d.total)+" registrados" : "sem registros ainda")+'</span>'+
+        (d.pct !== null ? '<span class="hg-pct" role="img" aria-label="Registrou em '+d.pct+'% dos dias desde o primeiro registro" title="Dias com registro desde o primeiro registro">'+d.pct+'%</span>' : '')+'</div>'+
       '<div class="hg-cells" role="list" aria-label="'+d.h.nome+": dias com registro por semana, das últimas 12 semanas"+'">'+cels+'</div>'+st+
     '</div>';
   }).join("");
   let mesAnt = -1;
   const meses = semanas.map(ini=>{ const m = Number(ini.slice(5,7)) - 1; const novo = m !== mesAnt; mesAnt = m; return '<span>'+(novo ? HAB_MES[m] : '')+'</span>'; }).join("");
+  const hgAnimar = !hgJaAnimou;
+  box.classList.toggle("hg-anim", hgAnimar);
+  hgJaAnimou = true;
+  if(hgAnimar) setTimeout(()=> box.classList.remove("hg-anim"), 1500);   // não repete ao voltar para a aba
   box.innerHTML =
     '<h3 class="hg-h">Últimas 12 semanas</h3>'+
     '<p class="hg-sub">Cada quadradinho é uma semana; o número mostra em quantos dias você registrou. Registrar já conta, não há meta.'+
@@ -2708,6 +2724,443 @@ function navAplicar(modo){
   const s = document.getElementById("top-search");
   if(s) s.addEventListener("click", ()=>{ const c = document.getElementById("cmdk-open"); if(c) c.click(); });
 })();
+/* NG+ v3 · Fase 2 — botão central e menu de ações rápidas (celular).
+   Não cria regra nova: cada ação reaproveita um botão ou função que o app já tem (iniciar/continuar treino,
+   peso e medidas, hábitos do dia, marcar treino como feito). Teclado: Esc fecha, setas/Home/End movem, Tab fecha. */
+(function setupAcoesRapidas(){
+  const fab = document.getElementById("nav-fab"), menu = document.getElementById("nav-acoes");
+  if(!fab || !menu) return;
+  const IC = {
+    treino:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5 3 10l4 4M17.5 17.5 21 14l-4-4M14 4l6 6M4 14l6 6M8.5 15.5l7-7"/></svg>',
+    medida:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9a4 4 0 0 1 8 0M12 9l2-2"/></svg>',
+    habito:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>',
+    feito:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.6"/></svg>'
+  };
+  const reduz = ()=> !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function foca(id){ const i = document.getElementById(id); if(i){ i.scrollIntoView({block:"center"}); i.focus({preventScroll:true}); } }
+  function itens(){
+    const live = document.getElementById("btn-treino-ao-vivo"), quick = document.getElementById("btn-quick-checkin");
+    const rot = document.getElementById("today-primary-label");
+    const ac = live ? live.dataset.acao : "";
+    const dirTreino = (ac === "treino" || ac === "cadastro") && rot;
+    const feitoHoje = ac === "concluido";
+    const podeFeito = !!(quick && !quick.hidden);
+    return [
+      {ic:"treino", rotulo: dirTreino ? rot.textContent.trim() : "Abrir o treino", dica: dirTreino ? "Quest de hoje" : "Ver o treino da semana",
+       run(){ if(dirTreino) live.click(); else showTab("treino"); }},
+      {ic:"medida", rotulo:"Registrar medição", dica:"Peso e medidas do corpo",
+       run(){ irParaPeso(); }},
+      {ic:"habito", rotulo:"Hábitos do dia", dica:"Sono, passos e cárdio leve",
+       run(){ Promise.resolve(showTabAnimated("corpo")).then(()=> setTimeout(()=> foca("h-sono"), 60)); }},
+      {ic:"feito", rotulo:"Marcar treino como feito", dica: podeFeito ? "Registra a quest de hoje" : (feitoHoje ? "Já registrado hoje" : "Sem treino em aberto hoje"),
+       desligado: !podeFeito, run(){ quick.click(); }}
+    ];
+  }
+  let lista = [], fechaTimer = null;
+  const aberto = ()=> fab.getAttribute("aria-expanded") === "true";
+  function monta(){
+    lista = itens();
+    menu.textContent = "";
+    lista.forEach((it, i)=>{
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "na-item"; b.setAttribute("role", "menuitem"); b.tabIndex = -1; b.dataset.i = String(i);
+      if(it.desligado) b.setAttribute("aria-disabled", "true");
+      const ic = document.createElement("span"); ic.className = "na-ic"; ic.innerHTML = IC[it.ic];
+      const tx = document.createElement("span"); tx.className = "na-tx";
+      const a = document.createElement("b"); a.textContent = it.rotulo;
+      const d = document.createElement("small"); d.textContent = it.dica;
+      tx.append(a, d); b.append(ic, tx); menu.append(b);
+    });
+  }
+  function abre(){
+    clearTimeout(fechaTimer);
+    monta();
+    menu.hidden = false;
+    fab.setAttribute("aria-expanded", "true");
+    requestAnimationFrame(()=> menu.classList.add("on"));
+    const p = menu.querySelector(".na-item"); if(p) p.focus();
+  }
+  function fecha(volta){
+    if(!aberto()) return;
+    fab.setAttribute("aria-expanded", "false");
+    menu.classList.remove("on");
+    clearTimeout(fechaTimer);
+    fechaTimer = setTimeout(()=>{ menu.hidden = true; }, reduz() ? 0 : 200);
+    if(volta) fab.focus();
+  }
+  fab.addEventListener("click", ()=>{ aberto() ? fecha(true) : abre(); });
+  menu.addEventListener("click", (e)=>{
+    const b = e.target.closest(".na-item"); if(!b) return;
+    const it = lista[+b.dataset.i];
+    if(!it || it.desligado){ return; }
+    fecha(false);
+    it.run();
+  });
+  menu.addEventListener("keydown", (e)=>{
+    const bs = Array.from(menu.querySelectorAll(".na-item")), i = bs.indexOf(document.activeElement);
+    if(e.key === "Escape"){ e.preventDefault(); fecha(true); return; }
+    if(e.key === "Tab"){ fecha(false); return; }
+    if(!["ArrowDown","ArrowUp","Home","End"].includes(e.key)) return;
+    e.preventDefault();
+    const n = e.key === "Home" ? 0 : e.key === "End" ? bs.length-1 : e.key === "ArrowDown" ? (i+1) % bs.length : (i-1+bs.length) % bs.length;
+    bs[n].focus();
+  });
+  fab.addEventListener("keydown", (e)=>{ if(e.key === "ArrowUp" && !aberto()){ e.preventDefault(); abre(); } else if(e.key === "Escape") fecha(true); });
+  document.addEventListener("pointerdown", (e)=>{ if(aberto() && !menu.contains(e.target) && !fab.contains(e.target)) fecha(false); });
+  // trocar de tela por outro caminho (barra, avatar, atalho de teclado) também fecha o menu
+  document.addEventListener("click", (e)=>{ if(aberto() && e.target.closest && e.target.closest(".tab-btn, .top-avatar, .cmdk-chip, .top-search")) fecha(false); });
+  // o avatar do topo é a porta do Perfil no celular: marca quando o Perfil está aberto
+  const tp = document.getElementById("tab-perfil"), av = document.getElementById("top-avatar");
+  function marcaAvatar(){
+    if(!av || !tp) return;
+    const on = tp.getAttribute("aria-selected") === "true";
+    av.classList.toggle("on", on);
+    if(on) av.setAttribute("aria-current", "page"); else av.removeAttribute("aria-current");
+  }
+  if(tp) new MutationObserver(marcaAvatar).observe(tp, {attributes:true, attributeFilter:["aria-selected"]});
+  marcaAvatar();
+})();
+/* NG+ v3 · Fase 3 — tela Hoje: anel duplo, carrossel de métricas e missões de hoje.
+   Só LÊ o que o app já calcula (computeStreakEngine, statsSemana, medições, check-in de hoje); nenhum dado novo é gravado.
+   As ações reaproveitam botões e funções que já existem (iniciar treino, peso, hábitos). */
+function hojeAtualizaAnelSemana(cur, total){
+  const r = document.getElementById("today-ring-semana"), box = document.getElementById("today-ring-box");
+  if(!r) return;
+  const s = statsSemana(mondayOfISO(todayISO())), alvo = s.meta || s.cap;
+  const frac = alvo ? Math.max(0, Math.min(1, s.feitos / alvo)) : 0, c = 2*Math.PI*25;
+  r.setAttribute("stroke-dasharray", c.toFixed(1));
+  r.setAttribute("stroke-dashoffset", (c*(1-frac)).toFixed(1));
+  if(box) box.setAttribute("aria-label", "Anel de fora, hoje: "+(total > 0 ? cur+" de "+total+" exercícios" : "dia sem treino")+". Anel de dentro, semana: "+(alvo ? s.feitos+" de "+alvo+" treinos da meta" : "sem treinos agendados")+".");
+}
+function hojeIrHabitos(){
+  Promise.resolve(showTabAnimated("corpo")).then(()=> setTimeout(()=>{ const i = document.getElementById("h-sono"); if(i){ i.scrollIntoView({block:"center"}); i.focus({preventScroll:true}); } }, 60));
+}
+function hojeDiasDesde(iso){
+  const a = new Date(iso+"T12:00:00"), b = new Date(todayISO()+"T12:00:00");
+  return Math.max(0, Math.round((b - a) / 864e5));
+}
+function hojeHabitosHoje(){
+  const c = state.checkins[todayISO()], h = (c && c.hab) || {};
+  const tem = v => v !== undefined && v !== null && v !== "" && Number(v) > 0;
+  const itens = [];
+  if(tem(h.sono)) itens.push(num(Number(h.sono), 1)+" h de sono");
+  if(tem(h.passos)) itens.push(Number(h.passos).toLocaleString("pt-BR")+" passos");
+  if(tem(h.cardio)) itens.push(h.cardio+" min de cárdio");
+  return itens;
+}
+function hojeMetricas(){
+  const hoje = todayISO(), out = [];
+  // 1) sequência
+  const eng = computeStreakEngine();
+  out.push({id:"seq", rot:"Sequência", valor:String(eng.streak), unid: eng.streak === 1 ? "dia" : "dias",
+    sub:"Recorde: "+eng.best+(eng.best === 1 ? " dia" : " dias"), ic:SS_FLAME, barra:null});
+  // 2) treinos da semana (meta)
+  const s = statsSemana(mondayOfISO(hoje)), alvo = s.meta || s.cap;
+  out.push({id:"sem", rot:"Treinos da semana", valor: alvo ? s.feitos+"/"+alvo : "—", unid: alvo ? "da meta" : "",
+    sub: !alvo ? "Sem treinos agendados" : s.ok ? "Meta da semana batida" : "Falta"+(alvo-s.feitos === 1 ? "" : "m")+" "+(alvo-s.feitos)+" para a meta",
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5 3 10l4 4M17.5 17.5 21 14l-4-4M14 4l6 6M4 14l6 6M8.5 15.5l7-7"/></svg>',
+    barra: alvo ? Math.min(100, Math.round(s.feitos / alvo * 100)) : 0});
+  // 3) peso
+  const med = latestMedicao(), ms = sortedMedicoes().filter(m=> m.pesoKg != null);
+  let subP = "Registre seu peso", valP = "—";
+  if(med && med.pesoKg != null){
+    valP = num(med.pesoKg, 1);
+    const ant = ms.length >= 2 ? ms[ms.length-2] : null, d = ms.length >= 2 ? hojeDiasDesde(ms[ms.length-1].iso) : hojeDiasDesde(med.iso);
+    const quando = d === 0 ? "hoje" : d === 1 ? "ontem" : "há "+d+" dias";
+    if(ant){ const dl = ms[ms.length-1].pesoKg - ant.pesoKg; subP = (Math.abs(dl) < 0.05 ? "Estável" : (dl > 0 ? "+" : "−")+num(Math.abs(dl), 1)+" kg")+" desde a anterior · "+quando; }
+    else subP = "Medido "+quando;
+  }
+  out.push({id:"peso", rot:"Peso atual", valor:valP, unid: valP === "—" ? "" : "kg", sub:subP,
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9a4 4 0 0 1 8 0M12 9l2-2"/></svg>', barra:null});
+  // 4) hábitos de hoje
+  const hb = hojeHabitosHoje();
+  out.push({id:"hab", rot:"Hábitos de hoje", valor:hb.length+"/3", unid:"registros", sub: hb.length ? hb.join(" · ") : "Nada registrado hoje (opcional)",
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>', barra: Math.round(hb.length/3*100)});
+  return out;
+}
+function renderHojeMetricas(){
+  const tr = document.getElementById("hm-trilho"), dots = document.getElementById("hm-dots");
+  if(!tr) return;
+  const ms = hojeMetricas();
+  tr.innerHTML = ms.map((m, i)=>
+    '<button type="button" class="hm-card" data-hm="'+m.id+'" aria-label="'+(i+1)+' de '+ms.length+': '+escapeHtml(m.rot)+', '+escapeHtml(m.valor+(m.unid ? ' '+m.unid : ''))+'. '+escapeHtml(m.sub)+'">'+
+      '<span class="hm-top"><span class="hm-ic" aria-hidden="true">'+m.ic+'</span><span class="eyebrow">'+escapeHtml(m.rot)+'</span></span>'+
+      '<span class="hm-val"><b>'+escapeHtml(m.valor)+'</b>'+(m.unid ? '<small>'+escapeHtml(m.unid)+'</small>' : '')+'</span>'+
+      '<span class="hm-sub">'+escapeHtml(m.sub)+'</span>'+
+      (m.barra != null ? '<span class="hm-bar" aria-hidden="true"><i data-w="'+m.barra+'"></i></span>' : '')+
+    '</button>').join("");
+  tr.querySelectorAll(".hm-bar i").forEach(i=>{ i.style.width = i.dataset.w+"%"; });
+  if(dots) dots.innerHTML = ms.map((m, i)=> '<span class="hm-dot'+(i === 0 ? ' on' : '')+'"></span>').join("");
+}
+function hojeMissoes(){
+  const hoje = todayISO(), day = state.rotina[treinoKey(hoje)], c = state.checkins[hoje];
+  const live = document.getElementById("btn-treino-ao-vivo");
+  const lista = [];
+  if(!state.perfil) lista.push({id:"cadastro", txt:"Fazer o seu cadastro", sub:"Leva 1 minuto e libera o treino e a dieta", feita:false, acao:"Começar"});
+  else if(!day || !day.ativo) lista.push({id:"descanso", txt:"Descansar hoje", sub:"Dia sem treino: sono, proteína e uma caminhada leve contam", feita:true, descanso:true});
+  else lista.push({id:"treino", txt: c && c.concluido ? "Treino de hoje concluído" : "Concluir o treino de hoje", sub: day.nome, feita: !!(c && c.concluido), acao: live && !live.disabled ? "Abrir" : ""});
+  const hb = hojeHabitosHoje();
+  lista.push({id:"hab", txt: hb.length ? "Hábitos de hoje registrados" : "Registrar sono, passos e cárdio", sub: hb.length ? hb.join(" · ") : "Opcional · não vale XP e não entra na sequência", feita: hb.length > 0, acao: hb.length ? "" : "Registrar"});
+  const rec = pesoRecente();
+  lista.push({id:"peso", txt: rec ? "Peso registrado esta semana" : "Registrar o seu peso", sub: rec ? "Última medição nos últimos 7 dias" : "Faz mais de 7 dias da última medição", feita: rec, acao: rec ? "" : "Registrar"});
+  return lista;
+}
+const HOJE_IC_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+const HOJE_IC_LUA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>';
+function renderHojeMissoes(){
+  const ul = document.getElementById("hmi-lista"), cnt = document.getElementById("hmi-count");
+  if(!ul) return;
+  const ms = hojeMissoes(), feitas = ms.filter(m=> m.feita).length;
+  if(cnt) cnt.textContent = feitas+" de "+ms.length+" feitas";
+  ul.innerHTML = ms.map(m=>
+    '<li class="hmi-item'+(m.feita ? ' feita' : '')+'" data-hmi="'+m.id+'">'+
+      '<span class="hmi-st" aria-hidden="true">'+(m.descanso ? HOJE_IC_LUA : m.feita ? HOJE_IC_OK : '')+'</span>'+
+      '<span class="hmi-tx"><b>'+escapeHtml(m.txt)+'</b><small>'+escapeHtml(m.sub)+'</small></span>'+
+      '<span class="hmi-estado">'+(m.descanso ? 'Descanso' : m.feita ? 'Feita' : 'Em aberto')+'</span>'+
+      (m.acao ? '<button type="button" class="btn small ghost hmi-go" data-hmi-go="'+m.id+'">'+m.acao+'</button>' : '')+
+    '</li>').join("");
+}
+(function setupHoje(){
+  const tr = document.getElementById("hm-trilho"), dots = document.getElementById("hm-dots"), mis = document.getElementById("hoje-missoes");
+  if(tr){
+    tr.addEventListener("click", (e)=>{
+      const b = e.target.closest(".hm-card"); if(!b) return;
+      const id = b.dataset.hm;
+      if(id === "peso") irParaPeso();
+      else if(id === "hab") hojeIrHabitos();
+      else if(id === "sem") showTab("treino");
+      else { const s = document.getElementById("cc-semana"); if(s) s.scrollIntoView({block:"start"}); }
+    });
+    let raf = 0;
+    tr.addEventListener("scroll", ()=>{
+      if(raf) return;
+      raf = requestAnimationFrame(()=>{
+        raf = 0;
+        const cards = tr.querySelectorAll(".hm-card"); if(!cards.length || !dots) return;
+        const w = cards[0].getBoundingClientRect().width + 10;
+        const fim = tr.scrollLeft + tr.clientWidth >= tr.scrollWidth - 2;
+        const i = fim ? cards.length - 1 : Math.min(cards.length - 1, Math.round(tr.scrollLeft / w));
+        dots.querySelectorAll(".hm-dot").forEach((d, k)=> d.classList.toggle("on", k === i));
+      });
+    }, {passive:true});
+  }
+  if(mis) mis.addEventListener("click", (e)=>{
+    const b = e.target.closest("[data-hmi-go]"); if(!b) return;
+    const id = b.dataset.hmiGo;
+    if(id === "peso") irParaPeso();
+    else if(id === "hab") hojeIrHabitos();
+    else { const live = document.getElementById("btn-treino-ao-vivo"); if(live && !live.disabled) live.click(); }
+  });
+})();
+/* ---- NG+ visual v3 · Fase 7 · Corpo: KPIs com mini-gráficos e radar de músculos da semana.
+        Tudo calculado de dados que o app já tem (nenhum dado novo é salvo). ---- */
+let ckJaAnimou = false;
+const CK_CAMPOS = [
+  {k:"peso",    rot:"Peso",         un:"kg", dec:1, val:l=> l.peso},
+  {k:"cintura", rot:"Cintura",      un:"cm", dec:1, val:l=> l.cintura},
+  {k:"bf",      rot:"% de gordura", un:"%",  dec:1, val:l=> l.bf},
+  {k:"imc",     rot:"IMC",          un:"",   dec:1, val:l=> l.imc}
+];
+function corpoLinhas(){
+  const p = state.perfil;
+  return sortedMedicoes().map(m=>({
+    iso:m.iso, peso:m.pesoKg, cintura:m.cinturaCm,
+    imc: p ? calcIMC(m.pesoKg, p.alturaCm) : null,
+    bf: p ? calcBFNavy(p.sexo, m.cinturaCm, m.quadrilCm, m.pescocoCm, p.alturaCm) : null
+  }));
+}
+function corpoDiasDesde(iso){
+  const a = new Date(iso+"T12:00:00"), b = new Date(todayISO()+"T12:00:00");
+  return Math.max(0, Math.round((b - a) / 864e5));
+}
+function corpoSparkSvg(vals){
+  const W = 120, H = 36, px = 5, py = 6, n = vals.length;
+  const mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), span = mx - mn;
+  const fx = v => Math.round(v*10)/10;
+  const pts = vals.map((v,i)=>[
+    n === 1 ? W/2 : px + i*(W-2*px)/(n-1),
+    span === 0 ? H/2 : H - py - (v-mn)/span*(H-2*py)
+  ]);
+  const last = pts[n-1];
+  return '<svg class="ck-spark" viewBox="0 0 '+W+' '+H+'" aria-hidden="true" focusable="false">'+
+    (n > 1 ? '<polyline class="ck-linha" points="'+pts.map(p=> fx(p[0])+","+fx(p[1])).join(" ")+'"/>' : '')+
+    '<circle class="ck-ponto" cx="'+fx(last[0])+'" cy="'+fx(last[1])+'" r="3.2"/></svg>';
+}
+function renderCorpoKpis(){
+  const box = document.getElementById("corpo-kpis");
+  if(!box) return;
+  const linhas = corpoLinhas();
+  if(!linhas.length){
+    box.classList.remove("ck-anim");
+    box.innerHTML = '<div class="ck-vazio"><p>Sua primeira medição acende este resumo: peso, cintura, % de gordura e IMC, cada um com um mini-gráfico da sua evolução.</p>'+
+      '<button type="button" class="btn small" data-ck="nova">Fazer a primeira medição</button></div>';
+    return;
+  }
+  const html = CK_CAMPOS.map(c=>{
+    const serie = linhas.filter(l=> { const v = c.val(l); return v != null && isFinite(v); });
+    if(!serie.length){
+      return '<button type="button" class="ck-card" data-ck="'+c.k+'"><span class="ck-rot">'+c.rot+'</span>'+
+        '<span class="ck-val"><b>—</b></span><small class="ck-sub">sem dados ainda</small></button>';
+    }
+    const ult = serie[serie.length-1], ant = serie[serie.length-2];
+    const v = c.val(ult), vs = serie.slice(-12).map(c.val);
+    let delta;
+    if(ant){
+      const x = v - c.val(ant);
+      delta = Math.abs(x) < Math.pow(10, -c.dec)/2
+        ? 'igual desde '+fmtDateBR(ant.iso)
+        : (x < 0 ? "▼ " : "▲ ")+num(Math.abs(x), c.dec)+(c.un ? " "+c.un : "")+' desde '+fmtDateBR(ant.iso);
+    } else delta = "sua 1ª medição";
+    const d = corpoDiasDesde(ult.iso);
+    const quando = d === 0 ? "hoje" : d === 1 ? "ontem" : "há "+d+" dias";
+    const lab = c.rot+": "+num(v, c.dec)+(c.un ? " "+c.un : "")+", "+delta+", medido "+quando+".";
+    const seq = vs.length > 1 ? " Últimas "+vs.length+" medições: de "+num(vs[0], c.dec)+" a "+num(vs[vs.length-1], c.dec)+"." : "";
+    return '<button type="button" class="ck-card" data-ck="'+c.k+'" aria-label="'+escapeHtml(lab+seq)+'">'+
+      '<span class="ck-rot" aria-hidden="true">'+c.rot+'</span>'+
+      '<span class="ck-val" aria-hidden="true"><b>'+num(v, c.dec)+'</b>'+(c.un ? '<small>'+c.un+'</small>' : '')+'</span>'+
+      corpoSparkSvg(vs)+
+      '<small class="ck-sub" aria-hidden="true">'+delta+' · '+quando+'</small></button>';
+  }).join("");
+  box.classList.toggle("ck-anim", !ckJaAnimou); ckJaAnimou = true;
+  box.innerHTML = html;
+  if(box.classList.contains("ck-anim")) setTimeout(()=> box.classList.remove("ck-anim"), 900);   // o acendimento não repete ao voltar para a aba
+}
+
+/* ---- Músculos da semana (últimos 7 dias) ---- */
+const CK_GRUPOS = [
+  {k:"Peito",  ms:["peito"]}, {k:"Costas", ms:["costas"]}, {k:"Ombros", ms:["ombros"]},
+  {k:"Braços", ms:["biceps","triceps"]}, {k:"Pernas", ms:["quadriceps","posterior","gluteos","panturrilha"]}, {k:"Core", ms:["abdomen"]}
+];
+function corpoMusculos(){
+  const hoje = todayISO();
+  const tot = semanaRealizadaPorMusculo(addDaysISO(hoje, -6));
+  return CK_GRUPOS.map(g=>{
+    const itens = g.ms.map(m=>{ const lm = MUSCLE_LANDMARKS[m]; return {m, label:lm.label, mav:lm.mav, n:tot[m]||0}; });
+    const series = itens.reduce((t,i)=> t + i.n, 0);
+    const v = Math.round(100*itens.reduce((t,i)=> t + Math.min(1, i.n/i.mav), 0)/itens.length);
+    return {k:g.k, v, series, itens};
+  });
+}
+function corpoRadarSvg(axes){
+  const W = 360, H = 270, cx = 180, cy = 138, R = 88, n = axes.length;
+  const ang = i => (-90 + i*360/n) * Math.PI/180;
+  const pt = (i, r) => [cx + r*Math.cos(ang(i)), cy + r*Math.sin(ang(i))];
+  const fx = v => (Math.round(v*10)/10);
+  const ring = f => axes.map((_,i)=>{ const p = pt(i, R*f); return fx(p[0])+","+fx(p[1]); }).join(" ");
+  let s = '<svg class="radar-svg ck-radar-svg" viewBox="0 0 '+W+' '+H+'" aria-hidden="true" focusable="false">';
+  [0.25,0.5,0.75,1].forEach(f=>{ s += '<polygon class="radar-ring'+(f===1?' outer':'')+'" points="'+ring(f)+'"/>'; });
+  axes.forEach((_,i)=>{ const p = pt(i, R); s += '<line class="radar-spoke" x1="'+cx+'" y1="'+cy+'" x2="'+fx(p[0])+'" y2="'+fx(p[1])+'"/>'; });
+  const poly = axes.map((a,i)=>{ const p = pt(i, R*Math.max(a.v,3)/100); return fx(p[0])+","+fx(p[1]); }).join(" ");
+  s += '<polygon class="radar-area" points="'+poly+'"/>';
+  axes.forEach((a,i)=>{ const p = pt(i, R*Math.max(a.v,3)/100); s += '<circle class="radar-dot" cx="'+fx(p[0])+'" cy="'+fx(p[1])+'" r="4"/>'; });
+  axes.forEach((a,i)=>{
+    const p = pt(i, R+14), c = Math.cos(ang(i));
+    const anchor = Math.abs(c) < 0.2 ? "middle" : (c > 0 ? "start" : "end");
+    const dy = (i===0) ? -14 : (Math.sin(ang(i)) > 0.5 ? 6 : -4);
+    s += '<text class="radar-lbl" x="'+fx(p[0])+'" y="'+fx(p[1]+dy)+'" text-anchor="'+anchor+'">'+escapeHtml(a.k)+'<tspan class="radar-val" x="'+fx(p[0])+'" dy="14">'+a.v+'%</tspan></text>';
+  });
+  return s + '</svg>';
+}
+function corpoInsights(axes){
+  const out = [];
+  const total = axes.reduce((t,a)=> t + a.series, 0);
+  const top = axes.slice().sort((a,b)=> b.series - a.series)[0];
+  out.push('Mais trabalhado nos últimos 7 dias: <b>'+escapeHtml(top.k)+'</b> ('+top.series+' série'+(top.series===1?'':'s')+').');
+  const zero = axes.filter(a=> a.series === 0).map(a=> a.k);
+  if(zero.length && zero.length < axes.length) out.push('Sem séries registradas em <b>'+zero.map(escapeHtml).join(", ")+'</b>: pode ser descanso planejado ou um treino que ainda está por vir. Sem cobrança.');
+  const pernas = axes.filter(a=> a.k === "Pernas")[0];
+  if(pernas && total >= 12){
+    const pct = Math.round(100*pernas.series/total);
+    if(pct < 20) out.push('Pernas ficaram com <b>'+pct+'%</b> das séries da semana. Se isso é o plano, tudo certo; se não, dá para encaixar um treino de pernas quando fizer sentido.');
+  }
+  return out;
+}
+function renderMusculosSemana(){
+  const box = document.getElementById("musculos-body");
+  if(!box) return;
+  const axes = corpoMusculos();
+  const total = axes.reduce((t,a)=> t + a.series, 0);
+  if(!total){
+    box.classList.add("ck-sem-dados");
+    box.innerHTML = '<p class="hint ck-vazio-txt">Nenhuma série registrada nos últimos 7 dias. Quando você registrar um treino, o radar dos seus músculos aparece aqui.</p>';
+    return;
+  }
+  box.classList.remove("ck-sem-dados");
+  const lista = '<ul class="radar-list" aria-label="Músculos trabalhados nos últimos 7 dias">'+axes.map(a=>
+    '<li><div class="radar-li-top"><span>'+escapeHtml(a.k)+'</span><b>'+a.series+' série'+(a.series===1?'':'s')+' · '+a.v+'%</b></div>'+
+    '<div class="radar-li-bar" aria-hidden="true"><i style="width:'+a.v+'%"></i></div>'+
+    '<small>'+a.itens.map(i=> escapeHtml(i.label)+' '+i.n+'/'+i.mav).join(' · ')+'</small></li>').join("")+'</ul>';
+  const ins = '<div class="ck-insights"><h3>O que o radar diz</h3><ul>'+corpoInsights(axes).map(t=> '<li>'+t+'</li>').join("")+'</ul>'+
+    '<p class="ck-nota">100% de um grupo = todos os músculos dele na faixa ideal de séries por semana (MAV), em média. É um retrato de 7 dias, não uma meta.</p></div>';
+  box.innerHTML = corpoRadarSvg(axes) + lista + ins;
+}
+(function setupCorpoV3(){
+  document.addEventListener("click", (e)=>{
+    const b = e.target.closest && e.target.closest("[data-ck]");
+    if(!b) return;
+    const k = b.dataset.ck;
+    const tab = (k === "peso" || k === "cintura") ? document.querySelector('#evolucao-tabs [data-metric="'+k+'"]') : null;
+    if(k === "nova"){ const i = document.getElementById("m-peso"); if(i){ i.scrollIntoView({block:"center"}); i.focus({preventScroll:true}); } return; }
+    if(tab){ tab.click(); const g = document.getElementById("evolucao-chart"); if(g) g.scrollIntoView({block:"center"}); return; }
+    const t = document.getElementById("tabela-medicoes") || document.getElementById("med-resumo");
+    if(t) t.scrollIntoView({block:"start"});
+  });
+})();
+/* ---- NG+ visual v3 · Fases 8 e 9 · Perfil: moldura do avatar em CSS puro (anel de XP + ornamentos por patente).
+        Tudo derivado de computeNivelInfo(); nada novo é salvo. ---- */
+function renderMolduras(){
+  let info;
+  try{ info = computeNivelInfo(); }catch(e){ return; }
+  const n = info.tierIndex + 1;
+  const pct = info.isMax ? 100 : Math.max(0, Math.min(100, Math.round((info.xpInTier / info.tierNeed) * 100)));
+  const aplica = el=>{
+    if(!el) return;
+    el.dataset.moldura = String(n);
+    el.style.setProperty("--mc", "var(--t"+n+")");
+    el.style.setProperty("--xp", String(pct));
+  };
+  const wrap = document.getElementById("perfil-avatar-wrap");
+  aplica(wrap);
+  if(wrap){
+    wrap.setAttribute("aria-label", "Moldura do avatar: patente "+info.tierName+", nível "+n+" de "+NIVEL_TIERS.length+(info.isMax ? ", patente máxima." : ", "+pct+"% do caminho até a próxima patente."));
+    const lv = wrap.querySelector(".pa-lv");
+    if(lv) lv.textContent = String(n);
+  }
+  aplica(document.getElementById("top-avatar"));
+}
+/* ---- NG+ visual v3 · Fase 6 · Dieta: anel de calorias e macros (só visual; usa a meta e os macros que o app já calcula) ---- */
+let daJaAnimou = false;
+function renderDietaAnel(kcalAlvo, macros){
+  const box = document.getElementById("dieta-anel");
+  if(!box) return;
+  if(!kcalAlvo || !macros){ box.innerHTML = ""; box.classList.add("is-vazio"); return; }
+  box.classList.remove("is-vazio");
+  const itens = [
+    {nome:"Proteína",     cls:"p", d:macros.proteina},
+    {nome:"Carboidrato",  cls:"c", d:macros.carbo},
+    {nome:"Gordura",      cls:"g", d:macros.gordura}
+  ];
+  const tot = itens.reduce((t,i)=> t + i.d.kcal, 0) || 1;
+  let ini = 0;
+  const arcos = itens.map(i=>{
+    const f = i.d.kcal / tot * 100, gap = f > 3 ? 1 : 0;
+    const el = '<circle class="da-arco da-'+i.cls+'" cx="60" cy="60" r="48" pathLength="100" stroke-dasharray="'+(f - gap).toFixed(2)+' '+(100 - f + gap).toFixed(2)+'" stroke-dashoffset="'+(-ini).toFixed(2)+'" transform="rotate(-90 60 60)"/>';
+    ini += f;
+    return el;
+  }).join("");
+  const pressed = document.querySelector('#seg-objetivo [aria-pressed="true"]');
+  const obj = pressed ? pressed.textContent.trim() : "";
+  const lista = itens.map(i=>
+    '<li><i class="da-sw da-'+i.cls+'" aria-hidden="true"></i><span class="da-n">'+i.nome+'</span><b>'+num(i.d.g,0)+' g</b><span class="da-pc">'+Math.round(i.d.kcal/tot*100)+'% das calorias</span></li>').join("");
+  const animar = !daJaAnimou; daJaAnimou = true;
+  box.classList.toggle("da-anim", animar);
+  box.innerHTML =
+    '<div class="da-anel"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle class="da-trilho" cx="60" cy="60" r="48"/>'+arcos+'</svg>'+
+      '<div class="da-centro"><b>'+num(kcalAlvo,0)+'</b><small>kcal/dia</small></div></div>'+
+    '<div class="da-info"><h2 class="da-t">Sua meta diária'+(obj ? ' <span>'+escapeHtml(obj)+'</span>' : '')+'</h2>'+
+      '<ul class="da-lista" aria-label="Macronutrientes da meta diária">'+lista+'</ul></div>';
+  if(animar) setTimeout(()=> box.classList.remove("da-anim"), 1200);   // não repete ao voltar para a aba
+}
 function renderNivel(){
   const info = computeNivelInfo();
   const n = info.tierIndex+1;
@@ -2814,6 +3267,35 @@ const TEMAS = {
   roxo:{nome:"Roxo pastel", sw:{claro:["#f6f2fd","#ece4fa","#b79cf0"], escuro:["#17131f","#2b2339","#c3acf2"]}},
   azul:{nome:"Azul pastel", sw:{claro:["#eff6fd","#e1eefb","#7fbcf0"], escuro:["#111820","#1f2d3b","#8cc4f2"]}},
 };
+/* v3 — PALETAS do modo jogo (HUD escuro): Lima é a padrão; Violeta e Ouro só trocam variáveis de cor (data-paleta em <html>).
+   Os temas pastel acima continuam como estavam. A cor de patente (skin) segue valendo por cima de qualquer paleta. */
+const PALETAS = {
+  lima:{nome:"Lima", sub:"padrão", sw:["#06080a","#151b1f","#a3e635"]},
+  violeta:{nome:"Violeta", sub:"escuro", sw:["#0b0813","#1d1730","#a78bfa"]},
+  ouro:{nome:"Ouro", sub:"escuro", sw:["#0a0804","#1d1910","#e5b83d"]},
+};
+function paletaAtual(){
+  let p = state.settings && state.settings.paleta;
+  if(p === undefined && !state.settingsCarregado){ try{ p = localStorage.getItem("ng-paleta"); }catch(e){} }
+  return (p && PALETAS[p]) ? p : "lima";
+}
+function setPaleta(p){
+  const novo = Object.assign({}, state.settings, {tema:"padrao", paleta:p});
+  state.settings = novo;
+  try{ localStorage.setItem("bff-tema", "padrao|"+(novo.temaModo || "claro")); localStorage.setItem("ng-paleta", p); }catch(e){}
+  applyAccentSkin(); applyGameMode();
+  saveDoc("config/settings", state.settings);
+  renderTemas(); renderSkins();
+}
+function temaBotoesHtml(atual, modo){
+  const sw = a => '<span class="theme-sw" aria-hidden="true">'+a.map(c=>'<i style="background:'+c+'"></i>').join("")+'</span>';
+  const pal = paletaAtual();
+  return Object.keys(PALETAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual==="padrao" && pal===k)+'" data-tema="padrao" data-paleta="'+k+'">'+sw(PALETAS[k].sw)+'<span>'+PALETAS[k].nome+'<br><small>'+PALETAS[k].sub+'</small></span></button>').join("")+
+    Object.keys(TEMAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual===k)+'" data-tema="'+k+'">'+sw(TEMAS[k].sw[modo])+'<span>'+TEMAS[k].nome+'</span></button>').join("");
+}
+function temaJaAtivo(b, atual){ return b.dataset.tema === "padrao" ? (atual === "padrao" && paletaAtual() === (b.dataset.paleta || "lima")) : b.dataset.tema === atual; }
+function temaEscolhe(b){ if(b.dataset.tema === "padrao") setPaleta(b.dataset.paleta || "lima"); else setTema(b.dataset.tema); }
+function temaSeletor(b){ return '[data-tema="'+b.dataset.tema+'"]'+(b.dataset.paleta ? '[data-paleta="'+b.dataset.paleta+'"]' : ''); }
 function temaGuardado(){
   try{ const v = (localStorage.getItem("bff-tema") || "").split("|"); return {tema:v[0], modo:v[1]}; }catch(e){ return {}; }
 }
@@ -2841,13 +3323,13 @@ function renderTemas(){
   if(!row) return;
   const atual = temaAtual() || "padrao", modo = temaModo();
   const sw = a => '<span class="theme-sw" aria-hidden="true">'+a.map(c=>'<i style="background:'+c+'"></i>').join("")+'</span>';
-  row.innerHTML = '<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual==="padrao")+'" data-tema="padrao">'+sw(["#06080a","#151b1f","#a3e635"])+'<span>Modo jogo<br><small>padrão, escuro</small></span></button>'+
-    Object.keys(TEMAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual===k)+'" data-tema="'+k+'">'+sw(TEMAS[k].sw[modo])+'<span>'+TEMAS[k].nome+'</span></button>').join("");
+  row.innerHTML = temaBotoesHtml(atual, modo);
   row.querySelectorAll(".theme-opt").forEach(b=> b.addEventListener("click", ()=>{
-    const t = b.dataset.tema; if(t === atual) return;
-    setTema(t);
-    showToast(t === "padrao" ? "Modo jogo ativado." : TEMAS[t].nome+" ativado.");
-    const nb = document.querySelector('#theme-row [data-tema="'+t+'"]'); if(nb) nb.focus();
+    if(temaJaAtivo(b, atual)) return;
+    const sel = temaSeletor(b), t = b.dataset.tema;
+    temaEscolhe(b);
+    showToast(t === "padrao" ? "Paleta "+PALETAS[b.dataset.paleta || "lima"].nome+" ativada." : TEMAS[t].nome+" ativado.");
+    const nb = document.querySelector('#theme-row '+sel); if(nb) nb.focus();
   }));
   const wrap = document.getElementById("theme-modo-wrap");
   if(wrap) wrap.hidden = atual === "padrao";
@@ -2858,12 +3340,17 @@ function renderTemas(){
   });
   const hint = document.getElementById("theme-hint");
   if(hint) hint.textContent = atual === "padrao"
-    ? "Escolha um tema pastel para trocar o visual do app. Você pode voltar ao modo jogo quando quiser."
+    ? "Escolha uma paleta do modo jogo (Lima, Violeta ou Ouro) ou um tema pastel. Dá para trocar quando quiser."
     : "No tema pastel a cor de destaque vem do tema. Para usar as cores de patente, volte ao modo jogo.";
 }
 function applyGameMode(){
   const root = document.documentElement, t = temaAtual();
-  if(!t){ root.setAttribute("data-game", "on"); root.removeAttribute("data-tema"); root.removeAttribute("data-modo"); return; }
+  if(!t){
+    root.setAttribute("data-game", "on"); root.removeAttribute("data-tema"); root.removeAttribute("data-modo");
+    const pa = paletaAtual(); if(pa === "lima") root.removeAttribute("data-paleta"); else root.setAttribute("data-paleta", pa);
+    return;
+  }
+  root.removeAttribute("data-paleta");
   root.setAttribute("data-game", "off");
   root.setAttribute("data-tema", t);
   root.setAttribute("data-modo", temaModo());
@@ -2955,6 +3442,7 @@ function radarAxes(){
     {k:"Foco", ab:"FOC", v:pct(medSem, 4), sub: medSem+" de 4 semanas com medição"}
   ];
 }
+let rdJaAnimou = false;
 function renderRadar(){
   const el = document.getElementById("attrs-radar");
   if(!el) return;
@@ -2991,7 +3479,10 @@ function renderRadar(){
     ? '<div class="radar-hall"><h3>Hall de cargas</h3><ol>'+f.top.slice(0,3).map((e,i)=>
         '<li><i class="sl-dot sl-'+MEDALHAS[i].k+'" aria-hidden="true"></i><span class="hn"><span class="sr-only">'+(i+1)+'º lugar: </span>'+escapeHtml(e.nome)+'</span><b>'+fmtKg(e.pr)+' kg</b><small>'+fmtDateBR(e.prIso)+'</small></li>').join("")+'</ol></div>'
     : '<div class="radar-hall"><h3>Hall de cargas</h3><p class="hint">Registre cargas nos treinos para montar o seu Hall.</p></div>';
+  const rdAnimar = !rdJaAnimou; rdJaAnimou = true;
+  el.classList.toggle("rd-anim", rdAnimar);
   el.innerHTML = head + svg + list + hall;
+  if(rdAnimar) setTimeout(()=> el.classList.remove("rd-anim"), 1200);   // não repete ao voltar para a aba
 }
 function renderAttrs(){
   const el = document.getElementById("attrs-grid");
@@ -3309,7 +3800,7 @@ function renderAchievements(){
   const prog = achProgressList();
   const unlockedCount = flags.filter(Boolean).length;
   if(countEl) countEl.textContent = unlockedCount+" de "+ACHIEVEMENTS.length+" desbloqueadas";
-  el.innerHTML = ACHIEVEMENTS.map((a,i)=>{
+  const htmls = ACHIEVEMENTS.map((a,i)=>{
     const unlocked = flags[i];
     const p = prog[a.nome] || {cur:0, max:1, un:""};
     const color = ACHIEVEMENT_COLORS[i % ACHIEVEMENT_COLORS.length];
@@ -3324,7 +3815,13 @@ function renderAchievements(){
         ? '<span class="badge-prog done" aria-hidden="true">Feita</span>'
         : '<span class="badge-bar" aria-hidden="true"><i style="width:'+Math.round(p.cur/p.max*100)+'%"></i></span><span class="badge-prog" aria-hidden="true">'+achProgTxt(p)+'</span>')+
     '</button>';
-  }).join("");
+  });
+  const secao = (titulo, lista, cls, nota)=> lista.length
+    ? '<section class="vit-sec"><h3 class="vit-h">'+titulo+' <span>'+lista.length+'</span></h3>'+(nota ? '<p class="vit-nota">'+nota+'</p>' : '')+'<div class="vit-lista '+cls+'">'+lista.join("")+'</div></section>' : '';
+  const ganhas = htmls.filter((_,i)=> flags[i]), faltam = htmls.filter((_,i)=> !flags[i]);
+  el.innerHTML = secao("Na vitrine", ganhas, "vit-shelf") +
+    (ganhas.length ? '' : '<p class="vit-vazia">A vitrine começa vazia: a primeira conquista aparece aqui assim que sair.</p>') +
+    secao("Em progresso", faltam, "vit-grid", "Toque para ver o quanto falta.");
   el.onclick = function(ev){
     const b = ev.target.closest && ev.target.closest("[data-ach]");
     if(b) abrirConquista(Number(b.dataset.ach));
@@ -3338,9 +3835,12 @@ function renderMarcos(){
   const prog = achProgressList();
   const rows = [];
   const row = (titulo, texto, ratio, sub)=>
-    '<li class="marco"><div class="marco-top"><b>'+escapeHtml(titulo)+'</b><span>'+escapeHtml(texto)+'</span></div>'+
+    '<li class="marco prox"><div class="marco-top"><b>'+escapeHtml(titulo)+'</b><span>'+escapeHtml(texto)+'</span></div>'+
     '<div class="ach-bar" aria-hidden="true"><i style="width:'+Math.round(Math.max(0, Math.min(1, ratio))*100)+'%"></i></div>'+
     (sub ? '<div class="marco-sub">'+escapeHtml(sub)+'</div>' : '')+'</li>';
+  // 0) você está aqui (etapa 1 do caminho)
+  rows.push('<li class="marco atual" aria-current="step"><div class="marco-top"><b>Você está aqui: patente '+escapeHtml(ni.tierName)+'</b><span>nível '+(ni.tierIndex+1)+' de '+NIVEL_TIERS.length+'</span></div>'+
+    '<div class="marco-sub">'+num(ni.xp)+' XP no total'+(eng.streak ? ' · sequência de '+eng.streak+(eng.streak === 1 ? ' dia' : ' dias') : '')+'.</div></li>');
   // 1) próxima patente
   if(ni.isMax){
     rows.push('<li class="marco"><div class="marco-top"><b>Patente máxima</b><span>'+escapeHtml(ni.tierName)+'</span></div><div class="marco-sub">Você chegou ao topo. Agora é manter o ritmo.</div></li>');
@@ -4684,6 +5184,7 @@ function setTodayRing(cur, total, done){
   ring.setAttribute("stroke-dashoffset", (c*(1-frac)).toFixed(1));
   if(lab) lab.textContent = total>0 ? cur+"/"+total : "—";
   if(hero) hero.classList.toggle("is-done", !!done);
+  hojeAtualizaAnelSemana(cur, total);
 }
 /* v98 Fase 4: UM botão principal que muda com o estado do dia; o resto vira link de texto */
 const ICON_HOJE_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M8 5.5v13l11-6.5-11-6.5Z"/></svg>';
@@ -6025,8 +6526,15 @@ function restTimerCellHtml(idx, exNome){
   if(t){
     const mm = String(Math.floor(t.remaining/60)).padStart(2,"0");
     const ss = String(t.remaining%60).padStart(2,"0");
+    const tot = t.total || t.remaining || 1;
+    const frac = Math.max(0, Math.min(1, t.remaining/tot));
+    const totTxt = Math.floor(tot/60)+" min"+(tot%60 ? " "+(tot%60)+" s" : "");
     return '<div class="quest-rest-row running">'+
-      '<span class="quest-rest-display">'+ic('timer')+' '+mm+':'+ss+'</span>'+
+      '<span class="rest-ring'+(t.remaining <= 5 ? ' fim' : '')+'" role="img" aria-label="Descanso: faltam '+mm+':'+ss+' de '+totTxt+'">'+
+        '<svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><circle class="rr-trilho" cx="22" cy="22" r="18" pathLength="100"/><circle class="rr-arco" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100*(1-frac)).toFixed(1)+'" transform="rotate(-90 22 22)"/></svg>'+
+        '<span class="rr-ic">'+ic('timer')+'</span>'+
+      '</span>'+
+      '<span class="quest-rest-display">'+mm+':'+ss+'</span>'+
       '<button class="btn small ghost quest-rest-cancel" type="button" data-restcancel="'+idx+'">Cancelar</button>'+
     '</div>'+restAutoHtml();
   }
@@ -6043,7 +6551,7 @@ function restTimerCellHtml(idx, exNome){
 function startRestTimer(idx, seconds, onTick){
   cancelRestTimer(idx);
   const tick = onTick || semFocoEmCampo(renderWeekTrailDetail);   // NG+: não redesenha enquanto a pessoa digita as repetições
-  restTimers[idx] = {remaining: seconds, intervalId: null};
+  restTimers[idx] = {remaining: seconds, total: seconds, intervalId: null};
   restTimers[idx].intervalId = setInterval(()=>{
     const t = restTimers[idx];
     if(!t) return;
@@ -6270,7 +6778,9 @@ function renderWeekTrail(){
   // domingo pra fora da tela: o diâmetro acompanha o espaço entre os nós
   const trailSpacing = (trailW - TRAIL_MARGIN_X*2) / (n-1);
   const circleD = Math.max(28, Math.min(TRAIL_CIRCLE_D, Math.floor(trailSpacing - 3)));
-  const nodeW = Math.min(60, Math.floor(trailSpacing));
+  // alvo de toque: em aparelho de toque a área do nó tem ao menos 44 px de largura (o círculo visível continua encolhendo; áreas vizinhas se sobrepõem só nas bordas)
+  const toqueMin = (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 44 : 0;
+  const nodeW = Math.min(60, Math.max(toqueMin, Math.floor(trailSpacing)));
   wrap.style.setProperty("--tc", circleD+"px");
   const centers = DAYS.map((_,i)=> trailNodeCenter(i, n, trailW));
 
@@ -7752,6 +8262,7 @@ function renderDieta(){
     document.getElementById("macro-table").innerHTML = "";
     const ajEl = document.getElementById("ajuste-body"); if(ajEl) ajEl.innerHTML = "";
     document.getElementById("meta-peso-body").innerHTML = "";
+    renderDietaAnel(null, null);
     renderCardapio(null, null);
     return;
   }
@@ -7787,6 +8298,7 @@ function renderDieta(){
 
   renderAjusteResultado(med, p, kcalAlvo, tdee);
   renderMetaPeso(med, p, kcalAlvo, tdee);
+  renderDietaAnel(kcalAlvo, macros);
   renderCardapio(kcalAlvo, macros);
 }
 
@@ -7800,7 +8312,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.accded78a5.js";
+const CARDAPIO_URL = "./cardapio.3abdcd8889.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)
@@ -8361,9 +8873,8 @@ function openOnboarding(){
       const row = body.querySelector("#ob-theme-row");
       function pintaTemas(){
         const atual = temaAtual() || "padrao", modo = temaModo();
-        row.innerHTML = '<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual==="padrao")+'" data-tema="padrao">'+sw(["#06080a","#151b1f","#a3e635"])+'<span>Modo jogo<br><small>escuro</small></span></button>'+
-          Object.keys(TEMAS).map(k=>'<button type="button" class="theme-opt" role="radio" aria-checked="'+(atual===k)+'" data-tema="'+k+'">'+sw(TEMAS[k].sw[modo])+'<span>'+TEMAS[k].nome+'</span></button>').join("");
-        row.querySelectorAll(".theme-opt").forEach(b=> b.addEventListener("click", ()=>{ setTema(b.dataset.tema); pintaTemas(); const nb = row.querySelector('[data-tema="'+b.dataset.tema+'"]'); if(nb) nb.focus(); }));
+        row.innerHTML = temaBotoesHtml(atual, modo);
+        row.querySelectorAll(".theme-opt").forEach(b=> b.addEventListener("click", ()=>{ const sel = temaSeletor(b); temaEscolhe(b); pintaTemas(); const nb = row.querySelector(sel); if(nb) nb.focus(); }));
         body.querySelector("#ob-theme-modo-wrap").hidden = atual === "padrao";
         body.querySelectorAll("#ob-theme-modo button").forEach(b=>{
           const on = b.dataset.v === modo; b.classList.toggle("active", on); b.setAttribute("aria-pressed", String(on));
@@ -9593,9 +10104,9 @@ function renderFontes(){
 /* v94 P1: render por seção. Antes, cada clique refazia as 33 funções de desenho (tela inteira, inclusive abas ocultas).
    Agora só a aba visível é redesenhada; as demais ficam marcadas e são desenhadas quando abertas (showTab). */
 const SECTION_RENDERERS = {
-  painel: [renderPlanoPorque, renderStreak, renderNarrator, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
+  painel: [renderPlanoPorque, renderStreak, renderNarrator, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderHojeMetricas, renderHojeMissoes, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
   treino: [renderPlanoPorque, renderFormatoCard, renderWeekGrid, renderCargas, renderAnaliseTreino, renderVolume, renderHeatmap, renderBibliotecaExercicios],
-  corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderEvolucaoChart, renderFotosProgresso, renderTabelaMedicoes],
+  corpo: [renderCorpoKpis, renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderMusculosSemana, renderEvolucaoChart, renderFotosProgresso, renderTabelaMedicoes],
   dieta: [renderDieta],
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
   perfil: [renderRadar, renderAttrs, renderPerfilSummary, renderMarcos, renderAchievements],
@@ -9622,7 +10133,7 @@ function render(){
   preservandoRolagem(()=>{
     applyAccentSkin();
     applyGameMode();
-    renderNivel(); renderNavExtras();            // aparece no Perfil e no Painel (card de patente compacto) — sempre atual
+    renderNivel(); renderNavExtras(); renderMolduras();            // aparece no Perfil e no Painel (card de patente compacto) — sempre atual
     const cur = visibleViewId();
     Object.keys(SECTION_RENDERERS).forEach(id=>{ if(id === cur) renderSection(id); else dirtyViews.add(id); });
   });

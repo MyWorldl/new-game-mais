@@ -14,9 +14,7 @@ rep('<div class="attrs-grid" id="attrs-grid"></div>','<div class="attrs-radar" i
 rep('function renderAttrs(){\n', js+'function renderAttrs(){\n')
 rep('perfil: [renderAttrs, renderPerfilSummary, renderAchievements]','perfil: [renderRadar, renderAttrs, renderPerfilSummary, renderAchievements]')
 
-# Fase 4 — bolinha do tema padrão acompanha o novo verde-limão (era o azul-ciano antigo)
-assert src.count('sw(["#05070d","#141b2e","#22b8cf"])')==2
-src=src.replace('sw(["#05070d","#141b2e","#22b8cf"])','sw(["#06080a","#151b1f","#a3e635"])')
+# (a bolinha das paletas agora nasce em app.html: PALETAS.lima/violeta/ouro)
 # Fase 6 — gráfico/tile de peso usam a série 1 (limão no tema padrão; azul nos demais)
 rep('label:"Peso", color:"var(--s-blue)",','label:"Peso", color:"var(--viz-1)",')
 rep('statTileV2({eyebrow:"Peso atual", value:num(med.pesoKg,1), unit:"kg", accent:"var(--s-blue)", iconBg:"color-mix(in srgb, var(--s-blue) 18%, transparent)", iconColor:"var(--s-blue)"','statTileV2({eyebrow:"Peso atual", value:num(med.pesoKg,1), unit:"kg", accent:"var(--viz-1)", iconBg:"color-mix(in srgb, var(--viz-1) 18%, transparent)", iconColor:"var(--viz-1)"')
@@ -72,10 +70,55 @@ rep('<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialo
     '<button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialog" aria-label="Abrir paleta de comandos (Ctrl K)">'+IC_SEARCH+'<span>Buscar ou ir para…</span> <kbd>Ctrl K</kbd></button>\n      <button type="button" class="top-icon top-search" id="top-search" aria-haspopup="dialog" aria-label="Buscar ou ir para (paleta de comandos)">'+IC_SEARCH+'</button>\n      <button type="button" class="top-avatar" id="top-avatar" data-goto="perfil" aria-label="Abrir o perfil"><span id="top-avatar-ini">—</span></button>\n    </div>')
 rep('<div class="bottomnav" id="bottomnav">\n    <nav class="tabs"',
     '<div class="bottomnav" id="bottomnav" role="navigation" aria-label="Navegação principal">\n    <div class="side-brand" aria-hidden="true"><div class="mark">BFF</div><div class="side-name"><b>BFF</b><small>New Game+</small></div></div>\n    <nav class="tabs"')
+IC_MAIS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
 rep('    </nav>\n    <!-- v98 Fase 3: o botão "Mais" saiu;',
-    '    </nav>\n    <div class="side-streak" id="side-streak" role="group" aria-label="Sequência atual"></div>\n    <!-- v98 Fase 3: o botão "Mais" saiu;')
-rep('function renderNivel(){\n', nav+'function renderNivel(){\n')
+    '    </nav>\n    <div class="side-streak" id="side-streak" role="group" aria-label="Sequência atual"></div>\n    <button type="button" class="nav-fab" id="nav-fab" aria-haspopup="menu" aria-expanded="false" aria-controls="nav-acoes" aria-label="Ações rápidas">'+IC_MAIS+'</button>\n    <div class="nav-acoes" id="nav-acoes" role="menu" aria-label="Ações rápidas" hidden></div>\n    <!-- v98 Fase 3: o botão "Mais" saiu;')
+acoes=open(base+'/ng-acoes.js',encoding='utf8').read()
+rep('function renderNivel(){\n', nav+acoes+'function renderNivel(){\n')
 rep('renderNivel();            // aparece','renderNivel(); renderNavExtras();            // aparece')
 rep('if(mainName === "treino") renderWeekTrail();','navTitulo(name);\n  if(mainName === "treino") renderWeekTrail();')
+
+# ===== Fase 3 (v3) — tela Hoje: anel duplo, carrossel de métricas e missões de hoje =====
+hoje=open(base+'/ng-hoje.js',encoding='utf8').read()
+rep('<circle class="today-ring-fill" id="today-ring" cx="40" cy="40" r="34"/>',
+    '<circle class="today-ring-fill" id="today-ring" cx="40" cy="40" r="34"/>\n          <circle class="today-ring-track today-ring-track2" cx="40" cy="40" r="25"/>\n          <circle class="today-ring-fill today-ring-fill2" id="today-ring-semana" cx="40" cy="40" r="25"/>')
+rep('<div class="today-ring">','<div class="today-ring" id="today-ring-box" role="img" aria-label="">')
+rep('  if(hero) hero.classList.toggle("is-done", !!done);\n}',
+    '  if(hero) hero.classList.toggle("is-done", !!done);\n  hojeAtualizaAnelSemana(cur, total);\n}')
+rep('<section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>\n\n    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n',
+    '<section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>\n\n    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n\n'
+    '    <section class="hoje-metricas" id="hoje-metricas" aria-labelledby="hm-t">\n      <h2 class="sr-only" id="hm-t">Resumo de hoje</h2>\n      <div class="hm-trilho" id="hm-trilho" role="group" aria-roledescription="carrossel" aria-label="Métricas de hoje"></div>\n      <div class="hm-dots" id="hm-dots" aria-hidden="true"></div>\n    </section>\n\n'
+    '    <section class="card hoje-missoes" id="hoje-missoes" aria-labelledby="hmi-t">\n      <div class="card-head"><h2 id="hmi-t">Missões de hoje</h2><span class="hint" id="hmi-count"></span></div>\n      <ul class="hmi-lista" id="hmi-lista"></ul>\n    </section>\n')
+rep('function renderNivel(){\n', hoje+'function renderNivel(){\n')
+rep('renderTodayCard, renderChallenges','renderTodayCard, renderHojeMetricas, renderHojeMissoes, renderChallenges')
+
+# ===== Fase 7 (v3) — Corpo: KPIs com mini-gráficos e radar de músculos da semana =====
+corpo=open(base+'/ng-corpo.js',encoding='utf8').read()
+rep('<section class="view" id="view-corpo" role="tabpanel" aria-labelledby="subtab-corpo" tabindex="-1" hidden>\n    <div class="two-col">',
+    '<section class="view" id="view-corpo" role="tabpanel" aria-labelledby="subtab-corpo" tabindex="-1" hidden>\n'
+    '    <section class="corpo-kpis" id="corpo-kpis" aria-label="Resumo do corpo"></section>\n\n    <div class="two-col">')
+rep('<div class="card">\n      <div class="card-head"><h2>Evolução</h2></div>',
+    '<div class="card" id="musculos-card">\n      <div class="card-head"><h2>Músculos da semana</h2><span class="hint">últimos 7 dias</span></div>\n      <div class="attrs-radar ck-radar" id="musculos-body"></div>\n    </div>\n\n'
+    '    <div class="card">\n      <div class="card-head"><h2>Evolução</h2></div>')
+rep('function renderNivel(){\n', corpo+'function renderNivel(){\n')
+rep('corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderEvolucaoChart,','corpo: [renderCorpoKpis, renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderMusculosSemana, renderEvolucaoChart,')
+
+# ===== Fases 8 e 9 (v3) — Perfil: moldura do avatar (CSS puro) =====
+perf=open(base+'/ng-perfil.js',encoding='utf8').read()
+rep('<div class="perfil-avatar" id="perfil-avatar-initials">—</div>',
+    '<div class="perfil-avatar-wrap" id="perfil-avatar-wrap" role="img" aria-label="Moldura do avatar" data-moldura="1">'
+    '<span class="pa-orn" aria-hidden="true"></span><span class="pa-xp" aria-hidden="true"></span><span class="pa-gems" aria-hidden="true"></span>'
+    '<div class="perfil-avatar" id="perfil-avatar-initials">—</div><span class="pa-lv" aria-hidden="true">1</span></div>')
+rep('function renderNivel(){\n', perf+'function renderNivel(){\n')
+rep('renderNivel(); renderNavExtras();            // aparece','renderNivel(); renderNavExtras(); renderMolduras();            // aparece')
+
+# ===== Fase 6 (v3) — Dieta: anel de calorias e macros (só visual) =====
+dieta=open(base+'/ng-dieta.js',encoding='utf8').read()
+rep('    <div class="card" data-dieta-dados>\n      <div class="card-head">\n        <h2>Objetivo calórico</h2>',
+    '    <section class="card dieta-anel is-vazio" id="dieta-anel" data-dieta-dados aria-label="Resumo da meta diária"></section>\n'
+    '    <div class="card" data-dieta-dados>\n      <div class="card-head">\n        <h2>Objetivo calórico</h2>')
+rep('function renderNivel(){\n', dieta+'function renderNivel(){\n')
+rep('  renderMetaPeso(med, p, kcalAlvo, tdee);\n  renderCardapio(kcalAlvo, macros);\n}','  renderMetaPeso(med, p, kcalAlvo, tdee);\n  renderDietaAnel(kcalAlvo, macros);\n  renderCardapio(kcalAlvo, macros);\n}')
+rep('    renderCardapio(null, null);\n    return;\n  }\n\n  const tmb','    renderDietaAnel(null, null);\n    renderCardapio(null, null);\n    return;\n  }\n\n  const tmb')
 
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))

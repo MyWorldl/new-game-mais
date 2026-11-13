@@ -49,7 +49,7 @@ function renderAchievements(){
   const prog = achProgressList();
   const unlockedCount = flags.filter(Boolean).length;
   if(countEl) countEl.textContent = unlockedCount+" de "+ACHIEVEMENTS.length+" desbloqueadas";
-  el.innerHTML = ACHIEVEMENTS.map((a,i)=>{
+  const htmls = ACHIEVEMENTS.map((a,i)=>{
     const unlocked = flags[i];
     const p = prog[a.nome] || {cur:0, max:1, un:""};
     const color = ACHIEVEMENT_COLORS[i % ACHIEVEMENT_COLORS.length];
@@ -64,7 +64,13 @@ function renderAchievements(){
         ? '<span class="badge-prog done" aria-hidden="true">Feita</span>'
         : '<span class="badge-bar" aria-hidden="true"><i style="width:'+Math.round(p.cur/p.max*100)+'%"></i></span><span class="badge-prog" aria-hidden="true">'+achProgTxt(p)+'</span>')+
     '</button>';
-  }).join("");
+  });
+  const secao = (titulo, lista, cls, nota)=> lista.length
+    ? '<section class="vit-sec"><h3 class="vit-h">'+titulo+' <span>'+lista.length+'</span></h3>'+(nota ? '<p class="vit-nota">'+nota+'</p>' : '')+'<div class="vit-lista '+cls+'">'+lista.join("")+'</div></section>' : '';
+  const ganhas = htmls.filter((_,i)=> flags[i]), faltam = htmls.filter((_,i)=> !flags[i]);
+  el.innerHTML = secao("Na vitrine", ganhas, "vit-shelf") +
+    (ganhas.length ? '' : '<p class="vit-vazia">A vitrine começa vazia: a primeira conquista aparece aqui assim que sair.</p>') +
+    secao("Em progresso", faltam, "vit-grid", "Toque para ver o quanto falta.");
   el.onclick = function(ev){
     const b = ev.target.closest && ev.target.closest("[data-ach]");
     if(b) abrirConquista(Number(b.dataset.ach));
@@ -78,9 +84,12 @@ function renderMarcos(){
   const prog = achProgressList();
   const rows = [];
   const row = (titulo, texto, ratio, sub)=>
-    '<li class="marco"><div class="marco-top"><b>'+escapeHtml(titulo)+'</b><span>'+escapeHtml(texto)+'</span></div>'+
+    '<li class="marco prox"><div class="marco-top"><b>'+escapeHtml(titulo)+'</b><span>'+escapeHtml(texto)+'</span></div>'+
     '<div class="ach-bar" aria-hidden="true"><i style="width:'+Math.round(Math.max(0, Math.min(1, ratio))*100)+'%"></i></div>'+
     (sub ? '<div class="marco-sub">'+escapeHtml(sub)+'</div>' : '')+'</li>';
+  // 0) você está aqui (etapa 1 do caminho)
+  rows.push('<li class="marco atual" aria-current="step"><div class="marco-top"><b>Você está aqui: patente '+escapeHtml(ni.tierName)+'</b><span>nível '+(ni.tierIndex+1)+' de '+NIVEL_TIERS.length+'</span></div>'+
+    '<div class="marco-sub">'+num(ni.xp)+' XP no total'+(eng.streak ? ' · sequência de '+eng.streak+(eng.streak === 1 ? ' dia' : ' dias') : '')+'.</div></li>');
   // 1) próxima patente
   if(ni.isMax){
     rows.push('<li class="marco"><div class="marco-top"><b>Patente máxima</b><span>'+escapeHtml(ni.tierName)+'</span></div><div class="marco-sub">Você chegou ao topo. Agora é manter o ritmo.</div></li>');
