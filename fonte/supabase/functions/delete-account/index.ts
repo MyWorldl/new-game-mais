@@ -1,6 +1,6 @@
 // NG+ · LGPD — exclusão de conta. Apaga, para o usuário que fez a chamada (e só ele): seus documentos (user_docs),
 // suas fotos (bucket fotos-progresso, pasta <uid>/) e, por fim, o próprio usuário de autenticação.
-// Deploy: verify_jwt = true. Versão publicada no projeto gjoxrgnkwmjvcfiywtcs (função "delete-account", v1).
+// Deploy: verify_jwt = true. Versão publicada no projeto gjoxrgnkwmjvcfiywtcs (função "delete-account", v3: também apaga pedidos_acesso do e-mail).
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const BUCKET = 'fotos-progresso'
@@ -34,6 +34,13 @@ Deno.serve(async (req: Request) => {
   const { data: u, error: eu } = await admin.auth.getUser(token)
   if (eu || !u?.user) return json({ error: 'token_invalido' }, 401)
   const uid = u.user.id
+
+  // 0) pedidos de acesso deste e-mail (nome, nascimento, responsável): também saem junto (LGPD)
+  const emailU = (u.user.email || '').toLowerCase()
+  if (emailU) {
+    const { error: ep } = await admin.from('pedidos_acesso').delete().eq('email', emailU)
+    if (ep) return json({ error: 'falha_remover_pedidos', detalhe: ep.message }, 500)
+  }
 
   // 1) fotos: lista a pasta do usuário e remove em lotes
   let fotos = 0
