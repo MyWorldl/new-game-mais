@@ -9324,8 +9324,15 @@ function restTimerCellHtml(idx, exNome){
   if(t){
     const mm = String(Math.floor(t.remaining/60)).padStart(2,"0");
     const ss = String(t.remaining%60).padStart(2,"0");
+    const tot = t.total || t.remaining || 1;
+    const frac = Math.max(0, Math.min(1, t.remaining/tot));
+    const totTxt = Math.floor(tot/60)+" min"+(tot%60 ? " "+(tot%60)+" s" : "");
     return '<div class="quest-rest-row running">'+
-      '<span class="quest-rest-display">'+ic('timer')+' '+mm+':'+ss+'</span>'+
+      '<span class="rest-ring'+(t.remaining <= 5 ? ' fim' : '')+'" role="img" aria-label="Descanso: faltam '+mm+':'+ss+' de '+totTxt+'">'+
+        '<svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><circle class="rr-trilho" cx="22" cy="22" r="18" pathLength="100"/><circle class="rr-arco" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100*(1-frac)).toFixed(1)+'" transform="rotate(-90 22 22)"/></svg>'+
+        '<span class="rr-ic">'+ic('timer')+'</span>'+
+      '</span>'+
+      '<span class="quest-rest-display">'+mm+':'+ss+'</span>'+
       '<button class="btn small ghost quest-rest-cancel" type="button" data-restcancel="'+idx+'">Cancelar</button>'+
     '</div>'+restAutoHtml();
   }
@@ -9342,7 +9349,7 @@ function restTimerCellHtml(idx, exNome){
 function startRestTimer(idx, seconds, onTick){
   cancelRestTimer(idx);
   const tick = onTick || semFocoEmCampo(renderWeekTrailDetail);   // NG+: não redesenha enquanto a pessoa digita as repetições
-  restTimers[idx] = {remaining: seconds, intervalId: null};
+  restTimers[idx] = {remaining: seconds, total: seconds, intervalId: null};
   restTimers[idx].intervalId = setInterval(()=>{
     const t = restTimers[idx];
     if(!t) return;

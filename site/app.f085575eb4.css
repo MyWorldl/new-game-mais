@@ -3647,3 +3647,19 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .hg-anim .hg-c:nth-child(5){ animation-delay:120ms; } .hg-anim .hg-c:nth-child(6){ animation-delay:150ms; } .hg-anim .hg-c:nth-child(7){ animation-delay:180ms; }
 .hg-anim .hg-c:nth-child(8){ animation-delay:210ms; } .hg-anim .hg-c:nth-child(9){ animation-delay:240ms; } .hg-anim .hg-c:nth-child(10){ animation-delay:270ms; }
 .hg-anim .hg-c:nth-child(11){ animation-delay:300ms; } .hg-anim .hg-c:nth-child(12){ animation-delay:330ms; }
+
+
+/* ===== VISUAL V3 · Fase 5 — timer de descanso em anel ===== */
+.rest-ring{position:relative; inline-size:44px; block-size:44px; flex:none; display:inline-grid; place-items:center; color:var(--accent-fg,var(--accent));}
+.rest-ring svg:not(.ic){position:absolute; inset:0; inline-size:100%; block-size:100%; overflow:visible;}
+.rest-ring .rr-trilho{fill:none; stroke:var(--line-strong,var(--line)); stroke-width:4;}
+.rest-ring .rr-arco{fill:none; stroke:currentColor; stroke-width:4; stroke-linecap:round;}
+:root[data-game="on"] .rest-ring .rr-arco{filter:drop-shadow(0 0 3px color-mix(in srgb,currentColor 55%,transparent));}
+.rest-ring .rr-ic{position:relative; display:grid; place-items:center;}
+.rest-ring .rr-ic .ic{inline-size:16px; block-size:16px;}
+.quest-rest-row.running{align-items:center; gap:var(--sp-3);}
+.quest-rest-row.running .quest-rest-display{font-size:var(--fs-lg,1.125rem); letter-spacing:.02em; font-variant-numeric:tabular-nums;}
+.rest-ring.fim{animation:rest-pulso var(--dur-slow) var(--ease-out) both;}
+@keyframes rest-pulso{0%{transform:scale(1);}40%{transform:scale(1.1);}100%{transform:scale(1);}}
+@media (prefers-reduced-motion:reduce){ .rest-ring.fim{animation:none;} }
+@media (max-width:767px){ .quest-rest-row.running .quest-rest-cancel{min-block-size:44px; padding-inline:var(--sp-4,16px);} }

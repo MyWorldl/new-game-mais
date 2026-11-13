@@ -67,3 +67,19 @@ Ver o resumo da Fase 0 no chat (lista de 10 componentes, ordem de fases e pergun
 
 **Verificação:** `fonte/testes/habitos-v3.js` (33 checagens: estrutura mantida, % com aria-label, semanas seguidas, glow, animação só 1ª vez, sem overflow em 320/390/1280, axe AA em Lima, Violeta, Ouro, roxo claro e azul escuro). Antes/depois: `antes-depois/depois-f4-habitos.jpg` (Lima, Violeta, Ouro no celular + desktop).
 
+## Fase 5 · Treino (timer de descanso em anel)
+
+**Decisão do Gabriel:** "pode seguir" com o plano proposto (anel + transições).
+
+**Achado:** as transições entre telas (View Transitions, `withTransition`/`showTabAnimated`) já existem no app desde a v85 (deslize lateral, topo e barra fixos, desligadas com movimento reduzido ou sem suporte). Nada a refazer; só confirmei que continuam funcionando (regressão completa passou). Registrado aqui para não duplicar trabalho.
+
+**O que mudou (só visual; contagem, sons, vibração e dados do descanso não mudam):**
+- O descanso em andamento ganhou um anel de 44 px que se esvazia (SVG com `pathLength=100`, atributos de apresentação, sem estilo inline, compatível com a CSP). O tempo continua em texto grande ao lado (`mm:ss`), com o ícone do cronômetro no centro do anel.
+- Acessibilidade: o anel é `role="img"` com descrição em texto ("Descanso: faltam 00:54 de 1 min 30 s"); o fim do descanso continua anunciado pelo aviso já existente. O estado nunca depende só da cor.
+- Nos 5 últimos segundos o anel dá um pequeno pulso (transform, `--dur-slow`); com movimento reduzido não há pulso.
+- `restTimers[idx]` passou a guardar `total` (duração inicial) para calcular a fração; é a única mudança de lógica e só serve ao desenho.
+- Botão "Cancelar" com alvo ≥ 44 px no celular (antes 36 px).
+- O brilho do arco só aparece no modo jogo (`data-game="on"`).
+
+**Verificação:** `fonte/testes/treino-anel.js` (32 checagens: 320/390/1280 px, tamanho do anel, rótulo, esvaziamento, cancelar, pulso nos 5 s finais e fim do descanso com relógio simulado, movimento reduzido, axe em Lima, Violeta, Ouro, roxo e azul pastel). Antes/depois: `antes-depois/depois-f5-timer-anel.jpg` (Lima, Violeta e Ouro em 390 px). O "antes" é o relógio em texto com ícone, visível em `antes-m-treino.jpg`.
+
