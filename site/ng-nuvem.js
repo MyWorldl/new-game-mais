@@ -43,7 +43,7 @@
   function msgErro(e, contexto){
     var m = String((e && (e.message || e.error_description)) || e || "").toLowerCase(), st = e && (e.status || e.code);
     if (/failed to fetch|network|load failed|fetch/.test(m) || navigator.onLine === false) return "Sem conexão com a internet. Confira a rede e tente de novo.";
-    if (/signups? not allowed|not allowed for otp|user not found/.test(m)) return "Este e-mail ainda não foi liberado no NG+. Peça o convite a quem administra o app.";
+    if (/signups? not allowed|not allowed for otp|user not found/.test(m)) return "Este e-mail ainda não foi liberado no NG+. Toque em \u201cPedir acesso\u201d logo abaixo para solicitar.";
     if (/not authorized|email address not/.test(m)) return "O envio de e-mails ainda não está liberado para este endereço. Fale com quem administra o app.";
     if (/captcha/.test(m)) return "A verificação de segurança não passou. Aguarde o selo \u201cConcluído\u201d aparecer e tente de novo. Se não carregar, desative bloqueadores de anúncio para este site ou troque de rede.";
     if (st === 429 || /rate limit|too many|seconds|security purposes/.test(m)) return "Muitos pedidos seguidos. Espere cerca de um minuto e tente de novo.";
@@ -146,7 +146,25 @@
               '<button class="ng-btn ghost" type="button" id="ng-login-reenv" hidden>Reenviar e-mail</button>' +
               '<button class="ng-btn ghost" type="button" id="ng-login-outro" hidden>Usar outro e-mail</button>' +
             '</form>' +
+            '<form id="ng-pedir-f" novalidate hidden>' +
+              '<div><label for="ng-ped-n">Seu nome</label><input id="ng-ped-n" type="text" autocomplete="name" maxlength="80" required></div>' +
+              '<div><label for="ng-ped-e">E-mail</label><input id="ng-ped-e" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required></div>' +
+              '<div><label for="ng-ped-d">Data de nascimento</label><input id="ng-ped-d" type="date" autocomplete="bday" min="1900-01-01" required></div>' +
+              '<div id="ng-ped-resp" hidden>' +
+                '<p class="ng-peq">Você tem menos de 18 anos. Precisamos do e-mail de um responsável.</p>' +
+                '<div><label for="ng-ped-r">E-mail do responsável</label><input id="ng-ped-r" type="email" inputmode="email" autocapitalize="none" spellcheck="false"></div>' +
+                '<label class="ng-chk"><input type="checkbox" id="ng-ped-ar"><span>Meu responsável sabe e concorda que eu use o NG+.</span></label>' +
+              '</div>' +
+              '<div class="ng-isca" aria-hidden="true"><label for="ng-ped-site">Deixe em branco</label><input id="ng-ped-site" type="text" tabindex="-1" autocomplete="off"></div>' +
+              '<div id="ng-ped-ts"></div>' +
+              '<label class="ng-chk"><input type="checkbox" id="ng-ped-a"><span>Li e concordo com o uso dos meus dados descrito na política de privacidade.</span></label>' +
+              '<button type="button" class="ng-link" id="ng-ped-pol">Ler a política de privacidade</button>' +
+              '<button class="ng-btn" type="submit" id="ng-ped-ok">Pedir acesso</button>' +
+              '<button class="ng-btn ghost" type="button" id="ng-ped-voltar">Voltar para entrar</button>' +
+            '</form>' +
+            '<div id="ng-ped-fim" hidden><button class="ng-btn" type="button" id="ng-ped-fim-voltar">Voltar para entrar</button></div>' +
             '<p class="ng-login-m" id="ng-login-m" role="status" aria-live="polite"></p>' +
+            '<p class="ng-peq ng-pedir-aviso" id="ng-pedir-aviso">Ainda não tem acesso? <button type="button" class="ng-link" id="ng-login-pedir">Pedir acesso</button></p>' +
             '<p class="ng-peq" style="font-size:13px">Ao entrar, você concorda com o uso dos seus dados descrito na <button type="button" class="ng-link" id="ng-login-pol">política de privacidade</button>.</p>' +
           '</div>';
         document.body.appendChild(el);
@@ -185,6 +203,111 @@
           if (cooldown <= 0) return;
           tCool = setInterval(function(){ cooldown--; reenv.textContent = cooldown > 0 ? "Reenviar e-mail (" + cooldown + " s)" : "Reenviar e-mail"; reenv.disabled = cooldown > 0; if (cooldown <= 0) clearInterval(tCool); }, 1000);
         }
+        /* ---- Pedir acesso: quem ainda não foi liberado preenche o formulário e o Gabriel aprova em Configurações ---- */
+        var fPed = $("ng-pedir-f"), h1 = $("ng-login-t"), pedirBtn = $("ng-login-pedir"), pedirAviso = $("ng-pedir-aviso"), fim = $("ng-ped-fim");
+        var pedN = $("ng-ped-n"), pedE = $("ng-ped-e"), pedD = $("ng-ped-d"), pedR = $("ng-ped-r"), pedResp = $("ng-ped-resp"), pedA = $("ng-ped-a"), pedAR = $("ng-ped-ar"), pedOk = $("ng-ped-ok");
+        var pTxtEntrar = null, pedTsId = null, pedTsToken = null, pedTsFalhou = false, pedTsToque = false, pedEnviando = false;
+        var P_PEDIR = "Preencha os dados abaixo. A pessoa que administra o NG+ recebe o pedido e libera o seu acesso.";
+        function hoje(){ var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+        pedD.max = hoje();
+        function idadeDeData(v){
+          var mm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); if (!mm) return null;
+          var a = +mm[1], me = +mm[2], di = +mm[3], t = new Date();
+          var dt = new Date(a, me - 1, di); if (dt.getFullYear() !== a || dt.getMonth() !== me - 1 || dt.getDate() !== di) return null;
+          var idade = t.getFullYear() - a; if (t.getMonth() + 1 < me || (t.getMonth() + 1 === me && t.getDate() < di)) idade--;
+          return idade < 0 ? null : idade;
+        }
+        function vista(k){
+          var ped = k === "pedir", ent = k === "entrar", f = k === "fim";
+          if (ped && pTxtEntrar === null) pTxtEntrar = p.textContent;
+          $("ng-login-f").hidden = !ent; fPed.hidden = !ped; fim.hidden = !f;
+          pedirAviso.hidden = !ent || !!enviadoPara;
+          h1.textContent = ped ? "Pedir acesso ao NG+" : f ? "Pedido enviado" : "Entrar no NG+";
+          if (ent && pTxtEntrar !== null) { p.textContent = pTxtEntrar; pTxtEntrar = null; }
+          if (ped) p.textContent = P_PEDIR;
+          msg("");
+          if (ped) { if (!pedN.value && inE.value && !pedE.value) pedE.value = inE.value; carregaTsPedido(); pedN.focus(); }
+          if (f) $("ng-ped-fim-voltar").focus();
+          if (ent && !enviadoPara) inE.focus();
+        }
+        function carregaTsPedido(){
+          if (pedTsId !== null || pedTsFalhou) return;
+          carregaTurnstile().then(function(T){
+            if (!T) { pedTsFalhou = true; return; }
+            try {
+              pedTsId = T.render("#ng-ped-ts", {
+                sitekey: TS_KEY, theme: "auto", size: "flexible", language: "pt-br",
+                "before-interactive-callback": function(){ pedTsToque = true; msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
+                callback: function(t){ pedTsToken = t; pedTsToque = false; if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
+                "expired-callback": function(){ pedTsToken = null; try { T.reset(pedTsId); } catch(e){} },
+                "error-callback": function(){ pedTsToken = null; pedTsFalhou = true; return true; }
+              });
+            } catch(e){ pedTsFalhou = true; }
+          });
+        }
+        function pedTsNovo(){ pedTsToken = null; pedTsToque = false; try { if (window.turnstile && pedTsId !== null) { pedTsFalhou = false; window.turnstile.reset(pedTsId); } } catch(e){} }
+        function pedAtualizaMenor(){
+          var id = idadeDeData(pedD.value); var menor = id !== null && id < 18;
+          pedResp.hidden = !menor;
+          if (id !== null && id < 13) msg("O NG+ é para quem tem 13 anos ou mais.", true); else if (m.textContent.indexOf("13 anos") >= 0) msg("");
+        }
+        pedD.addEventListener("input", pedAtualizaMenor); pedD.addEventListener("change", pedAtualizaMenor);
+        pedirBtn.addEventListener("click", function(){ vista("pedir"); });
+        $("ng-ped-voltar").addEventListener("click", function(){ vista("entrar"); });
+        $("ng-ped-fim-voltar").addEventListener("click", function(){ vista("entrar"); });
+        $("ng-ped-pol").addEventListener("click", abrirPolitica);
+        var ERROS_PED = {
+          idade_minima: "O NG+ é para quem tem 13 anos ou mais.",
+          aceite_obrigatorio: "Marque que leu e concorda com a política de privacidade.",
+          responsavel_obrigatorio: "Digite o e-mail de um responsável (diferente do seu).",
+          aceite_responsavel_obrigatorio: "Marque que o responsável sabe e concorda.",
+          muitos_pedidos: "Há muitos pedidos agora. Tente de novo mais tarde.",
+          captcha: "A verificação de segurança não passou. Aguarde o selo \u201cConcluído\u201d e tente de novo.",
+          captcha_indisponivel: "Não consegui conferir a verificação de segurança agora. Tente de novo em instantes.",
+          dados_invalidos: "Confira os dados preenchidos e tente de novo."
+        };
+        async function pedirAcesso(){
+          if (pedEnviando) return;
+          var nome = pedN.value.replace(/\s+/g, " ").trim(), e = pedE.value.trim().toLowerCase(), nasc = pedD.value, id = idadeDeData(nasc);
+          var r = pedR.value.trim().toLowerCase(), menor = id !== null && id < 18;
+          if (nome.length < 2) { msg("Digite o seu nome.", true); pedN.focus(); return; }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { msg("Digite um e-mail válido.", true); pedE.focus(); return; }
+          if (id === null) { msg("Informe a sua data de nascimento.", true); pedD.focus(); return; }
+          if (id < 13) { msg("O NG+ é para quem tem 13 anos ou mais.", true); pedD.focus(); return; }
+          if (menor) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r) || r === e) { msg("Digite o e-mail de um responsável (diferente do seu).", true); pedR.focus(); return; }
+            if (!pedAR.checked) { msg("Marque que o responsável sabe e concorda.", true); pedAR.focus(); return; }
+          }
+          if (!pedA.checked) { msg("Marque que leu e concorda com a política de privacidade.", true); pedA.focus(); return; }
+          if (navigator.onLine === false) { msg("Sem internet. Conecte-se para pedir acesso.", true); return; }
+          if (!pedTsToken && !pedTsFalhou && pedTsToque) { msg(AVISO_CAIXA, true); return; }
+          pedEnviando = true; pedOk.disabled = true;
+          if (!pedTsToken && !pedTsFalhou) {
+            msg("Conferindo a verificação de segurança…");
+            for (var k = 0; k < 40 && !pedTsToken && !pedTsFalhou; k++) await sleep(250);
+            if (!pedTsToken && !pedTsFalhou) { msg(pedTsToque ? AVISO_CAIXA : "A verificação de segurança ainda não terminou. Aguarde um instante e toque de novo.", true); pedEnviando = false; pedOk.disabled = false; return; }
+          }
+          msg("Enviando…");
+          try {
+            var corpo = {nome: nome, email: e, nascimento: nasc, aceite: true, site: $("ng-ped-site").value};
+            if (menor) { corpo.email_responsavel = r; corpo.aceite_responsavel = true; }
+            if (pedTsToken) corpo.captcha = pedTsToken;
+            var resp = await fetch(API + "/functions/v1/pedir-acesso", {method: "POST", headers: {"Content-Type": "application/json", "apikey": KEY}, body: JSON.stringify(corpo)});
+            var j = null; try { j = await resp.json(); } catch(x){}
+            pedTsNovo();
+            if (!resp.ok || !j || !j.ok) { msg((j && ERROS_PED[j.error]) || (resp.status === 429 ? ERROS_PED.muitos_pedidos : "Não consegui enviar o pedido agora. Tente de novo em instantes."), true); }
+            else if (j.estado === "ja_tem_conta" || j.estado === "aprovado_auto") {
+              inE.value = e; vista("entrar");
+              msg(j.estado === "ja_tem_conta" ? "Este e-mail já tem acesso. Toque em \u201cEnviar link e código\u201d para entrar." : "Seu acesso foi liberado. Toque em \u201cEnviar link e código\u201d para entrar.");
+            } else {
+              vista("fim"); p.textContent = "Recebemos o seu pedido para " + e + ". Quando for aprovado, volte aqui e entre com este e-mail (você também pode receber um e-mail de convite). Se demorar, fale com quem administra o app.";
+              [pedN, pedE, pedD, pedR].forEach(function(x){ x.value = ""; }); pedA.checked = false; pedAR.checked = false; pedResp.hidden = true;
+            }
+          } catch(err){ pedTsNovo(); msg(msgErro(err, "email"), true); }
+          pedEnviando = false; pedOk.disabled = false;
+        }
+        fPed.addEventListener("submit", function(ev){ ev.preventDefault(); pedirAcesso(); });
+
         function finaliza(s){
           if (concluido) return; concluido = true; clearInterval(tCool);
           try { el.remove(); } catch(e){} travaApp(false);
@@ -208,7 +331,7 @@
             tsNovo();
             if (r.error) throw r.error;
             enviadoPara = e; cooldown = 30; ticCool();
-            inE.readOnly = true; box.hidden = false; reenv.hidden = false; outro.hidden = false; ok.textContent = "Entrar com o código";
+            inE.readOnly = true; box.hidden = false; reenv.hidden = false; outro.hidden = false; ok.textContent = "Entrar com o código"; pedirAviso.hidden = true;
             p.textContent = "Enviamos um e-mail para " + e + ". Toque no link que veio nele ou digite aqui o código de números.";
             msg("E-mail enviado. Confira também a caixa de spam."); inC.focus();
           } catch(err){ tsNovo(); msg(msgErro(err, "email"), true); }
@@ -230,7 +353,7 @@
         reenv.addEventListener("click", function(){ if (cooldown <= 0) enviar(); });
         outro.addEventListener("click", function(){
           enviadoPara = null; inE.readOnly = false; inE.value = ""; inC.value = ""; box.hidden = true; reenv.hidden = true; outro.hidden = true;
-          ok.textContent = "Enviar link e código"; clearInterval(tCool); msg(""); p.textContent = "Digite o e-mail liberado para você. Vamos enviar um link e um código de acesso — não precisa de senha."; inE.focus();
+          ok.textContent = "Enviar link e código"; clearInterval(tCool); msg(""); p.textContent = "Digite o e-mail liberado para você. Vamos enviar um link e um código de acesso — não precisa de senha."; pedirAviso.hidden = false; inE.focus();
         });
         // login pelo link do e-mail (mesmo navegador) ou por outra aba
         client.auth.onAuthStateChange(function(ev, s){ if (s && (ev === "SIGNED_IN" || ev === "INITIAL_SESSION")) finaliza(s); });
@@ -472,6 +595,7 @@
         '<li><b>Se você ativar os lembretes:</b> o endereço de notificação do seu navegador (um código técnico), o horário que escolheu e o seu fuso horário.</li>' +
         '<li><b>Se você ativar o resumo por IA:</b> um resumo dos seus números de treino, enviado só quando você pedir (veja a seção própria abaixo).</li></ul>' +
       '<p>Medidas, peso e fotos do corpo são dados pessoais sensíveis (dados de saúde). Por isso, só os tratamos com o seu consentimento, que você dá ao entrar e usar o app.</p>' +
+      '<h3>Pedido de acesso</h3><p>Se você pede acesso pela tela de entrada, guardamos o seu nome, e-mail e data de nascimento (e, se você tem menos de 18 anos, o e-mail do responsável) só para quem administra o app decidir o pedido. Pedidos já decididos são apagados em até 30 dias e pedidos sem resposta em até 90 dias. Se você excluir a conta, o pedido dela também é apagado.</p>' +
       '<h3>Para que usamos</h3><p>Só para o app funcionar: guardar seu histórico, sincronizar entre os seus aparelhos e, se você ativar, avisar a hora do treino. Não vendemos dados, não mostramos anúncios, não fazemos perfis comerciais e não enviamos seus dados para ferramentas de IA, a menos que você mesmo ative, de forma opcional, o resumo do treinador por IA (seção abaixo).</p>' +
       '<h3>Onde ficam guardados</h3><ul>' +
         '<li>No seu aparelho (para o app funcionar sem internet).</li>' +
@@ -486,7 +610,7 @@
         '<li><b>Limites:</b> só para maiores de 18 anos (verificado no servidor), no máximo 5 resumos por dia. O texto é gerado por IA, pode errar e não substitui profissional de saúde.</li>' +
         '<li><b>Base legal e como retirar:</b> seu consentimento (LGPD, art. 7º, I). Para retirar, use <b>Treino → Resumo do treinador → Desativar IA</b> ou exclua a conta. O registro do consentimento (versão e data) fica na sua conta e é apagado com ela.</li></ul>' +
       '<h3>Por quanto tempo</h3><p>Enquanto sua conta existir. Se você excluir a conta, os dados na nuvem são apagados na hora. Os lembretes são apagados quando você os desliga, sai da conta ou exclui a conta.</p>' +
-      '<h3>Menores de 18 anos</h3><p>Se você tem menos de 18 anos, use o app com o conhecimento e o consentimento de um responsável. O app não oferece metas agressivas de dieta para menores, e o resumo por IA não é oferecido a menores de 18 anos.</p>' +
+      '<h3>Menores de 18 anos</h3><p>Se você tem menos de 18 anos, use o app com o conhecimento e o consentimento de um responsável: no pedido de acesso pedimos o e-mail dele e a sua confirmação de que ele sabe e concorda. Essa confirmação é uma declaração, não uma verificação de idade. O app não oferece metas agressivas de dieta para menores, e o resumo por IA não é oferecido a menores de 18 anos.</p>' +
       '<h3>Seus direitos (art. 18 da LGPD)</h3><ul>' +
         '<li><b>Acessar e levar seus dados:</b> Config → Seus dados → Exportar dados (.json).</li>' +
         '<li><b>Corrigir:</b> edite os registros direto no app.</li>' +
@@ -635,6 +759,66 @@
     var v = String(lerReloginMin());
     info.textContent = (TXT_REL[v] || TXT_REL["0"]) + (v !== "0" ? " Sem internet não dá para entrar de novo (o código vem por e-mail). Vale só neste aparelho." : "");
   }
+  /* ---------------- Pedidos de acesso (cartão só para quem administra o app) ----------------
+     Analogia: a portaria. Quem chega pela tela "Pedir acesso" fica na lista de espera; aqui o administrador libera ou recusa
+     com um toque, sem abrir o painel do Supabase. A função gerir-acesso confere no servidor se quem chama é administrador:
+     para os outros ela responde 403 e o cartão nem aparece. */
+  var admBusy = false;
+  async function admChama(acao, id){
+    var ss = await client.auth.getSession();
+    var tk = ss && ss.data && ss.data.session && ss.data.session.access_token;
+    if (!tk) throw new Error("sem_sessao");
+    var r = await fetch(API + "/functions/v1/gerir-acesso", {method: "POST", headers: {"Content-Type": "application/json", "apikey": KEY, "Authorization": "Bearer " + tk}, body: JSON.stringify({acao: acao, id: id})});
+    var j = null; try { j = await r.json(); } catch(e){}
+    return {status: r.status, j: j};
+  }
+  function admMsg(t){ var el = $("cfg-admin-msg"); if (el) el.textContent = t || ""; }
+  function admData(iso){ try { return new Date(iso).toLocaleDateString("pt-BR", {day: "2-digit", month: "2-digit"}); } catch(e){ return ""; } }
+  function admPinta(j){
+    var box = $("cfg-admin-lista"), cnt = $("cfg-admin-cnt"); if (!box) return;
+    var pend = (j && j.pendentes) || [];
+    if (cnt) cnt.textContent = pend.length ? (pend.length + (pend.length === 1 ? " pedido esperando" : " pedidos esperando")) : "nenhum pedido esperando";
+    if (!pend.length) { box.innerHTML = '<p class="hint">Nenhum pedido na lista de espera.</p>'; return; }
+    box.innerHTML = pend.map(function(p){
+      return '<div class="ng-adm-item" data-id="' + esc(p.id) + '">' +
+        '<div><div class="ng-adm-nome">' + esc(p.nome) + (p.menor ? ' <span class="chip neutral">menor de 18</span>' : '') + '</div>' +
+        '<div class="ng-adm-sub">' + esc(p.email) + ' · ' + esc(p.idade) + ' anos · pedido em ' + esc(admData(p.criado_em)) + '</div>' +
+        (p.menor ? '<div class="ng-adm-sub">Responsável: ' + esc(p.email_responsavel || "") + '</div>' : '') + '</div>' +
+        '<div class="ng-adm-act"><button type="button" class="btn" data-adm="aprovar" aria-label="Aprovar ' + esc(p.nome) + '">Aprovar</button>' +
+        '<button type="button" class="btn ghost" data-adm="recusar" aria-label="Recusar ' + esc(p.nome) + '">Recusar</button></div></div>';
+    }).join("");
+  }
+  async function admAtualiza(silencioso){
+    var card = $("cfg-admin"); if (!card || admBusy) return;
+    if (navigator.onLine === false) { if (!silencioso) admMsg("Sem internet. Conecte-se para ver os pedidos."); return; }
+    try {
+      var r = await admChama("listar");
+      if (r.status === 403 || r.status === 401) { card.hidden = true; return; }   // não é administrador: o cartão não aparece
+      if (!r.j || !r.j.ok) { if (!silencioso) admMsg("Não consegui carregar os pedidos agora."); return; }
+      card.hidden = false; admPinta(r.j); if (!silencioso) admMsg("");
+    } catch(e){ if (!silencioso) admMsg("Não consegui carregar os pedidos agora."); }
+  }
+  function ligaAdmin(){
+    var card = $("cfg-admin"); if (!card || card.getAttribute("data-ligado")) return;
+    card.setAttribute("data-ligado", "1");
+    var at = $("cfg-admin-atualiza"); if (at) at.addEventListener("click", function(){ admAtualiza(false); });
+    card.addEventListener("click", async function(ev){
+      var b = ev.target.closest("[data-adm]"); if (!b || admBusy) return;
+      var item = b.closest("[data-id]"), id = item && item.getAttribute("data-id"), acao = b.getAttribute("data-adm"); if (!id) return;
+      admBusy = true; Array.prototype.forEach.call(card.querySelectorAll("[data-adm]"), function(x){ x.disabled = true; });
+      admMsg(acao === "aprovar" ? "Aprovando…" : "Recusando…");
+      try {
+        var r = await admChama(acao, id);
+        if (r.j && r.j.ok) {
+          admMsg(acao === "recusar" ? "Pedido recusado." : r.j.ja_existia ? "Aprovado. Essa pessoa já tinha conta e pode entrar." : r.j.email_enviado ? "Aprovado. Enviei o convite por e-mail." : "Aprovado. A conta foi criada, mas o e-mail de convite não saiu: avise a pessoa para entrar com o e-mail dela.");
+        } else admMsg(r.status === 404 ? "Esse pedido já foi decidido." : "Não consegui concluir agora. Tente de novo.");
+      } catch(e){ admMsg("Não consegui concluir agora. Confira a internet e tente de novo."); }
+      admBusy = false; await admAtualiza(true);
+    });
+    var tabc = $("tab-config"); if (tabc) tabc.addEventListener("click", function(){ admAtualiza(true); });
+    admAtualiza(true);
+  }
+
   function ligaConfig(){
     var card = $("cfg-conta"); if (!card) return;
     card.hidden = false; pintaConta();
@@ -649,7 +833,7 @@
     var pol = $("cfg-conta-politica"); if (pol) pol.addEventListener("click", abrirPolitica);
     var exc = $("cfg-conta-excluir"); if (exc) exc.addEventListener("click", excluirConta);
     var rst = $("cfg-conta-resetar"); if (rst) rst.addEventListener("click", resetarDados);
-    ligaLembretes(); ligaTreinador();
+    ligaLembretes(); ligaTreinador(); ligaAdmin();
   }
 
   /* ---------------- Lembretes de treino (Web Push) ----------------
