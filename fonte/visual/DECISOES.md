@@ -109,3 +109,17 @@ Ver o resumo da Fase 0 no chat (lista de 10 componentes, ordem de fases e pergun
 
 **Verificação:** `fonte/testes/perfil-v3.js` (51 checagens: moldura com descrição e nível igual ao do escudo, anel de XP igual à barra do card, ornamentos por patente 1–10, movimento reduzido, caminho numerado, vitrine sem perder conquistas e com detalhe funcionando, usuário novo (vitrine vazia), sem cadastro, 320/390/1280 px e axe nas 5 paletas). Antes/depois: `antes-depois/depois-f8-perfil.jpg` e `depois-f8-molduras.jpg` (as 10 molduras lado a lado); antes: `antes-m-perfil.jpg`.
 
+
+
+## Fase 6 — Dieta
+
+**Escopo:** só a camada visual da aba Dieta. O contrato `ctx` do cardápio, os motores de troca (`engine.js`), as contas (TMB/TDEE/macros) e os dados ficam intocados.
+
+- **Anel "Sua meta diária"** (novo cartão `#dieta-anel`, antes de "Objetivo calórico"): donut de 3 arcos (proteína, carboidrato, gordura) com a meta em kcal no centro. Os percentuais são a fatia de calorias de cada macro, calculada a partir dos mesmos números que o app já exibe (não há conta nova). Legenda sempre em texto (nome, gramas e % das calorias), então a informação nunca depende só da cor. Sem perfil/peso o cartão fica oculto e vazio (nada de números inventados).
+- **Cores dos macros** reutilizam `--s-aqua`, `--s-yellow` e `--s-magenta` (as mesmas das outras abas), com contraste validado por axe nas 5 paletas.
+- **Refeições como cartões:** ícone decorativo por refeição (`aria-hidden`; café, almoço, lanche, jantar, ceia) e a "fatia do dia" — barra mais o texto "N% das calorias do dia".
+- **Decisão sobre "estado" da refeição:** interpretei como fatia do dia (informação que o app já calcula). O app não registra refeições consumidas; criar um check de "comi" seria funcionalidade nova, fora do escopo visual. Fica como sugestão para uma fase futura.
+- **Troca de dia:** as refeições do novo dia entram com fade + deslocamento de 8 px escalonado (`cdp-entra`, só `transform`/`opacity`). Classe `cdp-troca` removida após 700 ms; desligada com `prefers-reduced-motion`.
+- **Animação do anel** só na primeira renderização (flag JS + classe removida por timeout), para não repetir ao voltar à aba.
+- **Teste novo:** `fonte/testes/dieta-v3.js` (41 verificações: arcos somam 100%, legenda, ícones, fatias somam ≈100%, troca de dia, sem overflow em 320/390/1280, movimento reduzido, estado vazio, axe em 5 paletas, sem erro de console). Incluído em `rodar-todos.sh`.
+- Capturas: `antes-depois/depois-f6-anel.jpg` e `depois-f6-refeicoes.jpg`.

@@ -1030,3 +1030,42 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .attrs-radar.rd-anim .radar-area{ transform-box:fill-box; transform-origin:center; animation:rd-abre var(--dur-slow) var(--ease-out) both; }
 .attrs-radar.rd-anim .radar-dot{ animation:rd-dot var(--dur-slow) var(--ease-out) .12s both; }
 @media (prefers-reduced-motion:reduce){ .attrs-radar.rd-anim .radar-area, .attrs-radar.rd-anim .radar-dot{ animation:none; } }
+
+/* ===== VISUAL V3 · Fase 6 — Dieta: anel de calorias e macros, refeições com ícone e fatia do dia ===== */
+.dieta-anel.is-vazio{ display:none; }
+.dieta-anel{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-4) var(--sp-5); }
+.da-anel{ position:relative; flex:none; inline-size:136px; block-size:136px; margin-inline:auto; }
+.da-anel svg{ inline-size:100%; block-size:100%; display:block; overflow:visible; }
+.da-trilho{ fill:none; stroke:var(--line-strong); stroke-width:12; }
+.da-arco{ fill:none; stroke-width:12; stroke-linecap:butt; }
+.da-arco.da-p{ stroke:var(--s-aqua); } .da-sw.da-p{ background:var(--s-aqua); }
+.da-arco.da-c{ stroke:var(--s-yellow); } .da-sw.da-c{ background:var(--s-yellow); }
+.da-arco.da-g{ stroke:var(--s-magenta); } .da-sw.da-g{ background:var(--s-magenta); }
+:root[data-game="on"] .da-anel svg{ filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 28%, transparent)); }
+.da-centro{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.da-centro b{ font:700 32px/1 'Barlow Condensed',system-ui,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.01em; }
+.da-centro small{ font-size:var(--fs-xs); color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase; }
+.da-info{ flex:1 1 220px; min-inline-size:0; }
+.da-t{ margin:0 0 var(--sp-3); display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; font:700 var(--fs-md,16px)/1.2 'Barlow Condensed',system-ui,sans-serif; }
+.da-t span{ font:600 var(--fs-xs) 'IBM Plex Mono',ui-monospace,monospace; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
+.da-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.da-lista li{ display:grid; grid-template-columns:14px auto 1fr; align-items:baseline; gap:2px 10px; }
+.da-sw{ inline-size:12px; block-size:12px; border-radius:4px; align-self:center; }
+.da-n{ font-size:var(--fs-sm); color:var(--ink); }
+.da-lista b{ justify-self:end; font:700 var(--fs-md,16px) 'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+.da-pc{ grid-column:2 / -1; font-size:var(--fs-xs); color:var(--ink-soft); }
+@keyframes da-abre{ from{ opacity:0; transform:rotate(-24deg) scale(.92); } to{ opacity:1; transform:none; } }
+.dieta-anel.da-anim .da-anel svg{ animation:da-abre var(--dur-slow) var(--ease-out) both; }
+@media (prefers-reduced-motion:reduce){ .dieta-anel.da-anim .da-anel svg{ animation:none; } }
+
+.cdp-mh h3{ display:flex; align-items:center; gap:8px; }
+.cdp-ic{ flex:none; inline-size:26px; block-size:26px; border-radius:50%; display:grid; place-items:center; background:var(--accent-soft); color:var(--accent-fg,var(--accent)); }
+.cdp-ic svg{ inline-size:15px; block-size:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.cdp-share{ display:flex; align-items:center; gap:10px; padding:8px 0 4px; }
+.cdp-share-bar{ flex:1 1 auto; block-size:6px; border-radius:6px; background:var(--line-strong); overflow:hidden; }
+.cdp-share-bar i{ display:block; block-size:100%; border-radius:6px; background:var(--accent-fg,var(--accent)); }
+.cdp-share-txt{ flex:none; font-size:var(--fs-xs); color:var(--ink-soft); white-space:nowrap; }
+@keyframes cdp-entra{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+.cdp-troca .cdp-meal{ animation:cdp-entra var(--dur-base) var(--ease-out) both; }
+.cdp-troca .cdp-meal:nth-child(2){ animation-delay:40ms; } .cdp-troca .cdp-meal:nth-child(3){ animation-delay:80ms; } .cdp-troca .cdp-meal:nth-child(4){ animation-delay:120ms; } .cdp-troca .cdp-meal:nth-child(5){ animation-delay:160ms; }
+@media (prefers-reduced-motion:reduce){ .cdp-troca .cdp-meal{ animation:none; } }

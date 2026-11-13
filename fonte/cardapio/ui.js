@@ -29,6 +29,15 @@ const CDP_ROT_DESC = {
   fora:"4 refeições; no almoço, dica de como montar o prato por quilo."
 };
 const CDP_OBJ_TXT = {deficit:"Emagrecimento", manutencao:"Manutenção", superavit:"Hipertrofia"};
+/* ícones de cada refeição (só visual; aria-hidden) */
+const CDP_ICO = {
+  cafe:   '<path d="M5 8h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3v2M12 3v2"/>',
+  almoco: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',
+  lanche: '<path d="M12 8c-3-2-7 0-7 5 0 4 3 7 5 7 1 0 1.5-.5 2-.5s1 .5 2 .5c2 0 5-3 5-7 0-5-4-7-7-5z"/><path d="M12 8c0-2 1-4 3-5"/>',
+  jantar: '<path d="M5 3v5a3 3 0 0 0 6 0V3M8 3v18"/><path d="M16 3c-2 2-2.5 5-2.5 8h2.5v10"/>',
+  ceia:   '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'
+};
+const cdpIcone = slot => '<span class="cdp-ic" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">'+(CDP_ICO[slot] || CDP_ICO.almoco)+'</svg></span>';
 const CDP_GRUPOS = [["Proteínas",["prot"]],["Carboidratos e leguminosas",["carb","leg"]],["Frutas e vegetais",["fruit","veg"]],["Gorduras",["fat"]]];
 const CDP_SEM_META = '<div class="empty-note">Complete seu perfil e registre seu peso para ver o cardápio da sua meta.</div>';
 
@@ -87,7 +96,9 @@ export function montaVisao(e, h){
       return '<div class="cdp-it"><span class="cdp-n">'+cdpNome(f)+'</span><span class="cdp-q"><b>'+escapeHtml(cdpQtd(it.id, it.g))+'</b></span></div>';
     }).join("");
     const dica = (ml.slot === "almoco" && dicas[cfg.rotina]) ? '<div class="cdp-tip">'+escapeHtml(dicas[cfg.rotina])+'</div>' : "";
-    return '<section class="cdp-meal"><header class="cdp-mh"><h3>'+escapeHtml(ml.name)+'</h3><span class="cdp-mt">'+num(ml.m.kcal,0)+' kcal · '+num(ml.m.P,0)+' g prot.</span></header>'+rows+dica+'</section>';
+    const pct = cur.tot.kcal ? Math.round(ml.m.kcal/cur.tot.kcal*100) : 0;
+    return '<section class="cdp-meal" data-slot="'+ml.slot+'"><header class="cdp-mh"><h3>'+cdpIcone(ml.slot)+'<span>'+escapeHtml(ml.name)+'</span></h3><span class="cdp-mt">'+num(ml.m.kcal,0)+' kcal · '+num(ml.m.P,0)+' g prot.</span></header>'+
+      '<div class="cdp-share"><div class="cdp-share-bar" aria-hidden="true"><i style="width:'+pct+'%"></i></div><span class="cdp-share-txt">'+pct+'% das calorias do dia</span></div>'+rows+dica+'</section>';
   }).join("");
 
   const compra = CDPE.shopping(semana);
@@ -340,6 +351,8 @@ export function criaCardapio(ctx){
       if(act === "dia"){
         cdpDia = Number(b.dataset.v) || 0;
         if(cdpUltimo) renderCardapio(cdpUltimo.k, cdpUltimo.m);
+        const reg = el.querySelector('[data-r="refeicoes"]');   // entrada suave das refeições do novo dia (CSS; desligada com movimento reduzido)
+        if(reg && reg.classList && typeof reg.classList.remove === "function"){ reg.classList.remove("cdp-troca"); void reg.offsetWidth; reg.classList.add("cdp-troca"); setTimeout(()=> reg.classList.remove("cdp-troca"), 700); }
       } else {
         if(act === "jeito") cfg.jeito = b.dataset.v;
         else if(act === "rotina") cfg.rotina = b.dataset.v;
