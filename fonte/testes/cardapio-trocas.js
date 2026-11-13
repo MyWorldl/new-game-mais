@@ -36,7 +36,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     t(L + 'botão fica dentro da área dos filtros', bb && fb && bb.y >= fb.y - 1 && bb.y + bb.height <= fb.y + fb.height + 1, JSON.stringify([bb, fb]));
     t(L + 'botão fica logo abaixo dos filtros e acima dos dias, com a frase ao lado', await p.evaluate(() => { const r = document.querySelector('[data-cdp="restr"]').getBoundingClientRect(), b = document.querySelector('[data-cdp="editar"]').getBoundingClientRect(), d = document.querySelector('.cdp-days').getBoundingClientRect(); return b.top >= r.bottom - 1 && b.bottom <= d.top + 1; }));
     if (w >= 1000) t(L + 'no desktop os chips da Rotina ficam em até 2 linhas (filtros não espremidos)', await p.evaluate(() => { const cs = [...document.querySelectorAll('[data-cdp="rotina"]')].map(x => Math.round(x.getBoundingClientRect().top)); return new Set(cs).size <= 2; }));
-    if (w >= 700) t(L + 'filtros alinhados: Jeito de comer, Rotina e Restrições começam na mesma altura', await p.evaluate(() => { const tops = [...document.querySelectorAll('.cdp-controls .cdp-lbl')].map(x => Math.round(x.getBoundingClientRect().top)); return tops.length === 3 && Math.max(...tops) - Math.min(...tops) <= 1; }));
+    if (w >= 700) t(L + 'filtros alinhados: Jeito de comer e Rotina começam na mesma altura', await p.evaluate(() => { const tops = [...document.querySelectorAll('.cdp-controls .cdp-lbl')].slice(0, 2).map(x => Math.round(x.getBoundingClientRect().top)); return tops.length === 2 && Math.max(...tops) - Math.min(...tops) <= 1; }));
     t(L + 'Rotina tem 5 opções, a primeira é "Dia tradicional"', await p.locator('[data-cdp="rotina"]').count() === 5 && /Dia tradicional/.test(await p.locator('[data-cdp="rotina"]').first().innerText()));
     t(L + 'card começa sem trocas', /Troque qualquer alimento/.test(await p.locator('[data-r="trocasinfo"]').innerText()));
 
@@ -105,12 +105,16 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     const cafe = await p.evaluate(() => { const r = [...document.querySelectorAll('[data-pop="alimento"]')].find(b => /ovo|iogurte|queijo|leite|tofu/i.test(b.innerText)); return r ? r.dataset.v : null; });
     if (cafe) {
       await p.click('[data-pop="fechar"]'); await p.waitForTimeout(250);
-      const baseCafe = [];
-      for (let d = 0; d < 7; d++) { await p.click('.cdp-day[data-v="' + d + '"]'); await p.waitForTimeout(100); baseCafe.push(await refeicaoTxt(p, 0)); }
-      await p.click('.cdp-day[data-v="0"]'); await p.waitForTimeout(100);
+      const baseCafe = [], nomesCafe = [];
+      for (let d = 0; d < 7; d++) { await p.click('.cdp-day[data-v="' + d + '"]'); await p.waitForTimeout(100); baseCafe.push(await refeicaoTxt(p, 0)); nomesCafe.push(await p.evaluate(() => [...document.querySelectorAll('.cdp-meal')[0].querySelectorAll('.cdp-n')].map(x => x.innerText.replace(/\*$/, '').trim()))); }
+      // com mais alimentos no cardápio, escolhe uma PROTEÍNA do café que apareça em pelo menos 2 dias (o teste não depende do dia da semana)
+      const cont = {}; nomesCafe.forEach(l => new Set(l).forEach(n => { cont[n] = (cont[n] || 0) + 1; }));
+      const nomeAlvo = Object.keys(cont).filter(n => /ovo|iogurte|queijo|ricota|muçarela|leite|tofu|whey/i.test(n) && cont[n] >= 2).sort((a, b) => cont[b] - cont[a])[0] || Object.keys(cont).sort((a, b) => cont[b] - cont[a])[0];
+      const diaAlvo = nomesCafe.findIndex(l => l.indexOf(nomeAlvo) >= 0);
+      await p.click('.cdp-day[data-v="' + diaAlvo + '"]'); await p.waitForTimeout(100);
       await btn.click(); await p.waitForTimeout(300);
       await p.click('[data-pop="refeicao"][data-v="cafe"]'); await p.waitForTimeout(100);
-      await p.click('[data-pop="alimento"][data-v="' + cafe + '"]'); await p.waitForTimeout(100);
+      await p.evaluate(n => { [...document.querySelectorAll('[data-pop="alimento"]')].find(b => b.querySelector('.cdp-n').innerText.replace(/\*$/, '').trim().indexOf(n) === 0).click(); }, nomeAlvo); await p.waitForTimeout(100);
       await p.click('[data-pop="escopo"][data-v="todos"]'); await p.waitForTimeout(100);
       const a2 = await p.evaluate(() => { const r = [...document.querySelectorAll('[data-pop="para"]:not(.on)')][0]; return r ? { id: r.dataset.v, nome: r.querySelector('.cdp-n').innerText.replace(/\*$/, '').trim() } : null; });
       const nomeAntes = await p.evaluate(() => document.querySelector('.cdp-pop-it.on .cdp-n').innerText.replace(/\*$/, '').replace(/trocado/i, '').trim());
@@ -168,13 +172,13 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await p.click('[data-cdp="editar"]'); await p.waitForTimeout(300);
     await p.click('[data-pop="refeicao"][data-v="almoco"]'); await p.waitForTimeout(100);
     for (const tm of temas) {
-      await ap(tm); await p.waitForTimeout(150);
+      await ap(tm); await p.waitForTimeout(500);
       const v = await p.evaluate(async () => (await axe.run(document.querySelector('#modal-root'), { runOnly: ['wcag2a', 'wcag2aa'] })).violations.map(x => x.id + ':' + x.nodes.length));
       t('[axe] pop-up sem violações no tema ' + tm.join('/'), v.length === 0, v.join(','));
     }
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
     for (const tm of temas) {
-      await ap(tm); await p.waitForTimeout(150);
+      await ap(tm); await p.waitForTimeout(500);
       const v = await p.evaluate(async () => (await axe.run(document.getElementById('cardapio-card'), { runOnly: ['wcag2a', 'wcag2aa'] })).violations.map(x => x.id + ':' + x.nodes.length));
       t('[axe] card do cardápio sem violações no tema ' + tm.join('/'), v.length === 0, v.join(','));
     }

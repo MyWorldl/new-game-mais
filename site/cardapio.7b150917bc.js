@@ -2,19 +2,19 @@
 var TVP_CHEAP = false;
 var FOODS = {
   frango: { n: "Frango grelhado", v: [159, 32, 0, 2.5], role: "prot", veg: false, cheap: true, fast: true },
-  patinho: { n: "Patinho grelhado", v: [219, 35.9, 0, 7.3], role: "prot", veg: false, cheap: false, fast: false },
-  acem: { n: "Carne moída (acém)", v: [212, 26.7, 0, 10.9], role: "prot", veg: false, cheap: true, fast: false },
-  sardinha: { n: "Sardinha assada", v: [164, 32.2, 0, 3], role: "prot", veg: false, cheap: true, fast: true },
-  abadejo: { n: "Abadejo grelhado", v: [130, 27.6, 0, 1.3], role: "prot", veg: false, cheap: false, fast: true },
-  pintado: { n: "Pintado grelhado", v: [152, 30.8, 0, 2.3], role: "prot", veg: false, cheap: false, fast: false },
-  tvp: { n: "Soja texturizada hidratada*", v: [117, 18, 6.4, 0.6], role: "prot", veg: true, vegan: true, cheap: TVP_CHEAP, fast: true },
-  leiteS: { n: "Leite de soja", v: [39, 2.4, 4.3, 1.6], role: "prot", veg: true, vegan: true, cheap: false, fast: true, liq: true, unit: [200, "copo", "copos"] },
-  ovo: { n: "Ovo cozido", v: [146, 13.3, 0.6, 9.5], role: "prot", veg: true, cheap: true, fast: true, unit: [50, "ovo", "ovos"] },
+  patinho: { n: "Patinho grelhado", v: [219, 35.9, 0, 7.3], role: "prot", veg: false, cheap: false, fast: false, red: true },
+  acem: { n: "Carne moída (acém)", v: [212, 26.7, 0, 10.9], role: "prot", veg: false, cheap: true, fast: false, red: true },
+  sardinha: { n: "Sardinha assada", v: [164, 32.2, 0, 3], role: "prot", veg: false, cheap: true, fast: true, fish: true },
+  abadejo: { n: "Abadejo grelhado", v: [130, 27.6, 0, 1.3], role: "prot", veg: false, cheap: false, fast: true, fish: true },
+  pintado: { n: "Pintado grelhado", v: [152, 30.8, 0, 2.3], role: "prot", veg: false, cheap: false, fast: false, fish: true },
+  tvp: { n: "Soja texturizada hidratada*", v: [117, 18, 6.4, 0.6], role: "prot", veg: true, vegan: true, cheap: TVP_CHEAP, fast: true, soy: true },
+  leiteS: { n: "Leite de soja", v: [39, 2.4, 4.3, 1.6], role: "prot", veg: true, vegan: true, cheap: false, fast: true, liq: true, unit: [200, "copo", "copos"], soy: true },
+  ovo: { n: "Ovo cozido", v: [146, 13.3, 0.6, 9.5], role: "prot", veg: true, cheap: true, fast: true, unit: [50, "ovo", "ovos"], egg: true },
   queijo: { n: "Queijo minas", v: [264, 17.4, 3.2, 20.2], role: "prot", veg: true, cheap: false, fast: true, lact: true, unit: [25, "fatia", "fatias"] },
   iogurte: { n: "Iogurte natural", v: [51, 4.1, 1.9, 3], role: "prot", veg: true, cheap: true, fast: true, lact: true, unit: [170, "pote", "potes"] },
-  tofu: { n: "Tofu", v: [64, 6.6, 2.1, 4], role: "prot", veg: true, vegan: true, cheap: false, fast: true },
+  tofu: { n: "Tofu", v: [64, 6.6, 2.1, 4], role: "prot", veg: true, vegan: true, cheap: false, fast: true, soy: true },
   whey: { n: "Whey protein*", v: [389, 80, 6, 5], role: "prot", veg: true, cheap: false, fast: true, lact: true, unit: [30, "dose", "doses"] },
-  vegpo: { n: "Proteína vegetal em pó*", v: [389, 80, 6, 5], role: "prot", veg: true, vegan: true, cheap: false, fast: true, unit: [30, "dose", "doses"] },
+  vegpo: { n: "Proteína vegetal em pó*", v: [389, 80, 6, 5], role: "prot", veg: true, vegan: true, cheap: false, fast: true, unit: [30, "dose", "doses"], soy: true },
   feijaoC: { n: "Feijão carioca", v: [76, 4.8, 13.6, 0.5], role: "leg", veg: true, vegan: true, cheap: true, fast: true },
   feijaoP: { n: "Feijão preto", v: [77, 4.5, 14, 0.5], role: "leg", veg: true, vegan: true, cheap: true, fast: true },
   lentilha: { n: "Lentilha", v: [93, 6.3, 16.3, 0.5], role: "leg", veg: true, vegan: true, cheap: true, fast: false },
@@ -33,15 +33,47 @@ var FOODS = {
   brocolis: { n: "Brócolis", v: [25, 2.1, 4.4, 0.5], role: "veg", veg: true, vegan: true, cheap: false, fast: false },
   tomate: { n: "Tomate", v: [18, 1.1, 3.1, 0.2], role: "veg", veg: true, vegan: true, cheap: true, fast: true },
   azeite: { n: "Azeite", v: [884, 0, 0, 100], role: "fat", veg: true, vegan: true, cheap: true, fast: true, unit: [13, "colher de sopa", "colheres de sopa"] },
-  amendoim: { n: "Amendoim", v: [606, 22.5, 18.7, 54], role: "fat", veg: true, vegan: true, cheap: true, fast: true },
-  abacate: { n: "Abacate", v: [96, 1.2, 6, 8.4], role: "fat", veg: true, vegan: true, cheap: false, fast: true }
+  amendoim: { n: "Amendoim", v: [606, 22.5, 18.7, 54], role: "fat", veg: true, vegan: true, cheap: true, fast: true, nut: true },
+  abacate: { n: "Abacate", v: [96, 1.2, 6, 8.4], role: "fat", veg: true, vegan: true, cheap: false, fast: true },
+  // — Ampliação (13/11/2026): valores por 100 g da TACO conferidos em tabelatacoonline.com.br; itens com * = rótulo típico.
+  salmao: { n: "Salmão grelhado", v: [243, 26.1, 0, 14.5], role: "prot", veg: false, cheap: false, fast: true, fish: true },
+  merluza: { n: "Merluza assada", v: [122, 26.6, 0, 0.9], role: "prot", veg: false, cheap: false, fast: true, fish: true },
+  corvina: { n: "Corvina assada", v: [147, 26.8, 0, 3.6], role: "prot", veg: false, cheap: false, fast: false, fish: true },
+  atum: { n: "Atum em conserva (óleo)", v: [166, 26.2, 0, 6], role: "prot", veg: false, cheap: true, fast: true, fish: true },
+  sobrecoxa: { n: "Sobrecoxa de frango assada", v: [233, 29.2, 0, 12], role: "prot", veg: false, cheap: true, fast: false },
+  lombo: { n: "Lombo de porco assado", v: [210, 35.7, 0, 6.4], role: "prot", veg: false, cheap: false, fast: false, pork: true, red: true },
+  ricota: { n: "Ricota", v: [140, 12.6, 3.8, 8.1], role: "prot", veg: true, cheap: false, fast: true, lact: true },
+  mozarela: { n: "Queijo muçarela", v: [330, 22.6, 3, 25.2], role: "prot", veg: true, cheap: false, fast: true, lact: true, unit: [25, "fatia", "fatias"] },
+  iogurteD: { n: "Iogurte natural desnatado", v: [41, 3.8, 5.8, 0.3], role: "prot", veg: true, cheap: true, fast: true, lact: true, unit: [170, "pote", "potes"] },
+  fradinho: { n: "Feijão-fradinho", v: [78, 5.1, 13.5, 0.6], role: "leg", veg: true, vegan: true, cheap: true, fast: true },
+  paoI: { n: "Pão de forma integral", v: [253, 9.4, 49.9, 3.7], role: "carb", veg: true, vegan: true, cheap: true, fast: true, gluten: true, unit: [25, "fatia", "fatias"] },
+  abacaxi: { n: "Abacaxi", v: [48, 0.9, 12.3, 0.1], role: "fruit", veg: true, vegan: true, cheap: true, fast: true },
+  melancia: { n: "Melancia", v: [33, 0.9, 8.1, 0], role: "fruit", veg: true, vegan: true, cheap: true, fast: true },
+  manga: { n: "Manga Palmer", v: [72, 0.4, 19.4, 0.2], role: "fruit", veg: true, vegan: true, cheap: false, fast: true },
+  morango: { n: "Morango", v: [30, 0.9, 6.8, 0.3], role: "fruit", veg: true, vegan: true, cheap: false, fast: true },
+  uva: { n: "Uva Itália", v: [53, 0.7, 13.6, 0.2], role: "fruit", veg: true, vegan: true, cheap: false, fast: true },
+  pera: { n: "Pera Williams", v: [53, 0.6, 14, 0.1], role: "fruit", veg: true, vegan: true, cheap: false, fast: true, unit: [150, "pera", "peras"] },
+  melao: { n: "Melão", v: [29, 0.7, 7.5, 0], role: "fruit", veg: true, vegan: true, cheap: true, fast: true },
+  goiaba: { n: "Goiaba vermelha", v: [54, 1.1, 13, 0.4], role: "fruit", veg: true, vegan: true, cheap: true, fast: true },
+  kiwi: { n: "Kiwi", v: [51, 1.3, 11.5, 0.6], role: "fruit", veg: true, vegan: true, cheap: false, fast: true },
+  tangerina: { n: "Tangerina (ponkan)", v: [38, 0.8, 9.6, 0.1], role: "fruit", veg: true, vegan: true, cheap: true, fast: true },
+  cenoura: { n: "Cenoura cozida", v: [30, 0.8, 6.7, 0.2], role: "veg", veg: true, vegan: true, cheap: true, fast: false },
+  abobrinha: { n: "Abobrinha italiana cozida", v: [15, 1.1, 3, 0.2], role: "veg", veg: true, vegan: true, cheap: true, fast: true },
+  couveflor: { n: "Couve-flor cozida", v: [19, 1.2, 3.9, 0.3], role: "veg", veg: true, vegan: true, cheap: false, fast: false },
+  beterraba: { n: "Beterraba cozida", v: [32, 1.3, 7.2, 0.1], role: "veg", veg: true, vegan: true, cheap: true, fast: false },
+  alface: { n: "Alface crespa", v: [11, 1.3, 1.7, 0.2], role: "veg", veg: true, vegan: true, cheap: true, fast: true },
+  chuchu: { n: "Chuchu cozido", v: [19, 0.4, 4.8, 0], role: "veg", veg: true, vegan: true, cheap: true, fast: false },
+  pepino: { n: "Pepino", v: [10, 0.9, 2, 0], role: "veg", veg: true, vegan: true, cheap: true, fast: true },
+  abobora: { n: "Abóbora cabotiá cozida", v: [48, 1.4, 10.8, 0.7], role: "veg", veg: true, vegan: true, cheap: true, fast: false },
+  castanhaP: { n: "Castanha-do-Brasil", v: [643, 14.5, 15.1, 63.5], role: "fat", veg: true, vegan: true, cheap: false, fast: true, nut: true },
+  castanhaC: { n: "Castanha-de-caju torrada", v: [570, 18.5, 29.1, 46.3], role: "fat", veg: true, vegan: true, cheap: false, fast: true, nut: true }
 };
 var OBJ = {
   cut: { n: "Cutting", k: 0.85, prot: 2.2, fat: 0.25, minor: false },
   bulk: { n: "Bulking limpo", k: 1.1, prot: 1.8, fat: 0.25, minorK: 1.05 },
   maint: { n: "Manutenção/recomposição", k: 1, prot: 2, fat: 0.28 }
 };
-var STYLE = { omni: "Onívoro", veg: "Vegetariano", vegan: "Vegano", lowc: "Low carb moderado" };
+var STYLE = { omni: "Onívoro", pesc: "Pescetariano", veg: "Vegetariano", vegan: "Vegano", lowc: "Low carb moderado" };
 var ROUT = {
   tradicional: { n: "Dia tradicional", meals: ["cafe", "almoco", "lanche", "jantar", "ceia"] },
   // dia a dia brasileiro: arroz e feijão no almoço e no jantar, sem lotes e sem filtro de preço ou pressa
@@ -55,26 +87,59 @@ var SLOT = {
   almoco: { n: "Almoço", share: 0.3, prot: 0.28, comp: ["carb", "leg", "prot", "veg", "fat"] },
   lanche: { n: "Lanche", share: 0.14, prot: 0.17, comp: ["carb", "prot", "fruit", "fat"] },
   jantar: { n: "Jantar", share: 0.24, prot: 0.25, comp: ["carb", "prot", "veg", "fat"] },
+  manha: { n: "Lanche da manhã", share: 0.1, prot: 0.12, comp: ["carb", "prot", "fruit"] },
   ceia: { n: "Ceia", share: 0.1, prot: 0.1, comp: ["prot", "fruit", "fat"] }
 };
+var MEALS_N = {
+  3: ["cafe", "almoco", "jantar"],
+  4: ["cafe", "almoco", "lanche", "jantar"],
+  5: ["cafe", "almoco", "lanche", "jantar", "ceia"],
+  6: ["cafe", "manha", "almoco", "lanche", "jantar", "ceia"]
+};
+var HORARIOS = {
+  3: { cafe: "07:00", almoco: "12:30", jantar: "19:30" },
+  4: { cafe: "07:00", almoco: "12:00", lanche: "16:00", jantar: "19:30" },
+  5: { cafe: "07:00", almoco: "12:00", lanche: "15:30", jantar: "19:00", ceia: "21:30" },
+  6: { cafe: "07:00", manha: "09:30", almoco: "12:30", lanche: "15:30", jantar: "19:00", ceia: "21:30" }
+};
+function nRefeicoes(cfg) {
+  if (cfg.rout === "marmita") return 5;
+  var n = Number(cfg.nref);
+  return n >= 3 && n <= 6 && Math.floor(n) === n ? n : ROUT[cfg.rout].meals.length;
+}
+function mealsOf(cfg) {
+  return cfg.rout === "marmita" ? ROUT.marmita.meals : MEALS_N[nRefeicoes(cfg)];
+}
+function horarioDe(slot, cfg) {
+  var t = HORARIOS[nRefeicoes(cfg)];
+  return t && t[slot] || null;
+}
 var DAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 var TRAIN = [1, 1, 0, 1, 1, 1, 0];
 var PREF = {
-  cafe: ["ovo", "queijo", "iogurte", "leiteS", "tofu", "whey", "vegpo"],
-  almoco: ["frango", "patinho", "abadejo", "acem", "sardinha", "ovo", "tofu", "tvp", "queijo"],
-  jantar: ["sardinha", "frango", "pintado", "patinho", "ovo", "acem", "tofu", "tvp", "queijo"],
-  lanche: ["iogurte", "leiteS", "queijo", "whey", "vegpo", "ovo", "tofu"],
-  ceia: ["iogurte", "leiteS", "whey", "vegpo", "queijo", "ovo", "tofu"]
+  cafe: ["ovo", "queijo", "iogurte", "iogurteD", "ricota", "mozarela", "leiteS", "tofu", "whey", "vegpo"],
+  almoco: ["frango", "patinho", "abadejo", "sobrecoxa", "acem", "merluza", "sardinha", "lombo", "corvina", "atum", "salmao", "ovo", "tofu", "tvp", "queijo", "ricota"],
+  jantar: ["sardinha", "frango", "pintado", "merluza", "patinho", "sobrecoxa", "ovo", "acem", "salmao", "lombo", "corvina", "atum", "tofu", "tvp", "queijo", "ricota"],
+  lanche: ["iogurte", "iogurteD", "leiteS", "queijo", "ricota", "mozarela", "whey", "vegpo", "ovo", "tofu"],
+  ceia: ["iogurte", "iogurteD", "ricota", "leiteS", "whey", "vegpo", "queijo", "ovo", "tofu"]
 };
-var PCAP = { abadejo: 200, pintado: 200, tvp: 250, leiteS: 400, frango: 200, patinho: 200, acem: 180, sardinha: 160, ovo: 150, queijo: 75, iogurte: 340, tofu: 250, whey: 60, vegpo: 60 };
-var CCAP = { arroz: 250, arrozI: 250, batataD: 300, batata: 350, mandioca: 250, cuscuz: 220, aveia: 80, pao: 150 };
+PREF.manha = PREF.lanche;
+var PCAP = { salmao: 200, merluza: 220, corvina: 200, atum: 120, sobrecoxa: 200, lombo: 200, ricota: 120, mozarela: 75, iogurteD: 340, abadejo: 200, pintado: 200, tvp: 250, leiteS: 400, frango: 200, patinho: 200, acem: 180, sardinha: 160, ovo: 150, queijo: 75, iogurte: 340, tofu: 250, whey: 60, vegpo: 60 };
+var CCAP = { paoI: 100, arroz: 250, arrozI: 250, batataD: 300, batata: 350, mandioca: 250, cuscuz: 220, aveia: 80, pao: 150 };
 var POWDER = ["whey", "vegpo"];
 function allowed(id, cfg) {
   var f = FOODS[id];
   if (cfg.style === "vegan" && !f.vegan) return false;
   if (cfg.style === "veg" && !f.veg) return false;
+  if (cfg.style === "pesc" && !(f.veg || f.fish)) return false;
   if (cfg.nolact && f.lact) return false;
   if (cfg.nogluten && f.gluten) return false;
+  if (cfg.noegg && f.egg) return false;
+  if (cfg.nosoy && f.soy) return false;
+  if (cfg.nofish && f.fish) return false;
+  if (cfg.nonut && f.nut) return false;
+  if (cfg.nopork && f.pork) return false;
+  if (cfg.nored && f.red) return false;
   if (cfg.rout === "budget" && !f.cheap) return false;
   if (cfg.rout === "corrido" && !f.fast) return false;
   return true;
@@ -93,14 +158,14 @@ function rolePool(role, cfg, slot) {
   var out = [];
   for (var id in FOODS) if (FOODS[id].role === role && allowed(id, cfg)) out.push(id);
   if (role === "carb") {
-    if (slot === "cafe" || slot === "lanche") out = out.filter(function(id2) {
-      return ["pao", "aveia", "cuscuz", "batataD"].indexOf(id2) >= 0;
+    if (slot === "cafe" || slot === "lanche" || slot === "manha") out = out.filter(function(id2) {
+      return ["pao", "paoI", "aveia", "cuscuz", "batataD"].indexOf(id2) >= 0;
     });
     else if (cfg.rout === "tradicional") out = out.filter(function(id2) {
       return ["arroz", "arrozI", "mandioca", "batata", "batataD"].indexOf(id2) >= 0;
     });
     else out = out.filter(function(id2) {
-      return ["pao", "aveia"].indexOf(id2) < 0;
+      return ["pao", "paoI", "aveia"].indexOf(id2) < 0;
     });
     if (cfg.style === "lowc") out = out.filter(function(id2) {
       return ["batataD", "cuscuz", "aveia"].indexOf(id2) >= 0;
@@ -115,7 +180,10 @@ function rolePool(role, cfg, slot) {
     });
   }
   if (role === "fruit" && cfg.style === "lowc") out = out.filter(function(id2) {
-    return id2 !== "banana";
+    return ["banana", "manga", "uva"].indexOf(id2) < 0;
+  });
+  if (role === "veg" && cfg.style === "lowc") out = out.filter(function(id2) {
+    return ["beterraba", "abobora"].indexOf(id2) < 0;
   });
   return out;
 }
@@ -129,7 +197,7 @@ function boosters(cfg, slot, used) {
   });
   if (main) {
     ["whey", "vegpo"].forEach(function(id) {
-      if ((cfg.style === "veg" || cfg.style === "vegan") && allowed(id, cfg) && used.indexOf(id) < 0 && out.indexOf(id) < 0) out.push(id);
+      if ((cfg.style === "veg" || cfg.style === "vegan" || cfg.style === "pesc") && allowed(id, cfg) && used.indexOf(id) < 0 && out.indexOf(id) < 0) out.push(id);
     });
     if (cfg.style === "omni" || cfg.style === "lowc") out = out.filter(function(id) {
       return ["tofu", "tvp", "leiteS"].indexOf(id) < 0 && POWDER.indexOf(id) < 0;
@@ -183,7 +251,7 @@ function capOf(it) {
 }
 function buildMeal(slotKey, d, cfg, dt, mealIdx) {
   var S = SLOT[slotKey];
-  var ms = ROUT[cfg.rout].meals, sS = 0, sP = 0;
+  var ms = mealsOf(cfg), sS = 0, sP = 0;
   ms.forEach(function(k) {
     sS += SLOT[k].share;
     sP += SLOT[k].prot;
@@ -277,7 +345,7 @@ function alternativasIds(role, slot, cfg) {
     if (cfg.style === "omni" || cfg.style === "lowc") out = out.filter(function(id) {
       return ["tofu", "tvp", "leiteS"].indexOf(id) < 0;
     });
-    if (main && (cfg.style === "veg" || cfg.style === "vegan")) POWDER.forEach(function(id) {
+    if (main && (cfg.style === "veg" || cfg.style === "vegan" || cfg.style === "pesc")) POWDER.forEach(function(id) {
       if (allowed(id, c) && out.indexOf(id) < 0) out.push(id);
     });
     if (main && (cfg.style === "omni" || cfg.style === "lowc")) out = out.filter(function(id) {
@@ -378,6 +446,25 @@ function registraTroca(trocas, d, s, atual, para, escopo) {
   if (para === r2.id) return r2.trocas;
   return r2.trocas.concat([{ d, s, de: r2.id, para }]);
 }
+function validaRestricoes(cfg) {
+  var slots = mealsOf(cfg), todas = {}, avisos = [], semProt = [], semCarb = [];
+  slots.forEach(function(sl) {
+    var p = alternativasIds("prot", sl, cfg);
+    p.forEach(function(id) {
+      todas[id] = 1;
+    });
+    if (!p.length) semProt.push(SLOT[sl].n);
+    if ((sl === "almoco" || sl === "jantar") && !rolePool("carb", semRotina(cfg), sl).length) semCarb.push(SLOT[sl].n);
+  });
+  var fontes = Object.keys(todas).length;
+  var leg = rolePool("leg", semRotina(cfg), "almoco").length;
+  var semProteina = fontes === 0;
+  if (semProteina) avisos.push("Com esta combinação de filtros não sobra nenhum alimento de proteína concentrada" + (leg ? " (só feijão e lentilha, que ajudam, mas não fecham a meta)" : "") + ". Desligue algum filtro ou procure um(a) nutricionista para montar o seu plano.");
+  else if (semProt.length) avisos.push("Sem opção de proteína em: " + semProt.join(", ") + ". Essas refeições ficam só com carboidrato, frutas e vegetais; desligue algum filtro para voltar a ter proteína nelas.");
+  if (!semProteina && fontes <= 3) avisos.push("Sobraram só " + fontes + " alimentos de proteína: o cardápio vai repetir bastante. Se puder, desligue algum filtro para ganhar variedade.");
+  if (semCarb.length) avisos.push("Sem opção de carboidrato no " + semCarb.join(" e no ") + ": o cardápio não consegue fechar as calorias nessas refeições.");
+  return { fontes, avisos, semProteina };
+}
 function dayTotals(meals) {
   var s = { kcal: 0, P: 0, C: 0, F: 0 };
   meals.forEach(function(ml) {
@@ -391,7 +478,7 @@ function dayTotals(meals) {
 }
 function buildDay(d, cfg) {
   var t = targets(cfg), dt = dayTargets(t, d);
-  var meals = ROUT[cfg.rout].meals.map(function(k, i) {
+  var meals = mealsOf(cfg).map(function(k, i) {
     return buildMeal(k, d, cfg, dt, i);
   });
   aplicaTrocas(meals, d, cfg);
@@ -444,15 +531,17 @@ function shopping(week) {
 }
 
 // cardapio/ui.js
-var CDP_JEITOS = [["omni", "Onívoro"], ["veg", "Vegetariano"], ["vegan", "Vegano"], ["lowc", "Low carb"]];
+var CDP_JEITOS = [["omni", "Onívoro"], ["pesc", "Pescetariano"], ["veg", "Vegetariano"], ["vegan", "Vegano"], ["lowc", "Low carb"]];
 var CDP_ROTINAS = [["tradicional", "Dia tradicional"], ["marmita", "Marmita da semana"], ["corrido", "Dia corrido"], ["budget", "Orçamento enxuto"], ["fora", "Almoço fora"]];
-var CDP_RESTR = [["lactose", "Sem lactose"], ["gluten", "Sem glúten"]];
+var CDP_RESTR = [["lactose", "Sem lactose"], ["gluten", "Sem glúten"], ["ovo", "Sem ovo"], ["soja", "Sem soja"], ["peixe", "Sem peixe"], ["castanhas", "Sem amendoim e castanhas"], ["porco", "Sem carne de porco"], ["vermelha", "Sem carne vermelha"]];
+var CDP_RESTR_MOTOR = { lactose: "nolact", gluten: "nogluten", ovo: "noegg", soja: "nosoy", peixe: "nofish", castanhas: "nonut", porco: "nopork", vermelha: "nored" };
+var CDP_NREF = [3, 4, 5, 6];
 var CDP_ROT_DESC = {
-  tradicional: "5 refeições do dia a dia, com arroz e feijão no almoço e no jantar; cada dia tem o seu cardápio, sem lotes.",
-  marmita: "5 refeições; cozinhe no domingo e na quinta e use em lotes.",
-  corrido: "4 refeições de preparo rápido, para dias apertados.",
-  budget: "5 refeições só com alimentos de custo menor.",
-  fora: "4 refeições; no almoço, dica de como montar o prato por quilo."
+  tradicional: (n) => n + " refeições do dia a dia, com arroz e feijão no almoço e no jantar; cada dia tem o seu cardápio, sem lotes.",
+  marmita: (n) => n + " refeições fixas; cozinhe no domingo e na quinta e use em lotes.",
+  corrido: (n) => n + " refeições de preparo rápido, para dias apertados.",
+  budget: (n) => n + " refeições só com alimentos de custo menor.",
+  fora: (n) => n + " refeições; no almoço, dica de como montar o prato por quilo."
 };
 var CDP_OBJ_TXT = { deficit: "Emagrecimento", manutencao: "Manutenção", superavit: "Hipertrofia" };
 var CDP_ICO = {
@@ -460,8 +549,10 @@ var CDP_ICO = {
   almoco: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',
   lanche: '<path d="M12 8c-3-2-7 0-7 5 0 4 3 7 5 7 1 0 1.5-.5 2-.5s1 .5 2 .5c2 0 5-3 5-7 0-5-4-7-7-5z"/><path d="M12 8c0-2 1-4 3-5"/>',
   jantar: '<path d="M5 3v5a3 3 0 0 0 6 0V3M8 3v18"/><path d="M16 3c-2 2-2.5 5-2.5 8h2.5v10"/>',
-  ceia: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'
+  ceia: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  manha: '<circle cx="12" cy="14" r="4"/><path d="M12 5v2.5M5 9l1.8 1.8M19 9l-1.8 1.8M3 19h18"/>'
 };
+var CDP_RELOGIO = '<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
 var cdpIcone = (slot) => '<span class="cdp-ic" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">' + (CDP_ICO[slot] || CDP_ICO.almoco) + "</svg></span>";
 var CDP_GRUPOS = [["Proteínas", ["prot"]], ["Carboidratos e leguminosas", ["carb", "leg"]], ["Frutas e vegetais", ["fruit", "veg"]], ["Gorduras", ["fat"]]];
 var CDP_SEM_META = '<div class="empty-note">Complete seu perfil e registre seu peso para ver o cardápio da sua meta.</div>';
@@ -472,7 +563,9 @@ function normalizaCfg(settings) {
     jeito: STYLE[c.jeito] ? c.jeito : r.vegetariano ? "veg" : "omni",
     // quem usava o antigo "Vegetariano" mantém a escolha
     rotina: ROUT[c.rotina] ? c.rotina : "marmita",
-    restricoes: { lactose: !!r.lactose, gluten: !!r.gluten },
+    restricoes: Object.fromEntries(CDP_RESTR.map((i) => [i[0], !!r[i[0]]])),
+    nref: CDP_NREF.indexOf(Number(c.nref)) >= 0 ? Number(c.nref) : null,
+    // null = padrão da rotina
     trocas: normalizaTrocas(c.trocas)
   };
 }
@@ -485,9 +578,9 @@ function motorDe(e) {
     protG: macros2.proteina.g,
     style: cfg.jeito,
     rout: cfg.rotina,
-    nolact: cfg.restricoes.lactose,
-    nogluten: cfg.restricoes.gluten,
-    trocas: cfg.trocas || []
+    nref: cfg.nref,
+    trocas: cfg.trocas || [],
+    ...Object.fromEntries(CDP_RESTR.map((i) => [CDP_RESTR_MOTOR[i[0]], !!(cfg.restricoes && cfg.restricoes[i[0]])]))
   };
 }
 var nomeLimpo = (f) => f.n.replace(/\*$/, "");
@@ -527,7 +620,9 @@ function montaVisao(e, h) {
     }).join("");
     const dica = ml.slot === "almoco" && dicas[cfg.rotina] ? '<div class="cdp-tip">' + escapeHtml(dicas[cfg.rotina]) + "</div>" : "";
     const pct = cur.tot.kcal ? Math.round(ml.m.kcal / cur.tot.kcal * 100) : 0;
-    return '<section class="cdp-meal" data-slot="' + ml.slot + '"><header class="cdp-mh"><h3>' + cdpIcone(ml.slot) + "<span>" + escapeHtml(ml.name) + '</span></h3><span class="cdp-mt">' + num(ml.m.kcal, 0) + " kcal · " + num(ml.m.P, 0) + ' g prot.</span></header><div class="cdp-share"><div class="cdp-share-bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div><span class="cdp-share-txt">' + pct + "% das calorias do dia</span></div>" + rows + dica + "</section>";
+    const hr = horarioDe(ml.slot, motor);
+    const hrHtml = hr ? '<span class="cdp-hr" title="Horário sugerido">' + CDP_RELOGIO + '<span class="sr-only">Horário sugerido: </span><time>' + hr + "</time></span>" : "";
+    return '<section class="cdp-meal" data-slot="' + ml.slot + '"><header class="cdp-mh"><h3>' + cdpIcone(ml.slot) + "<span>" + escapeHtml(ml.name) + "</span>" + hrHtml + '</h3><span class="cdp-mt">' + num(ml.m.kcal, 0) + " kcal · " + num(ml.m.P, 0) + ' g prot.</span></header><div class="cdp-share"><div class="cdp-share-bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div><span class="cdp-share-txt">' + pct + "% das calorias do dia</span></div>" + rows + dica + "</section>";
   }).join("");
   const compra = shopping(semana);
   const compraHtml = CDP_GRUPOS.map((gd) => {
@@ -536,7 +631,7 @@ function montaVisao(e, h) {
     return '<h4 class="cdp-gh">' + gd[0] + "</h4>" + its.map((s) => '<div class="cdp-it"><span class="cdp-n">' + cdpNome(FOODS[s.id]) + '</span><span class="cdp-q"><b>' + escapeHtml(cdpQtd(s.id, s.g, true)) + "</b></span></div>").join("");
   }).join("");
   const temRotulo = compra.some((s) => /\*$/.test(FOODS[s.id].n));
-  const avisos = [];
+  const avisos = validaRestricoes(motor).avisos.slice();
   if (!kOk) avisos.push("Neste dia as calorias ficaram em " + Math.round(rK * 100) + "% da meta: as porções seguem um teto realista (ex.: até 250 g de arroz por refeição). Se quiser chegar mais perto, divida em mais refeições ou some um lanche.");
   if (diasBaixos > 0) avisos.push("Nesta combinação, a proteína fica abaixo de 90% da meta em " + diasBaixos + " dia(s) da semana. Para chegar mais perto: troque a rotina (ex.: Marmita da semana), inclua uma fonte concentrada (" + (cfg.jeito === "vegan" ? "tofu, soja texturizada ou proteína vegetal em pó" : cfg.jeito === "veg" ? "ovos, iogurte ou whey, se fizerem parte da sua dieta" : "ovos, iogurte ou whey") + ") ou converse com um(a) nutricionista.");
   const notaJeito = cfg.jeito === "vegan" ? "No vegano, atenção a proteína, ferro, cálcio, vitamina B12 e vitamina D: o cardápio cuida da proteína; o resto pede acompanhamento profissional." : cfg.jeito === "lowc" ? "Low carb moderado: carboidrato reduzido, sem chegar à cetose; cerca de 40% das calorias vêm de gordura." : "";
@@ -546,14 +641,18 @@ function montaVisao(e, h) {
   const subt = CDP_OBJ_TXT[objetivo] + " · " + num(kcalAlvo, 0) + " kcal/dia (média da semana) · " + num(macros2.proteina.g, 0) + " g de proteína";
   return {
     sub: escapeHtml(subt) + ". O objetivo segue o que você escolheu acima.",
-    rotdesc: escapeHtml(CDP_ROT_DESC[cfg.rotina]),
+    rotdesc: escapeHtml(CDP_ROT_DESC[cfg.rotina](nRefeicoes(motor))),
+    nrefinfo: escapeHtml(cfg.rotina === "marmita" ? "Na Marmita da semana são sempre 5 refeições (os lotes dependem disso). Escolha outra rotina para mudar." : "Escolha de 3 a 6. Com menos refeições, cada uma fica maior e pode bater no teto de porção."),
     trocasinfo: escapeHtml(nTrocas ? rotuloTroca(nTrocas) + "." : "Troque qualquer alimento por uma alternativa recomendada.") + (ignoradas ? " " + escapeHtml(ignoradas + (ignoradas > 1 ? " trocas guardadas não combinam" : " troca guardada não combina") + " com os filtros de agora e não " + (ignoradas > 1 ? "aparecem" : "aparece") + ".") : ""),
     total,
     avisos: avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join(""),
     refeicoes,
     compras: compraHtml + (temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "") + '<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.</div>',
-    rodape: '<div class="cdp-note">Média da semana: ' + num(media.k, 0) + " kcal e " + num(media.P, 0) + " g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div>" + (notaJeito ? '<div class="cdp-note">' + escapeHtml(notaJeito) + "</div>" : "") + (menor ? '<div class="cdp-note">Para menores de 18 anos o cardápio nunca usa déficit calórico e o ganho de massa é moderado.</div>' : "") + '<div class="cdp-note">Exemplo calculado a partir da sua meta, com porções de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde.</div>',
-    ligados: { jeito: cfg.jeito, rotina: cfg.rotina, dia: String(dia), lactose: !!cfg.restricoes.lactose, gluten: !!cfg.restricoes.gluten }
+    rodape: '<div class="cdp-note">Média da semana: ' + num(media.k, 0) + " kcal e " + num(media.P, 0) + ' g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div><div class="cdp-note">Horários sugeridos como ponto de partida: 3 a 4 horas entre as refeições e o jantar com folga antes de dormir. Ajuste ao seu dia de trabalho e de treino.</div>' + (notaJeito ? '<div class="cdp-note">' + escapeHtml(notaJeito) + "</div>" : "") + (menor ? '<div class="cdp-note">Para menores de 18 anos o cardápio nunca usa déficit calórico e o ganho de massa é moderado.</div>' : "") + '<div class="cdp-note">Exemplo calculado a partir da sua meta, com porções de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde.</div>',
+    ligados: Object.assign(
+      { jeito: cfg.jeito, rotina: cfg.rotina, dia: String(dia), nref: String(nRefeicoes(motor)), nrefFixo: cfg.rotina === "marmita" },
+      Object.fromEntries(CDP_RESTR.map((i) => [i[0], !!cfg.restricoes[i[0]]]))
+    )
   };
 }
 function montaPopup(e, h, sel) {
@@ -628,14 +727,14 @@ function criaCardapio(ctx) {
   let montado = false;
   const ultimo = {};
   function cdpSalvar(cfg) {
-    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, { cardapio: { jeito: cfg.jeito, rotina: cfg.rotina, restricoes: { lactose: cfg.restricoes.lactose, gluten: cfg.restricoes.gluten }, trocas: cfg.trocas || [] } }));
+    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, { cardapio: { jeito: cfg.jeito, rotina: cfg.rotina, nref: cfg.nref || null, restricoes: Object.assign({}, cfg.restricoes), trocas: cfg.trocas || [] } }));
   }
   const regiao = (el, nome) => el.querySelector('[data-r="' + nome + '"]');
   const botao = (el, rot, v) => el.querySelector('[data-cdp="' + rot + '"][data-v="' + v + '"]');
   const grupo = (rotulo, itens, rot) => '<div class="cdp-chips" role="group" aria-label="' + rotulo + '">' + itens.map((i) => '<button type="button" class="cdp-chip" data-cdp="' + rot + '" data-v="' + i[0] + '" aria-pressed="false">' + i[1] + "</button>").join("") + "</div>";
   function monta(el) {
     const dias = DAYS.map((nome, i) => '<button type="button" class="cdp-day" data-cdp="dia" data-v="' + i + '" aria-pressed="false" aria-label="' + nome + (TRAIN[i] ? ", dia de treino" : ", dia de descanso") + '">' + nome + "<small>" + (TRAIN[i] ? "treino" : "descanso") + "</small></button>").join("");
-    el.innerHTML = '<p class="cdp-sub" data-r="sub"></p><div class="cdp-controls"><div class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>' + grupo("Jeito de comer", CDP_JEITOS, "jeito") + '</div><div class="cdp-field"><span class="cdp-lbl">Rotina</span>' + grupo("Rotina", CDP_ROTINAS, "rotina") + '<span class="cdp-note" data-r="rotdesc"></span></div><div class="cdp-field"><span class="cdp-lbl">Restrições</span>' + grupo("Restrições", CDP_RESTR, "restr") + '</div><div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><span class="cdp-note" data-r="trocasinfo"></span></div></div><div class="cdp-days" role="group" aria-label="Dia da semana">' + dias + '</div><div class="cdp-total" aria-label="Total do dia" data-r="total"></div><div data-r="avisos"></div><div class="cdp-meals" data-r="refeicoes"></div><details class="cdp-shop"><summary>Lista de compras da semana</summary><div data-r="compras"></div></details><div data-r="rodape"></div>';
+    el.innerHTML = '<p class="cdp-sub" data-r="sub"></p><div class="cdp-controls"><div class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>' + grupo("Jeito de comer", CDP_JEITOS, "jeito") + '</div><div class="cdp-field"><span class="cdp-lbl">Rotina</span>' + grupo("Rotina", CDP_ROTINAS, "rotina") + '<span class="cdp-note" data-r="rotdesc"></span></div><div class="cdp-field"><span class="cdp-lbl">Refeições por dia</span>' + grupo("Refeições por dia", CDP_NREF.map((n) => [String(n), n + " refeições"]), "nref") + '<span class="cdp-note" data-r="nrefinfo"></span></div><div class="cdp-field cdp-field-restr"><span class="cdp-lbl">Restrições</span>' + grupo("Restrições", CDP_RESTR, "restr") + '</div><div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><span class="cdp-note" data-r="trocasinfo"></span></div></div><div class="cdp-days" role="group" aria-label="Dia da semana">' + dias + '</div><div class="cdp-total" aria-label="Total do dia" data-r="total"></div><div data-r="avisos"></div><div class="cdp-meals" data-r="refeicoes"></div><details class="cdp-shop"><summary>Lista de compras da semana</summary><div data-r="compras"></div></details><div data-r="rodape"></div>';
     for (const k in ultimo) delete ultimo[k];
     montado = true;
   }
@@ -668,6 +767,7 @@ function criaCardapio(ctx) {
     const v = montaVisao({ kcalAlvo, macros: macros2, cfg, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: cdpDia }, h);
     troca(el, "sub", v.sub);
     troca(el, "rotdesc", v.rotdesc);
+    troca(el, "nrefinfo", v.nrefinfo);
     troca(el, "trocasinfo", v.trocasinfo);
     troca(el, "total", v.total);
     troca(el, "avisos", v.avisos);
@@ -677,6 +777,11 @@ function criaCardapio(ctx) {
     CDP_JEITOS.forEach((i) => liga(el, "jeito", i[0], v.ligados.jeito === i[0]));
     CDP_ROTINAS.forEach((i) => liga(el, "rotina", i[0], v.ligados.rotina === i[0]));
     CDP_RESTR.forEach((i) => liga(el, "restr", i[0], v.ligados[i[0]]));
+    CDP_NREF.forEach((n) => {
+      liga(el, "nref", String(n), v.ligados.nref === String(n));
+      const b = botao(el, "nref", String(n));
+      if (b && b.disabled !== v.ligados.nrefFixo) b.disabled = v.ligados.nrefFixo;
+    });
     for (let d = 0; d < 7; d++) liga(el, "dia", String(d), v.ligados.dia === String(d));
   }
   function abrePopup() {
@@ -773,7 +878,10 @@ function criaCardapio(ctx) {
       } else {
         if (act === "jeito") cfg.jeito = b.dataset.v;
         else if (act === "rotina") cfg.rotina = b.dataset.v;
-        else if (act === "restr") cfg.restricoes[b.dataset.v] = !cfg.restricoes[b.dataset.v];
+        else if (act === "nref") {
+          if (cfg.rotina === "marmita" || b.disabled) return;
+          cfg.nref = Number(b.dataset.v) || null;
+        } else if (act === "restr") cfg.restricoes[b.dataset.v] = !cfg.restricoes[b.dataset.v];
         cdpSalvar(cfg);
         ctx.redesenhaDieta();
       }

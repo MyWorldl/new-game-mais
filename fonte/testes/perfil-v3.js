@@ -44,8 +44,8 @@ const novo = async (b, w, { perfil = true, reduce = false } = {}) => {
     t(w + ': moldura 80 px com avatar 52 px dentro', r.wrapBox === (w <= 360 ? 72 : 80) && r.avBox === (w <= 360 ? 46 : 52), r.wrapBox + '/' + r.avBox);
     t(w + ': caminho com 4 etapas numeradas 1–4 e a 1ª marcada como atual', r.marcos.length === 4 && r.marcos.every(x => /counter\(etapa\)/.test(x.num)) && r.marcos[0].cur === 'step' && /atual/.test(r.marcos[0].cls) && r.marcos.slice(1).every(x => /prox/.test(x.cls) && !x.cur), JSON.stringify(r.marcos.map(x => x.num + x.cur)));
     t(w + ': etapa 1 mostra a patente atual e o XP total do card', /^Você está aqui: patente /.test(r.marcos[0].tx) && r.marcos[0].tx.includes(r.xpTotal.replace(/\s/g, '')) || r.marcos[0].tx.replace(/\./g, '').includes(r.xpTotal.replace(/\./g, '')), r.marcos[0].tx + ' | ' + r.xpTotal);
-    t(w + ': vitrine separa desbloqueadas e em progresso sem perder nenhuma conquista', r.sec.length === 2 && /^Na vitrine/.test(r.sec[0].h) && r.sec[0].unlockedAll && /^Em progresso/.test(r.sec[1].h) && r.sec[1].lockedAll && r.total === 10 && r.sec[0].n + r.sec[1].n === 10, JSON.stringify(r.sec) + r.total);
-    t(w + ': contador "x de 10 desbloqueadas" bate com a vitrine', r.count.startsWith(r.sec[0].n + ' de 10'), r.count + ' / ' + r.sec[0].n);
+    t(w + ': vitrine separa desbloqueadas e em progresso sem perder nenhuma conquista', r.sec.length === 2 && /^Na vitrine/.test(r.sec[0].h) && r.sec[0].unlockedAll && /^Em progresso/.test(r.sec[1].h) && r.sec[1].lockedAll && r.total >= 30 && r.sec[0].n + r.sec[1].n === r.total, JSON.stringify(r.sec) + r.total);
+    t(w + ': contador "x de N desbloqueadas" bate com a vitrine', new RegExp('^' + r.sec[0].n + ' de \\d+').test(r.count), r.count + ' / ' + r.sec[0].n);
     t(w + ': conquistas com alvo ≥ 44 px e sem rolagem horizontal', r.minH >= 44 && r.esc, r.minH);
     t(w + ': sem erro de console', p.errs.length === 0, p.errs.join(' | '));
     if (w === 390) {
@@ -101,7 +101,7 @@ const novo = async (b, w, { perfil = true, reduce = false } = {}) => {
       const el = document.getElementById('achievements-grid');
       return { m: document.getElementById('perfil-avatar-wrap').dataset.moldura, vazia: !!el.querySelector('.vit-vazia'), emProg: el.querySelectorAll('.vit-grid .badge-item').length, naVitrine: el.querySelectorAll('.vit-shelf .badge-item').length, total: el.querySelectorAll('.badge-item').length, marcos: document.querySelectorAll('#marcos-list li').length, ini: document.getElementById('perfil-avatar-initials').textContent.trim() };
     });
-    t('usuário novo (rotina, nenhum treino feito): moldura no nível 1, vitrine vazia acolhedora e as 10 conquistas em progresso', r.m === '1' && r.vazia && r.emProg === 10 && r.naVitrine === 0 && r.total === 10 && r.marcos >= 3 && r.ini.length > 0, JSON.stringify(r));
+    t('usuário novo (rotina, nenhum treino feito): moldura no nível 1, vitrine vazia acolhedora e todas as conquistas em progresso', r.m === '1' && r.vazia && r.emProg === r.total && r.naVitrine === 0 && r.total >= 30 && r.marcos >= 3 && r.ini.length > 0, JSON.stringify(r));
     t('usuário novo: sem erro de console', p.errs.length === 0, p.errs.join(' | '));
     await c.close();
     const s = await novo(b, 390, { perfil: false }); await irPerfil(s.p);

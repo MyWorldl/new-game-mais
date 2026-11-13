@@ -1678,7 +1678,7 @@ const TIPS = {
     d:"É o marcador de combustível do esforço: não mede quanto você levantou, mede quanto ainda tinha no tanque ao parar. 10 = esvaziou (nenhuma repetição a mais); 9 = sobrava 1; 8 = sobravam 2; 7 = sobravam 3; 6 = 4 ou mais. Exemplo: você fez 10 repetições e conseguiria mais 2 → RPE 8. Não precisa ser exato. O app usa a nota, junto com as repetições de cada série, para sugerir quando subir a carga.",
     src:"Zourdos et al., 2016 — J Strength Cond Res", url:"https://pubmed.ncbi.nlm.nih.gov/26049792/"},
   xp:{a:"XP", t:"XP e patente", g:"Jogo",
-    d:"Pontos ganhos ao concluir treinos. Acumular XP sobe seu nível e sua patente, até a Radiante. Igual à barra de experiência de um jogo — só que o desafio aqui é a constância. Exercício completo vale 100%; se você encerrar um exercício antes do fim, ele vale proporcional às séries feitas (no mínimo metade); exercício pulado não vale XP, mas o dia continua contando para a sua sequência."},
+    d:"Pontos ganhos ao concluir treinos. Acumular XP sobe seu nível e sua patente, até a Titã. Igual à barra de experiência de um jogo — só que o desafio aqui é a constância. Exercício completo vale 100%; se você encerrar um exercício antes do fim, ele vale proporcional às séries feitas (no mínimo metade); exercício pulado não vale XP, mas o dia continua contando para a sua sequência."},
   freeze:{a:"proteções", t:"Proteções (freeze)", g:"Jogo",
     d:"Se você perder um dia de treino, uma proteção impede que a sequência zere — um colete salva-vidas: usado só quando precisa. Você ganha uma a cada 7 dias de sequência e guarda no máximo 2."},
   meta:{a:"meta da semana", t:"Meta da semana", g:"Jogo",
@@ -2576,7 +2576,7 @@ function abrirSessaoRapida(){
 })();
 
 /* ============================================================
-   NÍVEL / PATENTE (selo + XP) — Madeira → Radiante
+   NÍVEL / PATENTE (selo + XP) — Novato → Titã
    XP vem de treinos concluídos (60 XP cada) + bônus por marco de
    sequência batido (150 XP em cada marco de STREAK_MILESTONES).
    O histórico é recalculado a cada render varrendo dia a dia desde
@@ -2584,16 +2584,16 @@ function abrirSessaoRapida(){
    necessária — funciona com o que já está salvo em checkins/rotina.
    ============================================================ */
 const NIVEL_TIERS = [
-  {name:"Madeira",    need:300},
-  {name:"Ferro",      need:400},
-  {name:"Bronze",     need:500},
-  {name:"Prata",      need:700},
-  {name:"Ouro",       need:900},
-  {name:"Platina",    need:1100},
-  {name:"Diamante",   need:1300},
-  {name:"Ascendente", need:1500},
-  {name:"Imortal",    need:1700},
-  {name:"Radiante",   need:2000},
+  {name:"Novato",     need:300},
+  {name:"Aprendiz",   need:400},
+  {name:"Praticante", need:500},
+  {name:"Disciplinado",need:700},
+  {name:"Resistente",  need:900},
+  {name:"Atleta",     need:1100},
+  {name:"Veterano",    need:1300},
+  {name:"Campeão",    need:1500},
+  {name:"Lenda",       need:1700},
+  {name:"Titã",        need:2000},
 ];
 const NIVEL_XP_POR_TREINO = 60;
 const NIVEL_XP_POR_MARCO = 150;
@@ -3733,17 +3733,66 @@ function hasPerfectWeekEver(){
   return false;
 }
 
+/* contagens derivadas dos dados que o app já guarda (nada novo é gravado) para as conquistas extras */
+function countMedicoesRegistradas(){ return Object.keys(state.medicoes||{}).length; }
+function countFotosRegistradas(){ return Object.keys(state.fotos||{}).length; }
+function countDiasComHabito(){ return Object.values(state.checkins||{}).filter(c=> c && c.hab && Object.keys(c.hab).length>0).length; }
+function countDiasComCarga(){ return Object.values(state.checkins||{}).filter(c=> c && c.cargas && Object.keys(c.cargas).length>0).length; }
+function countExerciciosComCarga(){ const n = new Set(); Object.values(state.checkins||{}).forEach(c=>{ if(c && c.cargas) Object.keys(c.cargas).forEach(k=>n.add(k)); }); return n.size; }
+function diasDeJornada(){ try{ const ini = getTrackingStartISO(), hoje = todayISO(); return Math.max(0, Math.round((Date.parse(hoje+"T12:00:00")-Date.parse(ini+"T12:00:00"))/864e5)); }catch(e){ return 0; } }
+function countSemanasPerfeitas(){
+  const start = getTrackingStartISO(), today = todayISO();
+  let monday = mondayOfISO(start), n = 0;
+  const todayMonday = mondayOfISO(today);
+  while(monday <= todayMonday){
+    let total=0, done=0;
+    for(let i=0;i<7;i++){
+      const iso = addDaysISO(monday, i);
+      if(iso > today) break;
+      if(iso < start) continue;
+      if(state.rotina[treinoKey(iso)]?.ativo){ total++; if(state.checkins[iso]?.concluido) done++; }
+    }
+    if(total>0 && done===total) n++;
+    monday = addDaysISO(monday, 7);
+  }
+  return n;
+}
 const ACHIEVEMENTS = [
   {nome:"Primeiro Passo",     desc:"Complete seu primeiro treino.",                          check: ()=> countTotalTreinos()>=1},
   {nome:"Semana de Ferro",    desc:"Bata uma sequência de 7 dias seguidos.",                  check: ()=> computeStreakEngine().best>=7},
   {nome:"Guerreiro do Mês",   desc:"Bata uma sequência de 30 dias seguidos.",                 check: ()=> computeStreakEngine().best>=30},
   {nome:"Inabalável",         desc:"Bata uma sequência de 90 dias seguidos.",                 check: ()=> computeStreakEngine().best>=90},
   {nome:"Centurião",          desc:"Complete 100 treinos no total.",                          check: ()=> countTotalTreinos()>=100},
-  {nome:"Patente Ouro",       desc:"Alcance a patente Ouro ou superior.",                     check: ()=> computeNivelInfo().tierIndex>=4},
-  {nome:"Patente Radiante",   desc:"Alcance a patente máxima: Radiante.",                     check: ()=> computeNivelInfo().tierIndex>=9},
+  {nome:"Patente Resistente", desc:"Alcance a patente Resistente ou superior.",               check: ()=> computeNivelInfo().tierIndex>=4},
+  {nome:"Patente Titã",       desc:"Alcance a patente máxima: Titã.",                         check: ()=> computeNivelInfo().tierIndex>=9},
   {nome:"Recorde Pessoal",    desc:"Registre a carga de um exercício pela primeira vez.",     check: ()=> hasCargaRegistrada()},
   {nome:"Congelado no Tempo", desc:"Use um congelamento para proteger sua sequência.",        check: ()=> computeStreakEngine().freezesUsedTotal>=1},
   {nome:"Regularidade Total", desc:"Complete 100% dos treinos agendados em uma semana.",      check: ()=> hasPerfectWeekEver()},
+  // — biblioteca ampliada —
+  {nome:"Aquecendo",          desc:"Complete 10 treinos no total.",                           check: ()=> countTotalTreinos()>=10},
+  {nome:"Pegando Ritmo",      desc:"Complete 25 treinos no total.",                           check: ()=> countTotalTreinos()>=25},
+  {nome:"Meio Século",        desc:"Complete 50 treinos no total.",                           check: ()=> countTotalTreinos()>=50},
+  {nome:"Maratonista",        desc:"Complete 250 treinos no total.",                          check: ()=> countTotalTreinos()>=250},
+  {nome:"Lenda da Academia",  desc:"Complete 500 treinos no total.",                          check: ()=> countTotalTreinos()>=500},
+  {nome:"Quinzena Firme",     desc:"Bata uma sequência de 14 dias seguidos.",                 check: ()=> computeStreakEngine().best>=14},
+  {nome:"Dois Meses de Fogo", desc:"Bata uma sequência de 60 dias seguidos.",                 check: ()=> computeStreakEngine().best>=60},
+  {nome:"Meio Ano de Constância", desc:"Bata uma sequência de 180 dias seguidos.",            check: ()=> computeStreakEngine().best>=180},
+  {nome:"Ano Inteiro",        desc:"Bata uma sequência de 365 dias seguidos.",                check: ()=> computeStreakEngine().best>=365},
+  {nome:"Patente Praticante", desc:"Alcance a patente Praticante ou superior.",               check: ()=> computeNivelInfo().tierIndex>=2},
+  {nome:"Patente Atleta",     desc:"Alcance a patente Atleta ou superior.",                   check: ()=> computeNivelInfo().tierIndex>=5},
+  {nome:"Patente Campeão",    desc:"Alcance a patente Campeão ou superior.",                  check: ()=> computeNivelInfo().tierIndex>=7},
+  {nome:"Primeira Medida",    desc:"Registre sua primeira medição de peso ou medidas.",       check: ()=> countMedicoesRegistradas()>=1},
+  {nome:"Olho no Progresso",  desc:"Registre 10 medições ao longo da jornada.",               check: ()=> countMedicoesRegistradas()>=10},
+  {nome:"Registro Visual",    desc:"Adicione sua primeira foto de progresso.",                check: ()=> countFotosRegistradas()>=1},
+  {nome:"Álbum do Progresso", desc:"Guarde 5 fotos de progresso.",                            check: ()=> countFotosRegistradas()>=5},
+  {nome:"Mês Perfeito",       desc:"Complete 100% dos treinos agendados em 4 semanas diferentes.", check: ()=> countSemanasPerfeitas()>=4},
+  {nome:"Trimestre Impecável",desc:"Complete 100% dos treinos agendados em 12 semanas diferentes.", check: ()=> countSemanasPerfeitas()>=12},
+  {nome:"Hábitos em Dia",     desc:"Registre sono, passos, cárdio ou água em 7 dias diferentes.", check: ()=> countDiasComHabito()>=7},
+  {nome:"Mês de Hábitos",     desc:"Registre hábitos em 30 dias diferentes.",                 check: ()=> countDiasComHabito()>=30},
+  {nome:"Cargas na Mão",      desc:"Registre cargas em 10 dias de treino diferentes.",        check: ()=> countDiasComCarga()>=10},
+  {nome:"Explorador de Exercícios", desc:"Registre carga em 10 exercícios diferentes.",       check: ()=> countExerciciosComCarga()>=10},
+  {nome:"Um Mês de Jornada",  desc:"Complete 30 dias desde o início do seu acompanhamento.",  check: ()=> diasDeJornada()>=30},
+  {nome:"Três Meses de Jornada", desc:"Complete 90 dias desde o início do seu acompanhamento.", check: ()=> diasDeJornada()>=90},
 ];
 const ACHIEVEMENT_COLORS = ["var(--s-blue)","var(--teal)","var(--s-orange)","var(--good)","var(--s-yellow)","var(--accent)","var(--s-aqua)","var(--s-violet)","var(--s-magenta)","var(--warn)"];
 const BADGE_SHIELD_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3z"/></svg>';
@@ -3761,10 +3810,20 @@ function achProgressList(){
     "Guerreiro do Mês":   P(eng.best, 30, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Inabalável":         P(eng.best, 90, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Centurião":          P(tr, 100, "treinos", "Dia leve não entra nesta conta."),
-    "Patente Ouro":       P(ni.tierIndex, 4, "degraus de patente", "Você está na patente "+ni.tierName+"."),
-    "Patente Radiante":   P(ni.tierIndex, 9, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Patente Resistente": P(ni.tierIndex, 4, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Patente Titã":       P(ni.tierIndex, 9, "degraus de patente", "Você está na patente "+ni.tierName+"."),
     "Recorde Pessoal":    P(hasCargaRegistrada() ? 1 : 0, 1, "registro de carga"),
     "Congelado no Tempo": P(eng.freezesUsedTotal, 1, "congelamento usado", "O congelamento entra sozinho quando você falta e ainda tem saldo."),
+    "Aquecendo": P(tr, 10, "treinos"), "Pegando Ritmo": P(tr, 25, "treinos"), "Meio Século": P(tr, 50, "treinos"), "Maratonista": P(tr, 250, "treinos"), "Lenda da Academia": P(tr, 500, "treinos"),
+    "Quinzena Firme": P(eng.best, 14, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Dois Meses de Fogo": P(eng.best, 60, "dias de sequência", "Conta a sua melhor sequência até hoje."),
+    "Meio Ano de Constância": P(eng.best, 180, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Ano Inteiro": P(eng.best, 365, "dias de sequência", "Conta a sua melhor sequência até hoje."),
+    "Patente Praticante": P(ni.tierIndex, 2, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Atleta": P(ni.tierIndex, 5, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Campeão": P(ni.tierIndex, 7, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Primeira Medida": P(countMedicoesRegistradas(), 1, "medição"), "Olho no Progresso": P(countMedicoesRegistradas(), 10, "medições"),
+    "Registro Visual": P(countFotosRegistradas(), 1, "foto"), "Álbum do Progresso": P(countFotosRegistradas(), 5, "fotos"),
+    "Mês Perfeito": P(countSemanasPerfeitas(), 4, "semanas perfeitas"), "Trimestre Impecável": P(countSemanasPerfeitas(), 12, "semanas perfeitas"),
+    "Hábitos em Dia": P(countDiasComHabito(), 7, "dias com hábitos"), "Mês de Hábitos": P(countDiasComHabito(), 30, "dias com hábitos"),
+    "Cargas na Mão": P(countDiasComCarga(), 10, "dias com carga"), "Explorador de Exercícios": P(countExerciciosComCarga(), 10, "exercícios com carga"),
+    "Um Mês de Jornada": P(diasDeJornada(), 30, "dias de jornada"), "Três Meses de Jornada": P(diasDeJornada(), 90, "dias de jornada"),
     "Regularidade Total": sem.cap > 0
       ? P(sem.feitos, sem.cap, "treinos desta semana", "Vale também uma semana perfeita no passado: aqui mostramos a semana atual.")
       : P(0, 1, "semana", "Sem treinos agendados nesta semana.")
@@ -6346,7 +6405,7 @@ function serieLogHtml(i, ex, c, pfx){
   }).join("");
   let h = '<div class="sl" data-sl="'+i+'" data-pfx="'+pfx+'">'+
     '<div class="sl-top"><span class="sl-count" tabindex="-1"><b>'+e.n+'</b> de '+e.prev+' série'+(e.prev===1?'':'s')+'</span>'+(faixaTxt ? '<span class="sl-faixa">'+faixaTxt+'</span>' : '')+'</div>'+
-    '<div class="quest-track" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
+    '<div class="sl-segs" aria-hidden="true" style="--n:'+Math.max(1,e.prev)+';">'+Array.from({length:Math.max(1,e.prev)},(_,k)=>'<i class="'+(k<e.n?'on':(k===e.n?'next':''))+'"></i>').join("")+'</div>'+
     (e.n ? '<ul class="sl-sets" aria-label="Séries registradas">'+chips+'</ul>' : '');
   if(e.n && f.max) h += '<div class="sl-leg"><span class="sl-rk"><i class="sl-dot sl-ouro"></i>melhor</span><span class="sl-rk"><i class="sl-dot sl-prata"></i>2º</span><span class="sl-rk"><i class="sl-dot sl-bronze"></i>3º</span><span class="sl-rk"><i class="sl-dot sl-cinza"></i>demais</span><span class="sl-rg">▼ abaixo · ● na faixa · ▲ acima da faixa — sem certo ou errado</span></div>';
   if(e.status === "parcial" || e.status === "pulado"){
@@ -6916,7 +6975,7 @@ function renderWeekTrailDetail(){
       return '<li class="qc'+(exDone?' done':'')+(est.status==="parcial"?' part':'')+(est.status==="pulado"?' skip':'')+(open?' open':'')+(ex.nome===cargaChartExercise?' sel':'')+'" data-qi="'+i+'" data-qper="1" data-noswipe>'+
         '<div class="qc-head">'+
           '<span class="qc-badge" aria-hidden="true">'+(exDone ? ICON_CHECK : est.status==="parcial" ? "½" : est.status==="pulado" ? "–" : (i+1))+'</span>'+
-          '<div class="qc-title"><span class="qc-name" title="'+escapeHtml(ex.nome)+'">'+escapeHtml(ex.nome)+'</span><span class="qc-sub">'+subParts.join(' · ')+'</span></div>'+
+          '<div class="qc-title"><span class="qc-name" title="'+escapeHtml(ex.nome)+'">'+escapeHtml(ex.nome)+'</span><span class="qc-sub">'+subParts.map(x=>'<span class="qc-sp">'+x+'</span>').join('')+'</span></div>'+
           '<span class="qc-count" title="séries registradas"><b>'+est.n+'</b>/'+est.prev+'</span>'+
         '</div>'+
         serieLogHtml(i, ex, checkin, 'qc')+
@@ -7764,7 +7823,7 @@ function openPerfilEditor(){
       '</div>'+
       '<label>Onde treina<select id="p-local"><option value="">Não informado</option>'+OB_LOCAL.map(o=>'<option value="'+o.v+'">'+o.t+'</option>').join("")+'</select></label>'+
       '<label>Você é fisicamente ativo?<div class="seg u-mt2" id="p-seg-ativo"><button type="button" data-v="sim">Sim</button><button type="button" data-v="nao">Não</button></div></label>'+
-      '<label id="p-nivel-wrap">Nível de atividade<select id="p-atividade"></select></label>'+
+      '<label id="p-nivel-wrap">Nível de atividade<select id="p-atividade"></select><span class="field-hint" id="p-atividade-desc" aria-live="polite"></span></label>'+
       '<label>Peso meta (kg) — opcional<input type="number" step="0.1" id="p-meta"></label>'+
       '<div><div class="skins-label">Foco corporal <span class="skins-hint">— até 2, opcional'+tipBtn("foco")+'</span></div><div id="p-foco"></div><div class="foco-msg" id="p-foco-msg" aria-live="polite"></div></div>'+
     '</div>'+
@@ -7781,8 +7840,11 @@ function openPerfilEditor(){
   body.querySelector("#p-altura").value = p.alturaCm;
   body.querySelector("#p-meta").value = p.pesoMetaKg || "";
   const sel = body.querySelector("#p-atividade");
-  sel.innerHTML = ACTIVITY_LEVELS.filter(l=>l.v!=="sedentario").map(l=>'<option value="'+l.v+'">'+l.label+' — '+l.desc+'</option>').join("");
+  sel.innerHTML = ACTIVITY_LEVELS.filter(l=>l.v!=="sedentario").map(l=>'<option value="'+l.v+'">'+l.label+'</option>').join("");   // só o nome na lista (a descrição longa aparece abaixo e quebra linha, sem alargar o formulário)
   sel.value = (p.nivelAtividade && p.nivelAtividade!=="sedentario") ? p.nivelAtividade : "leve";
+  const descAtv = body.querySelector("#p-atividade-desc");
+  const syncDescAtv = ()=>{ const l = ACTIVITY_LEVELS.find(x=>x.v===sel.value); descAtv.textContent = l ? l.desc : ""; };
+  sel.addEventListener("change", syncDescAtv); syncDescAtv();
   const segAtivo = body.querySelector("#p-seg-ativo");
   const nivelWrap = body.querySelector("#p-nivel-wrap");
   let ativoVal = p.ativo !== false && p.nivelAtividade !== "sedentario";
@@ -8312,7 +8374,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.3abdcd8889.js";
+const CARDAPIO_URL = "./cardapio.7b150917bc.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)
@@ -9866,7 +9928,7 @@ const GLOSSARIO = {
     {termo:"Cintura ÷ altura (RCE)", def:"Cintura dividida pela altura. É como uma régua simples: se a cintura passa da metade da altura (0,5), vale prestar atenção. Serve de indicador, não de diagnóstico."},
     {termo:"Teste da fala", def:"Forma de medir a intensidade do cárdio leve: você deve conseguir conversar enquanto se exercita, mesmo que com a respiração um pouco mais forte."},
     {termo:"Congelamento (freeze)", def:"Uma proteção que evita que sua sequência zere se você perder um dia de treino — uso limitado, pra não virar desculpa."},
-    {termo:"XP e Nível/Patente", def:"XP é a pontuação ganha ao concluir treinos; acumular XP sobe seu nível e sua patente, de Recruta até Radiante."},
+    {termo:"XP e Nível/Patente", def:"XP é a pontuação ganha ao concluir treinos; acumular XP sobe seu nível e sua patente, de Novato até Titã."},
     {termo:"Conquistas", def:"Medalhas permanentes por marcos específicos (primeiro treino, 7 dias seguidos, primeiro PR...) — uma vez desbloqueada, fica pra sempre."},
     {termo:"Semana perfeita", def:"Completar 100% dos treinos agendados numa semana — reconhecido pelo narrador \"Ferro\" e nas Recomendações."},
     {termo:"PR (recorde pessoal)", def:"A maior carga que você já registrou num exercício. Superar o PR é o sinal mais direto de que o treino está funcionando."},

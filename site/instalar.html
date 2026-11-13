@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instalar o NG+ no celular</title>
+<meta name="description" content="Instale o NG+ (New Game+) na tela inicial do celular: abre em tela cheia e funciona sem internet.">
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="instalar.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <img class="hero-ic" src="icon-192.png" width="72" height="72" alt="">
+    <div>
+      <p class="eyebrow">NG+ · New Game+</p>
+      <h1>Instale no seu celular</h1>
+      <p class="lede">Vira um app na tela inicial: abre em tela cheia, carrega rápido e continua funcionando sem internet. Não precisa de loja de aplicativos.</p>
+    </div>
+  </header>
+
+  <section class="card" id="ins-status" role="status" aria-live="polite" hidden></section>
+
+  <section class="card" id="ins-agora" hidden>
+    <h2>Instalação em um toque</h2>
+    <p>O seu navegador permite instalar direto, sem passo a passo.</p>
+    <button type="button" class="btn primary" id="ins-btn">Instalar agora</button>
+  </section>
+
+  <section class="card" aria-labelledby="ins-h-passos">
+    <h2 id="ins-h-passos">Passo a passo</h2>
+    <div class="seg" role="tablist" aria-label="Qual é o seu aparelho?">
+      <button type="button" role="tab" id="tab-ios" aria-selected="false" aria-controls="p-ios" data-p="ios">iPhone</button>
+      <button type="button" role="tab" id="tab-android" aria-selected="false" aria-controls="p-android" data-p="android">Android</button>
+      <button type="button" role="tab" id="tab-pc" aria-selected="false" aria-controls="p-pc" data-p="pc">Computador</button>
+    </div>
+
+    <div class="painel" id="p-ios" role="tabpanel" aria-labelledby="tab-ios" hidden>
+      <p class="aviso" id="ios-aviso" hidden>Você não está no Safari. No iPhone a instalação é feita pelo <b>Safari</b>: copie o endereço desta página e abra lá.</p>
+      <ol class="passos">
+        <li><span class="n">1</span><div><b>Abra esta página no Safari</b><small>É o navegador azul com a bússola. Outros navegadores também funcionam nas versões mais novas do iOS, mas o Safari é o caminho mais garantido.</small></div></li>
+        <li><span class="n">2</span><div><b>Toque em Compartilhar</b><small>O quadrado com a seta para cima
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          fica na barra do Safari.</small></div></li>
+        <li><span class="n">3</span><div><b>Escolha “Adicionar à Tela de Início”</b><small>Role a lista de opções até encontrar. Deixe <i>Abrir como App Web</i> ligado, se aparecer.</small></div></li>
+        <li><span class="n">4</span><div><b>Toque em Adicionar</b><small>O ícone do NG+ aparece na tela inicial. Abra por ele para ter a tela cheia e, no iPhone, para receber os lembretes de treino.</small></div></li>
+      </ol>
+    </div>
+
+    <div class="painel" id="p-android" role="tabpanel" aria-labelledby="tab-android" hidden>
+      <ol class="passos">
+        <li><span class="n">1</span><div><b>Abra esta página no Chrome</b><small>Se estiver dentro de outro app (WhatsApp, Instagram), use o menu e escolha “Abrir no navegador”.</small></div></li>
+        <li><span class="n">2</span><div><b>Toque nos três pontinhos ⋮</b><small>Ficam no canto superior direito do Chrome.</small></div></li>
+        <li><span class="n">3</span><div><b>Escolha “Instalar app”</b><small>Em algumas versões aparece como “Adicionar à tela inicial”.</small></div></li>
+        <li><span class="n">4</span><div><b>Confirme em Instalar</b><small>O ícone do NG+ vai para a tela inicial e a gaveta de apps.</small></div></li>
+      </ol>
+    </div>
+
+    <div class="painel" id="p-pc" role="tabpanel" aria-labelledby="tab-pc" hidden>
+      <div class="qr-bloco">
+        <figure class="qr">
+          <img src="instalar-qr.svg" width="220" height="220" alt="QR code do link de instalação do NG+. Aponte a câmera do celular para ele.">
+          <figcaption>Aponte a câmera do celular para abrir esta página nele.</figcaption>
+        </figure>
+        <div class="qr-txt">
+          <p><b>Quer o app no celular?</b> Escaneie o QR code com a câmera do aparelho e siga o passo a passo do iPhone ou do Android.</p>
+          <p>No próprio computador (Chrome ou Edge): clique no ícone de <b>instalar</b> no canto direito da barra de endereço.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="ins-h-link">
+    <h2 id="ins-h-link">Mandar o link para o celular</h2>
+    <p>Copie o endereço e envie por mensagem para você mesmo, ou compartilhe com quem vai treinar com você.</p>
+    <div class="linha">
+      <input type="text" readonly id="ins-url" aria-label="Endereço da página de instalação" value="">
+      <button type="button" class="btn" id="ins-copiar">Copiar link</button>
+      <button type="button" class="btn" id="ins-compartilhar" hidden>Compartilhar</button>
+    </div>
+    <p class="ok" id="ins-copiado" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" aria-labelledby="ins-h-duv">
+    <h2 id="ins-h-duv">Dúvidas comuns</h2>
+    <details><summary>Preciso baixar algo da loja?</summary><p>Não. O NG+ é um app da web instalável: o ícone abre o mesmo NG+ em tela cheia, sem barra do navegador. Quando sai uma versão nova, ela se atualiza sozinha.</p></details>
+    <details><summary>Perco meus dados se instalar?</summary><p>Se você já usa o NG+ no navegador, entre com a mesma conta depois de instalar. Com a conta, seus treinos e medidas sincronizam entre os aparelhos.</p></details>
+    <details><summary>Funciona sem internet?</summary><p>Sim, as telas e o registro do treino abrem sem internet. O que você registrar fica salvo no aparelho.</p></details>
+    <details><summary>Como desinstalar?</summary><p>Como qualquer app: segure o ícone na tela inicial e escolha remover. Se você usa conta, seus dados continuam guardados nela.</p></details>
+  </section>
+
+  <p class="rodape"><a class="btn ghost" href="./">Abrir o NG+</a></p>
+</main>
+<script src="instalar.js"></script>
+</body>
+</html>

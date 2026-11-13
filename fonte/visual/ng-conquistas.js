@@ -10,10 +10,20 @@ function achProgressList(){
     "Guerreiro do Mês":   P(eng.best, 30, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Inabalável":         P(eng.best, 90, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Centurião":          P(tr, 100, "treinos", "Dia leve não entra nesta conta."),
-    "Patente Ouro":       P(ni.tierIndex, 4, "degraus de patente", "Você está na patente "+ni.tierName+"."),
-    "Patente Radiante":   P(ni.tierIndex, 9, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Patente Resistente": P(ni.tierIndex, 4, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Patente Titã":       P(ni.tierIndex, 9, "degraus de patente", "Você está na patente "+ni.tierName+"."),
     "Recorde Pessoal":    P(hasCargaRegistrada() ? 1 : 0, 1, "registro de carga"),
     "Congelado no Tempo": P(eng.freezesUsedTotal, 1, "congelamento usado", "O congelamento entra sozinho quando você falta e ainda tem saldo."),
+    "Aquecendo": P(tr, 10, "treinos"), "Pegando Ritmo": P(tr, 25, "treinos"), "Meio Século": P(tr, 50, "treinos"), "Maratonista": P(tr, 250, "treinos"), "Lenda da Academia": P(tr, 500, "treinos"),
+    "Quinzena Firme": P(eng.best, 14, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Dois Meses de Fogo": P(eng.best, 60, "dias de sequência", "Conta a sua melhor sequência até hoje."),
+    "Meio Ano de Constância": P(eng.best, 180, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Ano Inteiro": P(eng.best, 365, "dias de sequência", "Conta a sua melhor sequência até hoje."),
+    "Patente Praticante": P(ni.tierIndex, 2, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Atleta": P(ni.tierIndex, 5, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Campeão": P(ni.tierIndex, 7, "degraus de patente", "Você está na patente "+ni.tierName+"."),
+    "Primeira Medida": P(countMedicoesRegistradas(), 1, "medição"), "Olho no Progresso": P(countMedicoesRegistradas(), 10, "medições"),
+    "Registro Visual": P(countFotosRegistradas(), 1, "foto"), "Álbum do Progresso": P(countFotosRegistradas(), 5, "fotos"),
+    "Mês Perfeito": P(countSemanasPerfeitas(), 4, "semanas perfeitas"), "Trimestre Impecável": P(countSemanasPerfeitas(), 12, "semanas perfeitas"),
+    "Hábitos em Dia": P(countDiasComHabito(), 7, "dias com hábitos"), "Mês de Hábitos": P(countDiasComHabito(), 30, "dias com hábitos"),
+    "Cargas na Mão": P(countDiasComCarga(), 10, "dias com carga"), "Explorador de Exercícios": P(countExerciciosComCarga(), 10, "exercícios com carga"),
+    "Um Mês de Jornada": P(diasDeJornada(), 30, "dias de jornada"), "Três Meses de Jornada": P(diasDeJornada(), 90, "dias de jornada"),
     "Regularidade Total": sem.cap > 0
       ? P(sem.feitos, sem.cap, "treinos desta semana", "Vale também uma semana perfeita no passado: aqui mostramos a semana atual.")
       : P(0, 1, "semana", "Sem treinos agendados nesta semana.")
