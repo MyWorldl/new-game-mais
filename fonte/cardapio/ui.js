@@ -18,15 +18,18 @@
    TROCAS: settings.cardapio.trocas = [{d: -1|0..6, s: refeição, de: alimento, para: alimento}] (ver engine.js). O pop-up "Trocar alimentos"
    (botão ao lado dos filtros) escolhe refeição, alimento e alternativa; o card principal não ganha nenhum controle por alimento. */
 import * as CDPE from "./engine.js";
-const CDP_JEITOS = [["omni","Onívoro"],["veg","Vegetariano"],["vegan","Vegano"],["lowc","Low carb"]];
+const CDP_JEITOS = [["omni","Onívoro"],["pesc","Pescetariano"],["veg","Vegetariano"],["vegan","Vegano"],["lowc","Low carb"]];
 const CDP_ROTINAS = [["tradicional","Dia tradicional"],["marmita","Marmita da semana"],["corrido","Dia corrido"],["budget","Orçamento enxuto"],["fora","Almoço fora"]];
-const CDP_RESTR = [["lactose","Sem lactose"],["gluten","Sem glúten"]];
+const CDP_RESTR = [["lactose","Sem lactose"],["gluten","Sem glúten"],["ovo","Sem ovo"],["soja","Sem soja"],["peixe","Sem peixe"],["castanhas","Sem amendoim e castanhas"],["porco","Sem carne de porco"],["vermelha","Sem carne vermelha"]];
+/* chave da tela -> chave do motor (engine.js) */
+const CDP_RESTR_MOTOR = {lactose:"nolact", gluten:"nogluten", ovo:"noegg", soja:"nosoy", peixe:"nofish", castanhas:"nonut", porco:"nopork", vermelha:"nored"};
+const CDP_NREF = [3,4,5,6];
 const CDP_ROT_DESC = {
-  tradicional:"5 refeições do dia a dia, com arroz e feijão no almoço e no jantar; cada dia tem o seu cardápio, sem lotes.",
-  marmita:"5 refeições; cozinhe no domingo e na quinta e use em lotes.",
-  corrido:"4 refeições de preparo rápido, para dias apertados.",
-  budget:"5 refeições só com alimentos de custo menor.",
-  fora:"4 refeições; no almoço, dica de como montar o prato por quilo."
+  tradicional: n=> n+" refeições do dia a dia, com arroz e feijão no almoço e no jantar; cada dia tem o seu cardápio, sem lotes.",
+  marmita: n=> n+" refeições fixas; cozinhe no domingo e na quinta e use em lotes.",
+  corrido: n=> n+" refeições de preparo rápido, para dias apertados.",
+  budget: n=> n+" refeições só com alimentos de custo menor.",
+  fora: n=> n+" refeições; no almoço, dica de como montar o prato por quilo."
 };
 const CDP_OBJ_TXT = {deficit:"Emagrecimento", manutencao:"Manutenção", superavit:"Hipertrofia"};
 /* ícones de cada refeição (só visual; aria-hidden) */
@@ -35,8 +38,10 @@ const CDP_ICO = {
   almoco: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',
   lanche: '<path d="M12 8c-3-2-7 0-7 5 0 4 3 7 5 7 1 0 1.5-.5 2-.5s1 .5 2 .5c2 0 5-3 5-7 0-5-4-7-7-5z"/><path d="M12 8c0-2 1-4 3-5"/>',
   jantar: '<path d="M5 3v5a3 3 0 0 0 6 0V3M8 3v18"/><path d="M16 3c-2 2-2.5 5-2.5 8h2.5v10"/>',
-  ceia:   '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'
+  ceia:   '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  manha:  '<circle cx="12" cy="14" r="4"/><path d="M12 5v2.5M5 9l1.8 1.8M19 9l-1.8 1.8M3 19h18"/>'
 };
+const CDP_RELOGIO = '<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
 const cdpIcone = slot => '<span class="cdp-ic" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">'+(CDP_ICO[slot] || CDP_ICO.almoco)+'</svg></span>';
 const CDP_GRUPOS = [["Proteínas",["prot"]],["Carboidratos e leguminosas",["carb","leg"]],["Frutas e vegetais",["fruit","veg"]],["Gorduras",["fat"]]];
 const CDP_SEM_META = '<div class="empty-note">Complete seu perfil e registre seu peso para ver o cardápio da sua meta.</div>';
@@ -48,7 +53,8 @@ export function normalizaCfg(settings){
   return {
     jeito: CDPE.STYLE[c.jeito] ? c.jeito : (r.vegetariano ? "veg" : "omni"),   // quem usava o antigo "Vegetariano" mantém a escolha
     rotina: CDPE.ROUT[c.rotina] ? c.rotina : "marmita",
-    restricoes: {lactose:!!r.lactose, gluten:!!r.gluten},
+    restricoes: Object.fromEntries(CDP_RESTR.map(i=> [i[0], !!r[i[0]]])),
+    nref: CDP_NREF.indexOf(Number(c.nref)) >= 0 ? Number(c.nref) : null,   // null = padrão da rotina
     trocas: CDPE.normalizaTrocas(c.trocas),
   };
 }
@@ -57,7 +63,8 @@ export function normalizaCfg(settings){
 function motorDe(e){
   const {kcalAlvo, macros, cfg} = e, p = e.perfil || {};
   return {kg:macros.proteina.g/macros.proteina.gkg, age:Number(p.idade)||30, kcalMeta:kcalAlvo, protG:macros.proteina.g,
-          style:cfg.jeito, rout:cfg.rotina, nolact:cfg.restricoes.lactose, nogluten:cfg.restricoes.gluten, trocas:cfg.trocas || []};
+          style:cfg.jeito, rout:cfg.rotina, nref:cfg.nref, trocas:cfg.trocas || [],
+          ...Object.fromEntries(CDP_RESTR.map(i=> [CDP_RESTR_MOTOR[i[0]], !!(cfg.restricoes && cfg.restricoes[i[0]])]))};
 }
 const nomeLimpo = (f)=> f.n.replace(/\*$/,"");
 const rotuloTroca = (n)=> n+" troca"+(n>1 ? "s" : "")+" feita"+(n>1 ? "s" : "");
@@ -97,7 +104,9 @@ export function montaVisao(e, h){
     }).join("");
     const dica = (ml.slot === "almoco" && dicas[cfg.rotina]) ? '<div class="cdp-tip">'+escapeHtml(dicas[cfg.rotina])+'</div>' : "";
     const pct = cur.tot.kcal ? Math.round(ml.m.kcal/cur.tot.kcal*100) : 0;
-    return '<section class="cdp-meal" data-slot="'+ml.slot+'"><header class="cdp-mh"><h3>'+cdpIcone(ml.slot)+'<span>'+escapeHtml(ml.name)+'</span></h3><span class="cdp-mt">'+num(ml.m.kcal,0)+' kcal · '+num(ml.m.P,0)+' g prot.</span></header>'+
+    const hr = CDPE.horarioDe(ml.slot, motor);
+    const hrHtml = hr ? '<span class="cdp-hr" title="Horário sugerido">'+CDP_RELOGIO+'<span class="sr-only">Horário sugerido: </span><time>'+hr+'</time></span>' : "";
+    return '<section class="cdp-meal" data-slot="'+ml.slot+'"><header class="cdp-mh"><h3>'+cdpIcone(ml.slot)+'<span>'+escapeHtml(ml.name)+'</span>'+hrHtml+'</h3><span class="cdp-mt">'+num(ml.m.kcal,0)+' kcal · '+num(ml.m.P,0)+' g prot.</span></header>'+
       '<div class="cdp-share"><div class="cdp-share-bar" aria-hidden="true"><i style="width:'+pct+'%"></i></div><span class="cdp-share-txt">'+pct+'% das calorias do dia</span></div>'+rows+dica+'</section>';
   }).join("");
 
@@ -110,7 +119,7 @@ export function montaVisao(e, h){
   const temRotulo = compra.some(s=> /\*$/.test(CDPE.FOODS[s.id].n));
 
   // avisos (texto sempre orientado ao que fazer, sem culpar a pessoa nem o app)
-  const avisos = [];
+  const avisos = CDPE.validaRestricoes(motor).avisos.slice();
   if(!kOk) avisos.push("Neste dia as calorias ficaram em "+Math.round(rK*100)+"% da meta: as porções seguem um teto realista (ex.: até 250 g de arroz por refeição). Se quiser chegar mais perto, divida em mais refeições ou some um lanche.");
   if(diasBaixos > 0) avisos.push("Nesta combinação, a proteína fica abaixo de 90% da meta em "+diasBaixos+" dia(s) da semana. Para chegar mais perto: troque a rotina (ex.: Marmita da semana), inclua uma fonte concentrada ("+(cfg.jeito==="vegan" ? "tofu, soja texturizada ou proteína vegetal em pó" : cfg.jeito==="veg" ? "ovos, iogurte ou whey, se fizerem parte da sua dieta" : "ovos, iogurte ou whey")+") ou converse com um(a) nutricionista.");
   const notaJeito = cfg.jeito==="vegan" ? "No vegano, atenção a proteína, ferro, cálcio, vitamina B12 e vitamina D: o cardápio cuida da proteína; o resto pede acompanhamento profissional." :
@@ -122,7 +131,8 @@ export function montaVisao(e, h){
 
   return {
     sub: escapeHtml(subt)+'. O objetivo segue o que você escolheu acima.',
-    rotdesc: escapeHtml(CDP_ROT_DESC[cfg.rotina]),
+    rotdesc: escapeHtml(CDP_ROT_DESC[cfg.rotina](CDPE.nRefeicoes(motor))),
+    nrefinfo: escapeHtml(cfg.rotina === "marmita" ? "Na Marmita da semana são sempre 5 refeições (os lotes dependem disso). Escolha outra rotina para mudar." : "Escolha de 3 a 6. Com menos refeições, cada uma fica maior e pode bater no teto de porção."),
     trocasinfo: escapeHtml(nTrocas ? rotuloTroca(nTrocas)+"." : "Troque qualquer alimento por uma alternativa recomendada.")+
                 (ignoradas ? " "+escapeHtml(ignoradas+(ignoradas > 1 ? " trocas guardadas não combinam" : " troca guardada não combina")+" com os filtros de agora e não "+(ignoradas > 1 ? "aparecem" : "aparece")+".") : ""),
     total: total,
@@ -131,10 +141,12 @@ export function montaVisao(e, h){
     compras: compraHtml+(temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "")+'<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.</div>',
     rodape:
       '<div class="cdp-note">Média da semana: '+num(media.k,0)+' kcal e '+num(media.P,0)+' g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div>'+
+      '<div class="cdp-note">Horários sugeridos como ponto de partida: 3 a 4 horas entre as refeições e o jantar com folga antes de dormir. Ajuste ao seu dia de trabalho e de treino.</div>'+
       (notaJeito ? '<div class="cdp-note">'+escapeHtml(notaJeito)+'</div>' : "")+
       (menor ? '<div class="cdp-note">Para menores de 18 anos o cardápio nunca usa déficit calórico e o ganho de massa é moderado.</div>' : "")+
       '<div class="cdp-note">Exemplo calculado a partir da sua meta, com porções de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde.</div>',
-    ligados: {jeito: cfg.jeito, rotina: cfg.rotina, dia: String(dia), lactose: !!cfg.restricoes.lactose, gluten: !!cfg.restricoes.gluten},
+    ligados: Object.assign({jeito: cfg.jeito, rotina: cfg.rotina, dia: String(dia), nref: String(CDPE.nRefeicoes(motor)), nrefFixo: cfg.rotina === "marmita"},
+      Object.fromEntries(CDP_RESTR.map(i=> [i[0], !!cfg.restricoes[i[0]]]))),
   };
 }
 
@@ -219,7 +231,7 @@ export function criaCardapio(ctx){
   const ultimo = {};       // último HTML aplicado em cada região (só troca o nó quando mudou)
 
   function cdpSalvar(cfg){
-    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, {cardapio:{jeito:cfg.jeito, rotina:cfg.rotina, restricoes:{lactose:cfg.restricoes.lactose, gluten:cfg.restricoes.gluten}, trocas:cfg.trocas || []}}));
+    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, {cardapio:{jeito:cfg.jeito, rotina:cfg.rotina, nref:cfg.nref || null, restricoes:Object.assign({}, cfg.restricoes), trocas:cfg.trocas || []}}));
   }
   const regiao = (el, nome)=> el.querySelector('[data-r="'+nome+'"]');
   const botao = (el, rot, v)=> el.querySelector('[data-cdp="'+rot+'"][data-v="'+v+'"]');
@@ -234,7 +246,8 @@ export function criaCardapio(ctx){
       '<div class="cdp-controls">'+
         '<div class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>'+grupo("Jeito de comer", CDP_JEITOS, "jeito")+'</div>'+
         '<div class="cdp-field"><span class="cdp-lbl">Rotina</span>'+grupo("Rotina", CDP_ROTINAS, "rotina")+'<span class="cdp-note" data-r="rotdesc"></span></div>'+
-        '<div class="cdp-field"><span class="cdp-lbl">Restrições</span>'+grupo("Restrições", CDP_RESTR, "restr")+'</div>'+
+        '<div class="cdp-field"><span class="cdp-lbl">Refeições por dia</span>'+grupo("Refeições por dia", CDP_NREF.map(n=> [String(n), n+" refeições"]), "nref")+'<span class="cdp-note" data-r="nrefinfo"></span></div>'+
+        '<div class="cdp-field cdp-field-restr"><span class="cdp-lbl">Restrições</span>'+grupo("Restrições", CDP_RESTR, "restr")+'</div>'+
         '<div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><span class="cdp-note" data-r="trocasinfo"></span></div>'+
       '</div>'+
       '<div class="cdp-days" role="group" aria-label="Dia da semana">'+dias+'</div>'+
@@ -272,6 +285,7 @@ export function criaCardapio(ctx){
     const v = montaVisao({kcalAlvo, macros, cfg, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: cdpDia}, h);
     troca(el, "sub", v.sub);
     troca(el, "rotdesc", v.rotdesc);
+    troca(el, "nrefinfo", v.nrefinfo);
     troca(el, "trocasinfo", v.trocasinfo);
     troca(el, "total", v.total);
     troca(el, "avisos", v.avisos);
@@ -281,6 +295,10 @@ export function criaCardapio(ctx){
     CDP_JEITOS.forEach(i=> liga(el, "jeito", i[0], v.ligados.jeito === i[0]));
     CDP_ROTINAS.forEach(i=> liga(el, "rotina", i[0], v.ligados.rotina === i[0]));
     CDP_RESTR.forEach(i=> liga(el, "restr", i[0], v.ligados[i[0]]));
+    CDP_NREF.forEach(n=>{
+      liga(el, "nref", String(n), v.ligados.nref === String(n));
+      const b = botao(el, "nref", String(n)); if(b && b.disabled !== v.ligados.nrefFixo) b.disabled = v.ligados.nrefFixo;
+    });
     for(let d = 0; d < 7; d++) liga(el, "dia", String(d), v.ligados.dia === String(d));
   }
 
@@ -356,6 +374,7 @@ export function criaCardapio(ctx){
       } else {
         if(act === "jeito") cfg.jeito = b.dataset.v;
         else if(act === "rotina") cfg.rotina = b.dataset.v;
+        else if(act === "nref"){ if(cfg.rotina === "marmita" || b.disabled) return; cfg.nref = Number(b.dataset.v) || null; }
         else if(act === "restr") cfg.restricoes[b.dataset.v] = !cfg.restricoes[b.dataset.v];
         cdpSalvar(cfg);
         ctx.redesenhaDieta();
