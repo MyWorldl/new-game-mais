@@ -18,7 +18,7 @@ function achProgressList(){
     "Quinzena Firme": P(eng.best, 14, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Dois Meses de Fogo": P(eng.best, 60, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Meio Ano de Constância": P(eng.best, 180, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Ano Inteiro": P(eng.best, 365, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Patente Praticante": P(ni.tierIndex, 2, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Atleta": P(ni.tierIndex, 5, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Campeão": P(ni.tierIndex, 7, "degraus de patente", "Você está na patente "+ni.tierName+"."),
-    "Primeira Medida": P(countMedicoesRegistradas(), 1, "medição"), "Olho no Progresso": P(countMedicoesRegistradas(), 10, "medições"),
+    "Primeira Medida": P(countMedicoesCompletas(), 1, "medição completa", "Conta só quando peso, cintura, quadril e pescoço estão preenchidos na mesma medição."), "Olho no Progresso": P(countMedicoesRegistradas(), 10, "medições"),
     "Registro Visual": P(countFotosRegistradas(), 1, "foto"), "Álbum do Progresso": P(countFotosRegistradas(), 5, "fotos"),
     "Mês Perfeito": P(countSemanasPerfeitas(), 4, "semanas perfeitas"), "Trimestre Impecável": P(countSemanasPerfeitas(), 12, "semanas perfeitas"),
     "Hábitos em Dia": P(countDiasComHabito(), 7, "dias com hábitos"), "Mês de Hábitos": P(countDiasComHabito(), 30, "dias com hábitos"),
