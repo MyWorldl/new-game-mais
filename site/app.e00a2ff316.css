@@ -2284,24 +2284,27 @@ html[data-loading="1"] :is(.card, .nivel-mini, .hero, .narrator-card, .callout, 
 }
 /* V2: com contrast-color() nativo, o texto sobre o destaque é escolhido pelo navegador */
 @supports (color: contrast-color(red)){ :root[data-skin-cc]{--accent-ink:contrast-color(var(--accent));} }
-/* C3: seletores com aparência própria (só ponteiro fino; no toque fica o seletor nativo do sistema) */
+/* C3: seletores com aparência própria — só ponteiro fino E só fora do Safari/WebKit.
+   No Safari 26+ o `appearance: base-select` é aceito, mas a lista de opções ficava invisível (opacity:0 nunca virava 1),
+   então lá fica o menu nativo do sistema, que sempre funciona (o JS marca <html data-wk> no Safari; `font: -apple-system-body` é um 2º cinto de segurança só do WebKit da Apple).
+   Mesmo fora do Safari a lista nasce VISÍVEL; a animação de entrada vem só de @starting-style. */
 @media (hover:hover) and (pointer:fine){
-  @supports (appearance: base-select){
-    select, ::picker(select){appearance:base-select;}
-    select{display:inline-flex; align-items:center; justify-content:space-between; gap:var(--sp-2);}
-    select::picker-icon{color:var(--muted); transition:rotate var(--dur-2) var(--ease);}
-    select:open::picker-icon{rotate:180deg;}
-    ::picker(select){
+  @supports (appearance: base-select) and (not (font: -apple-system-body)){
+    :root:not([data-wk]) select, :root:not([data-wk]) ::picker(select){appearance:base-select;}
+    :root:not([data-wk]) select{display:inline-flex; align-items:center; justify-content:space-between; gap:var(--sp-2);}
+    :root:not([data-wk]) select::picker-icon{color:var(--muted); transition:rotate var(--dur-2) var(--ease);}
+    :root:not([data-wk]) select:open::picker-icon{rotate:180deg;}
+    :root:not([data-wk]) ::picker(select){
       background:var(--surface-2); border:1px solid var(--line-strong); border-radius:var(--r-md); padding:var(--sp-1);
       box-shadow:var(--sh-3); margin-block:var(--sp-1); max-height:min(60vh,360px);
-      opacity:0; transform:translateY(-4px); transition:opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease), overlay var(--dur-2) allow-discrete, display var(--dur-2) allow-discrete;
+      opacity:1; transform:none; transition:opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease), overlay var(--dur-2) allow-discrete, display var(--dur-2) allow-discrete;
     }
-    ::picker(select):popover-open{opacity:1; transform:none;}
-    @starting-style{ ::picker(select):popover-open{opacity:0; transform:translateY(-4px);} }
-    select option{display:flex; align-items:center; gap:var(--sp-2); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-sm); color:var(--ink); font-size:var(--fs-sm); cursor:pointer;}
-    select option:hover, select option:focus-visible{background:var(--accent-soft);}
-    select option:checked{font-weight:700; color:var(--accent-fg,var(--accent));}
-    select option::checkmark{color:var(--accent-fg,var(--accent));}
+    :root:not([data-wk]) ::picker(select):not(:popover-open){opacity:0; transform:translateY(-4px);}
+    @starting-style{ :root:not([data-wk]) ::picker(select):popover-open{opacity:0; transform:translateY(-4px);} }
+    :root:not([data-wk]) select option{display:flex; align-items:center; gap:var(--sp-2); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-sm); color:var(--ink); font-size:var(--fs-sm); cursor:pointer;}
+    :root:not([data-wk]) select option:hover, :root:not([data-wk]) select option:focus-visible{background:var(--accent-soft);}
+    :root:not([data-wk]) select option:checked{font-weight:700; color:var(--accent-fg,var(--accent));}
+    :root:not([data-wk]) select option::checkmark{color:var(--accent-fg,var(--accent));}
   }
 }
 /* C4: folha inferior de registro (celular) */
@@ -2524,6 +2527,19 @@ button, a, summary, [role="button"], label, select{touch-action:manipulation;}
    ============================================================ */
 .foco-chips{display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-top:6px;}
 .foco-chip{font-size:var(--fs-xs); padding:6px var(--sp-3);}
+.foco-chip.foco-todo{flex:1 1 100%; display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; padding:12px var(--sp-4); min-height:var(--touch-min); border-width:2px; border-radius:var(--r-lg); font-size:var(--fs-base);}
+.foco-chip.foco-todo b{font-size:var(--fs-base); font-weight:800;}
+.foco-chip.foco-todo span{font-size:var(--fs-xs); font-weight:400; opacity:.85;}
+.foco-chip.foco-todo:not(.on){border-color:var(--accent-fg,var(--accent)); background:var(--accent-soft); color:var(--ink);}
+.foto-perfil-img{display:block; inline-size:100%; block-size:100%; object-fit:cover; border-radius:inherit; pointer-events:none;}
+.perfil-avatar.has-foto, .top-avatar.has-foto{overflow:hidden; padding:0;}
+.top-avatar.has-foto #top-avatar-ini{display:block; inline-size:100%; block-size:100%;}
+.top-avatar.has-foto{overflow:hidden;}
+.foto-edit{display:flex; gap:var(--sp-3); align-items:center; padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2);}
+.foto-edit-prev{inline-size:72px; block-size:72px; border-radius:50%; font-size:var(--fs-xl,1.5rem); overflow:hidden;}
+.foto-edit-txt{display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; flex:1 1 auto;}
+.foto-edit-acoes{display:flex; gap:var(--sp-2); flex-wrap:wrap; margin-top:var(--sp-1);}
+.foco-sep{flex:1 1 100%; font-size:var(--fs-xs); color:var(--muted); margin:2px 0 -2px;}
 .foco-msg{font-size:var(--fs-xs); color:var(--warn); min-height:1.2em; margin-top:var(--sp-1);}
 .foco-box{display:flex; gap:10px; flex-direction:column; margin-bottom:14px; padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2); font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.5;}
 .foco-box > .foco-top{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;}

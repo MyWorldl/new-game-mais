@@ -28,7 +28,7 @@ const VELHAS = ['Madeira', 'Ferro', 'Bronze', 'Prata', 'Ouro', 'Platina', 'Diama
     const m = await p.evaluate(() => {
       const sel = document.getElementById('p-atividade'); sel.value = 'moderado'; sel.dispatchEvent(new Event('change'));
       const md = document.querySelector('#modal-root .modal'); const mr = md.getBoundingClientRect(); const fora = [];
-      md.querySelectorAll('input,select,label,.seg,.modal-actions button').forEach(x => { const r = x.getBoundingClientRect(); if (r.right > mr.right + 1 || r.left < mr.left - 1) fora.push(x.id || x.tagName); });
+      md.querySelectorAll('input,select,label,.seg,.modal-actions button').forEach(x => { if (x.type === 'file') return; const r = x.getBoundingClientRect(); if (r.right > mr.right + 1 || r.left < mr.left - 1) fora.push(x.id || x.tagName); });
       return { fora, opt: sel.options[sel.selectedIndex].text, desc: document.getElementById('p-atividade-desc').textContent, sw: md.scrollWidth, cw: md.clientWidth };
     });
     t(w + ': pop-up de perfil sem campo fora da caixa', m.fora.length === 0 && m.sw <= m.cw + 1, JSON.stringify(m));

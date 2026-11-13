@@ -89,6 +89,7 @@ const PERFIL = { nomeCompleto: 'Teste', nomeUsuario: 't', sexo: 'M', idade: 30, 
     if (await p.locator('#ob-start').count()) { await p.click('#ob-start'); await p.waitForTimeout(300); }
     await p.fill('#ob-idade', '30');
     await p.evaluate(() => ['objetivo', 'experiencia', 'dias', 'local'].forEach(n => { const i = document.querySelector('input[name="ob-' + n + '"]'); if (i) i.closest('label').click(); }));
+    await p.evaluate(() => document.querySelector('#ob-foco .foco-todo').click());   // foco corporal é obrigatório no cadastro
     await p.click('#ob-next1'); await p.waitForTimeout(400);
     await p.fill('#ob-nome', 'Teste'); await p.fill('#ob-altura', '178'); await p.fill('#ob-peso', '82');
     await p.evaluate(() => { const s = document.getElementById('ob-sexo'); if (!s) return; if (s.tagName === 'SELECT') { s.selectedIndex = 1; s.dispatchEvent(new Event('change', { bubbles: true })); } else { const r = s.querySelector('input'); if (r) r.closest('label').click(); } });
