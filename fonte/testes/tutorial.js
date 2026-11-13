@@ -31,7 +31,7 @@ const PERFIL = { nomeCompleto: 'Teste', nomeUsuario: 't', sexo: 'M', idade: 30, 
   const geo = p => p.evaluate(() => {
     const pop = document.querySelector('.tour-pop'), spot = document.querySelector('.tour-spot');
     const r = pop.getBoundingClientRect(), s = spot.hidden ? null : spot.getBoundingClientRect();
-    return { t: document.getElementById('tour-t').textContent, pop: { top: r.top, bottom: r.bottom, left: r.left, right: r.right }, spot: s && { top: s.top, bottom: s.bottom }, vw: document.documentElement.clientWidth, vh: innerHeight };
+    return { t: document.getElementById('tour-t').textContent, pop: { top: r.top, bottom: r.bottom, left: r.left, right: r.right }, spot: s && { top: s.top, bottom: s.bottom, left: s.left, right: s.right }, vw: document.documentElement.clientWidth, vh: innerHeight };
   });
   const settings = p => p.evaluate(async () => { const db = await window.claude.use('db'); const s = await db.doc('config/settings').get(); return s.exists ? s.data() : null; });
 
@@ -52,7 +52,7 @@ const PERFIL = { nomeCompleto: 'Teste', nomeUsuario: 't', sexo: 'M', idade: 30, 
       const g = await geo(p);
       if (g.pop.top < 0 || g.pop.bottom > g.vh + 1 || g.pop.left < 0 || g.pop.right > g.vw + 1) fora.push(g.t);
       if (!g.spot) centro.push(g.t);
-      else if (!(g.pop.bottom <= g.spot.top + 1 || g.pop.top >= g.spot.bottom - 1) && g.spot.bottom - g.spot.top < g.vh * 0.6) sobre.push(g.t);
+      else if (!(g.pop.bottom <= g.spot.top + 1 || g.pop.top >= g.spot.bottom - 1 || g.pop.right <= g.spot.left + 1 || g.pop.left >= g.spot.right - 1) && g.spot.bottom - g.spot.top < g.vh * 0.6) sobre.push(g.t);
       if (k === 2) { await p.click('[data-tour="voltar"]'); await p.waitForTimeout(600); const g2 = await geo(p); t(`[${w}] Voltar volta um passo`, g2.t !== g.t); await p.click('[data-tour="prox"]'); await p.waitForTimeout(150); }
       if (k < n - 1) await p.click('[data-tour="prox"]');
     }

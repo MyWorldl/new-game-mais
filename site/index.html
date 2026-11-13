@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.f085575eb4.css">
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1220"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="stylesheet" href="app.82508b8500.css">
 <link rel="stylesheet" id="ng-nuvem-css" href="ng-nuvem.css"></head><body>
 <title>NG+ (New Game+)</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
@@ -408,6 +408,8 @@
 
   <!-- ================= CORPO ================= -->
   <section class="view" id="view-corpo" role="tabpanel" aria-labelledby="subtab-corpo" tabindex="-1" hidden>
+    <section class="corpo-kpis" id="corpo-kpis" aria-label="Resumo do corpo"></section>
+
     <div class="two-col">
       <div class="card">
         <div class="card-head"><h2>Nova medição</h2></div>
@@ -463,6 +465,11 @@
       </form>
       <div id="hab-resumo"></div>
       <div id="hab-grade"></div>
+    </div>
+
+    <div class="card" id="musculos-card">
+      <div class="card-head"><h2>Músculos da semana</h2><span class="hint">últimos 7 dias</span></div>
+      <div class="attrs-radar ck-radar" id="musculos-body"></div>
     </div>
 
     <div class="card">
@@ -986,6 +993,6 @@
 <script src="vendor-supabase.js"></script>
 <script src="ng-nuvem.js"></script>
 <script src="bff-runtime.js"></script>
-<script src="app.16ac1905fd.js"></script>
+<script src="app.51eb74995a.js"></script>
 
 </body></html>

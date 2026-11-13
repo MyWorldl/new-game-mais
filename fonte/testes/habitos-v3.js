@@ -10,7 +10,8 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     const { c, p } = await abre(b, w, 'dark');
     await p.setViewportSize({ width: w, height: 800 });
     const L = '[' + w + '] ';
-    await p.evaluate(() => document.getElementById('tab-corpo').click()); await p.waitForTimeout(1500);
+    await p.evaluate(() => { window.__hgViu = false; const el = document.getElementById('hab-grade'); new MutationObserver(() => { if (el.classList.contains('hg-anim')) window.__hgViu = true; }).observe(el, { attributes: true, attributeFilter: ['class'] }); });
+    await p.evaluate(() => document.getElementById('tab-corpo').click()); await p.waitForTimeout(1800);
     const hg = p.locator('#hab-grade');
     t(L + 'grade: continua com 4 linhas, 12 colunas, semana atual e melhor semana marcadas', (await hg.locator('.hg-row').count()) === 4 && (await hg.locator('.hg-cells').first().locator('.hg-c').count()) === 12 && (await hg.locator('.hg-c.now').count()) === 4 && (await hg.locator('.hg-c.best').count()) === 4);
     // % por hábito
@@ -27,7 +28,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     t(L + 'brilho: células com registro (níveis 2 e 3) têm brilho; a vazia não', (!gl.n3 || (gl.l3 && gl.l3 !== 'none')) && (gl.l2 === null || gl.l2 !== 'none') && (gl.l0 === null || gl.l0 === 'none'), JSON.stringify(gl));
     t(L + 'número dentro da célula continua (não depende só do brilho)', await p.evaluate(() => [...document.querySelectorAll('#hab-grade .hg-c.l2, #hab-grade .hg-c.l3')].every(e => /^\d$/.test(e.textContent.trim()))));
     // animação: roda na primeira vez e não repete ao regravar
-    const anim1 = await p.evaluate(() => document.getElementById('hab-grade').classList.contains('hg-anim'));
+    const anim1 = await p.evaluate(() => window.__hgViu === true);
     await p.evaluate(() => { document.getElementById('h-sono').value = '8'; document.getElementById('h-sono').dispatchEvent(new Event('input', { bubbles: true })); document.querySelector('#form-habitos button[type=submit]').click(); }); await p.waitForTimeout(1200);
     const anim2 = await p.evaluate(() => document.getElementById('hab-grade').classList.contains('hg-anim'));
     t(L + 'animação de acender: só na primeira vez (não repete ao salvar)', anim1 === true && anim2 === false, anim1 + '/' + anim2);

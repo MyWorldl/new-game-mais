@@ -64,8 +64,10 @@ function renderGradeHabitos(){
   }).join("");
   let mesAnt = -1;
   const meses = semanas.map(ini=>{ const m = Number(ini.slice(5,7)) - 1; const novo = m !== mesAnt; mesAnt = m; return '<span>'+(novo ? HAB_MES[m] : '')+'</span>'; }).join("");
-  box.classList.toggle("hg-anim", !hgJaAnimou);
+  const hgAnimar = !hgJaAnimou;
+  box.classList.toggle("hg-anim", hgAnimar);
   hgJaAnimou = true;
+  if(hgAnimar) setTimeout(()=> box.classList.remove("hg-anim"), 1500);   // não repete ao voltar para a aba
   box.innerHTML =
     '<h3 class="hg-h">Últimas 12 semanas</h3>'+
     '<p class="hg-sub">Cada quadradinho é uma semana; o número mostra em quantos dias você registrou. Registrar já conta, não há meta.'+

@@ -92,4 +92,15 @@ rep('<section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t"
 rep('function renderNivel(){\n', hoje+'function renderNivel(){\n')
 rep('renderTodayCard, renderChallenges','renderTodayCard, renderHojeMetricas, renderHojeMissoes, renderChallenges')
 
+# ===== Fase 7 (v3) — Corpo: KPIs com mini-gráficos e radar de músculos da semana =====
+corpo=open(base+'/ng-corpo.js',encoding='utf8').read()
+rep('<section class="view" id="view-corpo" role="tabpanel" aria-labelledby="subtab-corpo" tabindex="-1" hidden>\n    <div class="two-col">',
+    '<section class="view" id="view-corpo" role="tabpanel" aria-labelledby="subtab-corpo" tabindex="-1" hidden>\n'
+    '    <section class="corpo-kpis" id="corpo-kpis" aria-label="Resumo do corpo"></section>\n\n    <div class="two-col">')
+rep('<div class="card">\n      <div class="card-head"><h2>Evolução</h2></div>',
+    '<div class="card" id="musculos-card">\n      <div class="card-head"><h2>Músculos da semana</h2><span class="hint">últimos 7 dias</span></div>\n      <div class="attrs-radar ck-radar" id="musculos-body"></div>\n    </div>\n\n'
+    '    <div class="card">\n      <div class="card-head"><h2>Evolução</h2></div>')
+rep('function renderNivel(){\n', corpo+'function renderNivel(){\n')
+rep('corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderEvolucaoChart,','corpo: [renderCorpoKpis, renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderGradeHabitos, renderMusculosSemana, renderEvolucaoChart,')
+
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))
