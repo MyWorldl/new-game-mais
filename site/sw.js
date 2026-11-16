@@ -1,6 +1,6 @@
 /* Service worker do NG+ (New Game+) — só deixa o app abrir sem internet.
    Os DADOS ficam no IndexedDB (bff-runtime.js), não aqui. Para publicar uma versão nova, mude VERSAO. */
-const VERSAO = "ng-modular-22";
+const VERSAO = "ng-modular-23";
 const ARQUIVOS = ["./", "./bff-runtime.js", "./ng-nuvem.js", "./vendor-supabase.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./instalar.html", "./instalar.css", "./instalar.js", "./instalar-qr.svg", "./fonts/barlow-condensed-latin-500-normal.woff2", "./fonts/barlow-condensed-latin-600-normal.woff2", "./fonts/barlow-condensed-latin-700-normal.woff2", "./fonts/work-sans-latin-wght-normal.woff2", "./fonts/ibm-plex-mono-latin-500-normal.woff2", "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
 const ARQUIVOS_APP = ["./app.e00a2ff316.css", "./app.6b7f2f9db0.js", "./cardapio.323baba56e.js", "./ng-nuvem.css"]; /*build:app*/   // regravada por fonte/externaliza.py (nomes com hash do app.css e app.js)
 self.addEventListener("install", e=>{ e.waitUntil(caches.open(VERSAO).then(c=>c.addAll(ARQUIVOS.concat(ARQUIVOS_APP))).then(()=>self.skipWaiting())); });
@@ -8,6 +8,7 @@ self.addEventListener("activate", e=>{ e.waitUntil(caches.keys().then(ks=>Promis
 self.addEventListener("fetch", e=>{
   const r = e.request;
   if(r.method !== "GET" || new URL(r.url).origin !== location.origin) return;
+  if(/\.apk$/i.test(new URL(r.url).pathname)) return;   // download do app Android: direto da rede, sem passar pelo service worker (não guarda 4 MB nem trava o download)
   // rede primeiro (pega versão nova quando há internet); sem internet, usa o que está guardado
   // Só guarda respostas OK (nada de 404/500/redirecionamento); sem internet, devolve o que foi guardado.
   // O HTML de reserva vale apenas para navegação — um .js/.css/fonte que falha nunca vira HTML.
