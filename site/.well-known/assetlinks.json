@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.ngmais.android",
+      "sha256_cert_fingerprints": [
+        "90:0E:3D:36:F1:1D:08:A7:FF:83:E2:41:48:ED:C8:E5:70:BF:21:38:92:0B:ED:A3:A4:FA:73:A2:69:D7:AF:FE"
+      ]
+    }
+  }
+]
