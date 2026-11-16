@@ -1,6 +1,8 @@
 (function(){
 "use strict";
 document.documentElement.lang = "pt-BR";
+/* Safari/WebKit (inclui todos os navegadores do iPhone): marca o <html> para o CSS manter o menu NATIVO nos <select> (ver C3) */
+try{ const ua = navigator.userAgent; if(/AppleWebKit/.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Android|Firefox|FxiOS/.test(ua)) document.documentElement.setAttribute("data-wk",""); }catch(e){}
 
 /* v88 U2: mede as barras fixas para o scroll-padding do <html>. */
 (function medeBarrasFixas(){
@@ -643,6 +645,7 @@ const CATEGORY_ORDER = ["Peito, ombros e tríceps","Costas e bíceps","Pernas","
    O foco muda ONDE você coloca mais volume de treino. Não escolhe onde o corpo perde gordura.
    ============================================================ */
 const FOCOS = [
+  {id:"corpo_todo",  label:"Corpo todo (full body)", musc:[]},   // sem grupo extra: o volume segue equilibrado em todos os músculos
   {id:"gluteos",     label:"Glúteos",        musc:["gluteos"]},
   {id:"pernas",      label:"Pernas (coxas)", musc:["quadriceps","posterior"]},
   {id:"panturrilha", label:"Panturrilhas",   musc:["panturrilha"]},
@@ -653,6 +656,7 @@ const FOCOS = [
   {id:"abdomen",     label:"Abdômen",        musc:["abdomen"]},
 ];
 const FOCO_DICAS = {
+  corpo_todo:"Treino de corpo inteiro: o app mantém o volume equilibrado entre todos os grupos, sem meta extra em nenhum. Combine empurrar, puxar, pernas e core ao longo da semana.",
   gluteos:"Hip thrust e avanço pegam o glúteo em posições diferentes; use os dois ao longo da semana. No hip thrust, suba até alinhar quadril, joelho e ombro e aperte o glúteo no topo.",
   pernas:"Combine um exercício de quadríceps (agachamento, leg press, extensora) com um de posterior (stiff, flexora) para manter a coxa equilibrada.",
   panturrilha:"Faça em pé e sentado: o exercício em pé e o sentado exigem partes diferentes da panturrilha (gastrocnêmio e sóleo).",
@@ -680,17 +684,25 @@ function diasComFoco(musSet){
   });
 }
 function focoChipsHtml(sel){
-  return '<div class="foco-chips" role="group" aria-label="Foco corporal, até 2">'+FOCOS.map(f=>{
-    const on = sel.indexOf(f.id) >= 0;
-    return '<button type="button" class="muscle-chip foco-chip'+(on?' on':'')+'" data-foco="'+f.id+'" aria-pressed="'+on+'">'+f.label+'</button>';
-  }).join("")+'</div>';
+  const todo = FOCOS[0], on0 = sel.indexOf(todo.id) >= 0;
+  return '<div class="foco-chips" role="group" aria-label="Foco corporal: até 2 grupos, ou Corpo todo">'+
+    '<button type="button" class="muscle-chip foco-chip foco-todo'+(on0?' on':'')+'" data-foco="'+todo.id+'" aria-pressed="'+on0+'"><b>Corpo todo (full body)</b><span>Treino equilibrado, sem prioridade em um grupo</span></button>'+
+    '<div class="foco-sep" aria-hidden="true">ou escolha até 2 grupos para dar mais atenção</div>'+
+    FOCOS.slice(1).map(f=>{
+      const on = sel.indexOf(f.id) >= 0;
+      return '<button type="button" class="muscle-chip foco-chip'+(on?' on':'')+'" data-foco="'+f.id+'" aria-pressed="'+on+'">'+f.label+'</button>';
+    }).join("")+'</div>';
 }
 function wireFocoChips(root, sel, onMsg, onTouch){
   root.querySelectorAll(".foco-chip").forEach(b=> b.addEventListener("click", ()=>{
     const id = b.dataset.foco, i = sel.indexOf(id);
     if(i >= 0) sel.splice(i, 1);
-    else if(sel.length >= 2){ if(onMsg) onMsg("Escolha até 2 focos. Toque em um escolhido para trocar."); return; }
-    else sel.push(id);
+    else if(id === "corpo_todo"){ sel.length = 0; sel.push(id); }   // "corpo todo" é exclusivo: tira os grupos
+    else {
+      const t = sel.indexOf("corpo_todo"); if(t >= 0) sel.splice(t, 1);   // escolher um grupo tira o "corpo todo"
+      if(sel.length >= 2){ if(onMsg) onMsg("Escolha até 2 focos. Toque em um escolhido para trocar."); return; }
+      sel.push(id);
+    }
     root.querySelectorAll(".foco-chip").forEach(x=>{ const on = sel.indexOf(x.dataset.foco) >= 0; x.classList.toggle("on", on); x.setAttribute("aria-pressed", String(on)); });
     if(onMsg) onMsg("");
     if(onTouch) onTouch();
@@ -699,8 +711,12 @@ function wireFocoChips(root, sel, onMsg, onTouch){
 function focoBoxHtml(){
   const ids = focosDoPerfil();
   if(!ids.length){
-    return '<div class="foco-box" id="foco-box"><div class="foco-top"><div><b>Foco corporal'+tipBtn("foco")+'</b><span>Quer dar mais atenção a um grupo (glúteos, pernas, costas…)? Escolha até 2 e o app sobe a meta de séries nele, mostra uma dica e cria uma missão semanal.</span></div>'+
+    return '<div class="foco-box" id="foco-box"><div class="foco-top"><div><b>Foco corporal'+tipBtn("foco")+'</b><span>Escolha o seu foco: até 2 grupos (glúteos, pernas, costas…) para o app subir a meta de séries neles, mostrar uma dica e criar uma missão semanal, ou Corpo todo.</span></div>'+
       '<button type="button" class="btn small" data-foco-edit>Escolher foco</button></div></div>';
+  }
+  if(ids.indexOf("corpo_todo") >= 0){
+    return '<div class="foco-box" id="foco-box"><div class="foco-top"><div><b>Foco: Corpo todo (full body)'+tipBtn("foco")+'</b><span>O volume fica equilibrado entre todos os grupos, sem meta extra em nenhum.</span></div>'+
+      '<button type="button" class="btn small ghost" data-foco-edit>Mudar foco</button></div></div>';
   }
   const itens = ids.map(id=>{
     const f = FOCOS.find(x=> x.id === id);
@@ -712,6 +728,28 @@ function focoBoxHtml(){
   }).join("");
   return '<div class="foco-box" id="foco-box"><div class="foco-top"><div><b>Foco: '+focoNomes().join(" e ")+tipBtn("foco")+'</b><span>A meta de séries destes grupos está maior. O foco muda onde você coloca mais treino, não onde o corpo perde gordura.</span></div>'+
     '<button type="button" class="btn small ghost" data-foco-edit>Mudar foco</button></div>'+itens+'</div>';
+}
+/* escolha rápida do foco (conta antiga sem foco, ou "Mudar foco" no Treino): salva só o foco no perfil */
+function openFocoEscolha(){
+  if(!state.perfil) return;
+  const sel = focosDoPerfil().slice();
+  const body = document.createElement("div");
+  body.innerHTML = '<h2>Qual é o seu foco corporal?</h2>'+
+    '<div class="sub">Escolha até 2 grupos para dar mais atenção, ou Corpo todo (full body) para treinar tudo por igual. Dá para mudar quando quiser.</div>'+
+    focoChipsHtml(sel)+'<div class="foco-msg" id="foco-esc-msg" aria-live="polite"></div>'+
+    '<div class="foot-note u-err" id="foco-esc-erro" role="alert"></div>'+
+    '<div class="modal-actions"><button class="btn" id="foco-esc-cancel">Agora não</button><button class="btn primary" id="foco-esc-ok">Salvar foco</button></div>';
+  openModal(body);
+  wireFocoChips(body, sel, msg=>{ body.querySelector("#foco-esc-msg").textContent = msg; body.querySelector("#foco-esc-erro").textContent = ""; });
+  body.querySelector("#foco-esc-cancel").addEventListener("click", closeModal);
+  body.querySelector("#foco-esc-ok").addEventListener("click", ()=>{
+    if(!sel.length){ body.querySelector("#foco-esc-erro").textContent = "Escolha até 2 grupos ou Corpo todo."; return; }
+    const data = Object.assign({}, state.perfil, {focos: sel.slice(0,2)});
+    state.perfil = data;
+    closeModal(); render();
+    saveDoc("config/perfil", data);
+    showToast("Foco salvo.");
+  });
 }
 function missaoFoco(days){
   const ids = focosDoPerfil();
@@ -885,7 +923,7 @@ function volAdjPreviewHtml(plan){
 }
 (function setupFocoEdit(){
   const el = document.getElementById("volume-body");
-  if(el) el.addEventListener("click", e=>{ if(e.target.closest("[data-foco-edit]")) openPerfilEditor(); });
+  if(el) el.addEventListener("click", e=>{ if(e.target.closest("[data-foco-edit]")) openFocoEscolha(); });
 })();
 function renderVolumeAdjust(){
   const el = document.getElementById("volume-adjust");
@@ -2701,7 +2739,12 @@ function renderNavExtras(){
   if(g) g.textContent = navSaudacao();
   const av = document.getElementById("top-avatar"), ini = document.getElementById("top-avatar-ini");
   const p = state.perfil, n = navPrimeiroNome();
-  if(ini) ini.textContent = p ? perfilInitials(p.nomeCompleto) : "?";
+  if(ini){
+    const foto = p ? fotoPerfilValida(p.fotoPerfil) : null;
+    ini.textContent = "";
+    if(foto) ini.appendChild(fotoPerfilImg(foto)); else ini.textContent = p ? perfilInitials(p.nomeCompleto) : "?";
+    if(av) av.classList.toggle("has-foto", !!foto);
+  }
   if(av) av.setAttribute("aria-label", n ? "Abrir o perfil de "+n : "Abrir o perfil");
   navTitulo(visibleViewId());
   renderSideStreak();
@@ -3735,6 +3778,9 @@ function hasPerfectWeekEver(){
 
 /* contagens derivadas dos dados que o app já guarda (nada novo é gravado) para as conquistas extras */
 function countMedicoesRegistradas(){ return Object.keys(state.medicoes||{}).length; }
+/* medição COMPLETA = peso + cintura + quadril + pescoço (só o peso, como no cadastro, não conta) */
+function medicaoCompleta(m){ return !!m && m.pesoKg > 0 && m.cinturaCm > 0 && m.quadrilCm > 0 && m.pescocoCm > 0; }
+function countMedicoesCompletas(){ return Object.values(state.medicoes||{}).filter(medicaoCompleta).length; }
 function countFotosRegistradas(){ return Object.keys(state.fotos||{}).length; }
 function countDiasComHabito(){ return Object.values(state.checkins||{}).filter(c=> c && c.hab && Object.keys(c.hab).length>0).length; }
 function countDiasComCarga(){ return Object.values(state.checkins||{}).filter(c=> c && c.cargas && Object.keys(c.cargas).length>0).length; }
@@ -3781,7 +3827,7 @@ const ACHIEVEMENTS = [
   {nome:"Patente Praticante", desc:"Alcance a patente Praticante ou superior.",               check: ()=> computeNivelInfo().tierIndex>=2},
   {nome:"Patente Atleta",     desc:"Alcance a patente Atleta ou superior.",                   check: ()=> computeNivelInfo().tierIndex>=5},
   {nome:"Patente Campeão",    desc:"Alcance a patente Campeão ou superior.",                  check: ()=> computeNivelInfo().tierIndex>=7},
-  {nome:"Primeira Medida",    desc:"Registre sua primeira medição de peso ou medidas.",       check: ()=> countMedicoesRegistradas()>=1},
+  {nome:"Primeira Medida",    desc:"Registre sua primeira medição completa: peso e todas as medidas (cintura, quadril e pescoço).", check: ()=> countMedicoesCompletas()>=1},
   {nome:"Olho no Progresso",  desc:"Registre 10 medições ao longo da jornada.",               check: ()=> countMedicoesRegistradas()>=10},
   {nome:"Registro Visual",    desc:"Adicione sua primeira foto de progresso.",                check: ()=> countFotosRegistradas()>=1},
   {nome:"Álbum do Progresso", desc:"Guarde 5 fotos de progresso.",                            check: ()=> countFotosRegistradas()>=5},
@@ -3818,7 +3864,7 @@ function achProgressList(){
     "Quinzena Firme": P(eng.best, 14, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Dois Meses de Fogo": P(eng.best, 60, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Meio Ano de Constância": P(eng.best, 180, "dias de sequência", "Conta a sua melhor sequência até hoje."), "Ano Inteiro": P(eng.best, 365, "dias de sequência", "Conta a sua melhor sequência até hoje."),
     "Patente Praticante": P(ni.tierIndex, 2, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Atleta": P(ni.tierIndex, 5, "degraus de patente", "Você está na patente "+ni.tierName+"."), "Patente Campeão": P(ni.tierIndex, 7, "degraus de patente", "Você está na patente "+ni.tierName+"."),
-    "Primeira Medida": P(countMedicoesRegistradas(), 1, "medição"), "Olho no Progresso": P(countMedicoesRegistradas(), 10, "medições"),
+    "Primeira Medida": P(countMedicoesCompletas(), 1, "medição completa", "Conta só quando peso, cintura, quadril e pescoço estão preenchidos na mesma medição."), "Olho no Progresso": P(countMedicoesRegistradas(), 10, "medições"),
     "Registro Visual": P(countFotosRegistradas(), 1, "foto"), "Álbum do Progresso": P(countFotosRegistradas(), 5, "fotos"),
     "Mês Perfeito": P(countSemanasPerfeitas(), 4, "semanas perfeitas"), "Trimestre Impecável": P(countSemanasPerfeitas(), 12, "semanas perfeitas"),
     "Hábitos em Dia": P(countDiasComHabito(), 7, "dias com hábitos"), "Mês de Hábitos": P(countDiasComHabito(), 30, "dias com hábitos"),
@@ -7760,6 +7806,46 @@ function perfilInitials(nome){
   const last = parts.length>1 ? parts[parts.length-1][0] : "";
   return (first+last).toUpperCase();
 }
+/* ---- foto de perfil: reduzida no próprio aparelho (quadrado 256 px, JPEG) e guardada no documento config/perfil (campo fotoPerfil) ---- */
+const FOTO_PERFIL_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]{20,200000}$/;
+function fotoPerfilValida(v){ return typeof v === "string" && FOTO_PERFIL_RE.test(v) ? v : null; }
+function fotoPerfilImg(src){
+  const img = document.createElement("img");
+  img.src = src; img.alt = ""; img.decoding = "async"; img.draggable = false;
+  img.className = "foto-perfil-img";
+  return img;
+}
+/* mostra a foto (ou as iniciais) dentro de um avatar */
+function pintaAvatar(el, p, iniciais){
+  if(!el) return;
+  const foto = p ? fotoPerfilValida(p.fotoPerfil) : null;
+  el.classList.toggle("has-foto", !!foto);
+  el.textContent = "";
+  if(foto) el.appendChild(fotoPerfilImg(foto));
+  else el.textContent = iniciais;
+}
+function reduzFotoPerfil(file){
+  return new Promise((ok, falha)=>{
+    if(!file || !/^image\//.test(file.type || "")){ falha(new Error("tipo")); return; }
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = ()=>{
+      try{
+        const lado = Math.min(img.naturalWidth, img.naturalHeight);
+        if(!lado){ throw new Error("vazia"); }
+        const T = 256, cv = document.createElement("canvas"); cv.width = T; cv.height = T;
+        const cx = cv.getContext("2d");
+        cx.fillStyle = "#fff"; cx.fillRect(0, 0, T, T);
+        cx.drawImage(img, (img.naturalWidth - lado)/2, (img.naturalHeight - lado)/2, lado, lado, 0, 0, T, T);   // recorte quadrado centralizado
+        let q = .85, out = cv.toDataURL("image/jpeg", q);
+        while(out.length > 60000 && q > .4){ q -= .1; out = cv.toDataURL("image/jpeg", q); }
+        URL.revokeObjectURL(url);
+        out.length > 100000 || !fotoPerfilValida(out) ? falha(new Error("grande")) : ok(out);
+      }catch(e){ URL.revokeObjectURL(url); falha(e); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); falha(new Error("decodifica")); };
+    img.src = url;
+  });
+}
 function renderPerfilSummary(){
   const el = document.getElementById("perfil-summary");
   const header = document.getElementById("perfil-header-name");
@@ -7781,7 +7867,7 @@ function renderPerfilSummary(){
     metaEl.textContent = (p.nomeUsuario?("@"+p.nomeUsuario+" · "):"") + sexoLabel(p.sexo) + " · " + (lvl?lvl.label:"Sedentário");
   }
   if(avatarEl){
-    avatarEl.textContent = perfilInitials(p.nomeCompleto);
+    pintaAvatar(avatarEl, p, perfilInitials(p.nomeCompleto));
     const tierColor = "var(--t"+(computeNivelInfo().tierIndex+1)+")";
     avatarEl.style.borderColor = tierColor;
     avatarEl.style.color = tierColor;
@@ -7810,6 +7896,12 @@ function openPerfilEditor(){
     '<h2>Editar perfil</h2>'+
     '<div class="sub">Usado nos cálculos de IMC, RCQ, % de gordura e necessidades calóricas.</div>'+
     '<div class="grid u-gap12">'+
+      '<div class="foto-edit" id="p-foto-box"><div class="perfil-avatar foto-edit-prev" id="p-foto-prev" aria-hidden="true"></div>'+
+        '<div class="foto-edit-txt"><b>Foto de perfil <span class="skins-hint">— opcional</span></b>'+
+          '<span class="field-hint">Aparece no seu perfil e no topo do app. A foto é reduzida no seu aparelho e guardada só na sua conta.</span>'+
+          '<div class="foto-edit-acoes"><button type="button" class="btn small" id="p-foto-escolher">Escolher foto</button><button type="button" class="btn small ghost" id="p-foto-remover" hidden>Remover</button></div>'+
+          '<input type="file" id="p-foto-arq" accept="image/*" hidden>'+
+          '<div class="foco-msg" id="p-foto-msg" role="status" aria-live="polite"></div></div></div>'+
       '<label>Nome completo<input type="text" id="p-nome"></label>'+
       '<label>Nome de usuário<input type="text" id="p-usuario"></label>'+
       '<div class="field-row">'+
@@ -7825,7 +7917,7 @@ function openPerfilEditor(){
       '<label>Você é fisicamente ativo?<div class="seg u-mt2" id="p-seg-ativo"><button type="button" data-v="sim">Sim</button><button type="button" data-v="nao">Não</button></div></label>'+
       '<label id="p-nivel-wrap">Nível de atividade<select id="p-atividade"></select><span class="field-hint" id="p-atividade-desc" aria-live="polite"></span></label>'+
       '<label>Peso meta (kg) — opcional<input type="number" step="0.1" id="p-meta"></label>'+
-      '<div><div class="skins-label">Foco corporal <span class="skins-hint">— até 2, opcional'+tipBtn("foco")+'</span></div><div id="p-foco"></div><div class="foco-msg" id="p-foco-msg" aria-live="polite"></div></div>'+
+      '<div><div class="skins-label">Foco corporal <span class="skins-hint">— obrigatório: até 2, ou Corpo todo'+tipBtn("foco")+'</span></div><div id="p-foco"></div><div class="foco-msg" id="p-foco-msg" aria-live="polite"></div></div>'+
     '</div>'+
     '<div class="foot-note u-err" id="p-erro" role="alert"></div>'+
     '<div class="modal-actions"><button class="btn" id="p-cancel">Cancelar</button><button class="btn primary" id="p-save">Salvar perfil</button></div>';
@@ -7856,10 +7948,29 @@ function openPerfilEditor(){
     b.addEventListener("click", ()=>{ ativoVal = b.dataset.v==="sim"; syncAtivoUI(); });
   });
   syncAtivoUI();
+  let fotoSel = fotoPerfilValida(p.fotoPerfil);
+  const fotoPrev = body.querySelector("#p-foto-prev"), fotoRem = body.querySelector("#p-foto-remover"), fotoMsg = body.querySelector("#p-foto-msg"), fotoArq = body.querySelector("#p-foto-arq");
+  function syncFoto(){
+    pintaAvatar(fotoPrev, {fotoPerfil:fotoSel}, perfilInitials(body.querySelector("#p-nome").value || p.nomeCompleto));
+    fotoRem.hidden = !fotoSel;
+    body.querySelector("#p-foto-escolher").textContent = fotoSel ? "Trocar foto" : "Escolher foto";
+  }
+  body.querySelector("#p-foto-escolher").addEventListener("click", ()=> fotoArq.click());
+  fotoRem.addEventListener("click", ()=>{ fotoSel = null; fotoMsg.textContent = "Foto removida. Salve o perfil para confirmar."; syncFoto(); });
+  fotoArq.addEventListener("change", async ()=>{
+    const f = fotoArq.files && fotoArq.files[0]; fotoArq.value = "";
+    if(!f) return;
+    fotoMsg.textContent = "Preparando a foto…";
+    try{ fotoSel = await reduzFotoPerfil(f); fotoMsg.textContent = "Foto pronta. Salve o perfil para confirmar."; }
+    catch(e){ fotoMsg.textContent = "Não consegui usar esse arquivo. Tente uma foto JPG, PNG ou WebP."; }
+    syncFoto();
+  });
+  body.querySelector("#p-nome").addEventListener("input", ()=>{ if(!fotoSel) syncFoto(); });
+  syncFoto();
   const focoSel = focosDoPerfil(p).slice();
   const pFoco = body.querySelector("#p-foco");
   pFoco.innerHTML = focoChipsHtml(focoSel);
-  wireFocoChips(pFoco, focoSel, msg=>{ body.querySelector("#p-foco-msg").textContent = msg; });
+  wireFocoChips(pFoco, focoSel, msg=>{ body.querySelector("#p-foco-msg").textContent = msg; body.querySelector("#p-erro").textContent = ""; });
 
   body.querySelector("#p-cancel").addEventListener("click", closeModal);
   body.querySelector("#p-save").addEventListener("click", ()=>{
@@ -7877,6 +7988,11 @@ function openPerfilEditor(){
       body.querySelector("#p-altura").focus();
       return;
     }
+    if(!focoSel.length){
+      body.querySelector("#p-erro").textContent = "Escolha o seu foco corporal: até 2 grupos ou Corpo todo.";
+      const alvoF = body.querySelector("#p-foco .foco-chip"); if(alvoF){ alvoF.focus({preventScroll:true}); alvoF.scrollIntoView({block:"center", behavior:"auto"}); }
+      return;
+    }
     const data = {
       nomeCompleto: body.querySelector("#p-nome").value.trim() || (p.nomeCompleto||""),
       nomeUsuario: body.querySelector("#p-usuario").value.trim() || (p.nomeUsuario||""),
@@ -7890,6 +8006,7 @@ function openPerfilEditor(){
       criadoEm: p.criadoEm || todayISO(),
       focos: focoSel.slice(0,2),
     };
+    if(fotoSel) data.fotoPerfil = fotoSel;
     const expV = body.querySelector("#p-exp").value, diasV = body.querySelector("#p-dias").value, locV = body.querySelector("#p-local").value;
     if(expV) data.experiencia = expV;
     if(diasV) data.diasSemana = Number(diasV);
@@ -8374,7 +8491,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.7b150917bc.js";
+const CARDAPIO_URL = "./cardapio.323baba56e.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)
@@ -8750,6 +8867,7 @@ function validarCadastroPasso(passo, d){
     if(!d.experiencia) er.push({campo:"experiencia", msg:"Escolha sua experiência com treino."});
     if(!d.dias) er.push({campo:"dias", msg:"Escolha quantos dias por semana você quer treinar."});
     if(!d.local) er.push({campo:"local", msg:"Escolha onde você vai treinar."});
+    if(!Array.isArray(d.focos) || !d.focos.length) er.push({campo:"foco", msg:"Escolha o seu foco: até 2 grupos ou Corpo todo (full body)."});
   } else {
     const nome = String(d.nome || "").trim();
     if(!nome) er.push({campo:"nome", msg:"Diga como quer ser chamado(a)."});
@@ -8777,7 +8895,7 @@ function openOnboarding(){
   const draft = {
     nome:"", idade:"", objetivo:"", experiencia:"", dias:"", local:"",
     alturaCm:"", pesoKg:"", sexo:"", nivelAtividade:"leve",
-    cinturaCm:"", quadrilCm:"", pescocoCm:""
+    cinturaCm:"", quadrilCm:"", pescocoCm:"", focos:[]
   };
   let step = 0;
 
@@ -8819,6 +8937,7 @@ function openOnboarding(){
         grupo("experiencia", "Sua experiência com treino", "", cartoes("experiencia", OB_EXPERIENCIA, draft.experiencia))+
         grupo("dias", "Dias de treino por semana", "— quantos você realmente consegue", cartoes("dias", OB_DIAS, draft.dias, "cols5"))+
         grupo("local", "Onde você treina", "", cartoes("local", OB_LOCAL, draft.local))+
+        grupo("foco", "Qual é o seu foco corporal?", "— obrigatório", '<div id="ob-foco">'+focoChipsHtml(draft.focos)+'</div><div class="foco-msg" id="ob-foco-msg" aria-live="polite"></div>')+
       '</div>'+
       '<div class="foot-note u-err" id="ob-erro" role="alert"></div>'+
       '<div class="modal-actions"><button class="btn primary block" id="ob-next1">Continuar</button></div>';
@@ -8880,7 +8999,7 @@ function openOnboarding(){
     if(resumo) resumo.textContent = erros.length ? (erros.length === 1 ? "Falta ajustar 1 campo, marcado acima." : "Faltam ajustes em "+erros.length+" campos, marcados acima.") : "";
     if(erros.length){
       const c = erros[0].campo;
-      const alvo = body.querySelector("#ob-"+c) || body.querySelector("#ob-g-"+c+" input:checked") || body.querySelector("#ob-g-"+c+" input");
+      const alvo = body.querySelector("#ob-"+c) || body.querySelector("#ob-g-"+c+" input:checked") || body.querySelector("#ob-g-"+c+" input") || body.querySelector("#ob-g-"+c+" .foco-chip");
       if(c === "cintura" || c === "quadril" || c === "pescoco"){ const d = body.querySelector(".ob-opc"); if(d) d.open = true; }
       if(alvo){ alvo.focus({preventScroll:true}); alvo.scrollIntoView({block:"center", behavior:"auto"}); }
     }
@@ -8914,6 +9033,7 @@ function openOnboarding(){
         body.querySelectorAll('input[name="ob-'+nome+'"]').forEach(r=> r.addEventListener("change", ()=>{ draft[campo] = r.value; limpaErro(body, campo); }));
       });
       syncMenor();
+      wireFocoChips(body.querySelector("#ob-foco"), draft.focos, msg=>{ body.querySelector("#ob-foco-msg").textContent = msg; }, ()=> limpaErro(body, "foco"));
       body.querySelector("#ob-next1").addEventListener("click", ()=>{
         const erros = validarCadastroPasso(1, draft);
         mostrarErros(body, erros);
@@ -8984,7 +9104,7 @@ function finalizeOnboarding(draft){
     local: draft.local,
     pesoMetaKg: null,
     criadoEm: iso,
-    focos: [],
+    focos: Array.isArray(draft.focos) ? draft.focos.slice(0,2) : [],
   };
   const medicaoData = { data: iso, pesoKg: parseNumPt(draft.pesoKg) };
   [["cinturaCm","cinturaCm"],["quadrilCm","quadrilCm"],["pescocoCm","pescocoCm"]].forEach(([k])=>{
@@ -9017,11 +9137,18 @@ function renderPlanoPorque(){
   const hoje = document.getElementById("plano-porque-hoje"), treino = document.getElementById("plano-porque-treino");
   const pi = state.settings && state.settings.planoInicial;
   const ok = pi && Array.isArray(pi.porque) && pi.porque.length;
+  /* conta antiga sem foco corporal: o foco é obrigatório, então o Hoje pede a escolha até ela acontecer */
+  const semFoco = !!(state.perfil && !carregando && focosDoPerfil().length === 0);
   const titulo = ok ? "Seu plano: "+escapeHtml(pi.split)+" · "+pi.sessoes+" treino"+(pi.sessoes>1?"s":"")+" por semana" : "";
   if(hoje){
     const mostrar = ok && !pi.visto && !treinoConcluidoDesde(pi.criadoEm || "0000");
-    hoje.hidden = !mostrar;
-    if(mostrar){
+    hoje.hidden = !(mostrar || semFoco);
+    if(semFoco){
+      hoje.innerHTML = '<div class="eyebrow">Falta um passo</div>'+
+        '<h3 id="ppq-hoje-t">Escolha o seu foco corporal</h3>'+
+        '<p class="ppq-txt">Diga onde quer dar mais atenção (até 2 grupos) ou escolha Corpo todo (full body). Leva 10 segundos e ajusta as metas do seu treino.</p>'+
+        '<div class="ppq-acoes"><button type="button" class="btn small primary" data-ppq="foco">Escolher foco</button></div>';
+    } else if(mostrar){
       hoje.innerHTML = '<div class="eyebrow">Por que este plano</div>'+
         '<h3 id="ppq-hoje-t">'+titulo+'</h3>'+
         '<p class="ppq-txt">'+escapeHtml(pi.porque[0])+'</p>'+
@@ -9043,6 +9170,7 @@ document.addEventListener("click", (ev)=>{
   const b = ev.target.closest && ev.target.closest("[data-ppq]");
   if(!b) return;
   if(b.dataset.ppq === "ver"){ showTabAnimated("treino"); return; }
+  if(b.dataset.ppq === "foco"){ openFocoEscolha(); return; }
   if(b.dataset.ppq === "ok" && state.settings.planoInicial){
     state.settings = Object.assign({}, state.settings, {planoInicial:Object.assign({}, state.settings.planoInicial, {visto:true})});
     saveDoc("config/settings", state.settings);
@@ -10189,7 +10317,7 @@ function visibleViewId(){
 function preservandoRolagem(fn){
   const y = window.scrollY;
   try{ fn(); }
-  finally{ if(Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y); }
+  finally{ if(Math.abs(window.scrollY - y) > 1) (window.ngScrollRestaura || window.scrollTo.bind(window))(0, y); }   // "restaura" não desliga a guarda de rolagem (ver seguraRolagem)
 }
 function render(){
   preservandoRolagem(()=>{
@@ -10232,36 +10360,68 @@ window.addEventListener("resize", ()=>{
 });
 
 
-/* Segura a posição da página depois de um clique. Quando um clique redesenha a seção (ou os dados chegam da nuvem) e a página
-   encolhe por um instante, o navegador pode jogar a rolagem para o topo. Se isso acontecer logo depois de um clique em algo da
-   própria tela (não em navegação entre abas/atalhos) e sem a pessoa ter rolado, voltamos para onde ela estava. */
+/* Segura a posição da página quando NÃO foi a pessoa que rolou.
+   Safari/WebKit pula a página de dois jeitos: (1) no clique (mousedown) o foco vai para o elemento "focável" mais próximo — a seção da tela —
+   e o Safari pode rolar até ele; é por isso que clicar num botão (o Safari não dá foco a botões) ou no espaço entre os cartões "joga a tela para outro canto";
+   (2) um redesenho que encolhe a página por um instante. Aqui: lembramos o scrollY no pointerdown (antes de qualquer foco) e, se a página saltar
+   mais de 40 px dentro de 0,35 s sem a pessoa ter girado a roda, tocado e arrastado ou usado o teclado, devolvemos. Depois do clique, saltos para CIMA
+   (>120 px) também são desfeitos por 2,5 s. Rolagens pedidas pelo próprio app (scrollTo/scrollIntoView) desligam a guarda. */
 (function seguraRolagem(){
-  let alvo = null, ate = 0;
+  const sTo = window.scrollTo.bind(window);
+  let alvo = null, ate = 0, loop = false, yDown = null, ateDown = 0;
   const NAV = '[data-tab],[data-goto],[data-empty-go],[data-subtab],[data-go],a[href],.tab-btn,.cmdk-chip,.top-avatar,.top-icon';
+  const solta = ()=>{ alvo = null; yDown = null; };
+  const longe = (y)=> Math.abs(window.scrollY - y) > 40;
+  const subiu = (y)=> window.scrollY < y - 120;   // depois do clique só desfazemos salto para CIMA (a página encolheu); salto para baixo só na janela curta do toque
+  const folga = ()=> document.documentElement.scrollHeight - window.innerHeight;
+  // 1) antes do foco: onde a página estava
+  document.addEventListener("pointerdown", (e)=>{
+    alvo = null; yDown = null;
+    const t = e.target;
+    if(!t || t === document.documentElement || !t.closest || t.closest(NAV)) return;
+    yDown = window.scrollY; ateDown = performance.now() + 350;   // o foco acontece no mousedown, logo após o pointerdown
+  }, true);
+  // 2) depois do clique em algo da tela
   document.addEventListener("click", (e)=>{
     const t = e.target;
     if(!t || !t.closest || t.closest(NAV) || !t.closest(".view")) return;
-    alvo = window.scrollY; ate = performance.now() + 2500;
+    alvo = (yDown != null ? yDown : window.scrollY); ate = performance.now() + 2500;
     if(!loop){ loop = true; requestAnimationFrame(tick); }
   }, true);
   // a página pode encolher e só voltar a crescer alguns quadros depois (conteúdo montado em etapas): enquanto a
-  // janela de 2,5 s estiver aberta, a cada quadro devolve a rolagem se ela tiver despencado
-  let loop = false;
+  // janela de 2,5 s estiver aberta, a cada quadro devolve a rolagem se ela saltou
   function tick(){
     if(alvo == null || performance.now() > ate){ loop = false; return; }
-    if(window.scrollY < alvo - 120 && document.documentElement.scrollHeight - window.innerHeight >= alvo - 2) window.scrollTo(0, alvo);
+    if(subiu(alvo) && folga() >= alvo - 2) sTo(0, alvo);
     requestAnimationFrame(tick);
   }
-  const solta = ()=>{ alvo = null; };
-  ["wheel","touchmove","keydown","pointerdown"].forEach(ev=> addEventListener(ev, solta, {passive:true, capture:true}));   // pointerdown: arrastar a barra de rolagem também é rolagem da pessoa
+  ["wheel","touchmove","keydown","pointercancel"].forEach(ev=> addEventListener(ev, solta, {passive:true, capture:true}));   // a pessoa rolou: a guarda sai de cena
   addEventListener("scroll", ()=>{
+    const agora = performance.now();
+    if(yDown != null){
+      if(agora > ateDown) yDown = null;
+      else if(longe(yDown)){ sTo(0, yDown); return; }   // saltou logo depois do toque: volta
+    }
     if(alvo == null) return;
-    if(performance.now() > ate){ alvo = null; return; }
-    if(window.scrollY < alvo - 120){ const y = alvo; window.scrollTo(0, y); }   // salto brusco para cima (ex.: página encolheu por um instante): volta
+    if(agora > ate){ alvo = null; return; }
+    if(subiu(alvo)) sTo(0, alvo);
   }, {passive:true});
-  // navegação feita pelo próprio app (scrollIntoView/scrollTo) não deve ser desfeita
+  // rolagem feita pelo próprio app (scrollIntoView/scrollTo) não deve ser desfeita
   const sIV = Element.prototype.scrollIntoView;
-  Element.prototype.scrollIntoView = function(){ alvo = null; return sIV.apply(this, arguments); };
+  Element.prototype.scrollIntoView = function(){ solta(); return sIV.apply(this, arguments); };
+  window.ngScrollRestaura = sTo;
+  window.scrollTo = function(){ solta(); return sTo.apply(window, arguments); };
+  // focus() sem opções deixa de rolar a página quando o elemento JÁ está à vista (o Safari rola mesmo assim ao refazer a tela e devolver o foco ao botão).
+  // Elemento fora da tela continua sendo levado à vista (campo em erro, foco devolvido ao botão depois de fechar um pop-up).
+  const f0 = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function(o){
+    if(o !== undefined) return f0.call(this, o);
+    f0.call(this, {preventScroll:true});
+    try{
+      const r = this.getBoundingClientRect();
+      if(r.height > 0 && (r.bottom < 0 || r.top > window.innerHeight)) sIV.call(this, {block:/^(INPUT|TEXTAREA|SELECT)$/.test(this.tagName) ? "center" : "nearest", behavior:"auto"});
+    }catch(_){}
+  };
 })();
 
 /* cabeçalho que some ao rolar pra baixo e reaparece ao rolar pra cima — só em

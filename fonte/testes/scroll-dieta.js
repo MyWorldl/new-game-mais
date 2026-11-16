@@ -37,14 +37,14 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     const p = await c.newPage(); await p.goto(URL_); await p.waitForTimeout(1200);
     await p.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/perfil').set({ nomeCompleto: 'Teste', nomeUsuario: 't', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', pesoMetaKg: 80, experiencia: 'intermediario', local: 'academia', criadoEm: '2026-10-01' }); const x = new Date(); const hj = x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); await db.doc('medicoes/' + hj).set({ data: hj, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 }); });
     await p.reload(); await p.waitForTimeout(1800); await p.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); document.getElementById('tab-dieta').click(); }); await p.waitForTimeout(600);
-    const alvoY = await p.evaluate(() => { window.scrollTo(0, 700); const b = document.querySelector('#cardapio-body .cdp-day'); b.id = 'bt-salto'; b.addEventListener('click', () => setTimeout(() => window.scrollTo(0, 130), 40)); b.scrollIntoView({ block: 'center' }); return Math.round(scrollY); });
+    const alvoY = await p.evaluate(() => { window.scrollTo(0, 700); const b = document.querySelector('#cardapio-body .cdp-day'); b.id = 'bt-salto'; b.addEventListener('click', () => setTimeout(() => { document.scrollingElement.scrollTop = 130; }, 40)); b.scrollIntoView({ block: 'center' }); return Math.round(scrollY); });
     await p.waitForTimeout(250);
     const y0 = await p.evaluate(() => Math.round(scrollY));
     await p.evaluate(() => document.getElementById('bt-salto').click()); await p.waitForTimeout(500);
     const y1 = await p.evaluate(() => Math.round(scrollY));
     t('salto brusco para cima (a 130px do topo) depois do clique é desfeito', Math.abs(y1 - y0) <= 5 && y0 > 300, y0 + ' -> ' + y1);
     await p.evaluate(() => { window.scrollTo(0, 800); }); await p.waitForTimeout(150);
-    await p.evaluate(() => { const b = document.querySelector('#cardapio-body .cdp-day'); b.id = 'bt-salto2'; b.addEventListener('click', () => setTimeout(() => window.scrollTo(0, 130), 40)); });
+    await p.evaluate(() => { const b = document.querySelector('#cardapio-body .cdp-day'); b.id = 'bt-salto2'; b.addEventListener('click', () => setTimeout(() => { document.scrollingElement.scrollTop = 130; }, 40)); });
     await p.evaluate(() => document.getElementById('bt-salto2').click()); await p.mouse.wheel(0, -200); await p.waitForTimeout(500);
     const y2 = await p.evaluate(() => Math.round(scrollY));
     t('se a pessoa rola (roda do mouse) logo depois do clique, nada é desfeito', y2 <= 200, y2);

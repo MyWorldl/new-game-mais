@@ -40,7 +40,16 @@ async function abre(b, listar, acao, w = 400) {
   { const { c, p } = await abre(b, () => J({ ok: false, error: 'sem_permissao' }, 403), () => J({}));
     t('não administrador: o cartão fica oculto', !(await p.isVisible('#cfg-admin')));
     t('a consulta foi feita com o token da sessão', p.chamadas.length >= 1 && /^Bearer a\.b\.c$/.test(p.chamadas[0].auth || ''), JSON.stringify(p.chamadas[0]));
+    t('não administrador: nenhum dado de pedido no HTML', (await p.innerHTML('#cfg-admin-lista')).trim() === '' && !/maria|joao/i.test(await p.innerHTML('#cfg-admin')));
     t('sem erros de JS', p.errs.length === 0, p.errs.join('|')); await c.close(); }
+
+  { let perdeu = false;   // era administrador, perdeu a permissão: ao atualizar, o cartão some e a lista é apagada da tela
+    const { c, p } = await abre(b, () => (!perdeu ? J({ ok: true, pendentes: PEND, recentes: [] }) : J({ ok: false, error: 'sem_permissao' }, 403)), () => J({}));
+    t('antes: administrador vê o cartão com a lista', await p.isVisible('#cfg-admin') && (await p.$$('#cfg-admin-lista .ng-adm-item')).length === 2);
+    perdeu = true; await p.evaluate(() => document.getElementById('cfg-admin-atualiza').click()); await p.waitForTimeout(700);
+    t('depois do 403: cartão oculto', !(await p.isVisible('#cfg-admin')));
+    t('depois do 403: lista apagada do HTML', (await p.innerHTML('#cfg-admin-lista')).trim() === '' && !/maria|joao/i.test(await p.innerHTML('#cfg-admin')));
+    await c.close(); }
 
   { let lista = PEND.slice();
     const { c, p } = await abre(b, () => J({ ok: true, pendentes: lista, recentes: [] }), (corpo) => {

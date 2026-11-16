@@ -617,6 +617,7 @@
         '<li>Seu e-mail, usado só para entrar na conta.</li>' +
         '<li>O que você registra: perfil (nome, idade, sexo, altura, objetivo, experiência), treinos e cargas, dieta, medidas corporais, peso, conquistas e preferências.</li>' +
         '<li>Fotos de progresso, se você adicionar.</li>' +
+        '<li>Foto de perfil, se você adicionar: ela é reduzida no seu aparelho (256 px) e guardada só na sua conta; você troca ou remove quando quiser, em Editar perfil.</li>' +
         '<li><b>Se você ativar os lembretes:</b> o endereço de notificação do seu navegador (um código técnico), o horário que escolheu e o seu fuso horário.</li>' +
         '<li><b>Se você ativar o resumo por IA:</b> um resumo dos seus números de treino, enviado só quando você pedir (veja a seção própria abaixo).</li></ul>' +
       '<p>Medidas, peso e fotos do corpo são dados pessoais sensíveis (dados de saúde). Por isso, só os tratamos com o seu consentimento, que você dá ao entrar e usar o app.</p>' +
@@ -813,12 +814,20 @@
         '<button type="button" class="btn ghost" data-adm="recusar" aria-label="Recusar ' + esc(p.nome) + '">Recusar</button></div></div>';
     }).join("");
   }
+  /* esconde o cartão E apaga a lista da tela (nome e e-mail de quem pediu acesso não ficam no HTML de quem não administra) */
+  function admEsconde(){
+    var card = $("cfg-admin"); if (!card) return;
+    card.hidden = true;
+    var l = $("cfg-admin-lista"); if (l) l.innerHTML = "";
+    var c = $("cfg-admin-cnt"); if (c) c.textContent = "";
+    admMsg("");
+  }
   async function admAtualiza(silencioso){
     var card = $("cfg-admin"); if (!card || admBusy) return;
     if (navigator.onLine === false) { if (!silencioso) admMsg("Sem internet. Conecte-se para ver os pedidos."); return; }
     try {
       var r = await admChama("listar");
-      if (r.status === 403 || r.status === 401) { card.hidden = true; return; }   // não é administrador: o cartão não aparece
+      if (r.status === 403 || r.status === 401) { admEsconde(); return; }   // não é administrador: o cartão não aparece
       if (!r.j || !r.j.ok) { if (!silencioso) admMsg("Não consegui carregar os pedidos agora."); return; }
       card.hidden = false; admPinta(r.j); if (!silencioso) admMsg("");
     } catch(e){ if (!silencioso) admMsg("Não consegui carregar os pedidos agora."); }
@@ -841,6 +850,7 @@
       admBusy = false; await admAtualiza(true);
     });
     var tabc = $("tab-config"); if (tabc) tabc.addEventListener("click", function(){ admAtualiza(true); });
+    try { client.auth.onAuthStateChange(function(ev){ if (ev === "SIGNED_OUT") admEsconde(); }); } catch(e){}   // trocou de conta ou saiu: some na hora
     admAtualiza(true);
   }
 

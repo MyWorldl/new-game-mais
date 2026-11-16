@@ -887,7 +887,7 @@ function criaCardapio(ctx) {
       }
       ctx.tocaSom("tick");
       requestAnimationFrame(() => {
-        if (Math.abs(window.scrollY - yAntes) > 2) window.scrollTo(0, yAntes);
+        if (Math.abs(window.scrollY - yAntes) > 2) (window.ngScrollRestaura || window.scrollTo.bind(window))(0, yAntes);
       });
     });
   }

@@ -48,7 +48,12 @@ function renderNavExtras(){
   if(g) g.textContent = navSaudacao();
   const av = document.getElementById("top-avatar"), ini = document.getElementById("top-avatar-ini");
   const p = state.perfil, n = navPrimeiroNome();
-  if(ini) ini.textContent = p ? perfilInitials(p.nomeCompleto) : "?";
+  if(ini){
+    const foto = p ? fotoPerfilValida(p.fotoPerfil) : null;
+    ini.textContent = "";
+    if(foto) ini.appendChild(fotoPerfilImg(foto)); else ini.textContent = p ? perfilInitials(p.nomeCompleto) : "?";
+    if(av) av.classList.toggle("has-foto", !!foto);
+  }
   if(av) av.setAttribute("aria-label", n ? "Abrir o perfil de "+n : "Abrir o perfil");
   navTitulo(visibleViewId());
   renderSideStreak();

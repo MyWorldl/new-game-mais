@@ -52,12 +52,12 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   // ---------------- D) proteção contra salto ao topo
   await p.evaluate(() => { window.scrollTo(0, 900); });
   await p.waitForTimeout(300);
-  const alvo = await p.evaluate(() => { const b = document.querySelector('#analise-treino-body details.an-ex summary') || document.querySelector('#view-treino button'); b.id = 'alvo-salto'; b.addEventListener('click', () => setTimeout(() => window.scrollTo(0, 0), 60)); return Math.round(scrollY); });
+  const alvo = await p.evaluate(() => { const b = document.querySelector('#analise-treino-body details.an-ex summary') || document.querySelector('#view-treino button'); b.id = 'alvo-salto'; b.addEventListener('click', () => setTimeout(() => { document.scrollingElement.scrollTop = 0; }, 60)); return Math.round(scrollY); });
   await p.evaluate(() => document.getElementById('alvo-salto').scrollIntoView({ block: 'center' })); const y1 = await y(p);
   await p.click('#alvo-salto'); await p.waitForTimeout(700);
   t('Salto ao topo depois de um clique é desfeito (volta para onde estava)', Math.abs((await y(p)) - y1) <= 5 && y1 > 200, y1 + ' -> ' + (await y(p)));
   await p.evaluate(() => window.scrollTo(0, 900)); await p.waitForTimeout(200);
-  await p.evaluate(() => { document.getElementById('tab-dieta').addEventListener('click', () => setTimeout(() => window.scrollTo(0, 0), 60)); });
+  await p.evaluate(() => { document.getElementById('tab-dieta').addEventListener('click', () => setTimeout(() => { document.scrollingElement.scrollTop = 0; }, 60)); });
   await p.click('#tab-dieta'); await p.waitForTimeout(700);
   t('Trocar de aba continua indo para o topo normalmente (não é bloqueado)', (await y(p)) <= 5, await y(p));
   t('sem erros de JS (Treino)', p.errs.length === 0, p.errs.join('|')); await c.close();

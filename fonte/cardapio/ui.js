@@ -380,7 +380,7 @@ export function criaCardapio(ctx){
         ctx.redesenhaDieta();
       }
       ctx.tocaSom("tick");
-      requestAnimationFrame(()=>{ if(Math.abs(window.scrollY - yAntes) > 2) window.scrollTo(0, yAntes); });
+      requestAnimationFrame(()=>{ if(Math.abs(window.scrollY - yAntes) > 2) (window.ngScrollRestaura || window.scrollTo.bind(window))(0, yAntes); });
     });
   }
   setupCardapio();
