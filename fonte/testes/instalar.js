@@ -64,5 +64,18 @@ const txt = (p, s) => p.evaluate((s) => (document.querySelector(s) || {}).innerT
   ({ c, p } = await abre(b, { standalone: true })); t('aberto como app: "Pronto" e sem botão', /Pronto/.test(await txt(p, '#cfg-inst-info')) && await p.locator('#cfg-inst-btn').isHidden()); await c.close();
   // 9) Android já aberto como app: sem bloco do APK
   ({ c, p } = await abre(b, { ua: UA.android, standalone: true })); t('Android aberto como app: sem bloco do APK', /Pronto/.test(await txt(p, '#cfg-inst-info')) && await p.locator('#cfg-inst-apk').isHidden()); await c.close();
+  // 10) iPhone: nome curto, ícone 180 e telas de abertura existem e são imagens de verdade
+  { ({ c, p } = await abre(b, { ua: UA.ios }));
+    const h = await p.evaluate(async () => {
+      const m = (n) => (document.querySelector('meta[name="' + n + '"]') || {}).content || '';
+      const ic = document.querySelector('link[rel="apple-touch-icon"]'); const st = [...document.querySelectorAll('link[rel="apple-touch-startup-image"]')];
+      const img = async (u) => { const r = await fetch(u, { cache: 'no-store' }); const bl = await r.blob(); const bm = await createImageBitmap(bl); return { ok: r.ok, tipo: r.headers.get('content-type'), w: bm.width, h: bm.height }; };
+      const ico = ic ? await img(ic.getAttribute('href')) : null; const sp = []; for (const l of st) sp.push({ ...(await img(l.getAttribute('href'))), media: l.media });
+      return { titulo: m('apple-mobile-web-app-title'), cap: m('apple-mobile-web-app-capable'), ico, sp };
+    });
+    t('iPhone: título curto "NG+" e modo app (capable)', h.titulo === 'NG+' && h.cap === 'yes', JSON.stringify([h.titulo, h.cap]));
+    t('iPhone: apple-touch-icon é PNG 180x180', !!h.ico && h.ico.ok && /image\/png/.test(h.ico.tipo) && h.ico.w === 180 && h.ico.h === 180, JSON.stringify(h.ico));
+    t('iPhone: 12 telas de abertura, cada uma com o tamanho do aparelho (px = pt x escala)', h.sp.length === 12 && h.sp.every(x => { const m = /device-width: (\d+)px\) and \(device-height: (\d+)px\) and \(-webkit-device-pixel-ratio: (\d)/.exec(x.media); return x.ok && /image\/png/.test(x.tipo) && m && x.w === +m[1] * +m[3] && x.h === +m[2] * +m[3]; }), JSON.stringify(h.sp.map(x => [x.w, x.h])));
+    await c.close(); }
   await b.close(); console.log(`\n${ok} ok / ${bad} falhas`); process.exit(bad ? 1 : 0);
 })();
