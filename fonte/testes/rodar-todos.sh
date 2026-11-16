@@ -17,7 +17,7 @@ roda() {   # nome, comando...
   echo "=== $nome (rc=$rc)"; echo "$saida" | tail -2
   if [ $rc -ne 0 ] || echo "$saida" | grep -q '^FAIL'; then falhas=$((falhas+1)); echo "!!! $nome FALHOU"; echo "$saida" | grep '^FAIL' | head -5; fi
 }
-for t in reagenda scroll-dieta rolagem-render login-turnstile pedir-acesso admin-acesso relogin-inatividade como-estou-hoje tutorial lateral-foto-analise semana-casa banner-instalar treino-f1 ranking-series telas-dados paletas nav-acoes hoje-v3 habitos-v3 corpo-v3 perfil-v3 melhorias-n1 melhorias-n2 responsivo-n2 dieta-v3 cardapio-n3 treino-anel treino-f2 treino-f3 politica instalar fontes acessibilidade-sw atualizacao-sw; do
+for t in reagenda scroll-dieta rolagem-render login-turnstile espera-reenvio pedir-acesso admin-acesso relogin-inatividade como-estou-hoje tutorial lateral-foto-analise semana-casa banner-instalar treino-f1 ranking-series telas-dados paletas nav-acoes hoje-v3 habitos-v3 corpo-v3 perfil-v3 melhorias-n1 melhorias-n2 responsivo-n2 dieta-v3 cardapio-n3 treino-anel treino-f2 treino-f3 politica instalar fontes acessibilidade-sw atualizacao-sw; do
   roda "$t" node "$t.js"
 done
 TEMPO=900; roda auditoria-v3 node auditoria-v3.js http://localhost:8791; TEMPO=280   # auditoria final do redesign v3 (~7 min)

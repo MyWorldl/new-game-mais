@@ -40,13 +40,20 @@
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
   function igual(a, b){ try { return JSON.stringify(a) === JSON.stringify(b); } catch(e){ return false; } }
   function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  var K_ESPERA = "ng_otp_espera", ESPERA_SEG = 60;   // o Supabase só manda outro e-mail ao mesmo endereço depois de 60 s
+  function esperaDoErro(e){   // segundos que o servidor pediu para esperar (0 se o erro não for de limite)
+    var m = String((e && (e.message || e.error_description)) || ""), st = e && (e.status || e.code);
+    if (!(st === 429 || /rate limit|security purposes|too many/i.test(m))) return 0;
+    var x = /(\d+)\s*seconds?/i.exec(m), n = x ? +x[1] : ESPERA_SEG;
+    return Math.min(Math.max(n, 5), 300);
+  }
   function msgErro(e, contexto){
     var m = String((e && (e.message || e.error_description)) || e || "").toLowerCase(), st = e && (e.status || e.code);
     if (/failed to fetch|network|load failed|fetch/.test(m) || navigator.onLine === false) return "Sem conexão com a internet. Confira a rede e tente de novo.";
     if (/signups? not allowed|not allowed for otp|user not found/.test(m)) return "Este e-mail ainda não foi liberado no NG+. Toque em \u201cPedir acesso\u201d logo abaixo para solicitar.";
     if (/not authorized|email address not/.test(m)) return "O envio de e-mails ainda não está liberado para este endereço. Fale com quem administra o app.";
     if (/captcha/.test(m)) return "A verificação de segurança não passou. Aguarde o selo \u201cConcluído\u201d aparecer e tente de novo. Se não carregar, desative bloqueadores de anúncio para este site ou troque de rede.";
-    if (st === 429 || /rate limit|too many|seconds|security purposes/.test(m)) return "Muitos pedidos seguidos. Espere cerca de um minuto e tente de novo.";
+    if (st === 429 || /rate limit|too many|seconds|security purposes/.test(m)) { var sg = esperaDoErro(e); return sg ? "Muitos pedidos seguidos. Espere " + sg + " segundos e tente de novo." : "Muitos pedidos seguidos. Espere cerca de um minuto e tente de novo."; }
     if (contexto === "codigo" && /expired|invalid|token/.test(m)) return "Código inválido ou vencido. Confira os números ou peça um novo e-mail.";
     if (/invalid.*email|unable to validate email/.test(m)) return "Esse e-mail não parece válido. Confira e tente de novo.";
     return contexto === "codigo" ? "Não consegui validar o código agora. Tente de novo." : "Não consegui enviar o e-mail agora. Tente de novo em instantes.";
@@ -128,7 +135,7 @@
 
   function pedirLogin(){
     return new Promise(function(resolve){
-      var enviadoPara = null, cooldown = 0, tCool = null, concluido = false;
+      var enviadoPara = null, espAtiva = false, tCool = null, concluido = false;
       quandoDom(function(){
         injetaCss(); travaApp(true);
         var el = document.createElement("div");
@@ -144,6 +151,7 @@
               '<div id="ng-login-cod" hidden><label for="ng-login-c">Código do e-mail</label><input id="ng-login-c" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]*" aria-describedby="ng-login-m"></div>' +
               '<button class="ng-btn" type="submit" id="ng-login-ok">Enviar link e código</button>' +
               '<button class="ng-btn ghost" type="button" id="ng-login-reenv" hidden>Reenviar e-mail</button>' +
+              '<div class="ng-espera" id="ng-espera" role="progressbar" aria-label="Tempo de espera para pedir outro código" aria-valuemin="0" aria-valuemax="60" aria-valuenow="0" hidden><div class="ng-espera-trilho" aria-hidden="true"><span id="ng-espera-fill"></span></div><span id="ng-espera-txt"></span></div>' +
               '<button class="ng-btn ghost" type="button" id="ng-login-outro" hidden>Usar outro e-mail</button>' +
             '</form>' +
             '<form id="ng-pedir-f" novalidate hidden>' +
@@ -177,7 +185,7 @@
           p.textContent = "Por segurança, pedimos o login de novo depois de um tempo fora do app. Vamos enviar um novo código para o seu e-mail." + (navigator.onLine === false ? " Você está sem internet: conecte-se para entrar." : "");
         }
         function msg(t, erro){ m.textContent = t || ""; m.className = "ng-login-m" + (erro ? " err" : ""); }
-        function trava(b){ ok.disabled = b; reenv.disabled = b || cooldown > 0; }
+        function trava(b){ ocupado = b; ok.disabled = b || (!enviadoPara && espAtiva); reenv.disabled = b || espAtiva; }
         var tsId = null, tsToken = null, tsFalhou = false, tsPedeToque = false;
         var AVISO_CAIXA = "Marque a caixa \u201cConfirme que é humano\u201d acima e toque em enviar de novo.";
         carregaTurnstile().then(function(T){
@@ -196,12 +204,24 @@
           tsToken = null; tsPedeToque = false;
           try { if (window.turnstile && tsId !== null) { tsFalhou = false; window.turnstile.reset(tsId); } } catch(e){}
         }
-        function ticCool(){
+        /* ---- Espera entre pedidos de código. Analogia: a senha do caixa: a barra mostra quanto falta e o botão só libera quando ela
+           enche, assim ninguém fica apertando várias vezes (o servidor recusaria e a espera não encurtaria). O prazo fica salvo
+           por e-mail no aparelho, então recarregar a página não zera a espera. ---- */
+        var espBox = $("ng-espera"), espFill = $("ng-espera-fill"), espTxt = $("ng-espera-txt"), ocupado = false;
+        function espLer(e){ try { var o = JSON.parse(localStorage.getItem(K_ESPERA) || "null"); if (o && o.e === e && o.ate > Date.now()) return o; } catch(x){} return null; }
+        function espIniciar(e, seg){ try { localStorage.setItem(K_ESPERA, JSON.stringify({e: e, ate: Date.now() + seg * 1000, total: seg})); } catch(x){} espAtualiza(); }
+        function espAtualiza(){
           clearInterval(tCool);
-          reenv.textContent = cooldown > 0 ? "Reenviar e-mail (" + cooldown + " s)" : "Reenviar e-mail";
-          reenv.disabled = cooldown > 0;
-          if (cooldown <= 0) return;
-          tCool = setInterval(function(){ cooldown--; reenv.textContent = cooldown > 0 ? "Reenviar e-mail (" + cooldown + " s)" : "Reenviar e-mail"; reenv.disabled = cooldown > 0; if (cooldown <= 0) clearInterval(tCool); }, 1000);
+          var e = enviadoPara || inE.value.trim().toLowerCase(), o = e ? espLer(e) : null, antes = espAtiva;
+          espAtiva = !!o; espBox.hidden = !o;
+          ok.disabled = ocupado || (!enviadoPara && espAtiva);
+          reenv.disabled = ocupado || espAtiva;
+          if (!o) { if (antes && enviadoPara && !ocupado) msg("Pronto: se o e-mail não chegou, você já pode pedir outro código."); return; }
+          var rest = o.ate - Date.now(), seg = Math.max(1, Math.ceil(rest / 1000));
+          espFill.style.width = Math.max(0, Math.min(100, 100 - 100 * rest / (o.total * 1000))) + "%";
+          espTxt.textContent = "Aguarde " + seg + " s para pedir outro código";
+          espBox.setAttribute("aria-valuemax", String(o.total)); espBox.setAttribute("aria-valuenow", String(Math.round((o.total * 1000 - rest) / 1000)));
+          tCool = setInterval(espAtualiza, 250);
         }
         /* ---- Pedir acesso: quem ainda não foi liberado preenche o formulário e o Gabriel aprova em Configurações ---- */
         var fPed = $("ng-pedir-f"), h1 = $("ng-login-t"), pedirBtn = $("ng-login-pedir"), pedirAviso = $("ng-pedir-aviso"), fim = $("ng-ped-fim");
@@ -330,11 +350,15 @@
             var r = await client.auth.signInWithOtp({email: e, options: opts});
             tsNovo();
             if (r.error) throw r.error;
-            enviadoPara = e; cooldown = 30; ticCool();
+            enviadoPara = e; espIniciar(e, ESPERA_SEG);
             inE.readOnly = true; box.hidden = false; reenv.hidden = false; outro.hidden = false; ok.textContent = "Entrar com o código"; pedirAviso.hidden = true;
             p.textContent = "Enviamos um e-mail para " + e + ". Toque no link que veio nele ou digite aqui o código de números.";
             msg("E-mail enviado. Confira também a caixa de spam."); inC.focus();
-          } catch(err){ tsNovo(); msg(msgErro(err, "email"), true); }
+          } catch(err){
+            tsNovo(); var sg = esperaDoErro(err);
+            if (sg) { espIniciar(e, sg); msg("O último e-mail acabou de sair. Espere a barra encher para pedir outro código; o código que já chegou continua valendo."); }
+            else msg(msgErro(err, "email"), true);
+          }
           trava(false);
         }
         f.addEventListener("submit", async function(ev){
@@ -350,14 +374,15 @@
           } catch(err){ msg(msgErro(err, "codigo"), true); inC.select(); }
           trava(false);
         });
-        reenv.addEventListener("click", function(){ if (cooldown <= 0) enviar(); });
+        reenv.addEventListener("click", function(){ if (!espAtiva) enviar(); });
         outro.addEventListener("click", function(){
           enviadoPara = null; inE.readOnly = false; inE.value = ""; inC.value = ""; box.hidden = true; reenv.hidden = true; outro.hidden = true;
-          ok.textContent = "Enviar link e código"; clearInterval(tCool); msg(""); p.textContent = "Digite o e-mail liberado para você. Vamos enviar um link e um código de acesso — não precisa de senha."; pedirAviso.hidden = false; inE.focus();
+          ok.textContent = "Enviar link e código"; espAtualiza(); msg(""); p.textContent = "Digite o e-mail liberado para você. Vamos enviar um link e um código de acesso — não precisa de senha."; pedirAviso.hidden = false; inE.focus();
         });
         // login pelo link do e-mail (mesmo navegador) ou por outra aba
         client.auth.onAuthStateChange(function(ev, s){ if (s && (ev === "SIGNED_IN" || ev === "INITIAL_SESSION")) finaliza(s); });
         client.auth.getSession().then(function(r){ if (r && r.data && r.data.session) finaliza(r.data.session); }).catch(function(){});
+        inE.addEventListener("input", espAtualiza); espAtualiza();
         inE.focus();
       });
     });
