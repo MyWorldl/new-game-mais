@@ -1089,6 +1089,8 @@
   function pinta(){
     var info = $("cfg-inst-info"), btn = $("cfg-inst-btn"), pas = $("cfg-inst-passos"); if (!info || !btn) return;
     var pl = plataforma();
+    /* APK (app Android de verdade, sem selo de navegador): só no Android, fora de navegador embutido e se ainda não está instalado. */
+    var apk = $("cfg-inst-apk"); if (apk) apk.hidden = !(pl.android && !pl.embutido && !(instalado || jaInstalado()));
     if (instalado || jaInstalado()) {
       info.textContent = "Pronto: o NG+ está instalado e aberto como app neste aparelho. Para instalar em outro celular, abra Configurações lá.";
       btn.hidden = true; if (pas) pas.hidden = true; return;

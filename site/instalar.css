@@ -58,3 +58,5 @@ details p{padding-bottom:10px}
 [hidden]{display:none!important}
 @media (max-width:420px){ .hero{flex-direction:column;align-items:flex-start} .btn{inline-size:100%} .linha .btn{flex:1 1 100%} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+.opcao{margin:6px 0 10px;font:700 16px/1.3 "Barlow Condensed",system-ui,sans-serif;letter-spacing:.02em;color:var(--ink)}
+.painel .opcao:not(:first-child){margin-top:22px}

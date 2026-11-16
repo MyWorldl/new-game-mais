@@ -24,6 +24,7 @@ const txt = (p, s) => p.evaluate((s) => (document.querySelector(s) || {}).innerT
   // 1) computador, sem aviso do navegador
   let { c, p } = await abre(b);
   t('card "Instalar no celular" existe em Configurações', (await p.locator('#cfg-instalar').count()) === 1 && /Instalar no celular/.test(await txt(p, '#cfg-instalar h2')));
+  t('computador: bloco do APK escondido', await p.locator('#cfg-inst-apk').isHidden());
   t('sem aviso do navegador: botão "Como instalar" e passos fechados', (await txt(p, '#cfg-inst-btn')) === 'Como instalar' && await p.locator('#cfg-inst-passos').isHidden());
   await p.click('#cfg-inst-btn');
   t('passos abrem; aria-expanded=true; texto de computador', (await p.getAttribute('#cfg-inst-btn', 'aria-expanded')) === 'true' && /computador/i.test(await txt(p, '#cfg-inst-passos')), await txt(p, '#cfg-inst-passos'));
@@ -45,15 +46,21 @@ const txt = (p, s) => p.evaluate((s) => (document.querySelector(s) || {}).innerT
   t('recusou: mensagem amigável e volta para "Como instalar"', /fica para depois/.test(await txt(p, '#cfg-inst-info')) && (await txt(p, '#cfg-inst-btn')) === 'Como instalar' && !(await p.locator('#cfg-inst-btn').isDisabled())); await c.close();
   // 4) iPhone/Safari
   ({ c, p } = await abre(b, { ua: UA.ios })); await p.click('#cfg-inst-btn');
+  t('iPhone: bloco do APK escondido', await p.locator('#cfg-inst-apk').isHidden());
   let s = await txt(p, '#cfg-inst-passos'); t('iPhone Safari: Compartilhar → Adicionar à Tela de Início', /Compartilhar/.test(s) && /Adicionar à Tela de Início/.test(s) && /Safari/.test(await txt(p, '#cfg-inst-info')), s);
   if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#cfg-instalar', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id)); t('axe iPhone: sem violações', v.length === 0, v.join(',')); } await c.close();
   // 5) iPhone com Chrome: manda abrir no Safari
   ({ c, p } = await abre(b, { ua: UA.iosChrome })); await p.click('#cfg-inst-btn'); s = await txt(p, '#cfg-inst-passos'); t('iPhone fora do Safari: pede para abrir no Safari', /Abra este endereço no\s+Safari/i.test(s), s); await c.close();
   // 6) Android sem aviso
-  ({ c, p } = await abre(b, { ua: UA.android })); await p.click('#cfg-inst-btn'); s = await txt(p, '#cfg-inst-passos'); t('Android: ⋮ → Instalar app', /Instalar app/.test(s) && /Android/.test(s), s); await c.close();
+  ({ c, p } = await abre(b, { ua: UA.android })); await p.click('#cfg-inst-btn'); s = await txt(p, '#cfg-inst-passos'); t('Android: ⋮ → Instalar app', /Instalar app/.test(s) && /Android/.test(s), s);
+  t('Android: bloco do APK visível, com passos e link da release', await p.locator('#cfg-inst-apk').isVisible() && (await p.getAttribute('#cfg-inst-apk-btn', 'href')) === 'https://github.com/MyWorldl/new-game-mais/releases/latest/download/NG-plus.apk' && /Play Protect/.test(await txt(p, '#cfg-inst-apk-passos')) && /Baixar o app Android/.test(await txt(p, '#cfg-inst-apk-btn')), await txt(p, '#cfg-inst-apk'));
+  if (axeSrc) { await p.evaluate(axeSrc); const v = await p.evaluate(async () => (await axe.run('#cfg-instalar', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t('axe Android: card com APK sem violações', v.length === 0, v.join(',')); }
+  await c.close();
   // 7) navegador embutido (Instagram)
-  ({ c, p } = await abre(b, { ua: UA.insta })); await p.click('#cfg-inst-btn'); s = await txt(p, '#cfg-inst-passos'); t('app embutido: pede para abrir no navegador', /Abrir no navegador/i.test(s), s); await c.close();
+  ({ c, p } = await abre(b, { ua: UA.insta })); await p.click('#cfg-inst-btn'); s = await txt(p, '#cfg-inst-passos'); t('app embutido: pede para abrir no navegador', /Abrir no navegador/i.test(s), s); t('app embutido: bloco do APK escondido', await p.locator('#cfg-inst-apk').isHidden()); await c.close();
   // 8) já aberto como app
   ({ c, p } = await abre(b, { standalone: true })); t('aberto como app: "Pronto" e sem botão', /Pronto/.test(await txt(p, '#cfg-inst-info')) && await p.locator('#cfg-inst-btn').isHidden()); await c.close();
+  // 9) Android já aberto como app: sem bloco do APK
+  ({ c, p } = await abre(b, { ua: UA.android, standalone: true })); t('Android aberto como app: sem bloco do APK', /Pronto/.test(await txt(p, '#cfg-inst-info')) && await p.locator('#cfg-inst-apk').isHidden()); await c.close();
   await b.close(); console.log(`\n${ok} ok / ${bad} falhas`); process.exit(bad ? 1 : 0);
 })();
