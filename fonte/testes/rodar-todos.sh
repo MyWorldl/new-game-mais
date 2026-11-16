@@ -27,6 +27,8 @@ roda cardapio-sob-demanda node cardapio-sob-demanda.js http://localhost:8791
 roda cardapio-sim node cardapio-sim.mjs
 roda cardapio-modulo node cardapio-modulo.mjs
 roda cardapio-trocas-motor node cardapio-trocas.mjs
+roda cardapio-meus-motor node cardapio-meus.mjs
+roda cardapio-meus node cardapio-meus.js http://localhost:8791
 roda cardapio-trocas node cardapio-trocas.js http://localhost:8791
 roda unit-lembretes node --experimental-strip-types unit-lembretes.mjs
 roda unit-treinador node --experimental-strip-types unit-treinador.mjs
