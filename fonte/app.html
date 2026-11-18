@@ -4167,8 +4167,107 @@ function adaptarRotinaAoPerfil(base, o){
   });
   return rotina;
 }
+/* ============================================================
+   Situações (fonte/dados/planos.json, injetado no build): 60+, tempo curto, retorno após pausa e restrição articular.
+   São ADAPTAÇÕES do plano (trocas de exercício, menos séries), nunca tratamento. Rascunho sem revisão profissional.
+   ============================================================ */
+const BASE_PLANOS = /*@@BASE_PLANOS@@*/{};
+function situacoesDoPerfil(p){
+  const cfg = BASE_PLANOS || {};
+  const idade = p ? Math.floor(Number(p.idade)) : 0;
+  const idoso = !!(cfg.idoso && idade >= cfg.idoso.idadeMin);
+  const t = p ? Number(p.tempoMin) : 0;
+  const tempo = (t === 30 || t === 45) ? t : 60;
+  const retorno = !!(p && p.retorno === true);
+  const restricoes = (p && Array.isArray(p.restricoes) ? p.restricoes : []).filter(k=> cfg.restricoes && cfg.restricoes[k]);
+  return {idoso, tempo, retorno, restricoes, ativa: idoso || tempo < 60 || retorno || restricoes.length > 0};
+}
+function trocaSituacao(tab, nome, local){
+  if(!tab || !Object.prototype.hasOwnProperty.call(tab, nome)) return undefined;
+  const v = tab[nome];
+  if(v === null || typeof v === "string") return v;
+  if(v[local] !== undefined) return v[local];
+  return v["*"];
+}
+const REPS_SIMPLES = /^(\d+)-(\d+)$/;
+function aplicarSituacoes(rotina, o){
+  const cfg = BASE_PLANOS || {}, sit = o.sit;
+  if(!sit || !sit.ativa) return rotina;
+  const tabelas = [];
+  if(sit.idoso && cfg.idoso) tabelas.push(cfg.idoso.trocas);
+  sit.restricoes.forEach(k=> tabelas.push(cfg.restricoes[k].trocas));
+  const tcfg = cfg.tempo && cfg.tempo[String(sit.tempo)] || {};
+  const isolados = (cfg.tempo && cfg.tempo.prioridadeIsolados) || [];
+  DAYS.forEach(k=>{
+    const d = rotina[k]; if(!d || !d.ativo) return;
+    // 1) trocas (60+ e restrições); o que sai pode ser removido (null)
+    let lista = [];
+    d.exercicios.forEach(ex0=>{
+      const ex = Object.assign({}, ex0);
+      let removido = false;
+      tabelas.forEach(tab=>{
+        if(removido) return;
+        const novo = trocaSituacao(tab, ex.nome, o.local);
+        if(novo === undefined) return;
+        if(novo === null){ removido = true; return; }
+        const f = fichaDoApp(novo);
+        ex.nome = novo; delete ex.nota;
+        if(f) ex.musculos = f.musculos.slice();
+        const m = REPS_SIMPLES.exec(String(ex.reps || ""));
+        if(m && Number(m[1]) < 8) ex.reps = "8-12";   // troca vinda de série pesada: sem repetições baixas
+      });
+      if(!removido) lista.push(ex);
+    });
+    // 2) mesmo exercício duas vezes (por causa das trocas): junta as séries ANTES de aplicar os limites
+    { const vistos = {}, saida = [];
+      lista.forEach(ex=>{
+        if(vistos[ex.nome]){ vistos[ex.nome].series = Math.min(5, vistos[ex.nome].series + ex.series); return; }
+        vistos[ex.nome] = ex; saida.push(ex);
+      });
+      lista = saida; }
+    // 3) repetições do 60+ e do retorno; séries
+    lista.forEach(ex=>{
+      const simples = REPS_SIMPLES.test(String(ex.reps || ""));
+      if(sit.idoso && cfg.idoso){ if(simples) ex.reps = cfg.idoso.reps; ex.series = Math.min(ex.series, cfg.idoso.maxSeries); }
+      if(sit.retorno && cfg.retorno){
+        if(simples) ex.reps = cfg.retorno.reps;
+        ex.series = Math.max(cfg.retorno.minSeries, Math.round(ex.series * cfg.retorno.fatorSeries));
+      }
+      if(tcfg.maxSeries) ex.series = Math.min(ex.series, tcfg.maxSeries);
+    });
+    // 4) tempo: fica o que mais rende (compostos e músculos grandes antes dos isolados)
+    if(tcfg.maxExercicios && lista.length > tcfg.maxExercicios){
+      const nota = (ex, i)=> (isolados.indexOf(ex.nome) >= 0 ? 0 : 1 + ((ex.musculos || []).length > 1 ? 1 : 0)) * 100 - i;
+      const fica = new Set(lista.map((ex, i)=> ({ex, i, n: nota(ex, i)})).sort((a, b)=> b.n - a.n).slice(0, tcfg.maxExercicios).map(x=> x.ex));
+      lista = lista.filter(ex=> fica.has(ex));
+    }
+    lista.forEach(ex=>{ ex.metaReps = metaRepsDe(ex.series, ex.reps, ex.metaReps); });
+    d.exercicios = lista;
+  });
+  return rotina;
+}
+/* menor de idade: o que a base marca com idade mínima maior que a da pessoa vira a primeira alternativa permitida (ex.: remada curvada com barra → remada unilateral) */
+function adequarIdadeNaRotina(rotina, p){
+  const idade = p ? Math.floor(Number(p.idade)) : 0;
+  if(!(idade > 0 && idade < 18)) return rotina;
+  DAYS.forEach(k=>{
+    const d = rotina[k]; if(!d || !d.ativo) return;
+    const nomes = new Set(d.exercicios.map(e=> e.nome));
+    d.exercicios = d.exercicios.map(ex=>{
+      const f = fichaDoApp(ex.nome);
+      if(!f || f.idadeMin <= idade) return ex;
+      const alt = (EXERCISE_ALTERNATIVES[ex.nome] || []).find(a=> !nomes.has(a) && exercicioAdequadoAoPerfil(a, p));
+      if(!alt) return null;
+      nomes.add(alt);
+      const fa = fichaDoApp(alt);
+      return Object.assign({}, ex, {nome:alt, musculos: fa ? fa.musculos.slice() : ex.musculos, nota:undefined});
+    }).filter(Boolean);
+    d.exercicios.forEach(e=>{ if(e.nota === undefined) delete e.nota; });
+  });
+  return rotina;
+}
 /* mantém cada músculo dentro da faixa de volume do app: sobe até o MEV (só quem não é iniciante) e nunca passa do MRV */
-function equilibrarVolumeInicial(rotina, exp){
+function equilibrarVolumeInicial(rotina, exp, semSubir){
   const lista = ()=>{ const a=[]; DAYS.forEach(k=>{ const d=rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=> a.push(e)); }); return a; };
   const totais = ()=>{ const t={}; lista().forEach(e=> (e.musculos||[]).forEach(m=>{ t[m] = (t[m]||0) + (Number(e.series)||0); })); return t; };
   const muda = (e, delta)=>{ e.series += delta; e.metaReps = metaRepsDe(e.series, e.reps, e.metaReps); };
@@ -4183,7 +4282,7 @@ function equilibrarVolumeInicial(rotina, exp){
       muda(cand[0], -1);
     }
   };
-  if(exp !== "iniciante"){
+  if(exp !== "iniciante" && !semSubir){
     ["peito","costas","ombros","quadriceps","posterior"].forEach(m=>{
       for(let guard=0; guard<6; guard++){
         if((totais()[m]||0) >= MUSCLE_LANDMARKS[m].mev) break;
@@ -4200,6 +4299,7 @@ function equilibrarVolumeInicial(rotina, exp){
    split = null quando a rotina atual já não é a do plano inicial (aí a primeira frase é neutra). */
 function montaPorque(o){
   const {exp, split, n, pedidos, local, menor, objetivo} = o;
+  const maxSes = o.maxSes || EXP_SESSOES_MAX[exp];
   const porque = [];
   porque.push(!split
     ? "Sua rotina de hoje tem "+n+" treino"+(n>1?"s":"")+" por semana, com exercícios em cada um."
@@ -4211,14 +4311,23 @@ function montaPorque(o){
           ? "Upper/Lower em 4 dias: parte de cima e parte de baixo, cada uma 2× por semana, com descanso entre os dias parecidos."
           : "Com "+n+" sessões por semana, cada grupo principal (peito e ombros, costas e pernas) é treinado 2×, com mais volume por sessão.");
   if(pedidos > n){
-    porque.push(n >= EXP_SESSOES_MAX[exp]   // o nível é o que limita as sessões; senão é a rotina que ainda não tem exercícios nos outros dias
-      ? "Você escolheu "+pedidos+" dias, mas para o seu nível o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser."
+    porque.push(n >= maxSes   // o nível (ou a idade) é o que limita as sessões; senão é a rotina que ainda não tem exercícios nos outros dias
+      ? "Você escolheu "+pedidos+" dias, mas para o seu perfil o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser."
       : "Você escolheu "+pedidos+" dias e a rotina tem "+n+" com exercícios. Para chegar a "+pedidos+", preencha os outros dias em Editar rotina; até lá eles contam como descanso.");
   }
   if(local === "casa") porque.push("Os exercícios foram adaptados para o que você tem em casa (halteres, elásticos e banco).");
   if(local === "pouco") porque.push("Os exercícios foram adaptados para pouco equipamento: peso do corpo e, se tiver, um elástico.");
   if(menor) porque.push("Como você tem menos de 18 anos, o plano evita carga máxima: sem levantamento terra pesado e sempre com 8 ou mais repetições por série. Técnica antes de peso.");
   else if(exp === "iniciante") porque.push("Nas primeiras semanas, use cargas que deixem 2 a 3 repetições sobrando no fim da série e troque o terra pelo stiff, que é mais fácil de aprender.");
+  const sit = o.sit;
+  if(sit && sit.ativa){
+    const c = BASE_PLANOS || {};
+    if(sit.idoso && c.idoso) porque.push("Você tem 60 anos ou mais: séries limitadas a "+c.idoso.maxSeries+", de 10 a 15 repetições e sem exercícios que exigem muita carga na coluna. "+c.idoso.aviso);
+    if(sit.retorno && c.retorno) porque.push(c.retorno.nota);
+    const tn = c.tempo && c.tempo[String(sit.tempo)] && c.tempo[String(sit.tempo)].nota;
+    if(tn) porque.push(tn);
+    sit.restricoes.forEach(k=> porque.push(c.restricoes[k].aviso));
+  }
   porque.push(objetivo === "superavit" ? "Objetivo ganhar massa: aumente a carga aos poucos quando passar do topo da faixa de repetições e cuide da alimentação na aba Dieta."
     : objetivo === "deficit" ? "Objetivo emagrecer: o treino de força segue sendo a base; a diferença está na alimentação (aba Dieta) e em caminhar nos dias de descanso."
     : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
@@ -4229,8 +4338,10 @@ function planoInicial(p){
   const local = p && (p.local === "casa" || p.local === "pouco") ? p.local : "academia";
   const menor = !!(p && menorDeIdade(p.idade));
   const objetivo = p && (p.objetivo === "superavit" || (p.objetivo === "deficit" && !menor)) ? p.objetivo : "manutencao";   // F3: menor de 18 nunca recebe texto de emagrecimento
+  const sit = situacoesDoPerfil(p);
+  const maxSes = sit.idoso && BASE_PLANOS.idoso ? Math.min(EXP_SESSOES_MAX[exp], BASE_PLANOS.idoso.maxSessoes) : EXP_SESSOES_MAX[exp];
   const pedidos = Math.max(2, Math.min(6, Math.round(Number(p && p.diasSemana)) || EXP_SESSOES_MAX[exp]));
-  const n = Math.min(pedidos, EXP_SESSOES_MAX[exp]);
+  const n = Math.min(pedidos, maxSes);
   let base, split;
   if(n <= 3){
     split = "Full Body";
@@ -4249,9 +4360,10 @@ function planoInicial(p){
     split = "A–F (Peito, Costas e Pernas 2×)";
     base = buildPPLRotina();
   }
-  const rotina = equilibrarVolumeInicial(adaptarRotinaAoPerfil(base, {local, menor, exp}), exp);
-  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo});
-  return {rotina, split, sessoes:n, exp, local, porque};
+  const adaptada = adequarIdadeNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), p);
+  const rotina = equilibrarVolumeInicial(aplicarSituacoes(adaptada, {local, sit}), exp, sit.idoso || sit.retorno || sit.tempo < 60);
+  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes});
+  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit};
 }
 
 /* v98: a rotina inicial vem do perfil (experiência, dias, equipamento, objetivo e idade). Sem perfil: Full Body 3× (o que o app recomenda para iniciantes). */
@@ -10651,6 +10763,12 @@ function openPerfilEditor(){
         '<label>Dias de treino<select id="p-dias"><option value="">Não informado</option>'+OB_DIAS.map(o=>'<option value="'+o.v+'">'+o.t+' por semana</option>').join("")+'</select></label>'+
       '</div>'+
       '<label>Onde treina<select id="p-local"><option value="">Não informado</option>'+OB_LOCAL.map(o=>'<option value="'+o.v+'">'+o.t+'</option>').join("")+'</select></label>'+
+      '<div class="field-row">'+
+        '<label>Tempo por treino<select id="p-tempo"><option value="">Não informado</option><option value="30">Cerca de 30 min</option><option value="45">Cerca de 45 min</option><option value="60">60 min ou mais</option></select></label>'+
+        '<label>Voltando de uma pausa?<select id="p-retorno"><option value="">Não informado</option><option value="nao">Não</option><option value="sim">Sim, parei há semanas</option></select></label>'+
+      '</div>'+
+      '<div><div class="skins-label" id="p-restr-lbl">Restrição articular <span class="skins-hint">— opcional. Adapta o plano; não é tratamento. Com dor, procure um profissional.</span></div><div class="seg u-mt2" id="p-restr" role="group" aria-labelledby="p-restr-lbl">'+Object.keys((BASE_PLANOS && BASE_PLANOS.restricoes) || {}).map(k=>'<button type="button" data-k="'+k+'" aria-pressed="false">'+escapeHtml(BASE_PLANOS.restricoes[k].rotulo)+'</button>').join("")+'</div></div>'+
+      '<div id="p-refazer-wrap"><div class="seg u-mt2"><button type="button" id="p-refazer" aria-pressed="false">Refazer minha rotina</button></div><span class="field-hint">Ligado: ao salvar, a rotina atual é substituída por um plano novo com estas opções.</span></div>'+
       '<label>Você é fisicamente ativo?<div class="seg u-mt2" id="p-seg-ativo"><button type="button" data-v="sim">Sim</button><button type="button" data-v="nao">Não</button></div></label>'+
       '<label id="p-nivel-wrap">Nível de atividade<select id="p-atividade"></select><span class="field-hint" id="p-atividade-desc" aria-live="polite"></span></label>'+
       '<label>Peso meta (kg) — opcional<input type="number" step="0.1" id="p-meta"></label>'+
@@ -10666,6 +10784,14 @@ function openPerfilEditor(){
   body.querySelector("#p-exp").value = p.experiencia || "";
   body.querySelector("#p-dias").value = p.diasSemana ? String(p.diasSemana) : "";
   body.querySelector("#p-local").value = p.local || "";
+  body.querySelector("#p-tempo").value = p.tempoMin ? String(p.tempoMin) : "";
+  body.querySelector("#p-retorno").value = p.retorno === true ? "sim" : (p.retorno === false ? "nao" : "");
+  const restrSel = new Set(Array.isArray(p.restricoes) ? p.restricoes : []);
+  function syncRestrUI(){ body.querySelectorAll("#p-restr button").forEach(b=>{ const on = restrSel.has(b.dataset.k); b.classList.toggle("active", on); b.setAttribute("aria-pressed", on ? "true" : "false"); }); }
+  body.querySelectorAll("#p-restr button").forEach(b=> b.addEventListener("click", ()=>{ if(restrSel.has(b.dataset.k)) restrSel.delete(b.dataset.k); else restrSel.add(b.dataset.k); syncRestrUI(); }));
+  ["#p-tempo","#p-retorno"].forEach(id=> body.querySelector(id).addEventListener("change", ()=>{ }));
+  body.querySelector("#p-refazer").addEventListener("click", e=>{ const b = e.currentTarget, on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on ? "true" : "false"); b.classList.toggle("active", on); });
+  syncRestrUI();
   body.querySelector("#p-altura").value = p.alturaCm;
   body.querySelector("#p-meta").value = p.pesoMetaKg || "";
   const sel = body.querySelector("#p-atividade");
@@ -10748,8 +10874,15 @@ function openPerfilEditor(){
     if(expV) data.experiencia = expV;
     if(diasV) data.diasSemana = Number(diasV);
     if(locV) data.local = locV;
+    const tV = Number(body.querySelector("#p-tempo").value), rV = body.querySelector("#p-retorno").value;
+    if(tV === 30 || tV === 45 || tV === 60) data.tempoMin = tV;
+    if(rV === "sim") data.retorno = true; else if(rV === "nao") data.retorno = false;
+    const restrOk = Array.from(restrSel).filter(k=> BASE_PLANOS.restricoes && BASE_PLANOS.restricoes[k]);
+    if(restrOk.length) data.restricoes = restrOk;
+    const refazer = body.querySelector("#p-refazer").getAttribute("aria-pressed") === "true";
     state.perfil = data;
     ajustarRotinaExemplo();
+    if(refazer){ state.rotinaIsExample = true; aplicarPlanoInicial(data, todayISO()); }
     closeModal();
     render();
     saveDoc("config/perfil", data);
@@ -11877,7 +12010,9 @@ function planoPorqueAtual(){
   const pedidos = Math.max(2, Math.min(6, Math.round(Number(p.diasSemana)) || n));
   const local = p.local === "casa" || p.local === "pouco" ? p.local : "academia";
   const split = mesmo ? pi.split : null;
-  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo})};
+  const sit = situacoesDoPerfil(p);
+  const maxSes = sit.idoso && BASE_PLANOS.idoso ? Math.min(EXP_SESSOES_MAX[p.experiencia], BASE_PLANOS.idoso.maxSessoes) : EXP_SESSOES_MAX[p.experiencia];
+  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes})};
 }
 function renderPlanoPorque(){
   const hoje = document.getElementById("plano-porque-hoje"), treino = document.getElementById("plano-porque-treino");
@@ -13201,7 +13336,7 @@ function resumoParaTreinador(){
   };
 }
 window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
-try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque, filtraAlternativas, exercicioAdequadoAoPerfil, BASE_EXERCICIOS}; }catch(e){}
+try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque, filtraAlternativas, exercicioAdequadoAoPerfil, BASE_EXERCICIOS, BASE_PLANOS, situacoesDoPerfil, fichaDoApp, MUSCLE_LANDMARKS}; }catch(e){}
 })();
 </script>
 

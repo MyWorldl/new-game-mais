@@ -1,6 +1,7 @@
 {
  "versao": 1,
  "atualizado": "2026-11-18",
+ "conferido": "2026-11-18: idade/nível/evidência conferidos ficha a ficha contra os documentos do projeto",
  "aviso": "Rascunho sem revisão profissional (CREF). idadeMin/nivelMin são PROPOSTAS. evidencia: ✔ direta, ◐ indireta/parcial, ✖ não sustentada, ? sem fonte, null = ainda não conferida na migração.",
  "exercicios": [
   {
@@ -18,7 +19,13 @@
     "academia"
    ],
    "evidencia": "✔",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Maeo et al. 2021, flexora sentada vs deitada (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/33009197/"
+    }
+   ]
   },
   {
    "id": "posterior-flexora-deitada",
@@ -35,7 +42,13 @@
     "academia"
    ],
    "evidencia": "✔",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Maeo et al. 2021, flexora sentada vs deitada (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/33009197/"
+    }
+   ]
   },
   {
    "id": "posterior-flexora-em-pe-unilateral",
@@ -51,7 +64,7 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -70,7 +83,14 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "obs": "A ficha propõe intermediário e idade a definir; mantido iniciante/13 porque é o substituto do terra para menores e iniciantes no app. Revisor decide.",
+   "fontes": [
+    {
+     "t": "Ebben 2009, ativação do posterior em exercícios (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/19417230/"
+    }
+   ]
   },
   {
    "id": "posterior-stiff-halteres",
@@ -86,13 +106,14 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
+   "evidencia": "◐",
    "foraPlanoInicial": false
   },
   {
    "id": "posterior-stiff-unilateral",
    "nomesApp": [
-    "Stiff unilateral com halter"
+    "Stiff unilateral com halter",
+    "Stiff unilateral sem peso"
    ],
    "nome": "Stiff unilateral com halter",
    "musculos": [
@@ -105,8 +126,14 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Ebben 2009, ativação do posterior em exercícios (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/19417230/"
+    }
+   ]
   },
   {
    "id": "posterior-nordic",
@@ -123,7 +150,22 @@
     "pouco"
    ],
    "evidencia": "✔",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "obs": "Evidência ✔ para prevenção de lesão e comprimento do fascículo; ◐ para hipertrofia. Iniciantes só versão assistida. Dose a definir.",
+   "fontes": [
+    {
+     "t": "Bourne et al. 2017, Nordic e extensão de quadril (ACU)",
+     "u": "https://acuresearchbank.acu.edu.au/item/8q534/impact-of-the-nordic-hamstring-and-hip-extension-exercises-on-hamstring-architecture-and-morphology-implications-for-injury-prevention"
+    },
+    {
+     "t": "van Dyk et al. 2019, meta-análise do Nordic (BJSM)",
+     "u": "https://bjsm.bmj.com/content/53/21/1362.info"
+    },
+    {
+     "t": "Soga et al. 2021, Nordic inclinado (JSSM)",
+     "u": "https://jssm.org/jssm-20-216.xml-abst"
+    }
+   ]
   },
   {
    "id": "posterior-extensao-quadril-45",
@@ -138,8 +180,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "✔",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Bourne et al. 2017, Nordic e extensão de quadril (ACU)",
+     "u": "https://acuresearchbank.acu.edu.au/item/8q534/impact-of-the-nordic-hamstring-and-hip-extension-exercises-on-hamstring-architecture-and-morphology-implications-for-injury-prevention"
+    }
+   ]
   },
   {
    "id": "posterior-bom-dia",
@@ -155,12 +203,20 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "obs": "Não publicar sem revisão profissional; não para menores.",
+   "fontes": [
+    {
+     "t": "Ebben 2009, ativação do posterior em exercícios (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/19417230/"
+    }
+   ]
   },
   {
    "id": "quadriceps-agachamento-livre",
    "nomesApp": [
-    "Agachamento livre"
+    "Agachamento livre",
+    "Agachamento livre (mais séries)"
    ],
    "nome": "Agachamento livre",
    "musculos": [
@@ -172,8 +228,15 @@
    "local": [
     "academia"
    ],
-   "evidencia": "◐",
-   "foraPlanoInicial": false
+   "evidencia": "✔",
+   "foraPlanoInicial": false,
+   "obs": "A ficha propõe nível intermediário (iniciante só com goblet); mantido iniciante/13 porque o app já usa na rotina inicial. Revisor decide.",
+   "fontes": [
+    {
+     "t": "Plotkin et al. 2023, hip thrust vs agachamento (Frontiers in Physiology)",
+     "u": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2023.1279170/full"
+    }
+   ]
   },
   {
    "id": "quadriceps-agachamento-smith",
@@ -190,8 +253,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Agachamento no Smith vs extensora (J Sports Sci 2021, via StrengthLog)",
+     "u": "https://www.strengthlog.com/squat-vs-leg-extension/"
+    }
+   ]
   },
   {
    "id": "quadriceps-leg-press",
@@ -208,7 +277,7 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
+   "evidencia": "◐",
    "foraPlanoInicial": false
   },
   {
@@ -225,8 +294,15 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "✔",
+   "foraPlanoInicial": false,
+   "obs": "✔ para reto femoral (estudo curto, só homens).",
+   "fontes": [
+    {
+     "t": "Agachamento no Smith vs extensora (J Sports Sci 2021, via StrengthLog)",
+     "u": "https://www.strengthlog.com/squat-vs-leg-extension/"
+    }
+   ]
   },
   {
    "id": "quadriceps-agachamento-bulgaro",
@@ -238,14 +314,24 @@
     "quadriceps",
     "gluteos"
    ],
-   "idadeMin": 14,
+   "idadeMin": 13,
    "nivelMin": "intermediario",
    "local": [
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Schoenfeld et al. 2017, carga baixa vs alta (PubMed)",
+     "u": "https://www.pubmed.gov/28834797/"
+    },
+    {
+     "t": "Unilateral vs bilateral, Kassiano 2025 (via Fitcraft)",
+     "u": "https://getfitcraft.com/science/single-leg-training-research"
+    }
+   ]
   },
   {
    "id": "quadriceps-agachamento-goblet",
@@ -263,13 +349,20 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Schoenfeld et al. 2017, carga baixa vs alta (PubMed)",
+     "u": "https://www.pubmed.gov/28834797/"
+    }
+   ]
   },
   {
    "id": "gluteos-hip-thrust",
    "nomesApp": [
-    "Hip thrust"
+    "Hip thrust",
+    "Hip thrust com halter"
    ],
    "nome": "Hip thrust",
    "musculos": [
@@ -281,8 +374,15 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "✔",
+   "foraPlanoInicial": false,
+   "obs": "Peso do corpo: iniciante; carga extra a partir de intermediário.",
+   "fontes": [
+    {
+     "t": "Plotkin et al. 2023, hip thrust vs agachamento (Frontiers in Physiology)",
+     "u": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2023.1279170/full"
+    }
+   ]
   },
   {
    "id": "gluteos-ponte-unilateral",
@@ -300,8 +400,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Moore et al. 2020, ativação do glúteo médio e mínimo (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/33344003/"
+    }
+   ]
   },
   {
    "id": "gluteos-abducao-quadril",
@@ -317,8 +423,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Moore et al. 2020, ativação do glúteo médio e mínimo (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/33344003/"
+    }
+   ]
   },
   {
    "id": "gluteos-ponte",
@@ -336,8 +448,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Moore et al. 2020, ativação do glúteo médio e mínimo (PubMed)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/33344003/"
+    }
+   ]
   },
   {
    "id": "quadriceps-leg-press-pes-baixos",
@@ -366,13 +484,19 @@
     "quadriceps",
     "gluteos"
    ],
-   "idadeMin": 14,
+   "idadeMin": 13,
    "nivelMin": "intermediario",
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Unilateral vs bilateral, Kassiano 2025 (via Fitcraft)",
+     "u": "https://getfitcraft.com/science/single-leg-training-research"
+    }
+   ]
   },
   {
    "id": "costas-puxada-alta",
@@ -389,8 +513,18 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    },
+    {
+     "t": "Pegadas na puxada (Andersen 2014; La Greca 2025), via Fitness Volt",
+     "u": "https://fitnessvolt.com/muscle-activity-pulldowns-pull-ups/"
+    }
+   ]
   },
   {
    "id": "costas-barra-fixa",
@@ -408,8 +542,14 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "costas-remada-curvada",
@@ -427,7 +567,13 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "costas-remada-sentada-cabo",
@@ -444,8 +590,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "costas-remada-invertida",
@@ -462,8 +614,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "costas-remada-unilateral",
@@ -481,7 +639,7 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -499,7 +657,7 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -517,8 +675,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "costas-remada-t-bar",
@@ -536,7 +700,13 @@
     "academia"
    ],
    "evidencia": "?",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "costas-puxada-assistida",
@@ -553,8 +723,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "peito-supino-reto-barra",
@@ -572,8 +748,15 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "✔",
+   "foraPlanoInicial": false,
+   "obs": "A ficha propõe intermediário com técnica (iniciante com carga leve e supervisão); mantido iniciante porque o app já usa na rotina inicial. Revisor decide.",
+   "fontes": [
+    {
+     "t": "Solstad et al. 2020, supino vs crucifixo (JSSM)",
+     "u": "https://jssm.org/jssm-19-645.xml-abst"
+    }
+   ]
   },
   {
    "id": "peito-supino-reto-halteres",
@@ -592,7 +775,7 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
+   "evidencia": "◐",
    "foraPlanoInicial": false
   },
   {
@@ -612,8 +795,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Supino inclinado vs reto (via StrengthLog)",
+     "u": "https://www.strengthlog.com/incline-bench-press-vs-flat-bench-press/"
+    }
+   ]
   },
   {
    "id": "peito-supino-maquina",
@@ -632,8 +821,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "peito-crucifixo-maquina",
@@ -649,8 +844,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "peito-crossover-cabo",
@@ -666,30 +867,45 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "peito-crucifixo-halteres",
    "nomesApp": [
-    "Crucifixo (voador)"
+    "Crucifixo (voador)",
+    "Crucifixo com halteres"
    ],
    "nome": "Crucifixo com halteres",
    "musculos": [
     "peito"
    ],
    "idadeMin": 13,
-   "nivelMin": "iniciante",
+   "nivelMin": "intermediario",
    "local": [
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Solstad et al. 2020, supino vs crucifixo (JSSM)",
+     "u": "https://jssm.org/jssm-19-645.xml-abst"
+    }
+   ]
   },
   {
    "id": "peito-flexao",
-   "nomesApp": [],
+   "nomesApp": [
+    "Flexão de braço"
+   ],
    "nome": "Flexão de braços",
    "musculos": [
     "peito",
@@ -703,8 +919,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": "◐",
-   "foraPlanoInicial": false
+   "evidencia": "✔",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Kikuchi e Nakazato 2017, supino leve vs flexão (DOAJ)",
+     "u": "https://doaj.org/article/f70cce826f3348b5b4f3ace8cf8ac33e"
+    }
+   ]
   },
   {
    "id": "peito-mergulho",
@@ -721,7 +943,14 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "obs": "Paralelas. Distinto de bracos-mergulho-banco. Idade a definir pelo revisor.",
+   "fontes": [
+    {
+     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "peito-supino-smith",
@@ -739,13 +968,20 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "ombros-elevacao-lateral-halteres",
    "nomesApp": [
-    "Elevação lateral"
+    "Elevação lateral",
+    "Elevação lateral com halteres"
    ],
    "nome": "Elevação lateral com halteres",
    "musculos": [
@@ -758,7 +994,13 @@
     "casa"
    ],
    "evidencia": "✔",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Elevação lateral, halteres vs cabo (Frontiers in Physiology 2025)",
+     "u": "https://www.frontiersin.org/journals/physiology/"
+    }
+   ]
   },
   {
    "id": "ombros-elevacao-lateral-cabo",
@@ -775,7 +1017,13 @@
     "academia"
    ],
    "evidencia": "✔",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Elevação lateral, halteres vs cabo (Frontiers in Physiology 2025)",
+     "u": "https://www.frontiersin.org/journals/physiology/"
+    }
+   ]
   },
   {
    "id": "ombros-elevacao-lateral-maquina",
@@ -918,7 +1166,7 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -936,8 +1184,19 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "obs": "✔/◐: bíceps cresce; diferença regional não consolidada (Kassiano 2025 x Attarieh 2025).",
+   "fontes": [
+    {
+     "t": "Attarieh et al. 2025, rosca no cabo (PMC)",
+     "u": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11906226/"
+    },
+    {
+     "t": "Kassiano et al. 2025, rosca inclinada vs Scott (via sci-sport)",
+     "u": "https://sci-sport.com/en/effects-of-incline-and-preacher-curls-on-regional-hypertrophy-and-strength-266/"
+    }
+   ]
   },
   {
    "id": "bracos-rosca-scott",
@@ -951,8 +1210,19 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "obs": "✔/◐: bíceps cresce; diferença regional não consolidada.",
+   "fontes": [
+    {
+     "t": "Attarieh et al. 2025, rosca no cabo (PMC)",
+     "u": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11906226/"
+    },
+    {
+     "t": "Kassiano et al. 2025, rosca inclinada vs Scott (via sci-sport)",
+     "u": "https://sci-sport.com/en/effects-of-incline-and-preacher-curls-on-regional-hypertrophy-and-strength-266/"
+    }
+   ]
   },
   {
    "id": "bracos-rosca-martelo",
@@ -967,7 +1237,7 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -984,8 +1254,15 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "✔",
+   "foraPlanoInicial": false,
+   "obs": "Funciona, mas cresce menos que acima da cabeça (Maeo 2022).",
+   "fontes": [
+    {
+     "t": "Maeo et al. 2022, tríceps acima da cabeça vs pushdown (via fonte secundária; ver docs do projeto)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Maeo+overhead+triceps+extension+pushdown+2022"
+    }
+   ]
   },
   {
    "id": "bracos-triceps-frances-cabo",
@@ -1003,7 +1280,13 @@
     "casa"
    ],
    "evidencia": "✔",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Maeo et al. 2022, tríceps acima da cabeça vs pushdown (via fonte secundária; ver docs do projeto)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Maeo+overhead+triceps+extension+pushdown+2022"
+    }
+   ]
   },
   {
    "id": "bracos-triceps-testa",
@@ -1013,12 +1296,12 @@
     "triceps"
    ],
    "idadeMin": 14,
-   "nivelMin": "intermediario",
+   "nivelMin": "iniciante",
    "local": [
     "academia",
     "casa"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -1036,7 +1319,7 @@
     "academia",
     "casa"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -1054,7 +1337,14 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "obs": "✔/◐ (Attarieh 2025, 15 homens treinados).",
+   "fontes": [
+    {
+     "t": "Attarieh et al. 2025, rosca no cabo (PMC)",
+     "u": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11906226/"
+    }
+   ]
   },
   {
    "id": "bracos-mergulho-banco",
@@ -1068,13 +1358,24 @@
     "ombros"
    ],
    "idadeMin": 16,
-   "nivelMin": "intermediario",
+   "nivelMin": "iniciante",
    "local": [
     "casa",
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "obs": "Iniciante com joelhos dobrados; intermediário com pernas estendidas. É o substituto de tríceps sem equipamento no app.",
+   "fontes": [
+    {
+     "t": "Bench, Bar and Ring Dips (SCU)",
+     "u": "https://researchportal.scu.edu.au/esploro/outputs/journalArticle/Bench-Bar-and-Ring-Dips-Do/991013054212502368"
+    },
+    {
+     "t": "ACE, Dangerous Dips? (secundária)",
+     "u": "https://www.acefitness.org/certifiednewsarticle/1657/follow-up-q-and-a-dangerous-dips/"
+    }
+   ]
   },
   {
    "id": "panturrilha-em-pe",
@@ -1092,7 +1393,13 @@
     "casa"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Kinoshita et al. 2023, panturrilha em pé vs sentada (resumo)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Kinoshita+2023+gastrocnemius+standing+seated"
+    }
+   ]
   },
   {
    "id": "panturrilha-sentada",
@@ -1109,7 +1416,13 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Kinoshita et al. 2023, panturrilha em pé vs sentada (resumo)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Kinoshita+2023+gastrocnemius+standing+seated"
+    }
+   ]
   },
   {
    "id": "panturrilha-leg-press",
@@ -1145,7 +1458,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Stenger 2013, EMG de 16 exercícios abdominais (ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "core-abdominal-maquina",
@@ -1181,7 +1500,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Stenger 2013, EMG de 16 exercícios abdominais (ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "core-elevacao-pernas",
@@ -1216,7 +1541,14 @@
     "casa"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "obs": "Fora do plano inicial até revisão.",
+   "fontes": [
+    {
+     "t": "Stenger 2013, EMG de 16 exercícios abdominais (ACE)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "casa-flexao-inclinada",
@@ -1234,11 +1566,19 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Kikuchi e Nakazato 2017, supino leve vs flexão (DOAJ)",
+     "u": "https://doaj.org/article/f70cce826f3348b5b4f3ace8cf8ac33e"
+    }
+   ]
   },
   {
    "id": "casa-flexao-declinada",
-   "nomesApp": [],
+   "nomesApp": [
+    "Flexão com pés elevados"
+   ],
    "nome": "Flexão declinada (pés elevados)",
    "musculos": [
     "peito",
@@ -1256,7 +1596,9 @@
   },
   {
    "id": "casa-pike-pushup",
-   "nomesApp": [],
+   "nomesApp": [
+    "Flexão pike (quadril alto)"
+   ],
    "nome": "Pike push-up",
    "musculos": [
     "ombros",
@@ -1274,7 +1616,8 @@
   {
    "id": "casa-remada-elastico",
    "nomesApp": [
-    "Remada com elástico"
+    "Remada com elástico",
+    "Remada com elástico (unilateral)"
    ],
    "nome": "Remada com elástico",
    "musculos": [
@@ -1288,7 +1631,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Metanálise elástico vs convencional, SAGE Open Med 2019 (DOAJ)",
+     "u": "https://doaj.org/article/f76933a02f3a4ff08fd3d81de9169831"
+    }
+   ]
   },
   {
    "id": "casa-puxada-elastico",
@@ -1307,11 +1656,19 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Metanálise elástico vs convencional, SAGE Open Med 2019 (DOAJ)",
+     "u": "https://doaj.org/article/f76933a02f3a4ff08fd3d81de9169831"
+    }
+   ]
   },
   {
    "id": "casa-lateral-elastico",
-   "nomesApp": [],
+   "nomesApp": [
+    "Elevação lateral com elástico"
+   ],
    "nome": "Elevação lateral com elástico",
    "musculos": [
     "ombros"
@@ -1323,11 +1680,19 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Metanálise elástico vs convencional, SAGE Open Med 2019 (DOAJ)",
+     "u": "https://doaj.org/article/f76933a02f3a4ff08fd3d81de9169831"
+    }
+   ]
   },
   {
    "id": "casa-rosca-elastico",
-   "nomesApp": [],
+   "nomesApp": [
+    "Rosca com elástico"
+   ],
    "nome": "Rosca com elástico",
    "musculos": [
     "biceps"
@@ -1339,7 +1704,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Metanálise elástico vs convencional, SAGE Open Med 2019 (DOAJ)",
+     "u": "https://doaj.org/article/f76933a02f3a4ff08fd3d81de9169831"
+    }
+   ]
   },
   {
    "id": "casa-triceps-elastico",
@@ -1355,7 +1726,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Maeo et al. 2022, tríceps acima da cabeça vs pushdown (via fonte secundária; ver docs do projeto)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Maeo+overhead+triceps+extension+pushdown+2022"
+    }
+   ]
   },
   {
    "id": "casa-flexora-deslizante",
@@ -1389,12 +1766,19 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "PLoS ONE 2020, agachamento unipodal vs avanço vs subida lateral (DOAJ)",
+     "u": "https://doaj.org/article/f160ec2280254abb8d0b812b2734debc"
+    }
+   ]
   },
   {
    "id": "casa-avanco-frontal",
    "nomesApp": [
-    "Avanço (afundo) com halteres"
+    "Avanço (afundo) com halteres",
+    "Avanço (afundo) com peso do corpo"
    ],
    "nome": "Avanço (afundo)",
    "musculos": [
@@ -1409,7 +1793,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "PLoS ONE 2020, agachamento unipodal vs avanço vs subida lateral (DOAJ)",
+     "u": "https://doaj.org/article/f160ec2280254abb8d0b812b2734debc"
+    }
+   ]
   },
   {
    "id": "casa-step-up-lateral",
@@ -1426,7 +1816,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "PLoS ONE 2020, agachamento unipodal vs avanço vs subida lateral (DOAJ)",
+     "u": "https://doaj.org/article/f160ec2280254abb8d0b812b2734debc"
+    }
+   ]
   },
   {
    "id": "casa-panturrilha-unilateral-degrau",
@@ -1444,7 +1840,13 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Kinoshita et al. 2023, panturrilha em pé vs sentada (resumo)",
+     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Kinoshita+2023+gastrocnemius+standing+seated"
+    }
+   ]
   },
   {
    "id": "casa-agachamento-parede",
@@ -1472,13 +1874,19 @@
     "costas",
     "biceps"
    ],
-   "idadeMin": 14,
+   "idadeMin": 13,
    "nivelMin": "iniciante",
    "local": [
     "casa"
    ],
    "evidencia": "?",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Swann e Barry 2025, remada curvada com barra (Northumbria)",
+     "u": "https://journals.northumbria.ac.uk/index.php/gjsscmr/article/download/1582/1857"
+    }
+   ]
   },
   {
    "id": "casa-abducao-elastico",
@@ -1496,12 +1904,19 @@
     "pouco"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Miyachi et al. 2021, abdução com elástico (J-STAGE)",
+     "u": "https://www.jstage.jst.go.jp/article/jpts/33/12/33_2021-130/_article/-char/en"
+    }
+   ]
   },
   {
    "id": "ombros-crucifixo-inverso-casa",
    "nomesApp": [
-    "Crucifixo invertido com halteres"
+    "Crucifixo invertido com halteres",
+    "Crucifixo invertido com elástico"
    ],
    "nome": "Crucifixo invertido com halteres/elástico",
    "musculos": [
@@ -1534,7 +1949,13 @@
     "pouco"
    ],
    "evidencia": "?",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Schoenfeld et al. 2017, carga baixa vs alta (PubMed)",
+     "u": "https://www.pubmed.gov/28834797/"
+    }
+   ]
   },
   {
    "id": "casa-crucifixo-elastico",
@@ -1552,7 +1973,13 @@
     "pouco"
    ],
    "evidencia": "?",
-   "foraPlanoInicial": false
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Metanálise elástico vs convencional, SAGE Open Med 2019 (DOAJ)",
+     "u": "https://doaj.org/article/f76933a02f3a4ff08fd3d81de9169831"
+    }
+   ]
   },
   {
    "id": "core-prancha-lateral",
@@ -1568,8 +1995,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "McGill 2009, exercícios de estabilização da coluna",
+     "u": "https://www.backfitpro.com/medical-scientific-articles/2009/[90]McGill,S.(2009)Exercises-for-spine-stabilization[Arch.Phys.Med.and-Rehab.].pdf"
+    }
+   ]
   },
   {
    "id": "core-pallof-press",
@@ -1578,14 +2011,20 @@
    "musculos": [
     "abdomen"
    ],
-   "idadeMin": 14,
+   "idadeMin": 13,
    "nivelMin": "iniciante",
    "local": [
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Pallof press, resumo WKU/IJESAB (4 sujeitos)",
+     "u": "https://digitalcommons.wku.edu/ijesab/vol8/iss9/12"
+    }
+   ]
   },
   {
    "id": "core-dead-bug",
@@ -1601,8 +2040,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "McGill 2009, exercícios de estabilização da coluna",
+     "u": "https://www.backfitpro.com/medical-scientific-articles/2009/[90]McGill,S.(2009)Exercises-for-spine-stabilization[Arch.Phys.Med.and-Rehab.].pdf"
+    }
+   ]
   },
   {
    "id": "adutores-copenhagen",
@@ -1618,7 +2063,14 @@
     "casa"
    ],
    "evidencia": "✔",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "obs": "Evidência ✔ para força/ativação dos adutores; ? para hipertrofia. Dose e idade a definir.",
+   "fontes": [
+    {
+     "t": "Revisão sistemática do Copenhagen (IJSPT 2021, DOAJ)",
+     "u": "https://doaj.org/article/08fc65767f3249419a1e77883730d9d0"
+    }
+   ]
   },
   {
    "id": "trapezio-encolhimento-halteres",
@@ -1627,14 +2079,20 @@
    "musculos": [
     "costas"
    ],
-   "idadeMin": 14,
+   "idadeMin": 13,
    "nivelMin": "iniciante",
    "local": [
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Barbell Medicine, exercícios de trapézio (secundária)",
+     "u": "https://www.barbellmedicine.com/blog/best-trap-exercises-for-a-bigger-stronger-back/"
+    }
+   ]
   },
   {
    "id": "antebraco-rosca-punho",
@@ -1643,14 +2101,20 @@
    "musculos": [
     "biceps"
    ],
-   "idadeMin": 14,
+   "idadeMin": 13,
    "nivelMin": "iniciante",
    "local": [
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Fitcraft, antebraço (secundária)",
+     "u": "https://getfitcraft.com/guides/how-to-build-forearms"
+    }
+   ]
   },
   {
    "id": "antebraco-rosca-inversa",
@@ -1659,14 +2123,20 @@
    "musculos": [
     "biceps"
    ],
-   "idadeMin": 14,
+   "idadeMin": 13,
    "nivelMin": "iniciante",
    "local": [
     "academia",
     "casa"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "Fitcraft, antebraço (secundária)",
+     "u": "https://getfitcraft.com/guides/how-to-build-forearms"
+    }
+   ]
   },
   {
    "id": "lombar-superman",
@@ -1682,7 +2152,7 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": false
   },
   {
@@ -1699,8 +2169,14 @@
     "casa",
     "pouco"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": false
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "fontes": [
+    {
+     "t": "McGill 2009, exercícios de estabilização da coluna",
+     "u": "https://www.backfitpro.com/medical-scientific-articles/2009/[90]McGill,S.(2009)Exercises-for-spine-stabilization[Arch.Phys.Med.and-Rehab.].pdf"
+    }
+   ]
   },
   {
    "id": "avancado-barra-fixa-lastro",
@@ -1715,8 +2191,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": true
+   "evidencia": "◐",
+   "foraPlanoInicial": true,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "avancado-mergulho-lastro",
@@ -1732,8 +2214,14 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
-   "foraPlanoInicial": true
+   "evidencia": "◐",
+   "foraPlanoInicial": true,
+   "fontes": [
+    {
+     "t": "ACE, melhores exercícios de peito (EMG do mergulho)",
+     "u": "https://www.acefitness.org/"
+    }
+   ]
   },
   {
    "id": "avancado-agachamento-frontal",
@@ -1748,7 +2236,7 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": true
   },
   {
@@ -1766,7 +2254,7 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": true
   },
   {
@@ -1786,7 +2274,17 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "fontes": [
+    {
+     "t": "Terra convencional vs sumô (Frontiers Bioeng Biotechnol 2025, DOAJ)",
+     "u": "https://doaj.org/article/985278012ef744759eff9876aaed332e"
+    },
+    {
+     "t": "Terra convencional, sumô e hex-bar (Bedfordshire)",
+     "u": "https://researchportal.beds.ac.uk/en/publications/differences-in-muscle-activation-and-joint-kinematics-between-dea-3/"
+    }
+   ]
   },
   {
    "id": "avancado-terra-sumo",
@@ -1805,7 +2303,17 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "fontes": [
+    {
+     "t": "Terra convencional vs sumô (Frontiers Bioeng Biotechnol 2025, DOAJ)",
+     "u": "https://doaj.org/article/985278012ef744759eff9876aaed332e"
+    },
+    {
+     "t": "Terra convencional, sumô e hex-bar (Bedfordshire)",
+     "u": "https://researchportal.beds.ac.uk/en/publications/differences-in-muscle-activation-and-joint-kinematics-between-dea-3/"
+    }
+   ]
   },
   {
    "id": "avancado-terra-hex-bar",
@@ -1822,7 +2330,13 @@
     "academia"
    ],
    "evidencia": "◐",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "fontes": [
+    {
+     "t": "Terra convencional, sumô e hex-bar (Bedfordshire)",
+     "u": "https://researchportal.beds.ac.uk/en/publications/differences-in-muscle-activation-and-joint-kinematics-between-dea-3/"
+    }
+   ]
   },
   {
    "id": "avancado-remada-pendlay",
@@ -1838,7 +2352,13 @@
     "academia"
    ],
    "evidencia": "?",
-   "foraPlanoInicial": true
+   "foraPlanoInicial": true,
+   "fontes": [
+    {
+     "t": "ACE, melhor exercício de costas (UW-La Crosse, EMG; financiado pela ACE)",
+     "u": "https://www.acefitness.org/continuing-education/certified/april-2018/6959/ace-sponsored-research-what-is-the-best-back-exercise/"
+    }
+   ]
   },
   {
    "id": "avancado-supino-pausa",
@@ -1854,7 +2374,7 @@
    "local": [
     "academia"
    ],
-   "evidencia": null,
+   "evidencia": "?",
    "foraPlanoInicial": true
   }
  ]
