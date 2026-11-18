@@ -17,7 +17,7 @@ function calDiasNoMes(iso){
 function calEstado(iso, ctx){
   if(iso < ctx.start) return "antes";
   const key = dayKeyFromISO(iso);
-  const ativo = !!(state.rotina[key] && state.rotina[key].ativo);
+  const ativo = treinoAtivoKey(key);
   const c = state.checkins[iso];
   if(c && c.concluido) return c.leve ? "leve" : "feito";
   if(iso > ctx.today) return ativo ? "futuro" : "descanso";
@@ -30,7 +30,7 @@ const CAL_TXT = {feito:"treino concluído", leve:"dia leve (mantém a sequência
 function calDescricao(iso, est){
   const key = dayKeyFromISO(iso);
   const d = state.rotina[key];
-  const nome = d && d.ativo && d.nome ? " · "+d.nome : "";
+  const nome = d && treinoAtivoKey(key) && d.nome ? " · "+d.nome : "";
   const hab = habDe(iso);
   const hp = [];
   if(hab){
@@ -65,7 +65,7 @@ function renderCalendario(){
     const iso = calMesIso.slice(0,8)+pad2(dia);
     const est = calEstado(iso, ctx);
     if(iso >= start && iso <= today){
-      const ativo = !!(state.rotina[dayKeyFromISO(iso)] && state.rotina[dayKeyFromISO(iso)].ativo);
+      const ativo = treinoAtivoKey(dayKeyFromISO(iso));
       const c = state.checkins[iso];
       if(ativo || (c && c.concluido)){ agend++; if(c && c.concluido) feitos++; }
     }

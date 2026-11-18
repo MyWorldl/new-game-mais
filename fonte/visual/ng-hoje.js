@@ -75,7 +75,7 @@ function hojeMissoes(){
   const live = document.getElementById("btn-treino-ao-vivo");
   const lista = [];
   if(!state.perfil) lista.push({id:"cadastro", txt:"Fazer o seu cadastro", sub:"Leva 1 minuto e libera o treino e a dieta", feita:false, acao:"Começar"});
-  else if(!day || !day.ativo) lista.push({id:"descanso", txt:"Descansar hoje", sub:"Dia sem treino: sono, proteína e uma caminhada leve contam", feita:true, descanso:true});
+  else if(!day || !day.ativo || !(day.exercicios||[]).length) lista.push({id:"descanso", txt:"Descansar hoje", sub:"Dia sem treino: sono, proteína e uma caminhada leve contam", feita:true, descanso:true});
   else lista.push({id:"treino", txt: c && c.concluido ? "Treino de hoje concluído" : "Concluir o treino de hoje", sub: day.nome, feita: !!(c && c.concluido), acao: live && !live.disabled ? "Abrir" : ""});
   const hb = hojeHabitosHoje();
   lista.push({id:"hab", txt: hb.length ? "Hábitos de hoje registrados" : "Registrar sono, passos e cárdio", sub: hb.length ? hb.join(" · ") : "Opcional · não vale XP e não entra na sequência", feita: hb.length > 0, acao: hb.length ? "" : "Registrar"});

@@ -650,6 +650,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--focus); outline-
 .dieta-tabs button.active{color:var(--ink); border-bottom-color:var(--accent);}
 .dieta-tabs button{min-width:0;}
 @media (max-width:460px){ .dieta-tabs button{font-size:var(--fs-sm); padding:10px 3px;} }
+/* objetivo calórico: três rótulos longos; nunca se sobrepõem (se faltar largura, o último desce para a linha de baixo) */
+#seg-objetivo{flex-wrap:wrap;}
+#seg-objetivo button{flex:1 1 auto; min-width:max-content; white-space:nowrap; padding-inline:8px;}
 .dieta-obj-hint{color:var(--ink-soft); font-size:var(--fs-sm); margin-top:14px; line-height:1.4;}
 
 /* dieta — indicadores (número grande + sublinhado) */
