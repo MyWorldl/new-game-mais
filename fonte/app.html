@@ -4168,10 +4168,10 @@ function adaptarRotinaAoPerfil(base, o){
   return rotina;
 }
 /* ============================================================
-   Situações (fonte/dados/planos.json, injetado no build): 60+, tempo curto, retorno após pausa e restrição articular.
+   Situações (fonte/dados/planos.json, vira site/dados.<hash>.js no build): 60+, tempo curto, retorno após pausa e restrição articular.
    São ADAPTAÇÕES do plano (trocas de exercício, menos séries), nunca tratamento. Rascunho sem revisão profissional.
    ============================================================ */
-const BASE_PLANOS = /*@@BASE_PLANOS@@*/{};
+const BASE_PLANOS = (window.NG_DADOS && window.NG_DADOS.planos) || {};
 function situacoesDoPerfil(p){
   const cfg = BASE_PLANOS || {};
   const idade = p ? Math.floor(Number(p.idade)) : 0;
@@ -8600,7 +8600,7 @@ function saveCarga(iso, exNome, pesoKg){
    Cada ficha diz, para os nomes que o app usa, a idade mínima e o nível mínimo PROPOSTOS (rascunho, sem revisão de profissional).
    Usada para FILTRAR as alternativas sugeridas: um menor de 18 ou um iniciante não recebe como sugestão um exercício acima do perfil.
    O exercício que já está na rotina da pessoa nunca é escondido; só as sugestões de troca. */
-const BASE_EXERCICIOS = /*@@BASE_EXERCICIOS@@*/{"exercicios":[]};
+const BASE_EXERCICIOS = (window.NG_DADOS && window.NG_DADOS.exercicios) || {"exercicios":[]};
 const NIVEL_RANK = {iniciante:0, intermediario:1, avancado:2};
 const BASE_EX_POR_APP = {};
 (BASE_EXERCICIOS.exercicios||[]).forEach(f=>{ (f.nomesApp||[]).forEach(n=>{ BASE_EX_POR_APP[n] = f; }); });
