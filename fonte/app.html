@@ -8670,6 +8670,11 @@ const EXERCISE_TREINADOR = {
   "Elevação de panturrilha sentado": "Faça uma pausa de cerca de 0,5 s embaixo, com o músculo alongado, antes de subir.",
   "Rosca direta": "Quando houver, uma rosca com o braço apoiado (ex.: Scott na máquina) reduz o balanço do corpo."
 };
+// fichas novas entram como sugestão de troca dos exercícios listados em "sugerirEm" (o filtro de idade/nível continua valendo)
+(BASE_EXERCICIOS.exercicios||[]).forEach(f=>{ (f.sugerirEm||[]).forEach(base=>{
+  const l = EXERCISE_ALTERNATIVES[base] || (EXERCISE_ALTERNATIVES[base] = []);
+  if(l.indexOf(f.nome) < 0 && base !== f.nome) l.push(f.nome);
+}); });
 const EXERCISE_GUIDE = {};
 (function(){
   const G = (n,p,e,c)=>{ EXERCISE_GUIDE[n] = {p,e,c}; };
@@ -8757,6 +8762,38 @@ const EXERCISE_GUIDE = {};
   G("Crucifixo com elástico","Em pé de costas para o ponto de fixação do elástico, braços abertos na altura do peito.","Feche os braços à frente em arco, cotovelos levemente flexionados, e volte devagar.","Dar um passo à frente e perder a postura.");
   G("Abdução de quadril com elástico","Elástico logo acima dos joelhos, em pé ou deitado de lado.","Afaste a perna para o lado sem girar o quadril e volte devagar.","Inclinar o tronco ou usar impulso.");
   G("Hip thrust com halter","Costas altas apoiadas em um banco, pés no chão na largura do quadril, halter apoiado sobre o quadril (use uma toalha).","Empurre o chão e estenda o quadril contraindo os glúteos, pausando em cima, e desça controlando.","Arquear a lombar no topo ou empurrar com os dedos dos pés.");
+  G("Remada invertida","Deitado sob a barra, calcanhares no chão, corpo em linha reta.","Puxe o peito até a barra e desça controlando.","Deixar o quadril cair ou fazer o movimento só com os braços.");
+  G("IYT (elevações em I, Y e T)","De bruços (banco inclinado ou chão), braços formando \"I\", \"Y\" e \"T\".","Eleve os braços com controle em cada posição e volte devagar.","Usar carga que obrigue a arquear a lombar.");
+  G("Stiff com halteres","Em pé, joelhos levemente flexionados e travados, halteres rentes às pernas, coluna neutra.","Leve o quadril para trás, desça até sentir o alongamento atrás da coxa e volte estendendo o quadril; pode usar mais amplitude que com a barra.","Arredondar a lombar, afastar os halteres do corpo, descer além do que a coluna neutra permite.");
+  G("Nordic (flexão nórdica)","Ajoelhado com os tornozelos presos (parceiro, banco ou barra).","Incline o corpo para a frente em linha reta, descendo o mais devagar possível; use as mãos para voltar.","Quebrar o quadril, descer em queda, fazer muitas repetições de uma vez no início.");
+  G("Extensão de quadril a 45°","Quadril na borda do apoio, pés presos, coluna neutra.","Desça flexionando o quadril e volte até alinhar o tronco com as pernas.","Hiperestender a lombar no topo, balançar o tronco.");
+  G("Bom dia (good morning)","Barra apoiada nas costas, joelhos levemente flexionados.","Leve o quadril para trás mantendo a coluna neutra e volte.","Arredondar a coluna, usar carga que tire a técnica.");
+  G("Flexora com deslizante/toalha","Deitado de costas, calcanhares na toalha ou deslizante, quadril elevado em ponte.","Deslize os pés para fora e puxe de volta mantendo o quadril alto.","Deixar o quadril cair, movimento rápido.");
+  G("Agachamento unipodal (apoiado)","Apoie a mão na parede, em uma perna só.","Desça com o joelho alinhado ao pé e suba empurrando o chão.","Joelho para dentro, perder o controle na descida.");
+  G("Subida lateral no degrau","De lado para o degrau estável, pé de cima firme sobre ele.","Suba só com a perna de cima, sem se impulsionar com a de baixo; desça devagar.","Degrau alto demais ou instável.");
+  G("Prancha lateral","Apoio no antebraço, corpo em linha reta, quadril alto. Progressão: joelhos apoiados, depois pés.","Mantenha a posição respirando normalmente.","Deixar o quadril cair ou girar.");
+  G("Pallof press","De lado para a polia ou elástico, mãos no peito.","Estenda os braços à frente sem deixar o tronco girar e volte controlando.","Torcer o tronco, usar carga alta demais.");
+  G("Dead bug","Deitado de costas, lombar encostada no chão, braços e pernas para cima.","Estenda braço e perna opostos devagar e volte.","Arquear a lombar, movimento rápido.");
+  G("Prancha Copenhagen","Prancha lateral com a perna de cima apoiada no banco; versão de joelho dobrado para iniciantes.","Eleve o quadril alinhando o corpo e desça controlando.","Começar com volume alto, seguir com dor na virilha.");
+  G("Encolhimento com halteres","Em pé, halteres ao lado do corpo.","Suba os ombros em direção às orelhas, pausa curta, desça devagar.","Girar os ombros, balançar o corpo.");
+  G("Rosca de punho","Antebraço apoiado, palma para cima.","Mova só o punho, com carga leve e mais repetições.","Carga pesada, seguir com dor no punho.");
+  G("Rosca inversa","Pegada pronada (palmas para baixo), cotovelos fixos junto ao corpo.","Suba sem deixar o punho cair e desça controlando.","Carga alta com punho fraco.");
+  G("Superman","De bruços, braços estendidos à frente.","Eleve braços e pernas levemente, sem forçar a lombar, e desça controlando.","Hiperestender a lombar, prender a respiração.");
+  G("Bird dog","De quatro apoios, coluna neutra.","Estenda braço e perna opostos mantendo o tronco parado e volte.","Girar o quadril, arquear a lombar.");
+  G("Rosca Scott","Axilas apoiadas no banco Scott, cotovelos fixos sobre o apoio.","Flexione os cotovelos sem tirar o braço do apoio e desça controlando.","Descer bruscamente até a extensão total com carga alta, balançar o tronco.");
+  G("Rosca martelo","Em pé ou sentado, halteres com pegada neutra (palmas voltadas uma para a outra), cotovelos junto ao corpo.","Flexione os cotovelos sem girar o punho e desça controlando.","Balançar o tronco para dar impulso, afastar os cotovelos do corpo.");
+  G("Tríceps testa","Deitado no banco, barra ou halteres acima do peito, braços estendidos.","Flexione só os cotovelos levando a carga em direção à testa e estenda de volta.","Abrir muito os cotovelos, carga alta com técnica ruim que sobrecarregue o cotovelo.");
+  G("Mergulho nas paralelas","Nas paralelas, braços estendidos, tronco levemente inclinado para a frente.","Desça com controle até onde o ombro permitir sem dor e empurre de volta.","Descer além da amplitude confortável, balançar o corpo.");
+  G("Roda abdominal","De joelhos, mãos na roda, abdômen contraído, lombar neutra.","Role a roda para a frente só até onde conseguir manter a lombar sem arquear e volte contraindo o abdômen.","Deixar a lombar afundar, ir além do que o abdômen sustenta.");
+  G("Flexão inclinada (mãos elevadas)","Mãos num sofá ou banco firme, corpo em linha reta.","Desça o peito até perto da superfície e empurre de volta; reduza a altura aos poucos até chegar ao chão.","Deixar o quadril cair, abrir muito os cotovelos.");
+  G("Tríceps com elástico (acima da cabeça)","Elástico preso sob o pé ou atrás das costas, cotovelos apontando para cima e junto à cabeça.","Estenda os cotovelos até quase travar e volte devagar, sem mexer os cotovelos.","Abrir os cotovelos, usar o ombro para empurrar.");
+  G("Agachamento isométrico na parede","Costas apoiadas na parede, pés à frente, joelhos em cerca de 90°.","Segure a posição respirando normalmente pelo tempo planejado e saia da parede com controle.","Joelhos passando muito à frente dos pés, apoiar as mãos nas coxas, segurar a respiração.");
+  G("Barra fixa com lastro","Pegada na largura do ombro ou um pouco mais, carga presa ao cinto de lastro, ombros baixos.","Puxe o peito em direção à barra, cotovelos para baixo, e desça controlando até quase estender.","Balançar o corpo, descer em queda.");
+  G("Mergulho com lastro","Nas paralelas, carga presa ao cinto, braços estendidos, tronco levemente inclinado.","Desça com controle até onde o ombro permitir sem dor e empurre de volta.","Descer além do conforto, balançar o corpo, carga alta sem técnica firme.");
+  G("Agachamento frontal","Barra apoiada nos ombros à frente, cotovelos altos, tronco ereto.","Desça agachando mantendo o tronco ereto e suba empurrando o chão.","Deixar os cotovelos caírem, arredondar a coluna.");
+  G("Terra na barra hexagonal","De pé dentro da barra hexagonal, tronco ereto, coluna neutra.","Empurre o chão estendendo quadril e joelhos e volte a pousar a barra com controle.","Arredondar a coluna.");
+  G("Remada Pendlay","Tronco paralelo ao chão, barra no chão a cada repetição, coluna neutra.","Puxe a barra de forma explosiva até o abdome e devolva ao chão.","Arredondar a lombar, usar o quadril para impulsionar.");
+  G("Supino com pausa","Deitado no banco, pés firmes no chão, escápulas juntas e para baixo, com alguém para auxiliar.","Desça a barra, pare de 1 a 2 segundos sem relaxar no peito e empurre.","Rebater a barra, pausar sem controle, treinar sem ninguém para auxiliar.");
 })();
 function guiaCorpoHtml(nome){
   const g = EXERCISE_GUIDE[nome]; if(!g) return '';
