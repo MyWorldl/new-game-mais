@@ -130,6 +130,7 @@ var POWDER = ['whey', 'vegpo'];
 
 function allowed(id, cfg) {
   var f = FOODS[id];
+  if (cfg.meus && cfg.meus.indexOf(id) < 0) return false;   // só os alimentos que a pessoa escolheu em "Meus alimentos"
   if (cfg.style === 'vegan' && !f.vegan) return false;
   if (cfg.style === 'veg' && !f.veg) return false;
   if (cfg.style === 'pesc' && !(f.veg || f.fish)) return false;   // pescetariano: sem carne, com peixe, ovo e laticínios
@@ -144,6 +145,22 @@ function allowed(id, cfg) {
   if (cfg.rout === 'budget' && !f.cheap) return false;
   if (cfg.rout === 'corrido' && !f.fast) return false;
   return true;
+}
+
+/* ---------- MEUS ALIMENTOS ----------
+   cfg.meus = null (automático: todos os alimentos que combinam com os filtros) | [ids] (só estes). O restante do motor passa por allowed(),
+   então cardápio, trocas e lista de compras respeitam a escolha sem nenhum outro ajuste. */
+function normalizaMeus(lista) {
+  if (!Array.isArray(lista)) return null;
+  var out = [];
+  lista.forEach(function (id) { if (typeof id === 'string' && FOODS[id] && out.indexOf(id) < 0) out.push(id); });
+  return out.length ? out : null;
+}
+/* Alimentos que a pessoa PODE marcar: os que combinam com jeito de comer e restrições (a rotina e a própria lista não entram). */
+function alimentosDisponiveis(cfg) {
+  var c = Object.assign({}, cfg, { meus: null, rout: 'marmita' }), out = [];
+  for (var id in FOODS) if (allowed(id, c)) out.push(id);
+  return out;
 }
 function qty(id, g) {
   var u = FOODS[id].unit;
@@ -453,4 +470,4 @@ function fmtQty(it) {
   }
   return it.g + (f.liq ? ' ml' : ' g');
 }
-export { FOODS, OBJ, STYLE, ROUT, SLOT, DAYS, TRAIN, MEALS_N, HORARIOS, nRefeicoes, mealsOf, horarioDe, validaRestricoes, targets, dayTargets, buildDay, shopping, fmtQty, allowed, alternativasIds, podeTrocar, normalizaTrocas, desfazCadeia, registraTroca };
+export { normalizaMeus, alimentosDisponiveis, FOODS, OBJ, STYLE, ROUT, SLOT, DAYS, TRAIN, MEALS_N, HORARIOS, nRefeicoes, mealsOf, horarioDe, validaRestricoes, targets, dayTargets, buildDay, shopping, fmtQty, allowed, alternativasIds, podeTrocar, normalizaTrocas, desfazCadeia, registraTroca };

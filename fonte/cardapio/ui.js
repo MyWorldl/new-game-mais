@@ -56,6 +56,7 @@ export function normalizaCfg(settings){
     restricoes: Object.fromEntries(CDP_RESTR.map(i=> [i[0], !!r[i[0]]])),
     nref: CDP_NREF.indexOf(Number(c.nref)) >= 0 ? Number(c.nref) : null,   // null = padrão da rotina
     trocas: CDPE.normalizaTrocas(c.trocas),
+    meus: CDPE.normalizaMeus(c.meus),   // null = automático (todos os alimentos); lista = só os que a pessoa marcou
   };
 }
 
@@ -63,7 +64,7 @@ export function normalizaCfg(settings){
 function motorDe(e){
   const {kcalAlvo, macros, cfg} = e, p = e.perfil || {};
   return {kg:macros.proteina.g/macros.proteina.gkg, age:Number(p.idade)||30, kcalMeta:kcalAlvo, protG:macros.proteina.g,
-          style:cfg.jeito, rout:cfg.rotina, nref:cfg.nref, trocas:cfg.trocas || [],
+          style:cfg.jeito, rout:cfg.rotina, nref:cfg.nref, trocas:cfg.trocas || [], meus:cfg.meus || null,
           ...Object.fromEntries(CDP_RESTR.map(i=> [CDP_RESTR_MOTOR[i[0]], !!(cfg.restricoes && cfg.restricoes[i[0]])]))};
 }
 const nomeLimpo = (f)=> f.n.replace(/\*$/,"");
@@ -135,10 +136,11 @@ export function montaVisao(e, h){
     nrefinfo: escapeHtml(cfg.rotina === "marmita" ? "Na Marmita da semana são sempre 5 refeições (os lotes dependem disso). Escolha outra rotina para mudar." : "Escolha de 3 a 6. Com menos refeições, cada uma fica maior e pode bater no teto de porção."),
     trocasinfo: escapeHtml(nTrocas ? rotuloTroca(nTrocas)+"." : "Troque qualquer alimento por uma alternativa recomendada.")+
                 (ignoradas ? " "+escapeHtml(ignoradas+(ignoradas > 1 ? " trocas guardadas não combinam" : " troca guardada não combina")+" com os filtros de agora e não "+(ignoradas > 1 ? "aparecem" : "aparece")+".") : ""),
+    meusinfo: escapeHtml(cfg.meus ? "Cardápio e lista de compras usam só os "+cfg.meus.filter(id=> CDPE.alimentosDisponiveis(motor).indexOf(id) >= 0).length+" alimentos que você marcou em Meus alimentos." : "Meus alimentos: o app escolhe entre todos os alimentos que combinam com os seus filtros."),
     total: total,
     avisos: avisos.map(a=>'<div class="cdp-note cdp-warn">'+escapeHtml(a)+'</div>').join(""),
     refeicoes: refeicoes,
-    compras: compraHtml+(temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "")+'<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.</div>',
+    compras: compraHtml+(temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "")+'<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.'+(cfg.meus ? ' Só aparecem alimentos de Meus alimentos.' : ' Para ver só o que você come, marque em Meus alimentos.')+'</div>',
     rodape:
       '<div class="cdp-note">Média da semana: '+num(media.k,0)+' kcal e '+num(media.P,0)+' g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div>'+
       '<div class="cdp-note">Horários sugeridos como ponto de partida: 3 a 4 horas entre as refeições e o jantar com folga antes de dormir. Ajuste ao seu dia de trabalho e de treino.</div>'+
@@ -220,6 +222,38 @@ export function montaPopup(e, h, sel){
   };
 }
 
+
+/* Pop-up "Meus alimentos" (função pura): dado o estado, devolve o HTML. Cada alimento é um botão ligado/desligado; sem escolha salva, tudo aparece ligado (automático). */
+const CDP_GRUPOS_MEUS = [["Proteínas","prot"],["Carboidratos","carb"],["Leguminosas","leg"],["Frutas","fruit"],["Vegetais","veg"],["Gorduras","fat"]];
+export function montaPopupMeus(e, h){
+  const {escapeHtml} = h;
+  const motor = motorDe(e);
+  const disp = CDPE.alimentosDisponiveis(motor);
+  const marcados = e.cfg.meus ? disp.filter(id=> e.cfg.meus.indexOf(id) >= 0) : disp.slice();
+  const nomeHtml = (id)=> escapeHtml(nomeLimpo(CDPE.FOODS[id]));
+  const grupos = CDP_GRUPOS_MEUS.map(g=>{
+    const ids = disp.filter(id=> CDPE.FOODS[id].role === g[1]);
+    if(!ids.length) return "";
+    const n = ids.filter(id=> marcados.indexOf(id) >= 0).length;
+    const chips = ids.map(id=>{ const on = marcados.indexOf(id) >= 0;
+      return '<button type="button" class="cdp-chip'+(on ? ' on' : '')+'" data-meus="alimento" data-v="'+id+'" aria-pressed="'+on+'">'+nomeHtml(id)+'</button>'; }).join("");
+    return '<div class="cdp-pop-sec"><span class="cdp-lbl">'+g[0]+' <small>('+n+' de '+ids.length+')</small></span>'+
+      '<div class="cdp-chips" role="group" aria-label="'+g[0]+'">'+chips+'</div>'+
+      '<div class="cdp-note"><button type="button" class="btn small" data-meus="grupo-todos" data-v="'+g[1]+'">Marcar todos</button> <button type="button" class="btn small" data-meus="grupo-nenhum" data-v="'+g[1]+'">Limpar</button></div></div>';
+  }).join("");
+  const avisos = marcados.length ? CDPE.validaRestricoes(Object.assign({}, motor, {meus: marcados.length === disp.length ? null : marcados})).avisos : [];
+  return {
+    marcados: marcados.length, total: disp.length,
+    html:
+      '<h2>Meus alimentos</h2>'+
+      '<div class="sub">Marque só o que você come. O cardápio e a lista de compras usam apenas esses alimentos; o que ficar desmarcado não aparece. Os filtros de jeito de comer e restrições continuam valendo.</div>'+
+      '<div class="cdp-note" role="status" aria-live="polite" data-meus-msg>'+marcados.length+' de '+disp.length+' alimentos marcados.</div>'+
+      avisos.map(a=> '<div class="cdp-note cdp-warn">'+escapeHtml(a)+'</div>').join("")+
+      grupos+
+      '<div class="modal-actions"><button type="button" class="btn" data-meus="auto">Voltar ao automático</button><button type="button" class="btn primary" data-meus="fechar">Pronto</button></div>'
+  };
+}
+
 export function criaCardapio(ctx){
   for(const k of ["estado","objetivo","salvaSettings","redesenhaDieta","tocaSom","num","escapeHtml","menorDeIdade"]){
     if(typeof ctx[k] !== "function") throw new Error("cardapio: ctx."+k+" ausente (função esperada)");
@@ -231,7 +265,7 @@ export function criaCardapio(ctx){
   const ultimo = {};       // último HTML aplicado em cada região (só troca o nó quando mudou)
 
   function cdpSalvar(cfg){
-    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, {cardapio:{jeito:cfg.jeito, rotina:cfg.rotina, nref:cfg.nref || null, restricoes:Object.assign({}, cfg.restricoes), trocas:cfg.trocas || []}}));
+    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, {cardapio:{jeito:cfg.jeito, rotina:cfg.rotina, nref:cfg.nref || null, restricoes:Object.assign({}, cfg.restricoes), trocas:cfg.trocas || [], meus:cfg.meus || null}}));
   }
   const regiao = (el, nome)=> el.querySelector('[data-r="'+nome+'"]');
   const botao = (el, rot, v)=> el.querySelector('[data-cdp="'+rot+'"][data-v="'+v+'"]');
@@ -248,7 +282,7 @@ export function criaCardapio(ctx){
         '<div class="cdp-field"><span class="cdp-lbl">Rotina</span>'+grupo("Rotina", CDP_ROTINAS, "rotina")+'<span class="cdp-note" data-r="rotdesc"></span></div>'+
         '<div class="cdp-field"><span class="cdp-lbl">Refeições por dia</span>'+grupo("Refeições por dia", CDP_NREF.map(n=> [String(n), n+" refeições"]), "nref")+'<span class="cdp-note" data-r="nrefinfo"></span></div>'+
         '<div class="cdp-field cdp-field-restr"><span class="cdp-lbl">Restrições</span>'+grupo("Restrições", CDP_RESTR, "restr")+'</div>'+
-        '<div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><span class="cdp-note" data-r="trocasinfo"></span></div>'+
+        '<div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><button type="button" class="btn cdp-edit-btn" data-cdp="meus" aria-haspopup="dialog">Meus alimentos</button><span class="cdp-note" data-r="trocasinfo"></span><span class="cdp-note" data-r="meusinfo"></span></div>'+
       '</div>'+
       '<div class="cdp-days" role="group" aria-label="Dia da semana">'+dias+'</div>'+
       '<div class="cdp-total" aria-label="Total do dia" data-r="total"></div>'+
@@ -287,6 +321,7 @@ export function criaCardapio(ctx){
     troca(el, "rotdesc", v.rotdesc);
     troca(el, "nrefinfo", v.nrefinfo);
     troca(el, "trocasinfo", v.trocasinfo);
+    troca(el, "meusinfo", v.meusinfo);
     troca(el, "total", v.total);
     troca(el, "avisos", v.avisos);
     troca(el, "refeicoes", v.refeicoes);
@@ -352,6 +387,51 @@ export function criaCardapio(ctx){
     desenha();
   }
 
+
+  /* Pop-up "Meus alimentos": a escolha fica salva em settings.cardapio.meus (null = automático). */
+  function abrePopupMeus(){
+    if(typeof ctx.abreModal !== "function" || !cdpUltimo) return;
+    const corpo = document.createElement("div");
+    const contexto = ()=> ({kcalAlvo:cdpUltimo.k, macros:cdpUltimo.m, cfg:normalizaCfg(ctx.estado().settings), perfil:ctx.estado().perfil, objetivo:ctx.objetivo(), dia:cdpDia});
+    function desenha(foco, msg){
+      const y = corpo.scrollTop;
+      const r = montaPopupMeus(contexto(), h);
+      corpo.innerHTML = r.html;
+      const m = corpo.querySelector("[data-meus-msg]");
+      if(m && msg) m.textContent = msg+" "+r.marcados+" de "+r.total+" alimentos marcados.";
+      if(foco){ const b = corpo.querySelector('[data-meus="'+foco[0]+'"][data-v="'+foco[1]+'"]') || corpo.querySelector('[data-meus="fechar"]'); if(b) b.focus({preventScroll:true}); }
+      corpo.scrollTop = y;
+    }
+    function grava(lista, disp){
+      const cfg = normalizaCfg(ctx.estado().settings);
+      cfg.meus = (lista.length === disp.length) ? null : lista;   // tudo marcado = automático
+      cdpSalvar(cfg); ctx.redesenhaDieta();
+    }
+    corpo.addEventListener("click", (ev)=>{
+      const b = ev.target.closest("[data-meus]"); if(!b) return;
+      const act = b.dataset.meus, v = b.dataset.v;
+      if(act === "fechar"){ ctx.fechaModal(); return; }
+      const ctxo = contexto(), cfg = ctxo.cfg, motor = motorDe(ctxo);
+      const disp = CDPE.alimentosDisponiveis(motor);
+      let marcados = cfg.meus ? disp.filter(id=> cfg.meus.indexOf(id) >= 0) : disp.slice();
+      ctx.tocaSom("tick");
+      if(act === "auto"){ grava(disp, disp); desenha(["auto", ""], "Voltou ao automático."); return; }
+      let aviso = "";
+      if(act === "alimento"){
+        marcados = marcados.indexOf(v) >= 0 ? marcados.filter(id=> id !== v) : marcados.concat([v]);
+      } else if(act === "grupo-todos"){
+        disp.forEach(id=>{ if(CDPE.FOODS[id].role === v && marcados.indexOf(id) < 0) marcados.push(id); });
+      } else if(act === "grupo-nenhum"){
+        marcados = marcados.filter(id=> CDPE.FOODS[id].role !== v);
+      }
+      if(!marcados.length){ aviso = "Mantenha pelo menos um alimento marcado."; desenha([act, v || ""], aviso); return; }
+      grava(marcados, disp);
+      desenha([act, v || ""], "");
+    });
+    ctx.abreModal(corpo);
+    desenha();
+  }
+
   function setupCardapio(){
     const el = document.getElementById("cardapio-body");
     if(!el) return;
@@ -359,6 +439,7 @@ export function criaCardapio(ctx){
       const b = ev.target.closest("[data-cdp]");
       if(!b) return;
       if(b.dataset.cdp === "editar"){ abrePopup(); return; }
+      if(b.dataset.cdp === "meus"){ abrePopupMeus(); return; }
       const act = b.dataset.cdp, cfg = normalizaCfg(ctx.estado().settings);
       // Rede de segurança (herdada): como os nós agora são preservados, estes remendos não deveriam ter efeito.
       // Ficam até a validação em Safari/iOS real (Safari não ancora a rolagem); depois serão removidos.

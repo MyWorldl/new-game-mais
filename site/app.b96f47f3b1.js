@@ -551,6 +551,34 @@ function equilibrarVolumeInicial(rotina, exp){
   limitar();
   return rotina;
 }
+/* Texto "Por que este plano". Mesma função no plano inicial e na tela: assim o texto sempre acompanha o perfil e a rotina de hoje.
+   split = null quando a rotina atual já não é a do plano inicial (aí a primeira frase é neutra). */
+function montaPorque(o){
+  const {exp, split, n, pedidos, local, menor, objetivo} = o;
+  const porque = [];
+  porque.push(!split
+    ? "Sua rotina de hoje tem "+n+" treino"+(n>1?"s":"")+" por semana, com exercícios em cada um."
+    : exp === "iniciante"
+      ? "Você está começando: treinar o corpo todo "+n+"× por semana dá prática em cada movimento e deixa dias de descanso entre as sessões."
+      : split === "Full Body"
+        ? "Com "+n+" dias por semana, treinar o corpo todo em cada sessão faz cada músculo trabalhar 2× ou mais por semana, que é o que mais rende."
+        : n === 4
+          ? "Upper/Lower em 4 dias: parte de cima e parte de baixo, cada uma 2× por semana, com descanso entre os dias parecidos."
+          : "Com "+n+" sessões por semana, cada grupo principal (peito e ombros, costas e pernas) é treinado 2×, com mais volume por sessão.");
+  if(pedidos > n){
+    porque.push(n >= EXP_SESSOES_MAX[exp]   // o nível é o que limita as sessões; senão é a rotina que ainda não tem exercícios nos outros dias
+      ? "Você escolheu "+pedidos+" dias, mas para o seu nível o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser."
+      : "Você escolheu "+pedidos+" dias e a rotina tem "+n+" com exercícios. Para chegar a "+pedidos+", preencha os outros dias em Editar rotina; até lá eles contam como descanso.");
+  }
+  if(local === "casa") porque.push("Os exercícios foram adaptados para o que você tem em casa (halteres, elásticos e banco).");
+  if(local === "pouco") porque.push("Os exercícios foram adaptados para pouco equipamento: peso do corpo e, se tiver, um elástico.");
+  if(menor) porque.push("Como você tem menos de 18 anos, o plano evita carga máxima: sem levantamento terra pesado e sempre com 8 ou mais repetições por série. Técnica antes de peso.");
+  else if(exp === "iniciante") porque.push("Nas primeiras semanas, use cargas que deixem 2 a 3 repetições sobrando no fim da série e troque o terra pelo stiff, que é mais fácil de aprender.");
+  porque.push(objetivo === "superavit" ? "Objetivo ganhar massa: aumente a carga aos poucos quando passar do topo da faixa de repetições e cuide da alimentação na aba Dieta."
+    : objetivo === "deficit" ? "Objetivo emagrecer: o treino de força segue sendo a base; a diferença está na alimentação (aba Dieta) e em caminhar nos dias de descanso."
+    : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
+  return porque;
+}
 function planoInicial(p){
   const exp = p && EXP_SESSOES_MAX[p.experiencia] ? p.experiencia : "iniciante";
   const local = p && (p.local === "casa" || p.local === "pouco") ? p.local : "academia";
@@ -577,22 +605,7 @@ function planoInicial(p){
     base = buildPPLRotina();
   }
   const rotina = equilibrarVolumeInicial(adaptarRotinaAoPerfil(base, {local, menor, exp}), exp);
-  const porque = [];
-  porque.push(exp === "iniciante"
-    ? "Você está começando: treinar o corpo todo "+n+"× por semana dá prática em cada movimento e deixa dias de descanso entre as sessões."
-    : split === "Full Body"
-      ? "Com "+n+" dias por semana, treinar o corpo todo em cada sessão faz cada músculo trabalhar 2× ou mais por semana, que é o que mais rende."
-      : n === 4
-        ? "Upper/Lower em 4 dias: parte de cima e parte de baixo, cada uma 2× por semana, com descanso entre os dias parecidos."
-        : "Com "+n+" sessões por semana, cada grupo principal (peito e ombros, costas e pernas) é treinado 2×, com mais volume por sessão.");
-  if(pedidos > n) porque.push("Você escolheu "+pedidos+" dias, mas para o seu nível o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser.");
-  if(local === "casa") porque.push("Os exercícios foram adaptados para o que você tem em casa (halteres, elásticos e banco).");
-  if(local === "pouco") porque.push("Os exercícios foram adaptados para pouco equipamento: peso do corpo e, se tiver, um elástico.");
-  if(menor) porque.push("Como você tem menos de 18 anos, o plano evita carga máxima: sem levantamento terra pesado e sempre com 8 ou mais repetições por série. Técnica antes de peso.");
-  else if(exp === "iniciante") porque.push("Nas primeiras semanas, use cargas que deixem 2 a 3 repetições sobrando no fim da série e troque o terra pelo stiff, que é mais fácil de aprender.");
-  porque.push(objetivo === "superavit" ? "Objetivo ganhar massa: aumente a carga aos poucos quando passar do topo da faixa de repetições e cuide da alimentação na aba Dieta."
-    : objetivo === "deficit" ? "Objetivo emagrecer: o treino de força segue sendo a base; a diferença está na alimentação (aba Dieta) e em caminhar nos dias de descanso."
-    : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
+  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo});
   return {rotina, split, sessoes:n, exp, local, porque};
 }
 
@@ -2112,7 +2125,7 @@ function computeStreakEngine(){
   const start = getTrackingStartISO();
   const today = todayISO();
   const todayKey = treinoKey(today);
-  const todayAtivo = state.rotina[todayKey]?.ativo;
+  const todayAtivo = treinoAtivoKey(todayKey);
   const todayDone = state.checkins[today]?.concluido;
   // se hoje é dia de treino e ainda não concluído, a contagem "oficial" pára em ontem —
   // hoje ainda está em aberto, não é tratado como perdido.
@@ -2127,7 +2140,7 @@ function computeStreakEngine(){
     daysElapsed++;
     if(daysElapsed % FREEZE_EARN_DAYS === 0 && freezeBalance < FREEZE_MAX) freezeBalance++;
     const key = treinoKey(iso);
-    if(state.rotina[key]?.ativo){
+    if(treinoAtivoKey(key)){
       if(state.checkins[iso]?.concluido){
         cur++;
         if(cur === 1) streakStartIso = iso;
@@ -2181,7 +2194,7 @@ function statsSemana(mondayIso){
   for(let i=0; i<7; i++){
     const iso = addDaysISO(mondayIso, i);
     if(iso < start) continue;
-    if(!state.rotina[treinoKey(iso)]?.ativo) continue;
+    if(!treinoAtivoKey(treinoKey(iso))) continue;
     cap++;
     if(iso <= today && state.checkins[iso]?.concluido){ feitos++; if(state.checkins[iso].leve) leves++; }
   }
@@ -2276,7 +2289,7 @@ function recupResumo(r){
 }
 function recupDeveAbrir(){
   const iso = todayISO(), day = state.rotina[treinoKey(iso)];
-  if(!(day && day.ativo)) return false;                       // só em dia de treino
+  if(!treinoAtivoKey(treinoKey(iso))) return false;           // só em dia de treino (ligado e com exercícios)
   if(state.checkins[iso] && state.checkins[iso].concluido) return false;
   if(recupContagem(recupDia(iso))) return false;              // já respondeu hoje
   try{ if((localStorage.getItem(K_RECUP_PULO) || "") >= iso) return false; }catch(e){}
@@ -2298,7 +2311,7 @@ function aposCadastro(){
 }
 function abrirComoEstou(modo){
   const iso = todayISO(), key = treinoKey(iso);
-  const planos = !!(state.rotina[key] && state.rotina[key].ativo) && !(state.checkins[iso] && state.checkins[iso].concluido);
+  const planos = treinoAtivoKey(key) && !(state.checkins[iso] && state.checkins[iso].concluido);
   const body = document.createElement("div");
   body.innerHTML = '<h2>Como você está hoje?</h2>'+
     '<div class="sub">'+(modo === "abertura" ? 'Antes de treinar, 3 toques ajustam o dia ao seu corpo. ' : '')+'É opcional e sem cobrança. Você pode mudar quando quiser em Configurações.</div>'+
@@ -2507,7 +2520,7 @@ function renderHabitos(){
 /* ---- dia leve ---- */
 function registrarDiaLeve(){
   const iso = todayISO(), key = treinoKey(iso);
-  if(!state.rotina[key]?.ativo) return;
+  if(!treinoAtivoKey(key)) return;
   const existing = state.checkins[iso] || {};
   if(existing.concluido) return;
   const prevSnap = snapCheckin(iso);
@@ -2546,7 +2559,7 @@ function sessaoRapidaItens(extras){
 }
 function abrirSessaoRapida(){
   const iso = todayISO(), key = treinoKey(iso);
-  if(!state.rotina[key]?.ativo || state.checkins[iso]?.concluido) return;
+  if(!treinoAtivoKey(key) || state.checkins[iso]?.concluido) return;
   const body = document.createElement("div");
   body.innerHTML = '<h2>Sessão rápida</h2><div id="sr-dyn"></div>';
   const marcados = new Set();
@@ -2653,7 +2666,7 @@ function computeNivelInfo(){
     daysElapsed++;
     if(daysElapsed % FREEZE_EARN_DAYS === 0 && freezeBalance < FREEZE_MAX) freezeBalance++;
     const key = treinoKey(iso);
-    if(state.rotina[key]?.ativo){
+    if(treinoAtivoKey(key)){
       if(state.checkins[iso]?.concluido){
         cur++;
         if(state.checkins[iso].leve) leves++; else { treinos++; xpTreinos += xpDoTreino(state.checkins[iso], state.rotina[key]); }   // v95: dia leve mantém a sequência, mas vale metade do XP · NG+: exercícios parciais/pulados valem menos
@@ -2717,7 +2730,7 @@ function renderSideStreak(){
   const dots = [], falas = [];
   for(let i = 0; i < 7; i++){
     const iso = addDaysISO(seg, i), key = dayKeyFromISO(iso);
-    const ativo = !!(state.rotina[key] && state.rotina[key].ativo);
+    const ativo = treinoAtivoKey(key);
     const c = state.checkins[iso];
     let st;
     if(c && c.concluido) st = "feito";
@@ -2940,7 +2953,7 @@ function hojeMissoes(){
   const live = document.getElementById("btn-treino-ao-vivo");
   const lista = [];
   if(!state.perfil) lista.push({id:"cadastro", txt:"Fazer o seu cadastro", sub:"Leva 1 minuto e libera o treino e a dieta", feita:false, acao:"Começar"});
-  else if(!day || !day.ativo) lista.push({id:"descanso", txt:"Descansar hoje", sub:"Dia sem treino: sono, proteína e uma caminhada leve contam", feita:true, descanso:true});
+  else if(!day || !day.ativo || !(day.exercicios||[]).length) lista.push({id:"descanso", txt:"Descansar hoje", sub:"Dia sem treino: sono, proteína e uma caminhada leve contam", feita:true, descanso:true});
   else lista.push({id:"treino", txt: c && c.concluido ? "Treino de hoje concluído" : "Concluir o treino de hoje", sub: day.nome, feita: !!(c && c.concluido), acao: live && !live.disabled ? "Abrir" : ""});
   const hb = hojeHabitosHoje();
   lista.push({id:"hab", txt: hb.length ? "Hábitos de hoje registrados" : "Registrar sono, passos e cárdio", sub: hb.length ? hb.join(" · ") : "Opcional · não vale XP e não entra na sequência", feita: hb.length > 0, acao: hb.length ? "" : "Registrar"});
@@ -3552,7 +3565,7 @@ function renderNarrator(){
   const today = todayISO();
   const todayKey = treinoKey(today);
   const todayDay = state.rotina ? state.rotina[todayKey] : null;
-  const todayAtivo = !!(todayDay && todayDay.ativo);
+  const todayAtivo = treinoAtivoKey(todayKey);
   const todayDone = !!state.checkins[today]?.concluido;
   const engine = computeStreakEngine();
   const info = computeNivelInfo();
@@ -3765,7 +3778,7 @@ function hasPerfectWeekEver(){
       if(iso > today) break;
       if(iso < start) continue;
       const key = treinoKey(iso);
-      if(state.rotina[key]?.ativo){
+      if(treinoAtivoKey(key)){
         total++;
         if(state.checkins[iso]?.concluido) done++;
       }
@@ -3796,7 +3809,7 @@ function countSemanasPerfeitas(){
       const iso = addDaysISO(monday, i);
       if(iso > today) break;
       if(iso < start) continue;
-      if(state.rotina[treinoKey(iso)]?.ativo){ total++; if(state.checkins[iso]?.concluido) done++; }
+      if(treinoAtivoKey(treinoKey(iso))){ total++; if(state.checkins[iso]?.concluido) done++; }
     }
     if(total>0 && done===total) n++;
     monday = addDaysISO(monday, 7);
@@ -4391,7 +4404,7 @@ function activeDaysInRange(startIso, endIso){
   let iso = startIso;
   while(iso <= realEnd){
     const key = treinoKey(iso);
-    if(state.rotina[key]?.ativo) list.push(iso);
+    if(treinoAtivoKey(key)) list.push(iso);
     iso = addDaysISO(iso, 1);
   }
   return list;
@@ -4562,7 +4575,7 @@ function renderLastWeekRecap(){
   const lastMonday = addDaysISO(thisMonday, -7);
   const lastSunday = addDaysISO(thisMonday, -1);
   if(lastSunday < trackStart){ el.hidden = true; return; }
-  const ativos = activeDaysInRange(lastMonday, lastSunday);
+  const ativos = activeDaysInRange(lastMonday, lastSunday).filter(iso=> iso >= trackStart);   // só dias desde o início do uso: mesma conta da meta
   if(!ativos.length){ el.hidden = true; return; }
   const done = ativos.filter(iso=> state.checkins[iso]?.concluido).length;
   const prHit = hasPRInRange(lastMonday, lastSunday);
@@ -4593,7 +4606,7 @@ function renderStreak(){
 
   // streak em risco: hoje é dia de treino ativo, ainda não concluído, e já está tarde
   const todayKeyRisk = treinoKey(todayISO());
-  const todayAtivoRisk = state.rotina[todayKeyRisk]?.ativo;
+  const todayAtivoRisk = treinoAtivoKey(todayKeyRisk);
   const todayDoneRisk = !!state.checkins[todayISO()]?.concluido;
   const atRisk = streak > 0 && todayAtivoRisk && !todayDoneRisk && new Date().getHours() >= 20;
   const streakCardEl = document.getElementById("streak-card");
@@ -4654,7 +4667,7 @@ function renderProximoTreino(){
   let achou = null;
   for(let i = 0; i < 14 && !achou; i++){
     const iso = addDaysISO(hoje, i), dia = state.rotina[treinoKey(iso)];
-    if(!dia || !dia.ativo) continue;
+    if(!dia || !treinoAtivoKey(treinoKey(iso))) continue;
     if(i === 0 && state.checkins[iso] && state.checkins[iso].concluido) continue;
     achou = {iso, dia, i};
   }
@@ -4672,7 +4685,7 @@ function renderWeekDots(){
   let done=0, total=0;
   days.forEach(iso=>{
     const key = treinoKey(iso);
-    const ativo = state.rotina[key]?.ativo;
+    const ativo = treinoAtivoKey(key);
     const isDone = !!state.checkins[iso]?.concluido;
     const isToday = iso === todayISO();
     const isFrozen = freezeUsedSet.has(iso);
@@ -4698,7 +4711,7 @@ function renderWeekDots(){
     const dIso = y+"-"+m+"-"+pad2(d);
     if(dIso > iso) break;
     const key = treinoKey(dIso);
-    if(state.rotina[key]?.ativo){
+    if(treinoAtivoKey(key)){
       mtotal++;
       if(state.checkins[dIso]?.concluido) mdone++;
     }
@@ -5331,7 +5344,7 @@ function renderTodayCard(){
   const day = state.rotina[key];
   const hint = document.getElementById("today-hint");
   const title = document.getElementById("today-title");
-  if(!day || !day.ativo){
+  if(!day || !day.ativo || !(day.exercicios||[]).length){
     if(title) title.textContent = "Dia de descanso";
     hint.textContent = DAY_FULL[dayKeyFromISO(iso)]+" — recupere: sono, proteína e uma caminhada leve contam.";
     aplicaAcaoHoje(state.perfil ? "descanso" : "cadastro", 0, 0, false);
@@ -5361,13 +5374,24 @@ const FORMATO_SUGESTAO = {
   6:["seg","ter","qua","qui","sex","sab"]
 };
 const DAY_ABBR = {seg:"Seg",ter:"Ter",qua:"Qua",qui:"Qui",sex:"Sex",sab:"Sáb",dom:"Dom"};
-function diasAtivos(){ return DAYS.filter(k=> state.rotina[k] && state.rotina[k].ativo); }
+/* REGRA ÚNICA: "dia de treino" = dia ligado E com exercícios. Meta semanal, sequência, calendário, formato e resumos usam esta mesma conta; um dia ligado sem exercícios conta como descanso até ser preenchido. */
+function diasAtivos(){ return DAYS.filter(k=> treinoAtivoKey(k)); }
+function diasLigados(){ return DAYS.filter(k=> state.rotina[k] && state.rotina[k].ativo); }
+function diasLigadosVazios(){ return diasLigados().filter(k=> !treinoAtivoKey(k)); }
 function renderFormatoCard(){
   const box = document.getElementById("formato-opts"), now = document.getElementById("formato-now");
   if(!box) return;
   const n = diasAtivos().length;
   const cur = FORMATOS_SEMANA.find(f=> f.t === n);
   if(now) now.textContent = "Hoje: "+n+"×"+(7-n);
+  const vz = document.getElementById("formato-vazios");
+  if(vz){
+    const vazios = diasLigadosVazios();
+    vz.hidden = !vazios.length;
+    vz.textContent = vazios.length
+      ? (vazios.length === 1 ? "1 dia ligado sem exercícios (" : vazios.length+" dias ligados sem exercícios (")+vazios.map(k=> DAY_ABBR[k]).join(", ")+"): conta"+(vazios.length === 1 ? "" : "m")+" como descanso até você preencher em Editar rotina."
+      : "";
+  }
   box.innerHTML = FORMATOS_SEMANA.map(f=>
     '<div class="formato-opt'+(cur===f?" on":"")+'" role="listitem">'+
       '<div class="fx">'+f.t+'×'+f.r+'<small>'+f.t+' treino · '+f.r+' descanso</small></div>'+
@@ -5380,7 +5404,7 @@ let formatoSel = null;
 function abrirFormatoPanel(t){
   const pn = document.getElementById("formato-panel"); if(!pn) return;
   const fd = document.getElementById("formato-details"); if(fd) fd.open = true;
-  const atuais = diasAtivos();
+  const atuais = diasLigados();
   formatoSel = new Set(atuais.length === t ? atuais : FORMATO_SUGESTAO[t]);
   pn.hidden = false;
   desenharFormatoPanel(t);
@@ -5400,7 +5424,7 @@ function desenharFormatoPanel(t){
     '</div>'+
     '<div class="fp-note">Resultado: <strong>'+n+'×'+r+'</strong> ('+n+' treino · '+r+' descanso).'+
       (n===0?' Escolha ao menos 1 dia.':'')+
-      (vazios.length?' Sem exercícios em '+vazios.map(k=>DAY_ABBR[k]).join(", ")+': preencha depois em "Editar rotina".':'')+
+      (vazios.length?' Sem exercícios em '+vazios.map(k=>DAY_ABBR[k]).join(", ")+': até você preencher em "Editar rotina", contam como descanso.':'')+
       ' Nada é apagado: os dias desligados mantêm seus exercícios.</div>'+
     '<div class="fp-actions"><button class="btn primary small" type="button" id="fp-apply"'+(n===0?' disabled':'')+'>Aplicar '+n+'×'+r+'</button><button class="btn small ghost" type="button" id="fp-cancel">Cancelar</button></div>';
 }
@@ -6854,7 +6878,7 @@ function trailDayStatus(key, todayKey, iso, freezeUsedSet){
   const done = !!checkin?.concluido;
   const frozen = isPast && freezeUsedSet.has(dateForKey);
   let status;
-  if(!day.ativo) status = "rest";
+  if(!day.ativo || !(day.exercicios||[]).length) status = "rest";
   else if(done) status = "done";
   else if(frozen) status = "frozen";
   else if(isPast) status = "lost";
@@ -7511,7 +7535,7 @@ function calDiasNoMes(iso){
 function calEstado(iso, ctx){
   if(iso < ctx.start) return "antes";
   const key = dayKeyFromISO(iso);
-  const ativo = !!(state.rotina[key] && state.rotina[key].ativo);
+  const ativo = treinoAtivoKey(key);
   const c = state.checkins[iso];
   if(c && c.concluido) return c.leve ? "leve" : "feito";
   if(iso > ctx.today) return ativo ? "futuro" : "descanso";
@@ -7524,7 +7548,7 @@ const CAL_TXT = {feito:"treino concluído", leve:"dia leve (mantém a sequência
 function calDescricao(iso, est){
   const key = dayKeyFromISO(iso);
   const d = state.rotina[key];
-  const nome = d && d.ativo && d.nome ? " · "+d.nome : "";
+  const nome = d && treinoAtivoKey(key) && d.nome ? " · "+d.nome : "";
   const hab = habDe(iso);
   const hp = [];
   if(hab){
@@ -7559,7 +7583,7 @@ function renderCalendario(){
     const iso = calMesIso.slice(0,8)+pad2(dia);
     const est = calEstado(iso, ctx);
     if(iso >= start && iso <= today){
-      const ativo = !!(state.rotina[dayKeyFromISO(iso)] && state.rotina[dayKeyFromISO(iso)].ativo);
+      const ativo = treinoAtivoKey(dayKeyFromISO(iso));
       const c = state.checkins[iso];
       if(ativo || (c && c.concluido)){ agend++; if(c && c.concluido) feitos++; }
     }
@@ -7629,7 +7653,7 @@ function renderHeatmapSemanas(){
       let iso = effStart;
       while(iso <= effEnd){
         const key = treinoKey(iso);
-        if(state.rotina[key]?.ativo){
+        if(treinoAtivoKey(key)){
           total++;
           if(state.checkins[iso]?.concluido) done++;
         }
@@ -8491,7 +8515,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.323baba56e.js";
+const CARDAPIO_URL = "./cardapio.17c1aab163.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)
@@ -8507,7 +8531,7 @@ function renderCardapio(kcalAlvo, macros){
       salvaSettings: (next)=>{ state.settings = next; saveDoc("config/settings", state.settings); },
       redesenhaDieta: ()=> renderDieta(),
       tocaSom: (nome)=> playSound(nome),
-      abreModal: (el)=> openModal(el), fechaModal: ()=> closeModal(),   // só para o pop-up "Trocar alimentos"
+      abreModal: (el)=> openModal(el), fechaModal: ()=> closeModal(),   // para os pop-ups "Trocar alimentos" e "Meus alimentos"
       num, escapeHtml, menorDeIdade
     });
     if(cardapioMeta) CARDAPIO.render(cardapioMeta[0], cardapioMeta[1]);
@@ -8656,7 +8680,7 @@ const TOUR_PASSOS = [
   {aba:"treino", alvo:{h2:"Cargas"}, t:"Carga, repetições e RPE", x:"Registre o peso e as repetições de cada série. RPE é o quanto a série foi difícil, de 1 a 10: perto de 8 (sobram umas 2 repetições) é o ponto certo. Suba a carga aos poucos, só quando completar as repetições com boa técnica."},
   {aba:"treino", alvo:"#analise-treino-card", t:"Análise do treino", x:"Mostra se o volume de cada músculo está na faixa recomendada e como suas cargas evoluem com o tempo."},
   {aba:"dieta", alvo:{h2:"Objetivo calórico"}, t:"Dieta", x:"Calorias e macronutrientes calculados pelo seu perfil e objetivo. É uma estimativa: o app ajusta pelo seu resultado. Para menores de 18 anos não há sugestão de déficit calórico."},
-  {aba:"dieta", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
+  {aba:"dieta", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Meus alimentos para marcar só o que você come (o cardápio e a lista de compras seguem a sua escolha) e Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
   {aba:"corpo", alvo:{h2:"Nova medição"}, t:"Medidas e fotos", x:"Registre peso e medidas, de preferência sempre no mesmo horário, para ver a evolução nos gráficos. As fotos de progresso ficam só na sua conta."},
   {aba:"perfil", alvo:{h2:"Ficha de personagem"}, t:"Seu personagem", x:"Nível, XP e atributos sobem com a constância. As conquistas desbloqueiam quando você bate marcos."},
   {aba:"perfil", alvo:"#perfil-mais", t:"Mais do app", x:"No celular, o Glossário (termos de treino explicados) e as Configurações ficam aqui."},
@@ -9133,13 +9157,31 @@ function aplicarPlanoInicial(perfilData, iso){
 function treinoConcluidoDesde(iso){
   return Object.keys(state.checkins).some(k=> k >= iso && state.checkins[k] && state.checkins[k].concluido);
 }
+/* O texto acompanha o perfil (nível, dias) e a rotina de hoje, não uma cópia de quando a conta foi criada. */
+function planoPorqueAtual(){
+  const pi = state.settings && state.settings.planoInicial;
+  if(!(pi && Array.isArray(pi.porque) && pi.porque.length)) return null;
+  const p = state.perfil;
+  if(!p || !EXP_SESSOES_MAX[p.experiencia]) return {split: pi.split, sessoes: pi.sessoes, porque: pi.porque};
+  const nAt = diasAtivos().length;
+  const mesmo = !nAt || nAt === pi.sessoes;
+  const n = mesmo ? pi.sessoes : nAt;
+  const menor = !!menorDeIdade(p.idade);
+  const objetivo = p.objetivo === "superavit" || (p.objetivo === "deficit" && !menor) ? p.objetivo : "manutencao";
+  const pedidos = Math.max(2, Math.min(6, Math.round(Number(p.diasSemana)) || n));
+  const local = p.local === "casa" || p.local === "pouco" ? p.local : "academia";
+  const split = mesmo ? pi.split : null;
+  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo})};
+}
 function renderPlanoPorque(){
   const hoje = document.getElementById("plano-porque-hoje"), treino = document.getElementById("plano-porque-treino");
-  const pi = state.settings && state.settings.planoInicial;
+  const pi0 = state.settings && state.settings.planoInicial;
+  const at = planoPorqueAtual();
+  const pi = at && pi0 ? Object.assign({}, pi0, {split: at.split || "Rotina atual", sessoes: at.sessoes, porque: at.porque}) : pi0;
   const ok = pi && Array.isArray(pi.porque) && pi.porque.length;
   /* conta antiga sem foco corporal: o foco é obrigatório, então o Hoje pede a escolha até ela acontecer */
   const semFoco = !!(state.perfil && !carregando && focosDoPerfil().length === 0);
-  const titulo = ok ? "Seu plano: "+escapeHtml(pi.split)+" · "+pi.sessoes+" treino"+(pi.sessoes>1?"s":"")+" por semana" : "";
+  const titulo = ok ? (pi.split === "Rotina atual" ? "Sua rotina: " : "Seu plano: "+escapeHtml(pi.split)+" · ")+pi.sessoes+" treino"+(pi.sessoes>1?"s":"")+" por semana" : "";
   if(hoje){
     const mostrar = ok && !pi.visto && !treinoConcluidoDesde(pi.criadoEm || "0000");
     hoje.hidden = !(mostrar || semFoco);
@@ -10463,5 +10505,5 @@ function resumoParaTreinador(){
   };
 }
 window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
-try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino}; }catch(e){}
+try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque}; }catch(e){}
 })();

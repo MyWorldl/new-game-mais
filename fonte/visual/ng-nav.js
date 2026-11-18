@@ -26,7 +26,7 @@ function renderSideStreak(){
   const dots = [], falas = [];
   for(let i = 0; i < 7; i++){
     const iso = addDaysISO(seg, i), key = dayKeyFromISO(iso);
-    const ativo = !!(state.rotina[key] && state.rotina[key].ativo);
+    const ativo = treinoAtivoKey(key);
     const c = state.checkins[iso];
     let st;
     if(c && c.concluido) st = "feito";
