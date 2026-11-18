@@ -13,6 +13,10 @@ for nome, arq in MARCADORES.items():
         continue
     caminho = os.path.join(aqui, "dados", arq)
     dados = json.load(open(caminho, encoding="utf-8"))
+    # orçamento de tamanho do app (teste "desempenho": JS < 700 KB): fontes e observações ficam só no JSON do repositório até a tela que as mostra existir
+    if nome == "BASE_EXERCICIOS":
+        for e in dados.get("exercicios", []):
+            e.pop("fontes", None); e.pop("obs", None)
     # </script> dentro de JSON quebraria o HTML; escapa o "<"
     js = json.dumps(dados, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     # troca o marcador e o valor padrão que vem logo depois (um literal {...} ou [...] até o ; da linha)
