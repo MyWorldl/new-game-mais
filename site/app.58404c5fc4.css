@@ -2727,6 +2727,8 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 .field-ic-group .field-ic-wrap input::placeholder{font-weight:400;}
 .field-ic-group .field-ic-wrap input[type="date"]{padding:10px 12px; height:var(--touch-min);}   /* F9: a data tinha o respiro do estilo antigo (6px 0) e o texto encostava na borda; agora igual aos outros campos */
 #form-habitos.u-gap10{gap:var(--sp-4) !important;}
+.hab-janela{margin:0; font-size:var(--fs-xs); line-height:1.4;}
+#form-habitos.hab-bloqueado .hab-num, #form-habitos.hab-bloqueado .hab-um{opacity:.55;}   /* dia fora da janela (hoje e ontem): campos desligados */
 #form-habitos > button[type="submit"]{margin-top:var(--sp-5);}   /* F9: botão um pouco mais abaixo dos campos */
 /* desktop: "Constância" ocupa a largura toda — as barras se esticam e ficam um pouco mais altas */
 @media (min-width:900px){
@@ -3378,6 +3380,36 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
    e deixava uma emenda visível no topo; no desktop o cabeçalho rola junto, então fica transparente (o degradê corre contínuo). */
 @media (min-width:768px){
   .topbar{ background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
+}
+
+/* 30. Topo separado do menu lateral (pedido do Gabriel): o topo é uma faixa própria, com fundo sólido e linha de separação; o menu começa logo abaixo dele.
+   Celular: fundo opaco (antes era um vidro a 78% que deixava o conteúdo aparecendo por trás e o topo parecia apagado). */
+:root{ --top-h:64px; }
+@media (max-width:767px){
+  .topbar{
+    background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none;
+    border-bottom:1px solid var(--line-strong, var(--line)); box-shadow:0 10px 24px -18px rgb(0 0 0 / .85);
+  }
+  .brand .top-icon, .brand .sync-pill{ background:var(--surface-2); }
+  .top-greet{ color:var(--ink); opacity:.78; }
+  .top-sec{ color:var(--ink); }
+}
+@media (min-width:768px){
+  .topbar{
+    position:fixed; inset-block-start:0; inset-inline:0; z-index:45; margin:0; padding:0; grid-column:auto; grid-row:auto;
+    block-size:var(--top-h); min-block-size:var(--top-h); justify-content:center;
+    background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none;
+    border-bottom:1px solid var(--line-strong, var(--line)); box-shadow:0 12px 30px -24px rgb(0 0 0 / .9);
+  }
+  .topbar > .brand{ inline-size:100%; max-inline-size:none; padding-inline:18px 24px; }
+  /* a marca passa para o topo (antes ficava no menu lateral) */
+  .topbar > .brand > div.mark{ display:grid; place-items:center; order:-1; position:static; inline-size:40px; block-size:40px; margin:0; padding:0; overflow:visible; clip-path:none; white-space:nowrap; flex:none; }
+  .brand > .nav-toggle{ order:-2; }
+  .side-brand{ display:none !important; }
+  .brand .cmdk-chip{ background:var(--surface-2); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .bottomnav{ inset-block-start:var(--top-h); block-size:calc(100dvh - var(--top-h)); padding-block-start:16px; }
+  .app{ padding-block-start:calc(var(--top-h) + 18px); }
+  .app > main{ grid-row:auto; }
 }
 
 /* ---- Aviso "Nova versão disponível" (criado por bff-runtime.js) ---- */

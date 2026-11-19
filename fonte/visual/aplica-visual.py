@@ -85,10 +85,15 @@ rep('<circle class="today-ring-fill" id="today-ring" cx="40" cy="40" r="34"/>',
 rep('<div class="today-ring">','<div class="today-ring" id="today-ring-box" role="img" aria-label="">')
 rep('  if(hero) hero.classList.toggle("is-done", !!done);\n}',
     '  if(hero) hero.classList.toggle("is-done", !!done);\n  hojeAtualizaAnelSemana(cur, total);\n}')
-rep('<section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>\n\n    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n',
-    '<section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>\n\n    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n\n'
-    '    <section class="hoje-metricas" id="hoje-metricas" aria-labelledby="hm-t">\n      <h2 class="sr-only" id="hm-t">Resumo de hoje</h2>\n      <div class="hm-trilho" id="hm-trilho" role="group" aria-roledescription="carrossel" aria-label="Métricas de hoje"></div>\n      <div class="hm-dots" id="hm-dots" aria-hidden="true"></div>\n    </section>\n\n'
-    '    <section class="card hoje-missoes" id="hoje-missoes" aria-labelledby="hmi-t">\n      <div class="card-head"><h2 id="hmi-t">Missões de hoje</h2><span class="hint" id="hmi-count"></span></div>\n      <ul class="hmi-lista" id="hmi-lista"></ul>\n    </section>\n')
+# ordem da tela Hoje: Quest de hoje > aviso de treino perdido > patente > Missões (Hoje | Esta semana | Este mês); o carrossel de métricas e o resto vêm depois
+rep('<section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n',
+    '<section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>\n\n'
+    '    <section class="hoje-metricas" id="hoje-metricas" aria-labelledby="hm-t">\n      <h2 class="sr-only" id="hm-t">Resumo de hoje</h2>\n      <div class="hm-trilho" id="hm-trilho" role="group" aria-roledescription="carrossel" aria-label="Métricas de hoje"></div>\n      <div class="hm-dots" id="hm-dots" aria-hidden="true"></div>\n    </section>\n')
+# Missões unificadas: o seletor que já existia ganha "Hoje" (missões do dia) antes de "Esta semana" e "Este mês"
+rep('<div class="card-head"><h2 id="missoes-t">Missões</h2><span class="hint" id="challenges-count">0 de 6 concluídos</span></div>\n      <div class="seg chal-tabs" id="chal-tabs">\n        <button type="button" data-scope="semana" class="active">Esta semana</button>\n        <button type="button" data-scope="mes">Este mês</button>\n      </div>\n      <div class="chal-card-grid" id="chal-grid"></div>',
+    '<div class="card-head"><h2 id="missoes-t">Missões</h2><span class="hint" id="hmi-count"></span><span class="hint" id="challenges-count" hidden>0 de 6 concluídos</span></div>\n'
+    '      <div class="seg chal-tabs" id="chal-tabs" role="group" aria-label="Período das missões">\n        <button type="button" data-scope="hoje" class="active" aria-pressed="true">Hoje</button>\n        <button type="button" data-scope="semana" aria-pressed="false">Esta semana</button>\n        <button type="button" data-scope="mes" aria-pressed="false">Este mês</button>\n      </div>\n'
+    '      <div class="hoje-missoes" id="hoje-missoes"><ul class="hmi-lista" id="hmi-lista"></ul></div>\n      <div class="chal-card-grid" id="chal-grid" hidden></div>')
 rep('function renderNivel(){\n', hoje+'function renderNivel(){\n')
 rep('renderTodayCard, renderChallenges','renderTodayCard, renderHojeMetricas, renderHojeMissoes, renderChallenges')
 

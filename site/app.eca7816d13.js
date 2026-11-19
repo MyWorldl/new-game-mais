@@ -2528,6 +2528,22 @@ function habMsg(txt){
   const b = document.getElementById("hab-aviso"); if(!b) return;
   b.hidden = !txt; b.textContent = txt || "";
 }
+/* Janela de edição: só o dia de hoje e o dia anterior (esqueceu de ontem? dá para preencher hoje). Antes disso o registro fica como está; dia futuro nunca. */
+function habJanela(){ const hoje = todayISO(); return {min: addDaysISO(hoje, -1), max: hoje}; }
+function habEditavel(iso){ const j = habJanela(); return !!iso && iso >= j.min && iso <= j.max; }
+function habMotivoBloqueio(iso){
+  if(habEditavel(iso)) return "";
+  return iso > todayISO() ? "Esse dia ainda não chegou. Escolha hoje ou ontem." : "Só dá para registrar hábitos de hoje ou de ontem. Esse dia fica como está.";
+}
+/* liga/desliga o formulário conforme o dia escolhido (o seletor já limita a data; isto cobre quem digita a data à mão) */
+function habAtualizaForm(){
+  const dEl = document.getElementById("h-data"), f = document.getElementById("form-habitos");
+  if(!dEl || !f) return;
+  const bloq = !habEditavel(dEl.value);
+  f.querySelectorAll('input:not(#h-data), button[type="submit"]').forEach(e=>{ e.disabled = bloq; });
+  f.classList.toggle("hab-bloqueado", bloq);
+  habMsg(bloq && dEl.value ? habMotivoBloqueio(dEl.value) : null);
+}
 function habPreencher(iso){
   const h = habDe(iso) || {};
   const set = (id, v)=>{ const e = document.getElementById(id); if(e) e.value = v == null ? "" : String(v); };
@@ -2536,7 +2552,7 @@ function habPreencher(iso){
 function salvarHabitos(){
   const dEl = document.getElementById("h-data");
   const iso = (dEl && dEl.value) || todayISO();
-  if(iso > todayISO()){ habMsg("Escolha o dia de hoje ou um dia anterior."); return; }
+  if(!habEditavel(iso)){ habMsg(habMotivoBloqueio(iso) || "Escolha o dia de hoje ou o dia anterior."); return; }
   const rd = (id)=>{ const e = document.getElementById(id); const t = e ? e.value.trim().replace(",", ".") : ""; return t === "" ? null : Number(t); };
   const sono = rd("h-sono"), passos = rd("h-passos"), cardio = rd("h-cardio"), agua = rd("h-agua");
   if(sono != null && !(sono >= 0 && sono <= 16)){ habMsg("Sono: informe entre 0 e 16 horas."); return; }
@@ -2642,7 +2658,13 @@ function renderHabitos(){
   const box = document.getElementById("hab-resumo");
   if(!box) return;
   const dEl = document.getElementById("h-data");
-  if(dEl && !dEl.value){ dEl.value = todayISO(); dEl.max = todayISO(); habPreencher(dEl.value); }
+  const jan = habJanela();
+  if(dEl){
+    dEl.min = jan.min; dEl.max = jan.max;
+    // o dia virou com a tela aberta (ou o campo está vazio/fora da janela): volta para hoje
+    if(!dEl.value || (!habEditavel(dEl.value) && document.activeElement !== dEl)){ dEl.value = jan.max; habPreencher(dEl.value); }
+    habAtualizaForm();
+  }
   const hoje = todayISO();
   const dias = [];
   for(let i = 0; i < 7; i++) dias.push(addDaysISO(hoje, -i));
@@ -2675,9 +2697,9 @@ function renderHabitos(){
   const f = document.getElementById("form-habitos");
   if(!f) return;
   f.addEventListener("submit", (e)=>{ e.preventDefault(); salvarHabitos(); });
-  f.addEventListener("input", ()=> habMsg(null));
+  f.addEventListener("input", (e)=>{ if(!e.target || e.target.id !== "h-data") habMsg(null); });
   const d = document.getElementById("h-data");
-  if(d) d.addEventListener("change", ()=>{ if(d.value) habPreencher(d.value); });
+  if(d) d.addEventListener("change", ()=>{ if(d.value) habPreencher(d.value); habAtualizaForm(); });
 })();
 
 /* ---- dia leve ---- */
@@ -4705,11 +4727,12 @@ function renderChallengeGrid(elId, items){
   }).join("");
 }
 
-let challengeScope = "semana";
+/* Missões: "Hoje" (missões do dia, camada visual), "Esta semana" e "Este mês" no mesmo cartão */
+let challengeScope = document.getElementById("hoje-missoes") ? "hoje" : "semana";
 document.querySelectorAll("#chal-tabs button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     challengeScope = btn.dataset.scope;
-    document.querySelectorAll("#chal-tabs button").forEach(b=> b.classList.toggle("active", b===btn));
+    document.querySelectorAll("#chal-tabs button").forEach(b=>{ b.classList.toggle("active", b===btn); b.setAttribute("aria-pressed", String(b===btn)); });
     renderChallenges();
   });
 });
@@ -4718,8 +4741,14 @@ function renderChallenges(){
   const weekly = computeWeeklyChallenges();
   const monthly = computeMonthlyChallenges();
   renderChallengeGrid("chal-grid", challengeScope === "mes" ? monthly : weekly);
+  const hojeBox = document.getElementById("hoje-missoes"), gridEl = document.getElementById("chal-grid"), hojeCnt = document.getElementById("hmi-count");
+  const emHoje = challengeScope === "hoje" && !!hojeBox;
+  if(hojeBox) hojeBox.hidden = !emHoje;
+  if(gridEl) gridEl.hidden = emHoje;
+  if(hojeCnt) hojeCnt.hidden = !emHoje;
   const countEl = document.getElementById("challenges-count");
   if(countEl){
+    countEl.hidden = emHoje;
     const total = weekly.length + monthly.length;
     const done = weekly.filter(i=>i.done).length + monthly.filter(i=>i.done).length;
     countEl.textContent = done+" de "+total+" concluídos";
