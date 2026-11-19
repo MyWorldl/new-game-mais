@@ -14,3 +14,10 @@ Fluxo: cardapio/*.js -> esbuild (.build/cardapio.js, módulo ES) ; app.html -> v
 Deploy: git push (Cloudflare publica a pasta site/). Ao mudar o app, troque VERSAO em site/sw.js.
 
 - Histórico: as cópias antigas do app (backup-prd, de antes do deploy na Cloudflare) foram removidas na limpeza do item 10; continuam no histórico do git (commit 917cd94 e anteriores).
+
+## Orçamento de tamanho (onde pôr conteúdo novo)
+
+- **Regra:** conteúdo novo (fichas de exercício, guias, dicas, glossário, planos, textos longos) vai em `fonte/dados/*.json`, nunca como tabela dentro de `fonte/app.html`. O build junta tudo em `site/dados.<hash>.js` (JSON comprime ~5× melhor que código). O `app.js` fica só com código.
+- **Régua:** `fonte/orcamento-tamanho.json` define o que o usuário baixa (gzip) por arquivo (`app.js`, `app.css`, `dados.js`, `cardapio.js`) e um alarme de tamanho bruto mais folgado. O mesmo arquivo é lido por `fonte/tamanho.mjs` e pela `auditoria-v3`.
+- **Aviso rápido:** `sh fonte/build.sh` termina rodando `node tamanho.mjs`: mostra a tabela em segundos, avisa a partir de 90% do limite e falha o build se passar. Também avisa quando uma tabela de conteúdo dentro do `app.html` passa de 12 KB (falha em 25 KB). `NG_TAMANHO_SO_AVISO=1` transforma falhas em avisos (uso local).
+- **Se o código passar de ~800 KB brutos:** carregar sob demanda as telas pouco usadas (cadastro, editor de perfil, tutorial), como o cardápio. Mudar um número do orçamento é decisão consciente: registre o motivo no PR.

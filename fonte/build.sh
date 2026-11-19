@@ -11,3 +11,5 @@ python3 gera-dados.py .build/dados.json
 python3 visual/aplica-visual.py app.html /tmp/app-v2.html
 python3 aplica-standalone.py /tmp/app-v2.html ../site/index.html
 python3 externaliza.py ../site .build/cardapio.js .build/dados.json
+# orçamento de tamanho (segundos): falha o build se app.js/css/dados passarem do limite, avisa quando chegar a 90% (fonte/orcamento-tamanho.json)
+node tamanho.mjs ../site
