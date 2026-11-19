@@ -1,8 +1,8 @@
 /* Service worker do NG+ (New Game+) — só deixa o app abrir sem internet.
    Os DADOS ficam no IndexedDB (bff-runtime.js), não aqui. Para publicar uma versão nova, mude VERSAO. */
-const VERSAO = "ng-modular-29";
+const VERSAO = "ng-modular-30";
 const ARQUIVOS = ["./", "./bff-runtime.js", "./ng-nuvem.js", "./vendor-supabase.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./instalar.html", "./instalar.css", "./instalar.js", "./instalar-qr.svg", "./fonts/barlow-condensed-latin-500-normal.woff2", "./fonts/barlow-condensed-latin-600-normal.woff2", "./fonts/barlow-condensed-latin-700-normal.woff2", "./fonts/work-sans-latin-wght-normal.woff2", "./fonts/ibm-plex-mono-latin-500-normal.woff2", "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
-const ARQUIVOS_APP = ["./app.d994fd9577.css", "./app.d934e41074.js", "./dados.b59a7dd22c.js", "./cardapio.17c1aab163.js", "./ng-nuvem.css"]; /*build:app*/   // regravada por fonte/externaliza.py (nomes com hash do app.css e app.js)
+const ARQUIVOS_APP = ["./app.d994fd9577.css", "./app.5b637ba144.js", "./dados.b59a7dd22c.js", "./cardapio.17c1aab163.js", "./ng-nuvem.css"]; /*build:app*/   // regravada por fonte/externaliza.py (nomes com hash do app.css e app.js)
 self.addEventListener("install", e=>{ e.waitUntil(caches.open(VERSAO).then(c=>c.addAll(ARQUIVOS.concat(ARQUIVOS_APP))).then(()=>self.skipWaiting())); });
 self.addEventListener("activate", e=>{ e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSAO).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
 self.addEventListener("fetch", e=>{
