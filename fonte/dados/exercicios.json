@@ -2900,6 +2900,732 @@
     "Supino reto",
     "Tríceps francês"
    ]
+  },
+  {
+   "id": "pant-panturrilha-unilateral-em-pe",
+   "nomesApp": [
+    "Panturrilha unilateral em pé"
+   ],
+   "nome": "Panturrilha unilateral em pé",
+   "musculos": [
+    "panturrilha"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Elevação de panturrilha em pé"
+   ]
+  },
+  {
+   "id": "pant-panturrilha-na-smith",
+   "nomesApp": [
+    "Panturrilha na smith"
+   ],
+   "nome": "Panturrilha na smith",
+   "musculos": [
+    "panturrilha"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Elevação de panturrilha em pé"
+   ]
+  },
+  {
+   "id": "pant-panturrilha-burrinho-donkey",
+   "nomesApp": [
+    "Panturrilha burrinho (donkey)"
+   ],
+   "nome": "Panturrilha burrinho (donkey)",
+   "musculos": [
+    "panturrilha"
+   ],
+   "idadeMin": 16,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional. Fora do plano inicial por ser mais exigente ou menos estudado.",
+   "fontes": [],
+   "sugerirEm": [
+    "Elevação de panturrilha sentado"
+   ]
+  },
+  {
+   "id": "pant-panturrilha-com-halter",
+   "nomesApp": [
+    "Panturrilha com halter"
+   ],
+   "nome": "Panturrilha com halter",
+   "musculos": [
+    "panturrilha"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco",
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Elevação de panturrilha em pé"
+   ]
+  },
+  {
+   "id": "quad-passada-caminhada-com-halteres",
+   "nomesApp": [
+    "Passada (caminhada) com halteres"
+   ],
+   "nome": "Passada (caminhada) com halteres",
+   "musculos": [
+    "quadriceps",
+    "gluteos"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Avanço (afundo) com halteres"
+   ]
+  },
+  {
+   "id": "quad-avanco-reverso",
+   "nomesApp": [
+    "Avanço reverso"
+   ],
+   "nome": "Avanço reverso",
+   "musculos": [
+    "quadriceps",
+    "gluteos"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Avanço (afundo) com halteres"
+   ]
+  },
+  {
+   "id": "quad-sissy-squat",
+   "nomesApp": [
+    "Sissy squat"
+   ],
+   "nome": "Sissy squat",
+   "musculos": [
+    "quadriceps"
+   ],
+   "idadeMin": 18,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional. Fora do plano inicial por ser mais exigente ou menos estudado.",
+   "fontes": [],
+   "sugerirEm": [
+    "Cadeira extensora"
+   ]
+  },
+  {
+   "id": "quad-agachamento-na-caixa-box-squat",
+   "nomesApp": [
+    "Agachamento na caixa (box squat)"
+   ],
+   "nome": "Agachamento na caixa (box squat)",
+   "musculos": [
+    "quadriceps",
+    "gluteos"
+   ],
+   "idadeMin": 16,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional. Fora do plano inicial por ser mais exigente ou menos estudado.",
+   "fontes": [],
+   "sugerirEm": [
+    "Agachamento livre"
+   ]
+  },
+  {
+   "id": "quad-step-up-com-halteres",
+   "nomesApp": [
+    "Step-up com halteres"
+   ],
+   "nome": "Step-up com halteres",
+   "musculos": [
+    "quadriceps",
+    "gluteos"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Avanço (afundo) com halteres"
+   ]
+  },
+  {
+   "id": "peit-supino-declinado-na-barra",
+   "nomesApp": [
+    "Supino declinado na barra"
+   ],
+   "nome": "Supino declinado na barra",
+   "musculos": [
+    "peito",
+    "ombros",
+    "triceps"
+   ],
+   "idadeMin": 16,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Supino reto"
+   ]
+  },
+  {
+   "id": "peit-crucifixo-inclinado-com-halteres",
+   "nomesApp": [
+    "Crucifixo inclinado com halteres"
+   ],
+   "nome": "Crucifixo inclinado com halteres",
+   "musculos": [
+    "peito"
+   ],
+   "idadeMin": 16,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Crucifixo (voador)"
+   ]
+  },
+  {
+   "id": "tric-flexao-diamante",
+   "nomesApp": [
+    "Flexão diamante"
+   ],
+   "nome": "Flexão diamante",
+   "musculos": [
+    "triceps",
+    "peito"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "intermediario",
+   "local": [
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Flexão de braço"
+   ]
+  },
+  {
+   "id": "peit-pullover-com-halter",
+   "nomesApp": [
+    "Pullover com halter"
+   ],
+   "nome": "Pullover com halter",
+   "musculos": [
+    "peito",
+    "costas"
+   ],
+   "idadeMin": 16,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Crucifixo (voador)"
+   ]
+  },
+  {
+   "id": "post-hiperextensao-lombar-no-banco-romano",
+   "nomesApp": [
+    "Hiperextensão lombar no banco romano"
+   ],
+   "nome": "Hiperextensão lombar no banco romano",
+   "musculos": [
+    "posterior",
+    "gluteos"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Stiff (levantamento terra romeno)"
+   ]
+  },
+  {
+   "id": "post-flexora-na-bola-suica",
+   "nomesApp": [
+    "Flexora na bola suíça"
+   ],
+   "nome": "Flexora na bola suíça",
+   "musculos": [
+    "posterior"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco",
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Mesa flexora"
+   ]
+  },
+  {
+   "id": "glut-ponte-de-gluteo-com-pes-elevados",
+   "nomesApp": [
+    "Ponte de glúteo com pés elevados"
+   ],
+   "nome": "Ponte de glúteo com pés elevados",
+   "musculos": [
+    "gluteos",
+    "posterior"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco",
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Ponte de glúteo"
+   ]
+  },
+  {
+   "id": "post-stiff-com-elastico",
+   "nomesApp": [
+    "Stiff com elástico"
+   ],
+   "nome": "Stiff com elástico",
+   "musculos": [
+    "posterior",
+    "gluteos"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Stiff com halteres"
+   ]
+  },
+  {
+   "id": "abdo-abdominal-na-polia-crunch-no-cabo",
+   "nomesApp": [
+    "Abdominal na polia (crunch no cabo)"
+   ],
+   "nome": "Abdominal na polia (crunch no cabo)",
+   "musculos": [
+    "abdomen"
+   ],
+   "idadeMin": 16,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Abdominal supra (crunch)"
+   ]
+  },
+  {
+   "id": "abdo-prancha-com-toque-no-ombro",
+   "nomesApp": [
+    "Prancha com toque no ombro"
+   ],
+   "nome": "Prancha com toque no ombro",
+   "musculos": [
+    "abdomen"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Prancha"
+   ]
+  },
+  {
+   "id": "abdo-escalador-mountain-climber",
+   "nomesApp": [
+    "Escalador (mountain climber)"
+   ],
+   "nome": "Escalador (mountain climber)",
+   "musculos": [
+    "abdomen",
+    "quadriceps"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Prancha"
+   ]
+  },
+  {
+   "id": "cost-pullover-no-cabo-bracos-estendidos",
+   "nomesApp": [
+    "Pullover no cabo (braços estendidos)"
+   ],
+   "nome": "Pullover no cabo (braços estendidos)",
+   "musculos": [
+    "costas"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Puxada na polia (pegada aberta)"
+   ]
+  },
+  {
+   "id": "cost-remada-na-maquina-articulada",
+   "nomesApp": [
+    "Remada na máquina articulada"
+   ],
+   "nome": "Remada na máquina articulada",
+   "musculos": [
+    "costas"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Remada no cabo"
+   ]
+  },
+  {
+   "id": "cost-puxada-com-pegada-neutra-triangulo",
+   "nomesApp": [
+    "Puxada com pegada neutra (triângulo)"
+   ],
+   "nome": "Puxada com pegada neutra (triângulo)",
+   "musculos": [
+    "costas",
+    "biceps"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Puxada na polia (pegada aberta)"
+   ]
+  },
+  {
+   "id": "ombr-elevacao-frontal-com-halteres",
+   "nomesApp": [
+    "Elevação frontal com halteres"
+   ],
+   "nome": "Elevação frontal com halteres",
+   "musculos": [
+    "ombros"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Elevação lateral"
+   ]
+  },
+  {
+   "id": "ombr-arnold-press",
+   "nomesApp": [
+    "Arnold press"
+   ],
+   "nome": "Arnold press",
+   "musculos": [
+    "ombros",
+    "triceps"
+   ],
+   "idadeMin": 16,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Desenvolvimento com halteres"
+   ]
+  },
+  {
+   "id": "bice-rosca-concentrada",
+   "nomesApp": [
+    "Rosca concentrada"
+   ],
+   "nome": "Rosca concentrada",
+   "musculos": [
+    "biceps"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Rosca direta"
+   ]
+  },
+  {
+   "id": "tric-triceps-coice-kickback",
+   "nomesApp": [
+    "Tríceps coice (kickback)"
+   ],
+   "nome": "Tríceps coice (kickback)",
+   "musculos": [
+    "triceps"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco",
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Tríceps na polia (corda)"
+   ]
+  },
+  {
+   "id": "tric-triceps-na-maquina",
+   "nomesApp": [
+    "Tríceps na máquina"
+   ],
+   "nome": "Tríceps na máquina",
+   "musculos": [
+    "triceps"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Tríceps na polia (corda)"
+   ]
+  },
+  {
+   "id": "glut-abducao-de-quadril-em-pe-no-cabo",
+   "nomesApp": [
+    "Abdução de quadril em pé no cabo"
+   ],
+   "nome": "Abdução de quadril em pé no cabo",
+   "musculos": [
+    "gluteos"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Cadeira abdutora"
+   ]
+  },
+  {
+   "id": "glut-agachamento-sumo-com-halter",
+   "nomesApp": [
+    "Agachamento sumô com halter"
+   ],
+   "nome": "Agachamento sumô com halter",
+   "musculos": [
+    "gluteos",
+    "quadriceps"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Agachamento goblet (com halter)"
+   ]
+  },
+  {
+   "id": "glut-avanco-lateral",
+   "nomesApp": [
+    "Avanço lateral"
+   ],
+   "nome": "Avanço lateral",
+   "musculos": [
+    "gluteos",
+    "quadriceps"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; técnica padrão. Rascunho para revisão profissional.",
+   "fontes": [],
+   "sugerirEm": [
+    "Avanço (afundo) com halteres"
+   ]
   }
  ]
 }
