@@ -1,6 +1,6 @@
 {
  "versao": 1,
- "atualizado": "2026-11-18",
+ "atualizado": "2026-11-19",
  "conferido": "2026-11-18: idade/nível/evidência conferidos ficha a ficha contra os documentos do projeto",
  "aviso": "Rascunho sem revisão profissional (CREF). idadeMin/nivelMin são PROPOSTAS. evidencia: ✔ direta, ◐ indireta/parcial, ✖ não sustentada, ? sem fonte, null = ainda não conferida na migração.",
  "exercicios": [
@@ -859,8 +859,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "ACE, estudo de exercícios de peito (UW-La Crosse; 14 homens com treino prévio, EMG; financiado pela ACE; Tabela 1 conferida: mergulho 69% do supino com barra, esforço 2,9; pec deck 98%; cross-over 93%)",
+     "u": "https://www.acefitness.org/certifiednewsarticle/2884/ace-sponsored-research-top-3-most-effective-chest-exercises/"
     }
    ]
   },
@@ -882,8 +882,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "ACE, estudo de exercícios de peito (UW-La Crosse; 14 homens com treino prévio, EMG; financiado pela ACE; Tabela 1 conferida: mergulho 69% do supino com barra, esforço 2,9; pec deck 98%; cross-over 93%)",
+     "u": "https://www.acefitness.org/certifiednewsarticle/2884/ace-sponsored-research-top-3-most-effective-chest-exercises/"
     }
    ]
   },
@@ -905,8 +905,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "ACE, estudo de exercícios de peito (UW-La Crosse; 14 homens com treino prévio, EMG; financiado pela ACE; Tabela 1 conferida: mergulho 69% do supino com barra, esforço 2,9; pec deck 98%; cross-over 93%)",
+     "u": "https://www.acefitness.org/certifiednewsarticle/2884/ace-sponsored-research-top-3-most-effective-chest-exercises/"
     }
    ]
   },
@@ -983,8 +983,8 @@
    "obs": "Paralelas. Distinto de bracos-mergulho-banco. Idade a definir pelo revisor.",
    "fontes": [
     {
-     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "ACE, estudo de exercícios de peito (UW-La Crosse; 14 homens com treino prévio, EMG; financiado pela ACE; Tabela 1 conferida: mergulho 69% do supino com barra, esforço 2,9; pec deck 98%; cross-over 93%)",
+     "u": "https://www.acefitness.org/certifiednewsarticle/2884/ace-sponsored-research-top-3-most-effective-chest-exercises/"
     }
    ],
    "sugerirEm": [
@@ -1011,8 +1011,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "ACE, melhores exercícios de peito (UW-La Crosse, EMG; financiado pela ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "ACE, estudo de exercícios de peito (UW-La Crosse; 14 homens com treino prévio, EMG; financiado pela ACE; Tabela 1 conferida: mergulho 69% do supino com barra, esforço 2,9; pec deck 98%; cross-over 93%)",
+     "u": "https://www.acefitness.org/certifiednewsarticle/2884/ace-sponsored-research-top-3-most-effective-chest-exercises/"
     }
    ]
   },
@@ -1036,8 +1036,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Elevação lateral, halteres vs cabo (Frontiers in Physiology 2025)",
-     "u": "https://www.frontiersin.org/journals/physiology/"
+     "t": "Elevação lateral, halteres vs cabo (Frontiers in Physiology 2025, \"Dumbbell versus cable lateral raises for lateral deltoid hypertrophy\")",
+     "u": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2025.1611468/full"
     }
    ]
   },
@@ -1059,8 +1059,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Elevação lateral, halteres vs cabo (Frontiers in Physiology 2025)",
-     "u": "https://www.frontiersin.org/journals/physiology/"
+     "t": "Elevação lateral, halteres vs cabo (Frontiers in Physiology 2025, \"Dumbbell versus cable lateral raises for lateral deltoid hypertrophy\")",
+     "u": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2025.1611468/full"
     }
    ]
   },
@@ -1310,8 +1310,8 @@
    "obs": "Funciona, mas cresce menos que acima da cabeça (Maeo 2022).",
    "fontes": [
     {
-     "t": "Maeo et al. 2022, tríceps acima da cabeça vs pushdown (via fonte secundária; ver docs do projeto)",
-     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Maeo+overhead+triceps+extension+pushdown+2022"
+     "t": "Maeo et al. 2022, tríceps acima da cabeça vs neutra (Eur J Sport Sci; 21 adultos não treinados). Lido via Sciences du sport; original não aberto",
+     "u": "https://sci-sport.com/en/triceps-hypertrophy-impact-of-arm-position/"
     }
    ]
   },
@@ -1334,8 +1334,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Maeo et al. 2022, tríceps acima da cabeça vs pushdown (via fonte secundária; ver docs do projeto)",
-     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Maeo+overhead+triceps+extension+pushdown+2022"
+     "t": "Maeo et al. 2022, tríceps acima da cabeça vs neutra (Eur J Sport Sci; 21 adultos não treinados). Lido via Sciences du sport; original não aberto",
+     "u": "https://sci-sport.com/en/triceps-hypertrophy-impact-of-arm-position/"
     }
    ]
   },
@@ -1453,8 +1453,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Kinoshita et al. 2023, panturrilha em pé vs sentada (resumo)",
-     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Kinoshita+2023+gastrocnemius+standing+seated"
+     "t": "Kinoshita et al. 2023, \"Triceps surae muscle hypertrophy is greater after standing versus seated calf-raise training\" (Frontiers in Physiology)",
+     "u": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2023.1272106/full"
     }
    ]
   },
@@ -1476,8 +1476,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Kinoshita et al. 2023, panturrilha em pé vs sentada (resumo)",
-     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Kinoshita+2023+gastrocnemius+standing+seated"
+     "t": "Kinoshita et al. 2023, \"Triceps surae muscle hypertrophy is greater after standing versus seated calf-raise training\" (Frontiers in Physiology)",
+     "u": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2023.1272106/full"
     }
    ]
   },
@@ -1518,8 +1518,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Stenger 2013, EMG de 16 exercícios abdominais (ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "Stenger 2013, EMG de abdominais vs crunch tradicional (UW-La Crosse; financiado pela ACE; li o comunicado)",
+     "u": "https://www.acefitness.org/about-ace/press-room/press-releases/4828/new-study-proves-traditional-crunch-still-more-effective-than-popular-abdominal-equipment-exercise-trends/"
     }
    ]
   },
@@ -1560,8 +1560,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Stenger 2013, EMG de 16 exercícios abdominais (ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "Stenger 2013, EMG de abdominais vs crunch tradicional (UW-La Crosse; financiado pela ACE; li o comunicado)",
+     "u": "https://www.acefitness.org/about-ace/press-room/press-releases/4828/new-study-proves-traditional-crunch-still-more-effective-than-popular-abdominal-equipment-exercise-trends/"
     }
    ]
   },
@@ -1604,8 +1604,8 @@
    "obs": "Fora do plano inicial até revisão.",
    "fontes": [
     {
-     "t": "Stenger 2013, EMG de 16 exercícios abdominais (ACE)",
-     "u": "https://www.acefitness.org/"
+     "t": "Stenger 2013, EMG de abdominais vs crunch tradicional (UW-La Crosse; financiado pela ACE; li o comunicado)",
+     "u": "https://www.acefitness.org/about-ace/press-room/press-releases/4828/new-study-proves-traditional-crunch-still-more-effective-than-popular-abdominal-equipment-exercise-trends/"
     }
    ],
    "sugerirEm": [
@@ -1799,8 +1799,8 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Maeo et al. 2022, tríceps acima da cabeça vs pushdown (via fonte secundária; ver docs do projeto)",
-     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Maeo+overhead+triceps+extension+pushdown+2022"
+     "t": "Maeo et al. 2022, tríceps acima da cabeça vs neutra (Eur J Sport Sci; 21 adultos não treinados). Lido via Sciences du sport; original não aberto",
+     "u": "https://sci-sport.com/en/triceps-hypertrophy-impact-of-arm-position/"
     }
    ],
    "sugerirEm": [
@@ -1919,7 +1919,7 @@
    "nomesApp": [
     "Elevação de panturrilha em degrau"
    ],
-   "nome": "Panturrilha unilateral no degrau",
+   "nome": "Elevação de panturrilha no degrau",
    "musculos": [
     "panturrilha"
    ],
@@ -1933,10 +1933,11 @@
    "foraPlanoInicial": false,
    "fontes": [
     {
-     "t": "Kinoshita et al. 2023, panturrilha em pé vs sentada (resumo)",
-     "u": "https://pubmed.ncbi.nlm.nih.gov/?term=Kinoshita+2023+gastrocnemius+standing+seated"
+     "t": "Kinoshita et al. 2023, \"Triceps surae muscle hypertrophy is greater after standing versus seated calf-raise training\" (Frontiers in Physiology)",
+     "u": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2023.1272106/full"
     }
-   ]
+   ],
+   "obs": "O app descreve com dois pés (guia e tabela de casa); versão em uma perna é a progressão (todas as repetições de um lado e depois do outro). Confirmado em 19/11/2026."
   },
   {
    "id": "casa-agachamento-parede",
@@ -2365,8 +2366,8 @@
    "foraPlanoInicial": true,
    "fontes": [
     {
-     "t": "ACE, melhores exercícios de peito (EMG do mergulho)",
-     "u": "https://www.acefitness.org/"
+     "t": "ACE, estudo de exercícios de peito (UW-La Crosse; 14 homens com treino prévio, EMG; financiado pela ACE; Tabela 1 conferida: mergulho 69% do supino com barra, esforço 2,9; pec deck 98%; cross-over 93%)",
+     "u": "https://www.acefitness.org/certifiednewsarticle/2884/ace-sponsored-research-top-3-most-effective-chest-exercises/"
     }
    ],
    "sugerirEm": [
@@ -2545,6 +2546,359 @@
    "foraPlanoInicial": true,
    "sugerirEm": [
     "Supino reto"
+   ]
+  },
+  {
+   "id": "gluteos-ponte-elastico",
+   "nomesApp": [
+    "Ponte de glúteo com elástico"
+   ],
+   "nome": "Ponte de glúteo com elástico",
+   "musculos": [
+    "gluteos"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco",
+    "academia"
+   ],
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "obs": "Elástico acima dos joelhos para somar abdução à ponte. Evidência vem da ponte/hip thrust com barra e elástico (10 homens), não de ponte só com elástico.",
+   "fontes": [
+    {
+     "t": "Kennedy et al. 2023, abdução com elástico no hip thrust e na ponte (Int J Strength Cond; 10 homens, EMG): glúteo máximo superior maior com elástico",
+     "u": "https://doaj.org/article/752aa37f7f6f434e8922307910179f60"
+    }
+   ],
+   "sugerirEm": [
+    "Ponte de glúteo",
+    "Hip thrust"
+   ]
+  },
+  {
+   "id": "gluteos-hip-thrust-elastico",
+   "nomesApp": [
+    "Hip thrust com elástico"
+   ],
+   "nome": "Hip thrust com elástico",
+   "musculos": [
+    "gluteos"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "obs": "Opção para quem não tem barra ou halter. A ativação medida foi menor que a da barra; serve como substituto, não como melhor opção.",
+   "fontes": [
+    {
+     "t": "Contreras et al. 2016, hip thrust com barra, americano e com elástico (J Appl Biomech; EMG). Lido no resumo do próprio autor: elástico ~49% de glúteo máximo superior contra ~70% da barra; os autores suspeitam que o valor do elástico está subestimado",
+     "u": "https://bretcontreras.com/what-produces-greater-glute-activation-barbell-hip-thrusts-american-hip-thrusts-or-band-hip-thrusts/"
+    }
+   ],
+   "sugerirEm": [
+    "Hip thrust",
+    "Hip thrust com halter"
+   ]
+  },
+  {
+   "id": "gluteos-caminhada-lateral-elastico",
+   "nomesApp": [
+    "Caminhada lateral com elástico"
+   ],
+   "nome": "Caminhada lateral com elástico",
+   "musculos": [
+    "gluteos"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco",
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada. Por prescrever passos por lado, fica só como sugestão de troca, fora do plano inicial.",
+   "sugerirEm": [
+    "Abdução de quadril com elástico",
+    "Cadeira abdutora"
+   ]
+  },
+  {
+   "id": "gluteos-concha-elastico",
+   "nomesApp": [
+    "Concha (clamshell) com elástico"
+   ],
+   "nome": "Concha (clamshell) com elástico",
+   "musculos": [
+    "gluteos"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada. Exercício de baixa carga, comum em reabilitação; aqui só como sugestão de troca.",
+   "sugerirEm": [
+    "Abdução de quadril com elástico"
+   ]
+  },
+  {
+   "id": "gluteos-coice-elastico",
+   "nomesApp": [
+    "Coice (extensão de quadril) com elástico"
+   ],
+   "nome": "Coice (extensão de quadril) com elástico",
+   "musculos": [
+    "gluteos",
+    "posterior"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada. Unilateral: todas as repetições de um lado e depois do outro.",
+   "sugerirEm": [
+    "Hip thrust com halter",
+    "Ponte de glúteo"
+   ]
+  },
+  {
+   "id": "core-crunch-bola",
+   "nomesApp": [
+    "Abdominal na bola suíça"
+   ],
+   "nome": "Abdominal na bola suíça",
+   "musculos": [
+    "abdomen"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa"
+   ],
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "obs": "No estudo da ACE, nenhum exercício superou o crunch tradicional; a bola entra como variação, não como melhor.",
+   "fontes": [
+    {
+     "t": "Stenger 2013, EMG de abdominais vs crunch tradicional (UW-La Crosse; 16 pessoas; financiado pela ACE; li o comunicado: nenhum exercício superou o crunch tradicional; sem percentuais no texto)",
+     "u": "https://www.acefitness.org/about-ace/press-room/press-releases/4828/new-study-proves-traditional-crunch-still-more-effective-than-popular-abdominal-equipment-exercise-trends/"
+    }
+   ],
+   "sugerirEm": [
+    "Abdominal supra (crunch)"
+   ]
+  },
+  {
+   "id": "core-crunch-declinado",
+   "nomesApp": [
+    "Abdominal no banco declinado"
+   ],
+   "nome": "Abdominal no banco declinado",
+   "musculos": [
+    "abdomen"
+   ],
+   "idadeMin": 14,
+   "nivelMin": "intermediario",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "◐",
+   "foraPlanoInicial": false,
+   "obs": "Progressão do crunch: mais amplitude e carga pelo ângulo do banco. No estudo da ACE não superou o crunch tradicional.",
+   "fontes": [
+    {
+     "t": "Stenger 2013, EMG de abdominais vs crunch tradicional (UW-La Crosse; 16 pessoas; financiado pela ACE; li o comunicado: nenhum exercício superou o crunch tradicional; sem percentuais no texto)",
+     "u": "https://www.acefitness.org/about-ace/press-room/press-releases/4828/new-study-proves-traditional-crunch-still-more-effective-than-popular-abdominal-equipment-exercise-trends/"
+    }
+   ],
+   "sugerirEm": [
+    "Abdominal supra (crunch)",
+    "Elevação de pernas"
+   ]
+  },
+  {
+   "id": "core-bicicleta",
+   "nomesApp": [
+    "Abdominal bicicleta"
+   ],
+   "nome": "Abdominal bicicleta",
+   "musculos": [
+    "abdomen"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "◐",
+   "foraPlanoInicial": true,
+   "obs": "Alterna os lados a cada repetição; por isso fica só como sugestão de troca, fora do plano inicial. No estudo da ACE não superou o crunch tradicional.",
+   "fontes": [
+    {
+     "t": "Stenger 2013, EMG de abdominais vs crunch tradicional (UW-La Crosse; 16 pessoas; financiado pela ACE; li o comunicado: nenhum exercício superou o crunch tradicional; sem percentuais no texto)",
+     "u": "https://www.acefitness.org/about-ace/press-room/press-releases/4828/new-study-proves-traditional-crunch-still-more-effective-than-popular-abdominal-equipment-exercise-trends/"
+    }
+   ],
+   "sugerirEm": [
+    "Abdominal supra (crunch)"
+   ]
+  },
+  {
+   "id": "core-crunch-inverso",
+   "nomesApp": [
+    "Abdominal inverso (reverse crunch)"
+   ],
+   "nome": "Abdominal inverso (reverse crunch)",
+   "musculos": [
+    "abdomen"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; sugerido como regressão da elevação de pernas.",
+   "sugerirEm": [
+    "Elevação de pernas",
+    "Abdominal supra (crunch)"
+   ]
+  },
+  {
+   "id": "core-elevacao-pernas-deitado",
+   "nomesApp": [
+    "Elevação de pernas deitado"
+   ],
+   "nome": "Elevação de pernas deitado",
+   "musculos": [
+    "abdomen"
+   ],
+   "idadeMin": 13,
+   "nivelMin": "iniciante",
+   "local": [
+    "academia",
+    "casa",
+    "pouco"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": false,
+   "obs": "Sem fonte aberta nesta rodada; regressão da elevação de pernas suspenso (joelhos flexionados se precisar).",
+   "sugerirEm": [
+    "Elevação de pernas"
+   ]
+  },
+  {
+   "id": "avancado-agachamento-pausa",
+   "nomesApp": [
+    "Agachamento com pausa"
+   ],
+   "nome": "Agachamento com pausa",
+   "musculos": [
+    "quadriceps",
+    "gluteos"
+   ],
+   "idadeMin": 18,
+   "nivelMin": "avancado",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada. Fora do plano inicial até revisão profissional (carga na coluna).",
+   "sugerirEm": [
+    "Agachamento livre"
+   ]
+  },
+  {
+   "id": "avancado-terra-deficit",
+   "nomesApp": [
+    "Terra com déficit"
+   ],
+   "nome": "Terra com déficit",
+   "musculos": [
+    "costas",
+    "posterior",
+    "gluteos"
+   ],
+   "idadeMin": 18,
+   "nivelMin": "avancado",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada. Maior amplitude que o terra convencional; fora do plano inicial até revisão profissional.",
+   "sugerirEm": [
+    "Levantamento terra"
+   ]
+  },
+  {
+   "id": "avancado-rack-pull",
+   "nomesApp": [
+    "Rack pull"
+   ],
+   "nome": "Rack pull",
+   "musculos": [
+    "costas",
+    "posterior",
+    "gluteos"
+   ],
+   "idadeMin": 18,
+   "nivelMin": "avancado",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada. Terra a partir de apoios, menor amplitude; fora do plano inicial até revisão profissional.",
+   "sugerirEm": [
+    "Levantamento terra"
+   ]
+  },
+  {
+   "id": "avancado-supino-pegada-fechada",
+   "nomesApp": [
+    "Supino com pegada fechada"
+   ],
+   "nome": "Supino com pegada fechada",
+   "musculos": [
+    "triceps",
+    "peito",
+    "ombros"
+   ],
+   "idadeMin": 18,
+   "nivelMin": "avancado",
+   "local": [
+    "academia"
+   ],
+   "evidencia": "?",
+   "foraPlanoInicial": true,
+   "obs": "Sem fonte aberta nesta rodada. Foco em tríceps; fora do plano inicial até revisão profissional.",
+   "sugerirEm": [
+    "Supino reto",
+    "Tríceps francês"
    ]
   }
  ]
