@@ -120,9 +120,15 @@ const tema = async (p, k, modo) => {
     await p.goto(BASE + '/index.html', { waitUntil: 'load' }); await p.waitForTimeout(1500);
     const m = await p.evaluate(() => { const n = performance.getEntriesByType('navigation')[0]; const lt = performance.getEntriesByType('longtask').length; const fcp = (performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime; return { dcl: Math.round(n.domContentLoadedEventEnd), load: Math.round(n.loadEventEnd), fcp: Math.round(fcp || 0), lt }; });
     t('desempenho: carga em < 3 s e primeira pintura em < 2 s (CPU da nuvem, sem throttling)', m.load < 3000 && (m.fcp === 0 || m.fcp < 2000), JSON.stringify(m));
-    const css = fs.readdirSync('../../site').filter(f => /^app\..*\.css$/.test(f)).map(f => fs.statSync('../../site/' + f).size)[0];
-    const js = fs.readdirSync('../../site').filter(f => /^app\..*\.js$/.test(f)).map(f => fs.statSync('../../site/' + f).size)[0];
-    t('desempenho: CSS do app < 330 KB e JS do app < 700 KB (sem compressão)', css < 330 * 1024 && js < 700 * 1024, 'css=' + Math.round(css / 1024) + 'KB js=' + Math.round(js / 1024) + 'KB');
+    // orçamento de tamanho: o que o usuário baixa (gzip) + alarme bruto; números em fonte/orcamento-tamanho.json (mesmo arquivo do fonte/tamanho.mjs, que roda no build)
+    const orc = JSON.parse(fs.readFileSync('../orcamento-tamanho.json', 'utf8')), zlib = require('zlib');
+    const med = re => { const f = fs.readdirSync('../../site').filter(x => re.test(x))[0]; const b = fs.readFileSync('../../site/' + f); return { bruto: b.length, gz: zlib.gzipSync(b, { level: 9 }).length }; };
+    const cssM = med(/^app\..*\.css$/), jsM = med(/^app\..*\.js$/), dadosM = med(/^dados\..*\.js$/);
+    const dentro = (m, l) => m.gz <= l.gzipKB * 1024 && m.bruto <= l.brutoKB * 1024;
+    const rel = (m, l) => 'bruto=' + Math.round(m.bruto / 1024) + '/' + l.brutoKB + 'KB gzip=' + Math.round(m.gz / 1024) + '/' + l.gzipKB + 'KB';
+    t('desempenho: CSS do app dentro do orçamento (gzip e bruto)', dentro(cssM, orc['app.css']), rel(cssM, orc['app.css']));
+    t('desempenho: JS do app dentro do orçamento (gzip e bruto)', dentro(jsM, orc['app.js']), rel(jsM, orc['app.js']));
+    t('desempenho: dados de exercícios dentro do orçamento (gzip e bruto)', dentro(dadosM, orc['dados.js']), rel(dadosM, orc['dados.js']));
     t('desempenho: nenhuma requisição a host externo', reqs.every(r => /^(http:\/\/localhost|data:|blob:)/.test(r.u)), reqs.filter(r => !/^(http:\/\/localhost|data:|blob:)/.test(r.u)).map(r => r.u).join(','));
     await c.close();
   }
