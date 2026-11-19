@@ -1,0 +1,87 @@
+{
+ "versao": 1,
+ "atualizado": "2026-11-18",
+ "aviso": "Regras de adaptação do plano por situação. Rascunho sem revisão profissional (CREF). As trocas são ADAPTAÇÕES de exercício, não tratamento: quem tem dor ou lesão deve procurar um profissional. Nomes de exercício = nomes usados no app (têm guia). 'null' = remover o exercício.",
+ "idoso": {
+  "idadeMin": 60,
+  "maxSessoes": 4,
+  "maxSeries": 3,
+  "reps": "10-15",
+  "evidencia": "?",
+  "nota": "Recuperação mais lenta e menos carga máxima: [Inferência], sem estudo aberto nesta base.",
+  "trocas": {
+   "Levantamento terra": "Stiff (levantamento terra romeno)",
+   "Barra fixa (ou puxada frente)": {"academia": "Puxada na máquina assistida", "*": "Puxada com elástico"},
+   "Desenvolvimento militar com barra": {"academia": "Desenvolvimento na máquina", "*": "Elevação lateral"},
+   "Mergulho (dips) no banco": null,
+   "Remada curvada com barra": {"academia": "Remada sentada pronada (pegada aberta)", "*": "Remada unilateral com halter"},
+   "Agachamento búlgaro": {"academia": "Leg press", "*": "Agachamento com peso do corpo"}
+  },
+  "aviso": "Antes de começar, vale uma avaliação médica. Comece leve, com 2 a 3 repetições sobrando no fim da série."
+ },
+ "tempo": {
+  "30": {"maxExercicios": 4, "maxSeries": 3, "nota": "Treino curto (cerca de 30 min): só os exercícios que mais rendem; descanso de 60 a 90 s. O volume fica abaixo do ideal; manter a frequência compensa."},
+  "45": {"maxExercicios": 5, "maxSeries": 4, "nota": "Treino de cerca de 45 min: um exercício a menos por sessão que o plano completo."},
+  "60": {"maxExercicios": null, "maxSeries": null, "nota": ""},
+  "prioridadeIsolados": ["Rosca direta", "Rosca alternada com halteres", "Rosca no cabo", "Rosca com elástico", "Tríceps na polia (corda)", "Tríceps francês", "Mergulho (dips) no banco", "Elevação de panturrilha em pé", "Elevação de panturrilha sentado", "Elevação de panturrilha em degrau", "Abdominal supra (crunch)", "Prancha", "Elevação lateral", "Elevação lateral no cabo", "Elevação lateral com elástico"]
+ },
+ "retorno": {
+  "semanas": 3,
+  "fatorSeries": 0.6,
+  "minSeries": 2,
+  "reps": "10-15",
+  "evidencia": "?",
+  "nota": "Voltando de uma pausa: nas primeiras 2 a 3 semanas, menos séries e carga leve, para o corpo se readaptar. Depois, aumente aos poucos."
+ },
+ "restricoes": {
+  "ombro": {
+   "rotulo": "Ombro",
+   "evidencia": "?",
+   "trocas": {
+    "Desenvolvimento militar com barra": {"academia": "Elevação lateral", "*": "Elevação lateral"},
+    "Desenvolvimento com halteres": "Elevação lateral",
+    "Remada alta no cabo": null,
+    "Supino reto": {"academia": "Supino com halteres", "*": "Supino com halteres"},
+    "Supino inclinado na barra": "Supino inclinado com halteres",
+    "Voador na máquina (peck deck)": null,
+    "Mergulho (dips) no banco": null,
+    "Flexão pike (quadril alto)": null
+   },
+   "aviso": "Adaptação para desconforto no ombro: sai o que carrega o ombro em posição forçada. Se houver dor, procure um profissional."
+  },
+  "joelho": {
+   "rotulo": "Joelho",
+   "evidencia": "?",
+   "trocas": {
+    "Agachamento livre": {"academia": "Hip thrust", "*": "Ponte de glúteo"},
+    "Agachamento búlgaro": {"academia": "Hip thrust", "*": "Ponte de glúteo"},
+    "Agachamento com peso do corpo": "Ponte de glúteo",
+    "Agachamento goblet (com halter)": "Hip thrust com halter",
+    "Avanço (afundo) com halteres": "Ponte de glúteo",
+    "Avanço (afundo) com peso do corpo": "Ponte de glúteo",
+    "Cadeira extensora": null,
+    "Leg press": {"academia": "Mesa flexora", "*": "Ponte de glúteo"},
+    "Leg press (pés baixos)": null,
+    "Leg press (unilateral)": null
+   },
+   "aviso": "Adaptação para desconforto no joelho: o plano usa mais quadril (glúteos e posterior) e menos agachamento. Se houver dor, procure um profissional."
+  },
+  "lombar": {
+   "rotulo": "Lombar",
+   "evidencia": "?",
+   "trocas": {
+    "Levantamento terra": {"academia": "Hip thrust", "*": "Ponte de glúteo"},
+    "Terra sumô": null,
+    "Stiff (levantamento terra romeno)": {"academia": "Mesa flexora", "*": "Ponte de glúteo"},
+    "Stiff unilateral com halter": {"academia": "Mesa flexora", "*": "Ponte de glúteo"},
+    "Stiff unilateral sem peso": "Ponte de glúteo",
+    "Remada curvada com barra": {"academia": "Remada sentada pronada (pegada aberta)", "*": "Remada unilateral com halter"},
+    "Remada curvada com halteres": "Remada unilateral com halter",
+    "Remada cavalinho (T-bar)": {"academia": "Remada sentada pronada (pegada aberta)", "*": "Remada unilateral com halter"},
+    "Agachamento livre": {"academia": "Leg press", "*": "Agachamento goblet (com halter)"},
+    "Desenvolvimento militar com barra": "Desenvolvimento com halteres"
+   },
+   "aviso": "Adaptação para desconforto na lombar: saem os exercícios que carregam a coluna em pé ou inclinada. Se houver dor, procure um profissional."
+  }
+ }
+}

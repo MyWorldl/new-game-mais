@@ -6,7 +6,9 @@ Módulos carregados sob demanda (import()): cada arquivo extra vira <nome>.<hash
 entre aspas é trocado pelo nome com hash). Uso: python3 externaliza.py <pasta site> [arquivo-do-modulo.js ...]"""
 import sys, re, glob, os, hashlib
 site = sys.argv[1]
-modulos = sys.argv[2:]   # ex.: .build/cardapio.js
+args = sys.argv[2:]
+modulos = [a for a in args if not a.endswith('.json')]   # ex.: .build/cardapio.js
+dados_json = [a for a in args if a.endswith('.json')]    # ex.: .build/dados.json -> dados.<hash>.js (window.NG_DADOS), <script src> antes do app.js
 idx = os.path.join(site, 'index.html')
 html = open(idx, encoding='utf-8').read()
 
@@ -45,13 +47,21 @@ for cam in modulos:
     nomes_modulos.append((base, nome_mod, cod))
 h_js = hashlib.sha256(js.encode('utf-8')).hexdigest()[:10]
 nome_js = 'app.%s.js' % h_js
-html = html[:m.start()] + '<script src="%s"></script>' % nome_js + html[m.end():]
+# 2c) dados (exercícios e planos): dados.<hash>.js define window.NG_DADOS; carregado por <script src> síncrono ANTES do app.js
+nome_dados = None; cod_dados = ''
+if dados_json:
+    bruto = open(dados_json[0], encoding='utf-8').read().replace('<', '\\u003c')
+    cod_dados = 'window.NG_DADOS=%s;\n' % bruto
+    nome_dados = 'dados.%s.js' % hashlib.sha256(cod_dados.encode('utf-8')).hexdigest()[:10]
+tag_dados = ('<script src="%s"></script>\n' % nome_dados) if nome_dados else ''
+html = html[:m.start()] + tag_dados + '<script src="%s"></script>' % nome_js + html[m.end():]
 
 # 3) grava e apaga as versões antigas
-manter = {nome_css, nome_js} | {n for _, n, _ in nomes_modulos}
+manter = {nome_css, nome_js} | {n for _, n, _ in nomes_modulos} | ({nome_dados} if nome_dados else set())
 velhos = glob.glob(os.path.join(site, 'app.*.css')) + glob.glob(os.path.join(site, 'app.*.js'))
 for base, _, _ in nomes_modulos:
     velhos += glob.glob(os.path.join(site, base + '.*.js'))
+velhos += glob.glob(os.path.join(site, 'dados.*.js'))
 for velho in velhos:
     if os.path.basename(velho) in manter:
         continue
@@ -63,12 +73,14 @@ open(os.path.join(site, nome_css), 'w', encoding='utf-8').write(css)
 open(os.path.join(site, nome_js), 'w', encoding='utf-8').write(js)
 for _, n, cod in nomes_modulos:
     open(os.path.join(site, n), 'w', encoding='utf-8').write(cod)
+if nome_dados:
+    open(os.path.join(site, nome_dados), 'w', encoding='utf-8').write(cod_dados)
 open(idx, 'w', encoding='utf-8').write(html)
 
 # 4) o service worker passa a guardar os arquivos novos já na instalação (a linha marcada é regravada)
 sw = os.path.join(site, 'sw.js')
 t = open(sw, encoding='utf-8').read()
-lista = [nome_css, nome_js] + [n for _, n, _ in nomes_modulos]
+lista = [nome_css, nome_js] + ([nome_dados] if nome_dados else []) + [n for _, n, _ in nomes_modulos]
 linha = 'const ARQUIVOS_APP = [%s, "./ng-nuvem.css"]; /*build:app*/' % ', '.join('"./%s"' % n for n in lista)
 t2, n = re.subn(r'const ARQUIVOS_APP = .*?/\*build:app\*/', linha, t)
 assert n == 1, 'marcador /*build:app*/ não encontrado no sw.js'

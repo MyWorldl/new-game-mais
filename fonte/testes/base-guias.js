@@ -1,0 +1,21 @@
+// Toda ficha da base (fonte/dados/exercicios.json) tem nome no app e guia de execução no app.js publicado; nenhum nome de app repetido entre fichas.
+const fs = require("fs"), path = require("path");
+const site = path.join(__dirname, "..", "..", "site");
+const app = fs.readFileSync(path.join(site, fs.readdirSync(site).find(f => /^app\.[0-9a-f]+\.js$/.test(f))), "utf8");
+const dados = fs.readFileSync(path.join(site, fs.readdirSync(site).find(f => /^dados\.[0-9a-f]+\.js$/.test(f))), "utf8");
+const base = JSON.parse(dados.replace(/^window\.NG_DADOS=/, "").replace(/;\s*$/, "")).exercicios.exercicios;
+let falhas = 0;
+const ok = (c, m, x) => { console.log((c ? "PASS " : "FAIL ") + m + (x ? "  " + x : "")); if (!c) falhas++; };
+const guias = new Set([...app.matchAll(/G\("((?:[^"\\]|\\.)*)"/g)].map(m => JSON.parse('"' + m[1] + '"')));
+const sem = base.filter(f => !(f.nomesApp || []).length).map(f => f.id);
+ok(sem.length === 0, "toda ficha tem nome no app", sem.join(","));
+const nomes = base.flatMap(f => f.nomesApp || []);
+const dup = nomes.filter((n, i) => nomes.indexOf(n) !== i);
+ok(dup.length === 0, "nenhum nome de app repetido entre fichas", dup.join(","));
+const semGuia = base.filter(f => (f.nomesApp || []).some(n => !guias.has(n))).map(f => f.id);
+ok(semGuia.length === 0, "todo nome de app tem guia de execução", semGuia.join(","));
+const alt = base.flatMap(f => f.sugerirEm || []).filter(n => !app.includes('"' + n + '"'));
+ok(alt.length === 0, "todo exercício de sugerirEm existe no app", alt.join(","));
+ok(base.length === 105, "105 fichas", String(base.length));
+console.log(falhas ? falhas + " falhas" : "ok");
+process.exit(falhas ? 1 : 0);

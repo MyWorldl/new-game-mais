@@ -4167,8 +4167,107 @@ function adaptarRotinaAoPerfil(base, o){
   });
   return rotina;
 }
+/* ============================================================
+   Situações (fonte/dados/planos.json, vira site/dados.<hash>.js no build): 60+, tempo curto, retorno após pausa e restrição articular.
+   São ADAPTAÇÕES do plano (trocas de exercício, menos séries), nunca tratamento. Rascunho sem revisão profissional.
+   ============================================================ */
+const BASE_PLANOS = (window.NG_DADOS && window.NG_DADOS.planos) || {};
+function situacoesDoPerfil(p){
+  const cfg = BASE_PLANOS || {};
+  const idade = p ? Math.floor(Number(p.idade)) : 0;
+  const idoso = !!(cfg.idoso && idade >= cfg.idoso.idadeMin);
+  const t = p ? Number(p.tempoMin) : 0;
+  const tempo = (t === 30 || t === 45) ? t : 60;
+  const retorno = !!(p && p.retorno === true);
+  const restricoes = (p && Array.isArray(p.restricoes) ? p.restricoes : []).filter(k=> cfg.restricoes && cfg.restricoes[k]);
+  return {idoso, tempo, retorno, restricoes, ativa: idoso || tempo < 60 || retorno || restricoes.length > 0};
+}
+function trocaSituacao(tab, nome, local){
+  if(!tab || !Object.prototype.hasOwnProperty.call(tab, nome)) return undefined;
+  const v = tab[nome];
+  if(v === null || typeof v === "string") return v;
+  if(v[local] !== undefined) return v[local];
+  return v["*"];
+}
+const REPS_SIMPLES = /^(\d+)-(\d+)$/;
+function aplicarSituacoes(rotina, o){
+  const cfg = BASE_PLANOS || {}, sit = o.sit;
+  if(!sit || !sit.ativa) return rotina;
+  const tabelas = [];
+  if(sit.idoso && cfg.idoso) tabelas.push(cfg.idoso.trocas);
+  sit.restricoes.forEach(k=> tabelas.push(cfg.restricoes[k].trocas));
+  const tcfg = cfg.tempo && cfg.tempo[String(sit.tempo)] || {};
+  const isolados = (cfg.tempo && cfg.tempo.prioridadeIsolados) || [];
+  DAYS.forEach(k=>{
+    const d = rotina[k]; if(!d || !d.ativo) return;
+    // 1) trocas (60+ e restrições); o que sai pode ser removido (null)
+    let lista = [];
+    d.exercicios.forEach(ex0=>{
+      const ex = Object.assign({}, ex0);
+      let removido = false;
+      tabelas.forEach(tab=>{
+        if(removido) return;
+        const novo = trocaSituacao(tab, ex.nome, o.local);
+        if(novo === undefined) return;
+        if(novo === null){ removido = true; return; }
+        const f = fichaDoApp(novo);
+        ex.nome = novo; delete ex.nota;
+        if(f) ex.musculos = f.musculos.slice();
+        const m = REPS_SIMPLES.exec(String(ex.reps || ""));
+        if(m && Number(m[1]) < 8) ex.reps = "8-12";   // troca vinda de série pesada: sem repetições baixas
+      });
+      if(!removido) lista.push(ex);
+    });
+    // 2) mesmo exercício duas vezes (por causa das trocas): junta as séries ANTES de aplicar os limites
+    { const vistos = {}, saida = [];
+      lista.forEach(ex=>{
+        if(vistos[ex.nome]){ vistos[ex.nome].series = Math.min(5, vistos[ex.nome].series + ex.series); return; }
+        vistos[ex.nome] = ex; saida.push(ex);
+      });
+      lista = saida; }
+    // 3) repetições do 60+ e do retorno; séries
+    lista.forEach(ex=>{
+      const simples = REPS_SIMPLES.test(String(ex.reps || ""));
+      if(sit.idoso && cfg.idoso){ if(simples) ex.reps = cfg.idoso.reps; ex.series = Math.min(ex.series, cfg.idoso.maxSeries); }
+      if(sit.retorno && cfg.retorno){
+        if(simples) ex.reps = cfg.retorno.reps;
+        ex.series = Math.max(cfg.retorno.minSeries, Math.round(ex.series * cfg.retorno.fatorSeries));
+      }
+      if(tcfg.maxSeries) ex.series = Math.min(ex.series, tcfg.maxSeries);
+    });
+    // 4) tempo: fica o que mais rende (compostos e músculos grandes antes dos isolados)
+    if(tcfg.maxExercicios && lista.length > tcfg.maxExercicios){
+      const nota = (ex, i)=> (isolados.indexOf(ex.nome) >= 0 ? 0 : 1 + ((ex.musculos || []).length > 1 ? 1 : 0)) * 100 - i;
+      const fica = new Set(lista.map((ex, i)=> ({ex, i, n: nota(ex, i)})).sort((a, b)=> b.n - a.n).slice(0, tcfg.maxExercicios).map(x=> x.ex));
+      lista = lista.filter(ex=> fica.has(ex));
+    }
+    lista.forEach(ex=>{ ex.metaReps = metaRepsDe(ex.series, ex.reps, ex.metaReps); });
+    d.exercicios = lista;
+  });
+  return rotina;
+}
+/* menor de idade: o que a base marca com idade mínima maior que a da pessoa vira a primeira alternativa permitida (ex.: remada curvada com barra → remada unilateral) */
+function adequarIdadeNaRotina(rotina, p){
+  const idade = p ? Math.floor(Number(p.idade)) : 0;
+  if(!(idade > 0 && idade < 18)) return rotina;
+  DAYS.forEach(k=>{
+    const d = rotina[k]; if(!d || !d.ativo) return;
+    const nomes = new Set(d.exercicios.map(e=> e.nome));
+    d.exercicios = d.exercicios.map(ex=>{
+      const f = fichaDoApp(ex.nome);
+      if(!f || f.idadeMin <= idade) return ex;
+      const alt = (EXERCISE_ALTERNATIVES[ex.nome] || []).find(a=> !nomes.has(a) && exercicioAdequadoAoPerfil(a, p));
+      if(!alt) return null;
+      nomes.add(alt);
+      const fa = fichaDoApp(alt);
+      return Object.assign({}, ex, {nome:alt, musculos: fa ? fa.musculos.slice() : ex.musculos, nota:undefined});
+    }).filter(Boolean);
+    d.exercicios.forEach(e=>{ if(e.nota === undefined) delete e.nota; });
+  });
+  return rotina;
+}
 /* mantém cada músculo dentro da faixa de volume do app: sobe até o MEV (só quem não é iniciante) e nunca passa do MRV */
-function equilibrarVolumeInicial(rotina, exp){
+function equilibrarVolumeInicial(rotina, exp, semSubir){
   const lista = ()=>{ const a=[]; DAYS.forEach(k=>{ const d=rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=> a.push(e)); }); return a; };
   const totais = ()=>{ const t={}; lista().forEach(e=> (e.musculos||[]).forEach(m=>{ t[m] = (t[m]||0) + (Number(e.series)||0); })); return t; };
   const muda = (e, delta)=>{ e.series += delta; e.metaReps = metaRepsDe(e.series, e.reps, e.metaReps); };
@@ -4183,7 +4282,7 @@ function equilibrarVolumeInicial(rotina, exp){
       muda(cand[0], -1);
     }
   };
-  if(exp !== "iniciante"){
+  if(exp !== "iniciante" && !semSubir){
     ["peito","costas","ombros","quadriceps","posterior"].forEach(m=>{
       for(let guard=0; guard<6; guard++){
         if((totais()[m]||0) >= MUSCLE_LANDMARKS[m].mev) break;
@@ -4200,6 +4299,7 @@ function equilibrarVolumeInicial(rotina, exp){
    split = null quando a rotina atual já não é a do plano inicial (aí a primeira frase é neutra). */
 function montaPorque(o){
   const {exp, split, n, pedidos, local, menor, objetivo} = o;
+  const maxSes = o.maxSes || EXP_SESSOES_MAX[exp];
   const porque = [];
   porque.push(!split
     ? "Sua rotina de hoje tem "+n+" treino"+(n>1?"s":"")+" por semana, com exercícios em cada um."
@@ -4211,14 +4311,23 @@ function montaPorque(o){
           ? "Upper/Lower em 4 dias: parte de cima e parte de baixo, cada uma 2× por semana, com descanso entre os dias parecidos."
           : "Com "+n+" sessões por semana, cada grupo principal (peito e ombros, costas e pernas) é treinado 2×, com mais volume por sessão.");
   if(pedidos > n){
-    porque.push(n >= EXP_SESSOES_MAX[exp]   // o nível é o que limita as sessões; senão é a rotina que ainda não tem exercícios nos outros dias
-      ? "Você escolheu "+pedidos+" dias, mas para o seu nível o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser."
+    porque.push(n >= maxSes   // o nível (ou a idade) é o que limita as sessões; senão é a rotina que ainda não tem exercícios nos outros dias
+      ? "Você escolheu "+pedidos+" dias, mas para o seu perfil o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser."
       : "Você escolheu "+pedidos+" dias e a rotina tem "+n+" com exercícios. Para chegar a "+pedidos+", preencha os outros dias em Editar rotina; até lá eles contam como descanso.");
   }
   if(local === "casa") porque.push("Os exercícios foram adaptados para o que você tem em casa (halteres, elásticos e banco).");
   if(local === "pouco") porque.push("Os exercícios foram adaptados para pouco equipamento: peso do corpo e, se tiver, um elástico.");
   if(menor) porque.push("Como você tem menos de 18 anos, o plano evita carga máxima: sem levantamento terra pesado e sempre com 8 ou mais repetições por série. Técnica antes de peso.");
   else if(exp === "iniciante") porque.push("Nas primeiras semanas, use cargas que deixem 2 a 3 repetições sobrando no fim da série e troque o terra pelo stiff, que é mais fácil de aprender.");
+  const sit = o.sit;
+  if(sit && sit.ativa){
+    const c = BASE_PLANOS || {};
+    if(sit.idoso && c.idoso) porque.push("Você tem 60 anos ou mais: séries limitadas a "+c.idoso.maxSeries+", de 10 a 15 repetições e sem exercícios que exigem muita carga na coluna. "+c.idoso.aviso);
+    if(sit.retorno && c.retorno) porque.push(c.retorno.nota);
+    const tn = c.tempo && c.tempo[String(sit.tempo)] && c.tempo[String(sit.tempo)].nota;
+    if(tn) porque.push(tn);
+    sit.restricoes.forEach(k=> porque.push(c.restricoes[k].aviso));
+  }
   porque.push(objetivo === "superavit" ? "Objetivo ganhar massa: aumente a carga aos poucos quando passar do topo da faixa de repetições e cuide da alimentação na aba Dieta."
     : objetivo === "deficit" ? "Objetivo emagrecer: o treino de força segue sendo a base; a diferença está na alimentação (aba Dieta) e em caminhar nos dias de descanso."
     : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
@@ -4229,8 +4338,10 @@ function planoInicial(p){
   const local = p && (p.local === "casa" || p.local === "pouco") ? p.local : "academia";
   const menor = !!(p && menorDeIdade(p.idade));
   const objetivo = p && (p.objetivo === "superavit" || (p.objetivo === "deficit" && !menor)) ? p.objetivo : "manutencao";   // F3: menor de 18 nunca recebe texto de emagrecimento
+  const sit = situacoesDoPerfil(p);
+  const maxSes = sit.idoso && BASE_PLANOS.idoso ? Math.min(EXP_SESSOES_MAX[exp], BASE_PLANOS.idoso.maxSessoes) : EXP_SESSOES_MAX[exp];
   const pedidos = Math.max(2, Math.min(6, Math.round(Number(p && p.diasSemana)) || EXP_SESSOES_MAX[exp]));
-  const n = Math.min(pedidos, EXP_SESSOES_MAX[exp]);
+  const n = Math.min(pedidos, maxSes);
   let base, split;
   if(n <= 3){
     split = "Full Body";
@@ -4249,9 +4360,10 @@ function planoInicial(p){
     split = "A–F (Peito, Costas e Pernas 2×)";
     base = buildPPLRotina();
   }
-  const rotina = equilibrarVolumeInicial(adaptarRotinaAoPerfil(base, {local, menor, exp}), exp);
-  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo});
-  return {rotina, split, sessoes:n, exp, local, porque};
+  const adaptada = adequarIdadeNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), p);
+  const rotina = equilibrarVolumeInicial(aplicarSituacoes(adaptada, {local, sit}), exp, sit.idoso || sit.retorno || sit.tempo < 60);
+  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes});
+  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit};
 }
 
 /* v98: a rotina inicial vem do perfil (experiência, dias, equipamento, objetivo e idade). Sem perfil: Full Body 3× (o que o app recomenda para iniciantes). */
@@ -8484,6 +8596,26 @@ function saveCarga(iso, exNome, pesoKg){
    do exercício (cobre os exercícios da rotina padrão; exercícios
    renomeados ou customizados simplesmente não mostram alternativa).
    ============================================================ */
+/* Base própria de exercícios (fonte/dados/exercicios.json, injetada no build no lugar do marcador abaixo).
+   Cada ficha diz, para os nomes que o app usa, a idade mínima e o nível mínimo PROPOSTOS (rascunho, sem revisão de profissional).
+   Usada para FILTRAR as alternativas sugeridas: um menor de 18 ou um iniciante não recebe como sugestão um exercício acima do perfil.
+   O exercício que já está na rotina da pessoa nunca é escondido; só as sugestões de troca. */
+const BASE_EXERCICIOS = (window.NG_DADOS && window.NG_DADOS.exercicios) || {"exercicios":[]};
+const NIVEL_RANK = {iniciante:0, intermediario:1, avancado:2};
+const BASE_EX_POR_APP = {};
+(BASE_EXERCICIOS.exercicios||[]).forEach(f=>{ (f.nomesApp||[]).forEach(n=>{ BASE_EX_POR_APP[n] = f; }); });
+function fichaDoApp(nome){ return BASE_EX_POR_APP[nome] || null; }
+function exercicioAdequadoAoPerfil(nome, p){
+  const f = fichaDoApp(nome);
+  if(!f) return true;                                   // sem ficha: comportamento de sempre
+  const idade = p ? Math.floor(Number(p.idade)) : 0;
+  if(idade > 0 && f.idadeMin > idade) return false;     // idade desconhecida: não filtra por idade
+  const exp = p && NIVEL_RANK[p.experiencia] != null ? p.experiencia : "iniciante";
+  return (NIVEL_RANK[f.nivelMin] || 0) <= NIVEL_RANK[exp];
+}
+function filtraAlternativas(lista, p, manter){
+  return (lista||[]).filter(n=> n === manter || exercicioAdequadoAoPerfil(n, p));
+}
 const EXERCISE_ALTERNATIVES = {
   "Supino reto": ["Supino com halteres", "Supino na máquina"],
   "Desenvolvimento militar com barra": ["Desenvolvimento com halteres", "Desenvolvimento na máquina"],
@@ -8538,6 +8670,11 @@ const EXERCISE_TREINADOR = {
   "Elevação de panturrilha sentado": "Faça uma pausa de cerca de 0,5 s embaixo, com o músculo alongado, antes de subir.",
   "Rosca direta": "Quando houver, uma rosca com o braço apoiado (ex.: Scott na máquina) reduz o balanço do corpo."
 };
+// fichas novas entram como sugestão de troca dos exercícios listados em "sugerirEm" (o filtro de idade/nível continua valendo)
+(BASE_EXERCICIOS.exercicios||[]).forEach(f=>{ (f.sugerirEm||[]).forEach(base=>{
+  const l = EXERCISE_ALTERNATIVES[base] || (EXERCISE_ALTERNATIVES[base] = []);
+  if(l.indexOf(f.nome) < 0 && base !== f.nome) l.push(f.nome);
+}); });
 const EXERCISE_GUIDE = {};
 (function(){
   const G = (n,p,e,c)=>{ EXERCISE_GUIDE[n] = {p,e,c}; };
@@ -8625,6 +8762,38 @@ const EXERCISE_GUIDE = {};
   G("Crucifixo com elástico","Em pé de costas para o ponto de fixação do elástico, braços abertos na altura do peito.","Feche os braços à frente em arco, cotovelos levemente flexionados, e volte devagar.","Dar um passo à frente e perder a postura.");
   G("Abdução de quadril com elástico","Elástico logo acima dos joelhos, em pé ou deitado de lado.","Afaste a perna para o lado sem girar o quadril e volte devagar.","Inclinar o tronco ou usar impulso.");
   G("Hip thrust com halter","Costas altas apoiadas em um banco, pés no chão na largura do quadril, halter apoiado sobre o quadril (use uma toalha).","Empurre o chão e estenda o quadril contraindo os glúteos, pausando em cima, e desça controlando.","Arquear a lombar no topo ou empurrar com os dedos dos pés.");
+  G("Remada invertida","Deitado sob a barra, calcanhares no chão, corpo em linha reta.","Puxe o peito até a barra e desça controlando.","Deixar o quadril cair ou fazer o movimento só com os braços.");
+  G("IYT (elevações em I, Y e T)","De bruços (banco inclinado ou chão), braços formando \"I\", \"Y\" e \"T\".","Eleve os braços com controle em cada posição e volte devagar.","Usar carga que obrigue a arquear a lombar.");
+  G("Stiff com halteres","Em pé, joelhos levemente flexionados e travados, halteres rentes às pernas, coluna neutra.","Leve o quadril para trás, desça até sentir o alongamento atrás da coxa e volte estendendo o quadril; pode usar mais amplitude que com a barra.","Arredondar a lombar, afastar os halteres do corpo, descer além do que a coluna neutra permite.");
+  G("Nordic (flexão nórdica)","Ajoelhado com os tornozelos presos (parceiro, banco ou barra).","Incline o corpo para a frente em linha reta, descendo o mais devagar possível; use as mãos para voltar.","Quebrar o quadril, descer em queda, fazer muitas repetições de uma vez no início.");
+  G("Extensão de quadril a 45°","Quadril na borda do apoio, pés presos, coluna neutra.","Desça flexionando o quadril e volte até alinhar o tronco com as pernas.","Hiperestender a lombar no topo, balançar o tronco.");
+  G("Bom dia (good morning)","Barra apoiada nas costas, joelhos levemente flexionados.","Leve o quadril para trás mantendo a coluna neutra e volte.","Arredondar a coluna, usar carga que tire a técnica.");
+  G("Flexora com deslizante/toalha","Deitado de costas, calcanhares na toalha ou deslizante, quadril elevado em ponte.","Deslize os pés para fora e puxe de volta mantendo o quadril alto.","Deixar o quadril cair, movimento rápido.");
+  G("Agachamento unipodal (apoiado)","Apoie a mão na parede, em uma perna só.","Desça com o joelho alinhado ao pé e suba empurrando o chão.","Joelho para dentro, perder o controle na descida.");
+  G("Subida lateral no degrau","De lado para o degrau estável, pé de cima firme sobre ele.","Suba só com a perna de cima, sem se impulsionar com a de baixo; desça devagar.","Degrau alto demais ou instável.");
+  G("Prancha lateral","Apoio no antebraço, corpo em linha reta, quadril alto. Progressão: joelhos apoiados, depois pés.","Mantenha a posição respirando normalmente.","Deixar o quadril cair ou girar.");
+  G("Pallof press","De lado para a polia ou elástico, mãos no peito.","Estenda os braços à frente sem deixar o tronco girar e volte controlando.","Torcer o tronco, usar carga alta demais.");
+  G("Dead bug","Deitado de costas, lombar encostada no chão, braços e pernas para cima.","Estenda braço e perna opostos devagar e volte.","Arquear a lombar, movimento rápido.");
+  G("Prancha Copenhagen","Prancha lateral com a perna de cima apoiada no banco; versão de joelho dobrado para iniciantes.","Eleve o quadril alinhando o corpo e desça controlando.","Começar com volume alto, seguir com dor na virilha.");
+  G("Encolhimento com halteres","Em pé, halteres ao lado do corpo.","Suba os ombros em direção às orelhas, pausa curta, desça devagar.","Girar os ombros, balançar o corpo.");
+  G("Rosca de punho","Antebraço apoiado, palma para cima.","Mova só o punho, com carga leve e mais repetições.","Carga pesada, seguir com dor no punho.");
+  G("Rosca inversa","Pegada pronada (palmas para baixo), cotovelos fixos junto ao corpo.","Suba sem deixar o punho cair e desça controlando.","Carga alta com punho fraco.");
+  G("Superman","De bruços, braços estendidos à frente.","Eleve braços e pernas levemente, sem forçar a lombar, e desça controlando.","Hiperestender a lombar, prender a respiração.");
+  G("Bird dog","De quatro apoios, coluna neutra.","Estenda braço e perna opostos mantendo o tronco parado e volte.","Girar o quadril, arquear a lombar.");
+  G("Rosca Scott","Axilas apoiadas no banco Scott, cotovelos fixos sobre o apoio.","Flexione os cotovelos sem tirar o braço do apoio e desça controlando.","Descer bruscamente até a extensão total com carga alta, balançar o tronco.");
+  G("Rosca martelo","Em pé ou sentado, halteres com pegada neutra (palmas voltadas uma para a outra), cotovelos junto ao corpo.","Flexione os cotovelos sem girar o punho e desça controlando.","Balançar o tronco para dar impulso, afastar os cotovelos do corpo.");
+  G("Tríceps testa","Deitado no banco, barra ou halteres acima do peito, braços estendidos.","Flexione só os cotovelos levando a carga em direção à testa e estenda de volta.","Abrir muito os cotovelos, carga alta com técnica ruim que sobrecarregue o cotovelo.");
+  G("Mergulho nas paralelas","Nas paralelas, braços estendidos, tronco levemente inclinado para a frente.","Desça com controle até onde o ombro permitir sem dor e empurre de volta.","Descer além da amplitude confortável, balançar o corpo.");
+  G("Roda abdominal","De joelhos, mãos na roda, abdômen contraído, lombar neutra.","Role a roda para a frente só até onde conseguir manter a lombar sem arquear e volte contraindo o abdômen.","Deixar a lombar afundar, ir além do que o abdômen sustenta.");
+  G("Flexão inclinada (mãos elevadas)","Mãos num sofá ou banco firme, corpo em linha reta.","Desça o peito até perto da superfície e empurre de volta; reduza a altura aos poucos até chegar ao chão.","Deixar o quadril cair, abrir muito os cotovelos.");
+  G("Tríceps com elástico (acima da cabeça)","Elástico preso sob o pé ou atrás das costas, cotovelos apontando para cima e junto à cabeça.","Estenda os cotovelos até quase travar e volte devagar, sem mexer os cotovelos.","Abrir os cotovelos, usar o ombro para empurrar.");
+  G("Agachamento isométrico na parede","Costas apoiadas na parede, pés à frente, joelhos em cerca de 90°.","Segure a posição respirando normalmente pelo tempo planejado e saia da parede com controle.","Joelhos passando muito à frente dos pés, apoiar as mãos nas coxas, segurar a respiração.");
+  G("Barra fixa com lastro","Pegada na largura do ombro ou um pouco mais, carga presa ao cinto de lastro, ombros baixos.","Puxe o peito em direção à barra, cotovelos para baixo, e desça controlando até quase estender.","Balançar o corpo, descer em queda.");
+  G("Mergulho com lastro","Nas paralelas, carga presa ao cinto, braços estendidos, tronco levemente inclinado.","Desça com controle até onde o ombro permitir sem dor e empurre de volta.","Descer além do conforto, balançar o corpo, carga alta sem técnica firme.");
+  G("Agachamento frontal","Barra apoiada nos ombros à frente, cotovelos altos, tronco ereto.","Desça agachando mantendo o tronco ereto e suba empurrando o chão.","Deixar os cotovelos caírem, arredondar a coluna.");
+  G("Terra na barra hexagonal","De pé dentro da barra hexagonal, tronco ereto, coluna neutra.","Empurre o chão estendendo quadril e joelhos e volte a pousar a barra com controle.","Arredondar a coluna.");
+  G("Remada Pendlay","Tronco paralelo ao chão, barra no chão a cada repetição, coluna neutra.","Puxe a barra de forma explosiva até o abdome e devolva ao chão.","Arredondar a lombar, usar o quadril para impulsionar.");
+  G("Supino com pausa","Deitado no banco, pés firmes no chão, escápulas juntas e para baixo, com alguém para auxiliar.","Desça a barra, pare de 1 a 2 segundos sem relaxar no peito e empurre.","Rebater a barra, pausar sem controle, treinar sem ninguém para auxiliar.");
 })();
 function guiaCorpoHtml(nome){
   const g = EXERCISE_GUIDE[nome]; if(!g) return '';
@@ -8657,6 +8826,9 @@ function exDoDia(ex, iso, idx){
            : Object.assign({}, ex, {original:ex.nome, trocado:false});
 }
 function alternativasDoDia(ex){
+  return filtraAlternativas(alternativasDoDiaBruta(ex), state.perfil, ex.original);
+}
+function alternativasDoDiaBruta(ex){
   if(ex.trocado){
     return [ex.original].concat((EXERCISE_ALTERNATIVES[ex.original]||[]).filter(a=>a!==ex.nome));
   }
@@ -10628,6 +10800,12 @@ function openPerfilEditor(){
         '<label>Dias de treino<select id="p-dias"><option value="">Não informado</option>'+OB_DIAS.map(o=>'<option value="'+o.v+'">'+o.t+' por semana</option>').join("")+'</select></label>'+
       '</div>'+
       '<label>Onde treina<select id="p-local"><option value="">Não informado</option>'+OB_LOCAL.map(o=>'<option value="'+o.v+'">'+o.t+'</option>').join("")+'</select></label>'+
+      '<div class="field-row">'+
+        '<label>Tempo por treino<select id="p-tempo"><option value="">Não informado</option><option value="30">Cerca de 30 min</option><option value="45">Cerca de 45 min</option><option value="60">60 min ou mais</option></select></label>'+
+        '<label>Voltando de uma pausa?<select id="p-retorno"><option value="">Não informado</option><option value="nao">Não</option><option value="sim">Sim, parei há semanas</option></select></label>'+
+      '</div>'+
+      '<div><div class="skins-label" id="p-restr-lbl">Restrição articular <span class="skins-hint">— opcional. Adapta o plano; não é tratamento. Com dor, procure um profissional.</span></div><div class="seg u-mt2" id="p-restr" role="group" aria-labelledby="p-restr-lbl">'+Object.keys((BASE_PLANOS && BASE_PLANOS.restricoes) || {}).map(k=>'<button type="button" data-k="'+k+'" aria-pressed="false">'+escapeHtml(BASE_PLANOS.restricoes[k].rotulo)+'</button>').join("")+'</div></div>'+
+      '<div id="p-refazer-wrap"><div class="seg u-mt2"><button type="button" id="p-refazer" aria-pressed="false">Refazer minha rotina</button></div><span class="field-hint">Ligado: ao salvar, a rotina atual é substituída por um plano novo com estas opções.</span></div>'+
       '<label>Você é fisicamente ativo?<div class="seg u-mt2" id="p-seg-ativo"><button type="button" data-v="sim">Sim</button><button type="button" data-v="nao">Não</button></div></label>'+
       '<label id="p-nivel-wrap">Nível de atividade<select id="p-atividade"></select><span class="field-hint" id="p-atividade-desc" aria-live="polite"></span></label>'+
       '<label>Peso meta (kg) — opcional<input type="number" step="0.1" id="p-meta"></label>'+
@@ -10643,6 +10821,14 @@ function openPerfilEditor(){
   body.querySelector("#p-exp").value = p.experiencia || "";
   body.querySelector("#p-dias").value = p.diasSemana ? String(p.diasSemana) : "";
   body.querySelector("#p-local").value = p.local || "";
+  body.querySelector("#p-tempo").value = p.tempoMin ? String(p.tempoMin) : "";
+  body.querySelector("#p-retorno").value = p.retorno === true ? "sim" : (p.retorno === false ? "nao" : "");
+  const restrSel = new Set(Array.isArray(p.restricoes) ? p.restricoes : []);
+  function syncRestrUI(){ body.querySelectorAll("#p-restr button").forEach(b=>{ const on = restrSel.has(b.dataset.k); b.classList.toggle("active", on); b.setAttribute("aria-pressed", on ? "true" : "false"); }); }
+  body.querySelectorAll("#p-restr button").forEach(b=> b.addEventListener("click", ()=>{ if(restrSel.has(b.dataset.k)) restrSel.delete(b.dataset.k); else restrSel.add(b.dataset.k); syncRestrUI(); }));
+  ["#p-tempo","#p-retorno"].forEach(id=> body.querySelector(id).addEventListener("change", ()=>{ }));
+  body.querySelector("#p-refazer").addEventListener("click", e=>{ const b = e.currentTarget, on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on ? "true" : "false"); b.classList.toggle("active", on); });
+  syncRestrUI();
   body.querySelector("#p-altura").value = p.alturaCm;
   body.querySelector("#p-meta").value = p.pesoMetaKg || "";
   const sel = body.querySelector("#p-atividade");
@@ -10725,8 +10911,15 @@ function openPerfilEditor(){
     if(expV) data.experiencia = expV;
     if(diasV) data.diasSemana = Number(diasV);
     if(locV) data.local = locV;
+    const tV = Number(body.querySelector("#p-tempo").value), rV = body.querySelector("#p-retorno").value;
+    if(tV === 30 || tV === 45 || tV === 60) data.tempoMin = tV;
+    if(rV === "sim") data.retorno = true; else if(rV === "nao") data.retorno = false;
+    const restrOk = Array.from(restrSel).filter(k=> BASE_PLANOS.restricoes && BASE_PLANOS.restricoes[k]);
+    if(restrOk.length) data.restricoes = restrOk;
+    const refazer = body.querySelector("#p-refazer").getAttribute("aria-pressed") === "true";
     state.perfil = data;
     ajustarRotinaExemplo();
+    if(refazer){ state.rotinaIsExample = true; aplicarPlanoInicial(data, todayISO()); }
     closeModal();
     render();
     saveDoc("config/perfil", data);
@@ -11854,7 +12047,9 @@ function planoPorqueAtual(){
   const pedidos = Math.max(2, Math.min(6, Math.round(Number(p.diasSemana)) || n));
   const local = p.local === "casa" || p.local === "pouco" ? p.local : "academia";
   const split = mesmo ? pi.split : null;
-  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo})};
+  const sit = situacoesDoPerfil(p);
+  const maxSes = sit.idoso && BASE_PLANOS.idoso ? Math.min(EXP_SESSOES_MAX[p.experiencia], BASE_PLANOS.idoso.maxSessoes) : EXP_SESSOES_MAX[p.experiencia];
+  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes})};
 }
 function renderPlanoPorque(){
   const hoje = document.getElementById("plano-porque-hoje"), treino = document.getElementById("plano-porque-treino");
@@ -12495,14 +12690,14 @@ function renderBibliotecaExercicios(){
     if(!list.length) return "";
     const rows = list.map(ex=>{
       const musculosLabel = (ex.musculos||[]).map(m=> MUSCLE_LANDMARKS[m]?MUSCLE_LANDMARKS[m].label:m).join(", ");
-      const alt = EXERCISE_ALTERNATIVES[ex.nome];
+      const alt = filtraAlternativas(EXERCISE_ALTERNATIVES[ex.nome], state.perfil);
       return '<div class="biblio-ex">'+
         '<div class="biblio-ex-head"><div class="biblio-ex-title"><strong>'+escapeHtml(ex.nome)+'</strong><span class="chip neutral">'+escapeHtml(musculosLabel)+'</span></div>'+
           '<a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer" title="Buscar vídeo de execução no YouTube">'+ICON_PLAY+'<span>Vídeo</span></a>'+
         '</div>'+
         (ex.nota ? '<div class="biblio-ex-nota">'+ICON_TIP+'<span>'+escapeHtml(ex.nota)+'</span></div>' : '')+
         guiaExecucaoHtml(ex.nome)+
-        (alt ? '<div class="biblio-ex-alt"><div class="biblio-ex-alt-label">'+ICON_SWAP+'<span>Alternativas — toque para ver como executar</span></div><div class="biblio-ex-chips">'+alt.map(a=>'<button type="button" class="biblio-ex-chip biblio-alt-btn" aria-expanded="false" data-balt="'+escapeHtml(a)+'">'+escapeHtml(a)+'</button>').join("")+'</div><div class="biblio-alt-panel" hidden></div></div>' : '')+
+        (alt && alt.length ? '<div class="biblio-ex-alt"><div class="biblio-ex-alt-label">'+ICON_SWAP+'<span>Alternativas — toque para ver como executar</span></div><div class="biblio-ex-chips">'+alt.map(a=>'<button type="button" class="biblio-ex-chip biblio-alt-btn" aria-expanded="false" data-balt="'+escapeHtml(a)+'">'+escapeHtml(a)+'</button>').join("")+'</div><div class="biblio-alt-panel" hidden></div></div>' : '')+
       '</div>';
     }).join("");
     return '<details class="biblio-cat"'+(bq.length ? ' open' : '')+'><summary>'+
@@ -13178,7 +13373,7 @@ function resumoParaTreinador(){
   };
 }
 window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
-try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque}; }catch(e){}
+try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque, filtraAlternativas, exercicioAdequadoAoPerfil, BASE_EXERCICIOS, BASE_PLANOS, situacoesDoPerfil, fichaDoApp, MUSCLE_LANDMARKS}; }catch(e){}
 })();
 </script>
 
