@@ -16,6 +16,6 @@ const semGuia = base.filter(f => (f.nomesApp || []).some(n => !guias.has(n))).ma
 ok(semGuia.length === 0, "todo nome de app tem guia de execução", semGuia.join(","));
 const alt = base.flatMap(f => f.sugerirEm || []).filter(n => !app.includes('"' + n + '"'));
 ok(alt.length === 0, "todo exercício de sugerirEm existe no app", alt.join(","));
-ok(base.length === 119, "119 fichas", String(base.length));
+ok(base.length === 150, "150 fichas", String(base.length));
 console.log(falhas ? falhas + " falhas" : "ok");
 process.exit(falhas ? 1 : 0);
