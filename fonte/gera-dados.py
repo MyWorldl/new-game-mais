@@ -6,5 +6,5 @@ Uso: gera-dados.py saida.json"""
 import json, os, sys
 aqui = os.path.dirname(os.path.abspath(__file__))
 ler = lambda n: json.load(open(os.path.join(aqui, "dados", n), encoding="utf-8"))
-json.dump({"exercicios": ler("exercicios.json"), "planos": ler("planos.json")},
+json.dump({"exercicios": ler("exercicios.json"), "planos": ler("planos.json"), "guias": ler("guias.json")},
           open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
