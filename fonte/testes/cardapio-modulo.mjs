@@ -19,8 +19,8 @@ function no(sel) {
   }
   return nos[sel];
 }
-let clique = null;
-const el = { _h: '', montagens: 0, style: {}, offsetHeight: 321, addEventListener: (ev, fn) => { if (ev === 'click') clique = fn; }, querySelector: no };
+let clique = null, mudou = null;
+const el = { _h: '', montagens: 0, style: {}, offsetHeight: 321, addEventListener: (ev, fn) => { if (ev === 'click') clique = fn; if (ev === 'change') mudou = fn; }, querySelector: no };
 Object.defineProperty(el, 'innerHTML', { get: () => el._h, set: (v) => { el._h = v; el.montagens++; } });
 globalThis.document = { getElementById: (id) => (id === 'cardapio-body' ? el : null) };
 globalThis.window = { scrollY: 120, scrollTo: () => {} };
@@ -28,6 +28,9 @@ globalThis.addEventListener = () => {}; globalThis.removeEventListener = () => {
 globalThis.requestAnimationFrame = (f) => f();
 const R = (nome) => no('[data-r="' + nome + '"]');
 const B = (rot, v) => no('[data-cdp="' + rot + '"][data-v="' + v + '"]');
+const S = (rot) => no('[data-cdp-sel="' + rot + '"]');                                   // campos selecionáveis: jeito, rotina, nref
+const C = (v) => no('[data-cdp-chk="restr"][data-v="' + v + '"]');                       // caixas de marcar das restrições
+const muda = (sel, chk) => mudou({ target: { closest: (q) => (q === '[data-cdp-sel]' ? sel : chk) } });
 
 // ---------- ctx falso
 const chamadas = { salva: [], redesenha: 0, sons: [] };
@@ -77,20 +80,20 @@ cardapio.render(null, null);
 t('sem meta: pede para completar o perfil', /Complete seu perfil/.test(el.innerHTML));
 const m0 = el.montagens;
 cardapio.render(2000, macros);
-t('com meta: esqueleto montado', el.montagens === m0 + 1 && /data-cdp="jeito"/.test(el.innerHTML) && /data-r="refeicoes"/.test(el.innerHTML));
+t('com meta: esqueleto montado', el.montagens === m0 + 1 && /data-cdp-sel="jeito"/.test(el.innerHTML) && /data-r="refeicoes"/.test(el.innerHTML));
 t('esqueleto tem os 7 dias', (el.innerHTML.match(/data-cdp="dia"/g) || []).length === 7);
 t('regiões preenchidas', /Emagrecimento/.test(R('sub').innerHTML) && /cdp-meal/.test(R('refeicoes').innerHTML) && /cdp-tchip/.test(R('total').innerHTML));
-t('botões ligados: onívoro, marmita, dia 1', B('jeito', 'omni').cls.has('on') && B('rotina', 'marmita').cls.has('on') && B('dia', '0').cls.has('on'));
-t('aria-pressed acompanha a classe "on"', B('jeito', 'omni').attrs['aria-pressed'] === 'true' && B('jeito', 'vegan').attrs['aria-pressed'] === 'false');
+t('campos e botões: onívoro, marmita, dia 1', S('jeito').value === 'omni' && S('rotina').value === 'marmita' && B('dia', '0').cls.has('on'));
+t('aria-pressed dos dias acompanha a classe "on"', B('dia', '0').attrs['aria-pressed'] === 'true' && B('dia', '1').attrs['aria-pressed'] === 'false');
 
 // 5. atualização por nó: render igual não reescreve nada
 const m1 = el.montagens;
 const setsAntes = ['sub', 'rotdesc', 'total', 'avisos', 'refeicoes', 'compras', 'rodape'].map((r) => R(r).sets);
-const togglesAntes = B('jeito', 'omni').toggles + B('dia', '0').toggles;
+const togglesAntes = B('dia', '0').toggles + B('dia', '1').toggles, valoresAntes = S('jeito').value + S('rotina').value + S('nref').value;
 cardapio.render(2000, macros);
 t('render repetido: não remonta o esqueleto', el.montagens === m1);
 t('render repetido: nenhuma região reescrita', ['sub', 'rotdesc', 'total', 'avisos', 'refeicoes', 'compras', 'rodape'].every((r, i) => R(r).sets === setsAntes[i]));
-t('render repetido: nenhum botão alterado', B('jeito', 'omni').toggles + B('dia', '0').toggles === togglesAntes);
+t('render repetido: nenhum botão nem campo alterado', B('dia', '0').toggles + B('dia', '1').toggles === togglesAntes && S('jeito').value + S('rotina').value + S('nref').value === valoresAntes);
 
 // 6. clique em "dia": não grava, só troca refeições/total e o botão ligado
 const subSets = R('sub').sets, refSets = R('refeicoes').sets, antesSalva = chamadas.salva.length;
@@ -98,20 +101,27 @@ clique({ target: { closest: () => ({ dataset: { cdp: 'dia', v: '2' } }) } });
 t('clique em dia: não grava', chamadas.salva.length === antesSalva);
 t('clique em dia: refeições trocadas, subtítulo intacto', R('refeicoes').sets === refSets + 1 && R('sub').sets === subSets);
 t('clique em dia: botão ligado muda sem remontar', B('dia', '2').cls.has('on') && !B('dia', '0').cls.has('on') && el.montagens === m1);
+t('clique em dia segura a altura do card (rede de segurança)', el.style.minHeight === '321px');
 
-// 7. clique em "jeito": salva o settings inteiro, redesenha, toca som e segura a altura
-const jb = { dataset: { cdp: 'jeito', v: 'vegan' } };
-clique({ target: { closest: () => jb } });
+// 7. mudar o campo "jeito de comer": salva o settings inteiro, redesenha e toca som
+muda({ dataset: { cdpSel: 'jeito' }, value: 'vegan' }, null);
 const salvo = chamadas.salva[chamadas.salva.length - 1];
-t('clique em jeito: guarda vegan e preserva o resto de settings', salvo.cardapio.jeito === 'vegan' && salvo.tema === 'x' && salvo.cardapio.rotina === 'marmita');
-t('clique em jeito: pede redesenho da Dieta e toca "tick"', chamadas.redesenha === 1 && chamadas.sons[chamadas.sons.length - 1] === 'tick');
-t('clique segura a altura do card (rede de segurança)', el.style.minHeight === '321px');
+t('campo jeito: guarda vegan e preserva o resto de settings', salvo.cardapio.jeito === 'vegan' && salvo.tema === 'x' && salvo.cardapio.rotina === 'marmita');
+t('campo jeito: pede redesenho da Dieta e toca "tick"', chamadas.redesenha === 1 && chamadas.sons[chamadas.sons.length - 1] === 'tick');
 cardapio.render(2000, macros);   // o app responde ao redesenho
-t('depois do redesenho: vegano ligado, onívoro desligado, sem remontar', B('jeito', 'vegan').cls.has('on') && !B('jeito', 'omni').cls.has('on') && el.montagens === m1);
+t('depois do redesenho: o campo mostra vegano, sem remontar', S('jeito').value === 'vegan' && el.montagens === m1);
 
-// 8. restrição alterna lactose
-clique({ target: { closest: () => ({ dataset: { cdp: 'restr', v: 'lactose' } }) } });
-t('clique em restrição: lactose ligada', settings.cardapio.restricoes.lactose === true);
+// 8. restrição: caixa de marcar lactose
+muda(null, { dataset: { v: 'lactose' }, checked: true });
+t('caixa de restrição: lactose marcada e salva', settings.cardapio.restricoes.lactose === true);
+cardapio.render(2000, macros);
+t('depois do redesenho: a caixa de lactose aparece marcada', C('lactose').checked === true && C('gluten').checked !== true);
+muda(null, { dataset: { v: 'lactose' }, checked: false });
+t('caixa de restrição: desmarcar salva lactose desligada', settings.cardapio.restricoes.lactose === false);
+// refeições por dia: na marmita o campo não muda nada
+const salvasAntes = chamadas.salva.length;
+muda({ dataset: { cdpSel: 'nref' }, value: '4', disabled: false }, null);
+t('refeições por dia na marmita: ignorado', chamadas.salva.length === salvasAntes);
 
 // 9. clique fora dos controles é ignorado; perder a meta e voltar remonta o esqueleto
 const n0 = chamadas.sons.length;

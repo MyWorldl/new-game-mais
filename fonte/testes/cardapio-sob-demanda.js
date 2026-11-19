@@ -2,6 +2,7 @@
 // O módulo cardapio.<hash>.js só deve ser baixado quando a aba Dieta o desenha; deve vir com cache immutable, estar no pré-cache
 // do service worker (funciona offline) e, se o download falhar, a Dieta mostra um aviso com botão "Tentar de novo".
 const { chromium } = require('playwright');
+const { abreCardapio, escolhe, valorDe } = require('./cardapio-ajuda.js');
 const BASE = process.argv[2] || 'http://localhost:8765';
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); };
 const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
@@ -30,13 +31,13 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   t('outra aba (Treino): continua sem baixar', !(await baixou()));
 
   // 2) abrir a Dieta baixa o módulo uma vez e mostra o cardápio
-  await p.click('#tab-dieta'); await p.waitForSelector('.cdp-day', { timeout: 6000 });
+  await p.click('#tab-dieta'); await p.waitForFunction(() => performance.getEntriesByType('resource').some(r => /\/cardapio\.[0-9a-f]+\.js/.test(r.name)), null, { timeout: 6000 }); await abreCardapio(p); await p.waitForSelector('.cdp-day', { timeout: 6000 });
   t('Dieta: cardápio apareceu (7 dias)', await p.locator('.cdp-day').count() === 7);
   t('Dieta: módulo baixado (status 200)', reqs.length >= 1 && reqs[0].status === 200, JSON.stringify(reqs[0] || {}));
   t('módulo com cache immutable de 1 ano', !!reqs[0] && /immutable/.test(reqs[0].cc || '') && /max-age=31536000/.test(reqs[0].cc || ''));
   t('módulo servido como JavaScript', !!reqs[0] && /javascript/.test(reqs[0].ct || ''));
   const n1 = reqs.length;
-  await p.click('#tab-painel'); await p.waitForTimeout(300); await p.click('#tab-dieta'); await p.waitForTimeout(500);
+  await p.click('#tab-painel'); await p.waitForTimeout(300); await abreCardapio(p);
   t('voltar à Dieta não baixa de novo', reqs.length === n1);
   await p.click('.cdp-day[data-v="3"]'); await p.waitForTimeout(250);
   t('cardápio funciona depois de carregado (dia 4)', await p.locator('.cdp-day.on').getAttribute('data-v') === '3');
@@ -53,7 +54,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   const q = await ctx2.newPage(); q.setDefaultTimeout(8000);
   const errs2 = []; q.on('pageerror', e => errs2.push('PE ' + e.message));
   let bloquear = true;
-  await q.route(/\/cardapio\.[0-9a-f]+\.js$/, r => bloquear ? r.abort('failed') : r.continue());
+  await q.route(/\/cardapio\.[0-9a-f]+\.js(\?.*)?$/, r => bloquear ? r.abort('failed') : r.continue());
   await q.goto(BASE + '/index.html'); await q.waitForTimeout(1200);
   await q.evaluate(async (hoje) => {
     const db = await window.claude.use('db');
@@ -61,13 +62,13 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await db.doc('medicoes/' + hoje).set({ data: hoje, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 });
   }, hoje);
   await q.reload(); await q.waitForTimeout(1800);
-  await q.click('#tab-dieta'); await q.waitForTimeout(1500);
+  await abreCardapio(q);
   const msg = await q.evaluate(() => (document.getElementById('cardapio-body') || {}).innerText || '');
   t('falha de rede: aviso claro no lugar do cardápio, com botão "Tentar de novo"', /Não foi possível carregar o cardápio/.test(msg) && await q.locator('[data-cdp-retry]').count() === 1);
   t('falha de rede: o resto da Dieta segue funcionando', await q.locator('#cardapio-card').count() === 1 && await q.locator('#tab-dieta').count() === 1);
   t('falha de rede: nenhum erro de JS não tratado', errs2.length === 0, errs2.slice(0, 2).join(' | '));
   bloquear = false;
-  await q.click('[data-cdp-retry]'); await q.waitForSelector('.cdp-day', { timeout: 6000 }).catch(() => {});
+  await q.click('[data-cdp-retry]'); await q.waitForSelector('[data-form="salvar"]', { timeout: 6000 }).catch(() => {}); await q.click('[data-form="salvar"]').catch(() => {}); await q.waitForSelector('.cdp-day', { timeout: 6000 }).catch(() => {});
   t('rede de volta: "Tentar de novo" carrega o cardápio', await q.locator('.cdp-day').count() === 7);
   t('depois de recuperar o cardápio funciona (dia 3)', await q.locator('.cdp-day[data-v="2"]').click().then(() => true).catch(() => false) && await q.locator('.cdp-day.on').getAttribute('data-v') === '2');
 

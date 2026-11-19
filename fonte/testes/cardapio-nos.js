@@ -2,6 +2,7 @@
 // Prova que um clique não recria os controles: o botão clicado é o mesmo nó (foco mantido), os blocos de controles e de dias não
 // recebem nós novos nem removidos, e a lista de compras aberta continua aberta.
 const { chromium } = require('playwright');
+const { abreCardapio, escolhe, valorDe } = require('./cardapio-ajuda.js');
 const URL_ = (process.argv[2] || 'http://localhost:8765') + '/index.html';
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); };
 const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
@@ -19,7 +20,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await db.doc('medicoes/' + hoje).set({ data: hoje, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 });
   }, hoje);
   await p.reload(); await p.waitForTimeout(1800);
-  await p.click('#tab-dieta'); await p.waitForTimeout(600);
+  await abreCardapio(p);
 
   // marca os nós atuais e observa mutações de estrutura nos controles e nos dias
   await p.evaluate(() => {
@@ -29,8 +30,8 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     const obs = (sel, chave) => { const n = body.querySelector(sel); new MutationObserver(ms => { ms.forEach(m => { if (m.type === 'childList' && !(m.target.closest && m.target.closest('[data-r]'))) window.__estrutura[chave] += m.addedNodes.length + m.removedNodes.length; }); }).observe(n, { childList: true, subtree: true }); };
     obs('.cdp-controls', 'controles'); obs('.cdp-days', 'dias');
     new MutationObserver(ms => { ms.forEach(m => { if (m.type === 'childList' && m.target === body) window.__estrutura.corpo += m.addedNodes.length + m.removedNodes.length; }); }).observe(body, { childList: true });
-    body.querySelectorAll('[data-cdp]').forEach(n => n.setAttribute('data-marca', n.dataset.cdp + ':' + n.dataset.v));
-    body.querySelector('.cdp-chips').setAttribute('data-esqueleto', '1');
+    body.querySelectorAll('[data-cdp],[data-cdp-sel],[data-cdp-chk]').forEach(n => n.setAttribute('data-marca', (n.dataset.cdp || n.dataset.cdpSel || n.dataset.cdpChk) + ':' + (n.dataset.v || '')));
+    body.querySelector('.cdp-multi').setAttribute('data-esqueleto', '1');
     window.__bodyHtmlAntes = body.querySelector('[data-r="refeicoes"]').innerHTML;
   });
   const mesmoNo = async (sel, marca) => p.evaluate(([s, m]) => { const n = document.querySelector(s); return !!n && n.getAttribute('data-marca') === m; }, [sel, marca]);
@@ -49,13 +50,15 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
 
   // 2) clique em jeito/rotina/restrição (passa pelo app: grava e redesenha a Dieta)
   for (const [rot, v] of [['jeito', 'vegan'], ['rotina', 'fora'], ['restr', 'lactose'], ['jeito', 'omni']]) {
-    await p.click(`[data-cdp="${rot}"][data-v="${v}"]`); await p.waitForTimeout(350);
-    t(`${rot}=${v}: mesmo botão e foco mantido`, await mesmoNo(`[data-cdp="${rot}"][data-v="${v}"]`, `${rot}:${v}`) && await p.evaluate(([r, vv]) => document.activeElement && document.activeElement.matches(`[data-cdp="${r}"][data-v="${vv}"]`), [rot, v]));
+    await escolhe(p, rot, v);
+    const sel = rot === 'restr' ? `[data-cdp-chk="restr"][data-v="${v}"]` : `[data-cdp-sel="${rot}"]`, marca = rot === 'restr' ? `restr:${v}` : `${rot}:`;
+    t(`${rot}=${v}: mesmo campo (não foi recriado)`, await mesmoNo(sel, marca));
+    if (rot === 'restr') t(`${rot}=${v}: foco mantido na caixa clicada`, await p.evaluate(s => document.activeElement && document.activeElement.matches(s), sel));
   }
-  t('os grupos de botões continuam sendo os mesmos nós do esqueleto', await p.evaluate(() => document.querySelector('.cdp-chips').getAttribute('data-esqueleto') === '1'));
-  t('restrição lactose ligada e aria-pressed true', await p.locator('[data-cdp="restr"][data-v="lactose"]').getAttribute('aria-pressed') === 'true' && await p.locator('[data-cdp="restr"][data-v="lactose"].on').count() === 1);
-  t('rotina "fora" ligada (4 refeições)', await p.locator('[data-cdp="rotina"][data-v="fora"].on').count() === 1 && await p.locator('.cdp-meal').count() === 4);
-  t('jeito voltou para onívoro', await p.locator('[data-cdp="jeito"][data-v="omni"].on').count() === 1 && await p.locator('[data-cdp="jeito"].on').count() === 1);
+  t('o grupo de restrições continua sendo o mesmo nó do esqueleto', await p.evaluate(() => document.querySelector('.cdp-multi').getAttribute('data-esqueleto') === '1'));
+  t('restrição lactose marcada e resumo "1 selecionada"', await valorDe(p, 'restr', 'lactose') && /1 selecionada/.test(await p.locator('[data-r="restrinfo"]').innerText()));
+  t('rotina "fora" escolhida (4 refeições)', await valorDe(p, 'rotina') === 'fora' && await p.locator('.cdp-meal').count() === 4);
+  t('jeito voltou para onívoro', await valorDe(p, 'jeito') === 'omni');
   const est = await p.evaluate(() => window.__estrutura);
   t('nenhum botão/grupo novo ou removido nos controles (só o texto da descrição muda)', est.controles === 0, JSON.stringify(est));
   t('nenhum nó novo ou removido nos dias', est.dias === 0, JSON.stringify(est));

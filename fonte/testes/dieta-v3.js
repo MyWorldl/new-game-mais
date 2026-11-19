@@ -2,6 +2,7 @@
 const fs = require('fs');
 const { chromium } = require('playwright');
 const { abre } = require('./telas-dados-seed.js');
+const { abreCardapio } = require('./cardapio-ajuda.js');
 const axeSrc = process.env.SP && fs.existsSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js') ? fs.readFileSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js', 'utf8') : null;
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 300) : '')); };
 const irDieta = async p => { await p.evaluate(() => document.getElementById('tab-dieta').click()); await p.waitForTimeout(2200); };
@@ -15,25 +16,27 @@ const irDieta = async p => { await p.evaluate(() => document.getElementById('tab
       const g = [...a.querySelectorAll('.da-lista li')].map(li => ({ n: li.querySelector('.da-n').textContent, g: parseInt(li.querySelector('b').textContent, 10), pc: parseInt(li.querySelector('.da-pc').textContent, 10) }));
       const centro = a.querySelector('.da-centro b').textContent.replace(/\D/g, '');
       const sw = [...a.querySelectorAll('.da-sw')].map(e => getComputedStyle(e).backgroundColor);
-      const meals = [...document.querySelectorAll('.cdp-meal')];
-      const ic = meals.map(m => !!m.querySelector('.cdp-ic svg[aria-hidden], .cdp-ic[aria-hidden="true"]'));
-      const pct = meals.map(m => parseInt(m.querySelector('.cdp-share-txt').textContent, 10));
-      const barras = meals.map(m => parseFloat(m.querySelector('.cdp-share-bar i').style.width));
       const r = a.getBoundingClientRect();
-      return { vis: getComputedStyle(a).display !== 'none', arcos, g, centro, sw, nM: meals.length, ic, pct, barras, h2: a.querySelector('h2').textContent.trim(), esc: document.documentElement.scrollWidth <= innerWidth, w: r.width, anelW: a.querySelector('.da-anel').getBoundingClientRect().width };
+      return { vis: getComputedStyle(a).display !== 'none', arcos, g, centro, sw, h2: a.querySelector('h2').textContent.trim(), esc: document.documentElement.scrollWidth <= innerWidth, w: r.width, anelW: a.querySelector('.da-anel').getBoundingClientRect().width };
     });
     t(w + ': cartão do anel visível com meta em kcal', r.vis && r.centro.length >= 3, r.centro);
     t(w + ': 3 arcos somam ~100% (com folgas entre eles)', Math.abs(r.arcos.reduce((s, x) => s + x, 0) - 100) < 4.5, r.arcos.join(','));
     t(w + ': legenda tem proteína, carboidrato e gordura em g + %', r.g.length === 3 && r.g.map(x => x.n).join() === 'Proteína,Carboidrato,Gordura' && r.g.every(x => x.g > 0 && x.pc > 0), JSON.stringify(r.g));
     t(w + ': percentuais da legenda somam 100 (±1)', Math.abs(r.g.reduce((s, x) => s + x.pc, 0) - 100) <= 1, r.g.map(x => x.pc).join('+'));
     t(w + ': 3 cores de legenda distintas (nunca só cor: há nome e valor)', new Set(r.sw).size === 3 && !r.sw.includes('rgba(0, 0, 0, 0)'), r.sw.join('|'));
+    // a Dieta abre em Metas (anel e objetivo); as refeições ficam em Cardápio
+    const alvo = await p.evaluate(() => (document.body.innerText.match(/2\.954/g) || []).length);
+    await abreCardapio(p, { espera: 1500 });
+    Object.assign(r, await p.evaluate(() => {
+      const meals = [...document.querySelectorAll('.cdp-meal')];
+      return { nM: meals.length, ic: meals.map(m => !!m.querySelector('.cdp-ic svg[aria-hidden], .cdp-ic[aria-hidden="true"]')), pct: meals.map(m => parseInt(m.querySelector('.cdp-share-txt').textContent, 10)), barras: meals.map(m => parseFloat(m.querySelector('.cdp-share-bar i').style.width)) };
+    }));
     t(w + ': 5 refeições, todas com ícone decorativo', r.nM === 5 && r.ic.every(Boolean), r.ic.join());
     t(w + ': fatias das refeições somam 100% (±2) e barra = texto', Math.abs(r.pct.reduce((s, x) => s + x, 0) - 100) <= 2 && r.pct.every((x, i) => x === Math.round(r.barras[i])), r.pct.join('+'));
     t(w + ': sem rolagem horizontal e anel ≥ 120 px', r.esc && r.anelW >= 120, r.anelW);
     t(w + ': sem erro de console', p.errs.length === 0, p.errs.join(' | '));
     if (w === 390) {
       // meta do anel = kcal do app (mesmo valor exibido no cartão de objetivo)
-      const alvo = await p.evaluate(() => (document.body.innerText.match(/2\.954/g) || []).length);
       t('390: meta exibida no anel aparece também no cartão de objetivo (mesma conta)', alvo >= 2, alvo);
       // troca de dia: classe cdp-troca aplicada e removida
       const f = await p.evaluate(async () => {
@@ -68,7 +71,7 @@ const irDieta = async p => { await p.evaluate(() => document.getElementById('tab
     const p = await c.newPage(); p.errs = []; p.on('pageerror', e => p.errs.push(e.message));
     await p.goto((process.argv[2] || 'http://localhost:8791') + '/index.html'); await p.waitForTimeout(1200);
     await p.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/perfil').set({ nomeCompleto: 'T', nomeUsuario: 't.f6', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', experiencia: 'intermediario', criadoEm: new Date().toISOString().slice(0, 10) }); await db.doc('medicoes/' + new Date().toISOString().slice(0, 10)).set({ pesoKg: 80, cinturaCm: 85 }); });
-    await p.reload(); await p.waitForTimeout(1500); await irDieta(p);
+    await p.reload(); await p.waitForTimeout(1500); await irDieta(p); await abreCardapio(p, { espera: 1500 });
     const m = await p.evaluate(async () => {
       const svg = document.querySelector('#dieta-anel .da-anel svg'); const an = svg ? getComputedStyle(svg).animationName : 'x';
       document.querySelector('[data-cdp="dia"]:not([aria-pressed="true"])').click();

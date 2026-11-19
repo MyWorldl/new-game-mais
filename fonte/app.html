@@ -33,7 +33,7 @@
 :root[data-theme="dark"], :root[data-game="on"]{color-scheme:dark;}
 :root[data-tema][data-modo="claro"]{color-scheme:light;}
 :root[data-tema][data-modo="escuro"]{color-scheme:dark;}
-html{scroll-padding-top:calc(var(--tb-h, 0px) + 12px); scroll-padding-bottom:calc(var(--bn-h, 0px) + 16px);}
+html{scroll-padding-top:calc(var(--tb-h, 0px) + var(--sn-h, 0px) + 12px); scroll-padding-bottom:calc(var(--bn-h, 0px) + 16px);}
 body{
   background:var(--bg); color:var(--ink);
   font-family:'Work Sans',system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -2521,7 +2521,6 @@ button, a, summary, [role="button"], label, select{touch-action:manipulation;}
 .cm-body b{color:var(--ink);}
 .cm-body ul{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:var(--sp-1);}
 .cm-body a{font-weight:600; display:inline-block; min-height:24px; padding-block:5px; line-height:1.3;}
-.cm-fontes{font-size:var(--fs-2xs); color:var(--muted);}
 
 /* ============================================================
    v97 — foco corporal (até 2 grupos): meta de volume maior, dica e missão
@@ -2616,9 +2615,6 @@ button, a, summary, [role="button"], label, select{touch-action:manipulation;}
 .link-btn{display:inline; padding:6px 0; min-height:24px; border:0; background:none; color:var(--accent-fg,var(--accent)); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; text-align:left;}
 .atalho-medidas{margin-bottom:var(--sp-3);}
 /* v98 Fase 3 — navegação com Dieta, "Mais do app" no Perfil, Dieta por idade */
-.perfil-mais-btns{display:flex; flex-wrap:wrap; gap:var(--sp-2);}
-.perfil-mais-btns .btn{flex:1 1 140px; min-height:44px; justify-content:center; display:inline-flex; align-items:center; gap:var(--sp-2);}
-.perfil-mais-btns .btn svg{width:18px; height:18px; flex:none;}
 .dieta-menor{margin-bottom:var(--sp-3);}
 .dieta-menor strong{display:block; margin-bottom:2px;}
 .dieta-tabs button[hidden]{display:none;}
@@ -2784,7 +2780,9 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <span class="sr-only" id="sync-live" role="status" aria-live="polite"></span>
       <button type="button" class="cmdk-chip" id="cmdk-open" aria-haspopup="dialog" aria-label="Abrir paleta de comandos (Ctrl K)">Comandos <kbd>Ctrl K</kbd></button>
     </div>
-    <nav class="subtabs-wrap" id="corpo-subnav" role="tablist" aria-label="Seções do Corpo" hidden>
+  </div>
+  <div class="subnav-host" id="subnav-host" hidden>
+    <nav class="subtabs-wrap" id="corpo-subnav" data-subnav="corpo" role="tablist" aria-label="Seções do Corpo" hidden>
       <button class="tab-btn subtab-btn" type="button" id="subtab-corpo" aria-controls="view-corpo" data-subtab="corpo" role="tab" aria-selected="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2.4"/><path d="M12 8v6M8 21l2.5-7M16 21l-2.5-7M8 12h8"/></svg>
         Corpo
@@ -2793,6 +2791,22 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.4c.6.5 1 1.3 1 2.1v.5h6v-.5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg>
         Dicas
       </button>
+    </nav>
+    <nav class="subtabs-wrap" id="treino-subnav" data-subnav="treino" role="tablist" aria-label="Seções do Treino" hidden>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-treino-plano" aria-controls="view-treino" data-group="treino" data-sub="plano" role="tab" aria-selected="true">Plano</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-treino-progresso" aria-controls="view-treino" data-group="treino" data-sub="progresso" role="tab" aria-selected="false">Progresso</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-treino-biblioteca" aria-controls="view-treino" data-group="treino" data-sub="biblioteca" role="tab" aria-selected="false">Biblioteca</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-treino-calculadoras" aria-controls="view-treino" data-group="treino" data-sub="calculadoras" role="tab" aria-selected="false">Calculadoras</button>
+    </nav>
+    <nav class="subtabs-wrap" id="dieta-subnav" data-subnav="dieta" role="tablist" aria-label="Seções da Dieta" hidden>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-dieta-metas" aria-controls="view-dieta" data-group="dieta" data-sub="metas" role="tab" aria-selected="true">Metas</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-dieta-cardapio" aria-controls="view-dieta" data-group="dieta" data-sub="cardapio" role="tab" aria-selected="false">Cardápio</button>
+    </nav>
+    <nav class="subtabs-wrap" id="perfil-subnav" data-subnav="perfil" role="tablist" aria-label="Seções do Perfil" hidden>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-perfil" aria-controls="view-perfil" data-subtab="perfil" role="tab" aria-selected="true">Perfil</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-config" aria-controls="view-config" data-subtab="config" role="tab" aria-selected="false">Configurações</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-glossario" aria-controls="view-glossario" data-subtab="glossario" role="tab" aria-selected="false">Glossário</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-sobre" aria-controls="view-sobre" data-subtab="sobre" role="tab" aria-selected="false">Sobre</button>
     </nav>
   </div>
 
@@ -2969,8 +2983,8 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 
   <!-- ================= TREINO ================= -->
   <section class="view" id="view-treino" role="tabpanel" aria-labelledby="tab-treino" tabindex="-1" hidden>
-    <section class="card plano-porque" id="plano-porque-treino" aria-labelledby="ppq-treino-t" hidden></section>
-    <div class="card formato-card" id="formato-card">
+    <section class="card plano-porque" id="plano-porque-treino" data-sub="plano" aria-labelledby="ppq-treino-t" hidden></section>
+    <div class="card formato-card" id="formato-card" data-sub="plano">
       <div class="card-head">
         <h2>Formato da semana</h2>
         <span class="formato-now" id="formato-now">—</span>
@@ -2981,11 +2995,11 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <p class="hint formato-lead">Dias de treino × dias de descanso. Nenhum estudo comparou diretamente 4×3, 5×2 e 6×1: o melhor formato é o que você consegue repetir semana após semana.</p>
       <div class="formato-opts" id="formato-opts" role="list"></div>
       <div class="formato-panel" id="formato-panel" tabindex="-1" role="region" aria-live="polite" aria-label="Ajustar formato da semana" hidden></div>
-      <div class="src">Base: <a href="https://www.who.int/publications/i/item/9789240015128" target="_blank" rel="noopener">OMS 2020 — diretrizes de atividade física (150–300 min/semana aeróbico + força 2+ dias)</a>. Trocar o formato só liga ou desliga os dias; seus exercícios ficam guardados. Para editar exercícios, use "Editar rotina" abaixo.</div>
+      <div class="src">Trocar o formato só liga ou desliga os dias; seus exercícios ficam guardados. Para editar exercícios, use "Editar rotina" abaixo.</div>
       </details>
     </div>
 
-    <div class="card">
+    <div class="card" data-sub="progresso">
       <div class="card-head">
         <h2 id="constancia-title">Constância — últimas 8 semanas</h2>
         <span class="hint">Cada barra é uma semana</span>
@@ -3005,8 +3019,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
     </div>
 
     <!-- v98 F9 — Treino em largura total, nesta ordem: Rotina semanal → Cargas e progressão → Volume semanal → A ciência por trás da rotina → Biblioteca → Calculadoras -->
-    <div class="treino-split">
-    <div class="card">
+    <div class="card" data-sub="plano">
       <div class="card-head">
         <h2>Rotina semanal</h2>
         <button class="btn small" id="btn-edit-rotina">
@@ -3021,7 +3034,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div class="week-trail-detail" id="week-trail-detail"></div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sub="progresso">
       <div class="card-head">
         <h2>Cargas — progressão</h2>
         <span class="hint">Selecione um exercício pra ver o gráfico completo, ou veja a mini-evolução na lista</span>
@@ -3045,26 +3058,26 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div id="cargas-body"></div>
     </div>
 
-    <div class="card" id="analise-treino-card">
+    <div class="card" id="analise-treino-card" data-sub="progresso">
       <div class="card-head">
         <h2 id="analise-treino-t">Análise do treino</h2>
         <span class="hint">Regras simples, calculadas no seu aparelho — sem IA</span>
       </div>
       <div id="analise-treino-body"></div>
-      <div class="foot-note u-mt4">Como lemos seus números: "progredindo" = mais carga ou mais repetições que na sessão anterior; "estagnado" = 3 ou mais sessões seguidas sem melhora. Base: dupla progressão e RPE (<a href="https://openrepository.aut.ac.nz/items/92cefeac-7c32-44f1-bfbc-f48f4a5dd8cf/full" target="_blank" rel="noopener">Helms et al., 2016</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/26049792/" target="_blank" rel="noopener">Zourdos et al., 2016</a>) e faixas de volume (<a href="https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth" target="_blank" rel="noopener">RP Strength</a>). É um apoio para conversar com seu treinador, não um diagnóstico.</div>
+      <div class="foot-note u-mt4">Como lemos seus números: "progredindo" = mais carga ou mais repetições que na sessão anterior; "estagnado" = 3 ou mais sessões seguidas sem melhora.  É um apoio para conversar com seu treinador, não um diagnóstico.</div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sub="progresso">
       <div class="card-head">
         <h2>Volume semanal por grupo muscular</h2>
         <span class="hint">Séries planejadas na sua rotina ativa</span>
       </div>
       <div id="volume-body"></div>
       <div id="volume-adjust" hidden></div>
-      <div class="foot-note u-mt4">Faixas de referência gerais (MEV–MRV) baseadas no framework de volume da Renaissance Periodization — ajuste conforme sua experiência e recuperação.</div>
+      <div class="foot-note u-mt4">Faixas gerais de referência (MEV–MRV) — ajuste conforme sua experiência e recuperação.</div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sub="plano">
       <div class="card-head">
         <h2>A ciência por trás da sua rotina</h2>
         <button class="btn small ghost" id="btn-toggle-ciencia">
@@ -3091,11 +3104,10 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
             <div><strong>Estilo de treino:</strong> Full Body (3×/sem) é ideal pra iniciante; Upper/Lower (4×/sem) pra intermediário; a divisão em 6 dias (A a F: Peito e Ombros, Costas e Bíceps e Pernas, 2× cada; também chamada de PPL) pra quem já tem mais experiência e tempo disponível. O plano inicial é escolhido pela sua experiência, pelos dias que você tem e pelo equipamento. Prefere menos dias? Dá pra desativar dias em "Editar rotina" a qualquer momento.</div>
           </div>
         </div>
-        <div class="src">Fontes: <a href="https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth" target="_blank" rel="noopener">RP Strength — Training Volume Landmarks (MEV/MAV/MRV)</a> · <a href="https://link.springer.com/article/10.1007/s40279-016-0543-8" target="_blank" rel="noopener">Schoenfeld, Ogborn &amp; Krieger (2016) — frequência de treino e hipertrofia</a> · <a href="https://www.mdpi.com/2075-4663/9/2/32" target="_blank" rel="noopener">Schoenfeld et al. (2021) — repetition continuum</a> · <a href="https://www.boostcamp.app/users/5BJfdr-jeff-nippard-ppl-science-based" target="_blank" rel="noopener">Jeff Nippard — PPL Science Based (estrutura 6×/semana)</a>.</div>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sub="biblioteca">
       <div class="card-head">
         <h2>Biblioteca de exercícios</h2>
         <span class="hint">todos os exercícios da sua rotina, com dicas e alternativas</span>
@@ -3110,7 +3122,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
     </div>
 
 
-    <div class="card">
+    <div class="card" data-sub="calculadoras">
       <div class="card-head">
         <h2>Calculadoras rápidas</h2>
         <span class="hint">1RM estimado, anilhas e aquecimento</span>
@@ -3138,7 +3150,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         </div>
         <div class="calc-result" id="calc-warmup-result"></div>
       </div>
-    </div>
     </div>
   </section>
 
@@ -3265,17 +3276,16 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div class="empty-note" id="tabela-filtro-vazio" hidden>Nenhuma medição neste período. <button type="button" class="btn small ghost" data-medperiodo="all">Ver tudo</button></div>
     </div>
 
-    <div class="src" id="fontes-corpo"></div>
   </section>
 
   <!-- ================= DIETA ================= -->
   <section class="view" id="view-dieta" role="tabpanel" aria-labelledby="tab-dieta" tabindex="-1" hidden>
-    <div id="dieta-vazio" hidden></div>
-    <div class="callout warn dieta-menor" id="dieta-menor" role="note" hidden>
+    <div id="dieta-vazio" data-sub="metas cardapio" hidden></div>
+    <div class="callout warn dieta-menor" id="dieta-menor" data-sub="metas cardapio" role="note" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v5M12 18h.01"/></svg>
       <div><strong>Você tem menos de 18 anos</strong>O corpo ainda está em crescimento, por isso o app não sugere déficit calórico nem metas de perda de peso. Os números abaixo são uma estimativa geral: para um plano alimentar de verdade, procure um(a) nutricionista ou médico(a), junto com os responsáveis.</div>
     </div>
-    <div class="card" data-dieta-dados>
+    <div class="card" data-dieta-dados data-sub="metas">
       <div class="card-head">
         <h2>Objetivo calórico</h2>
       </div>
@@ -3287,12 +3297,12 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div class="dieta-obj-hint" id="objetivo-explicacao"></div>
     </div>
 
-    <div class="card dieta-meio" data-dieta-dados>
+    <div class="card dieta-meio" data-dieta-dados data-sub="metas">
       <div class="card-head"><h2>Indicadores</h2></div>
       <div class="indic-grid" id="dieta-stats"></div>
     </div>
 
-    <div class="card dieta-meio" data-dieta-dados>
+    <div class="card dieta-meio" data-dieta-dados data-sub="metas">
       <div class="card-head">
         <h2>Distribuição de macronutrientes</h2>
         <span class="hint" id="macro-hint">—</span>
@@ -3306,7 +3316,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       </div>
     </div>
 
-    <div class="card" id="cardapio-card" data-dieta-dados>
+    <div class="card" id="cardapio-card" data-dieta-dados data-sub="cardapio">
       <div class="card-head">
         <h2>Cardápio da semana</h2>
         <span class="hint">7 dias e lista de compras, fechando sua meta</span>
@@ -3314,7 +3324,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div id="cardapio-body"></div>
     </div>
 
-    <div class="card" data-dieta-dados>
+    <div class="card" data-dieta-dados data-sub="metas">
       <div class="card-head">
         <h2>Ajuste pelo resultado</h2>
         <span class="hint" id="ajuste-hint">tendência do seu peso nas últimas semanas</span>
@@ -3322,17 +3332,16 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div id="ajuste-body"></div>
     </div>
 
-    <div class="card" data-dieta-dados>
+    <div class="card" data-dieta-dados data-sub="metas">
       <div class="card-head"><h2>Meta de peso</h2></div>
       <div id="meta-peso-body"></div>
     </div>
 
-    <div class="callout">
+    <div class="callout" data-sub="metas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
       <div>Distribua a proteína a cada 3–4 horas, em torno de 0,25 g/kg por refeição (20–40 g), priorizando fontes de rápida digestão e ricas em leucina, conforme o posicionamento da ISSN.<br><span class="prot-note">Em déficit calórico, algumas referências citam até ~2,4 g/kg; já a meta-análise de Morton et al. (2018) viu os ganhos de massa magra estabilizarem perto de 1,6 g/kg. É uma estimativa: a faixa do app continua a mesma.</span></div>
     </div>
 
-    <div class="src" id="fontes-dieta"></div>
   </section>
 
   <!-- ================= PERFIL ================= -->
@@ -3391,22 +3400,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       </div>
       <div class="badge-grid" id="achievements-grid"></div>
     </div>
-    <div class="card" id="perfil-mais">
-      <div class="card-head">
-        <h2>Mais do app</h2>
-        <span class="hint">temas, backup e dúvidas</span>
-      </div>
-      <div class="perfil-mais-btns">
-        <button type="button" class="btn" id="perfil-go-config" data-goto="config">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
-          Configurações
-        </button>
-        <button type="button" class="btn" id="perfil-go-glossario" data-goto="glossario">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6.5c-1.5-1.3-3.5-2-6-2v13c2.5 0 4.5.7 6 2 1.5-1.3 3.5-2 6-2V4.5c-2.5 0-4.5.7-6 2Z"/><path d="M12 6.5v13"/></svg>
-          Glossário
-        </button>
-      </div>
-    </div>
     <div class="callout">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
       <div>Peso, cintura, quadril e pescoço ficam na aba <strong>Corpo</strong>, onde você registra novas medições ao longo do tempo e acompanha sua evolução.</div>
@@ -3437,7 +3430,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         <span class="hint">categorias com evidência — não é indicação de marca ou loja</span>
       </div>
       <div id="suplementos-body"></div>
-      <div class="src" id="fontes-recomendacoes"></div>
     </div>
   </section>
 
@@ -3576,6 +3568,33 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <label class="u-mt8" id="cfg-diag-wrap" hidden>Relatório (selecione e copie)<textarea id="cfg-diag-texto" rows="6" readonly></textarea></label>
     </div>
   </section>
+
+  <!-- ================= SOBRE ================= -->
+  <section class="view" id="view-sobre" role="tabpanel" aria-labelledby="subtab-sobre" tabindex="-1" hidden>
+    <div class="card">
+      <div class="card-head">
+        <h2>Sobre o app</h2>
+        <span class="hint">o que ele faz e o que não faz</span>
+      </div>
+      <p class="sobre-texto">Treino, corpo e dieta em um só lugar: você monta a rotina, registra cargas, medidas e hábitos, e o app calcula metas e acompanha sua constância. Os cálculos são feitos no seu aparelho.</p>
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div id="sobre-aviso">O app reúne estimativas e orientações gerais. Elas não substituem avaliação de médico, nutricionista ou profissional de educação física.</div>
+      </div>
+      <div class="data-actions u-mt8">
+        <button class="btn" id="sobre-tour" type="button">Rever o tutorial</button>
+        <button class="btn" type="button" data-goto="glossario">Abrir o Glossário</button>
+      </div>
+    </div>
+    <div class="card" id="sobre-fontes">
+      <div class="card-head">
+        <h2>Fontes e referências</h2>
+        <span class="hint" id="fontes-contagem"></span>
+      </div>
+      <p class="hint u-mb10">As fórmulas, faixas e orientações do app vêm destas publicações. Os links abrem em outra aba.</p>
+      <div id="fontes-lista"></div>
+    </div>
+  </section>
   </main>
 
   <!-- ================= NAVEGAÇÃO (barra inferior no celular / menu lateral no desktop) ================= -->
@@ -3657,17 +3676,19 @@ try{ const ua = navigator.userAgent; if(/AppleWebKit/.test(ua) && !/Chrome|Chrom
 /* v88 U2: mede as barras fixas para o scroll-padding do <html>. */
 (function medeBarrasFixas(){
   const root = document.documentElement;
-  const tb = document.querySelector(".topbar"), bn = document.getElementById("bottomnav");
+  const tb = document.querySelector(".topbar"), bn = document.getElementById("bottomnav"), sn = document.getElementById("subnav-host");
   function fixa(el){ if(!el) return 0; const pos = getComputedStyle(el).position; return (pos === "fixed" || pos === "sticky") ? Math.round(el.getBoundingClientRect().height) : 0; }
   function mede(){
     // no desktop a navegação vira menu lateral (sticky na coluna) — não cobre o rodapé
     const bnBaixo = bn && getComputedStyle(bn).position === "fixed" ? Math.round(bn.getBoundingClientRect().height) : 0;
     root.style.setProperty("--tb-h", fixa(tb)+"px");
+    root.style.setProperty("--sn-h", (sn && !sn.hidden ? fixa(sn) : 0)+"px");   // faixa de sub-abas (também gruda no topo)
     root.style.setProperty("--bn-h", bnBaixo+"px");
   }
   mede();
   addEventListener("resize", mede, {passive:true});
-  if(window.ResizeObserver){ const ro = new ResizeObserver(mede); if(tb) ro.observe(tb); if(bn) ro.observe(bn); }
+  if(window.ResizeObserver){ const ro = new ResizeObserver(mede); if(tb) ro.observe(tb); if(bn) ro.observe(bn); if(sn) ro.observe(sn); }
+  if(sn && window.MutationObserver) new MutationObserver(mede).observe(sn, {attributes:true, attributeFilter:["hidden"]});
 })();
 
 /* v98 Fase 6 — teclado do celular.
@@ -4087,7 +4108,11 @@ function buildFullBodyRotina(){
    v98 — Fase 2: plano inicial por perfil (experiência, dias, equipamento, objetivo e idade; nunca por sexo)
    planoInicial(perfil) → {rotina, split, sessoes, porque:[...]}. É só a SUGESTÃO inicial: a pessoa edita tudo em Editar rotina.
    ============================================================ */
-const EXP_SESSOES_MAX = {iniciante:3, intermediario:4, avancado:6};   // sessões por semana que o nível sustenta com boa recuperação
+/* Dias por semana: o plano HONRA o que a pessoa pediu (2 a 6). O nível só define o que é recomendado (EXP_SESSOES_REC) e o teto
+   (EXP_SESSOES_MAX: iniciante 5, os outros 6). Acima do recomendado o plano segue, com poucas séries por exercício e um aviso claro.
+   60+ continua limitado por BASE_PLANOS.idoso.maxSessoes. */
+const EXP_SESSOES_REC = {iniciante:3, intermediario:4, avancado:6};   // sessões por semana que costumam bastar para o nível, com boa recuperação
+const EXP_SESSOES_MAX = {iniciante:5, intermediario:6, avancado:6};   // teto honrado quando a pessoa pede mais
 const SUBST_LOCAL = {
   casa: {   // halteres, elásticos e um banco: troca barras, máquinas e cabos
     "Agachamento livre":["Agachamento goblet (com halter)","10-15"],
@@ -4314,6 +4339,10 @@ function aplicarFoco(rotina, o){
   });
   return res;
 }
+function limitaSeries(rotina, max){
+  DAYS.forEach(k=>{ const d = rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=>{ if(e.series > max){ e.series = max; e.metaReps = metaRepsDe(e.series, e.reps, e.metaReps); } }); });
+  return rotina;
+}
 function equilibrarVolumeInicial(rotina, exp, semSubir){
   const lista = ()=>{ const a=[]; DAYS.forEach(k=>{ const d=rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=> a.push(e)); }); return a; };
   const totais = ()=>{ const t={}; lista().forEach(e=> (e.musculos||[]).forEach(m=>{ t[m] = (t[m]||0) + (Number(e.series)||0); })); return t; };
@@ -4347,16 +4376,21 @@ function equilibrarVolumeInicial(rotina, exp, semSubir){
 function montaPorque(o){
   const {exp, split, n, pedidos, local, menor, objetivo} = o;
   const maxSes = o.maxSes || EXP_SESSOES_MAX[exp];
+  const rec = o.rec || EXP_SESSOES_REC[exp];
   const porque = [];
   porque.push(!split
     ? "Sua rotina de hoje tem "+n+" treino"+(n>1?"s":"")+" por semana, com exercícios em cada um."
-    : exp === "iniciante"
-      ? "Você está começando: treinar o corpo todo "+n+"× por semana dá prática em cada movimento e deixa dias de descanso entre as sessões."
-      : split === "Full Body"
-        ? "Com "+n+" dias por semana, treinar o corpo todo em cada sessão faz cada músculo trabalhar 2× ou mais por semana, que é o que mais rende."
+    : split === "Full Body"
+      ? (exp === "iniciante"
+        ? "Você está começando: treinar o corpo todo "+n+"× por semana dá prática em cada movimento e deixa dias de descanso entre as sessões."
+        : "Com "+n+" dias por semana, treinar o corpo todo em cada sessão faz cada músculo trabalhar 2× ou mais por semana, que é o que mais rende.")
+      : split === SPLIT_PERNAS
+        ? "Com 6 sessões e o foco em pernas e glúteos, o plano treina pernas e glúteos 3× por semana, costas e ombros 2× e peito e braços 1×, para o volume ir onde você quer."
         : n === 4
           ? "Upper/Lower em 4 dias: parte de cima e parte de baixo, cada uma 2× por semana, com descanso entre os dias parecidos."
           : "Com "+n+" sessões por semana, cada grupo principal (peito e ombros, costas e pernas) é treinado 2×, com mais volume por sessão.");
+  if(split && n > rec && pedidos >= n)
+    porque.push("Você pediu "+n+" dias, mais do que os "+rec+" que costumam bastar para o seu nível. O plano respeita o seu pedido, com poucas séries por exercício para dar para recuperar. Se o cansaço ou a dor se acumularem, tire um dia em Editar rotina.");
   if(pedidos > n){
     porque.push(n >= maxSes   // o nível (ou a idade) é o que limita as sessões; senão é a rotina que ainda não tem exercícios nos outros dias
       ? "Você escolheu "+pedidos+" dias, mas para o seu perfil o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser."
@@ -4383,6 +4417,7 @@ function montaPorque(o){
     : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
   return porque;
 }
+const SPLIT_PERNAS = "A–F (Pernas e glúteos 3×)";
 function planoInicial(p){
   const exp = p && EXP_SESSOES_MAX[p.experiencia] ? p.experiencia : "iniciante";
   const local = p && (p.local === "casa" || p.local === "pouco") ? p.local : "academia";
@@ -4406,11 +4441,15 @@ function planoInicial(p){
     split = "A, B, C + Upper e Lower";
     const ppl = buildPPLRotina(), ul = buildUpperLowerRotina(), rest = {nome:"Descanso", ativo:false, exercicios:[]};
     base = {seg:ppl.seg, ter:ppl.ter, qua:ppl.qua, qui:rest, sex:ul.qui, sab:ul.sex, dom:rest};
+  } else if(focoSoPernas(p)){
+    split = SPLIT_PERNAS;      // plano feito para o foco: pernas e glúteos 3×, costas e ombros 2×, peito e braços 1×
+    base = buildPernasGluteosRotina();
   } else {
     split = "A–F (Peito, Costas e Pernas 2×)";
     base = buildPPLRotina();
   }
   const adaptada = adequarIdadeNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), p);
+  if(n > Math.min(EXP_SESSOES_REC[exp], maxSes)) limitaSeries(adaptada, 3);   // mais dias que o recomendado: séries enxutas para dar para recuperar
   const semSubir = !!(sit.idoso || sit.retorno || sit.tempo < 60);
   const comSit = aplicarSituacoes(adaptada, {local, sit});
   const proibidos = {};   // o foco nunca reintroduz o que a restrição articular ou o 60+ trocou
@@ -4418,7 +4457,7 @@ function planoInicial(p){
   const tcfg = (BASE_PLANOS.tempo && BASE_PLANOS.tempo[String(sit.tempo)]) || {};
   const foco = aplicarFoco(comSit, {p, exp, local, semSubir, proibidos, maxEx: tcfg.maxExercicios});
   const rotina = equilibrarVolumeInicial(comSit, exp, semSubir);
-  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}});
+  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, rec:Math.min(EXP_SESSOES_REC[exp], maxSes), foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}});
   return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit, foco};
 }
 
@@ -4500,6 +4539,11 @@ function focoMusculos(p){
   const set = new Set();
   focosDoPerfil(p).forEach(id=>{ FOCOS.find(f=> f.id === id).musc.forEach(m=> set.add(m)); });
   return set;
+}
+/* foco só em pernas, glúteos ou panturrilhas (e nenhum grupo de cima): o plano de 6 dias usa a divisão com ênfase em pernas */
+function focoSoPernas(p){
+  const mus = Array.from(focoMusculos(p));
+  return mus.length > 0 && mus.every(m=> ["gluteos","quadriceps","posterior","panturrilha"].indexOf(m) >= 0);
 }
 function focoAlvo(m){ const lm = MUSCLE_LANDMARKS[m]; return Math.min(lm.mrv, Math.round((lm.mav + lm.mrv) / 2)); }
 function focoNomes(p){ return focosDoPerfil(p).map(id=> FOCOS.find(f=> f.id === id).label); }
@@ -4929,7 +4973,6 @@ function comoMedirHtml(sexo){
     '</ul>'+
     '<div>Meça duas vezes; se os valores diferirem mais de 5 mm, meça de novo e use a média. De preferência antes do treino, no mesmo horário e nas mesmas condições.</div>'+
     '<div><b>O ponto da cintura importa.</b> A OMS mede em outro lugar (meio caminho entre a última costela e o topo do osso do quadril), então números de fontes diferentes não se comparam. Escolha um ponto e repita sempre o mesmo.</div>'+
-    '<div class="cm-fontes">Fontes: <a href="https://apps.dtic.mil/sti/pdfs/ADA143890.pdf" target="_blank" rel="noopener">Hodgdon &amp; Beckett (1984), Marinha dos EUA</a> · <a href="https://contentcdn.eacefitness.com/assets/certification/ace-answers/forms/pt/45_Circumference_Measurements_Protocol.pdf" target="_blank" rel="noopener">ACE — protocolo de circunferências</a> · <a href="https://www.who.int/publications/i/item/9789241501491" target="_blank" rel="noopener">OMS — cintura e relação cintura-quadril</a></div>'+
   '</div>';
 }
 function renderComoMedir(){
@@ -5303,50 +5346,74 @@ function applyLocalFallback(path, data){
 // de lugar, menor risco), só que agora são tratadas como um grupo: a nav
 // principal só tem o botão "Corpo", e uma segunda barrinha (corpo-subnav)
 // aparece só quando esse grupo está ativo, pra escolher qual das 3 mostrar.
-const CORPO_GROUP = ["corpo","recomendacoes"];   // v98 F3: Dieta virou item próprio da barra; Corpo ficou só com Corpo e Dicas
-let corpoSubTab = "corpo";
+// Grupos de sub-abas. Duas famílias:
+//  - GRUPOS_SECOES: cada sub-aba é uma <section class="view"> própria (Corpo/Dicas; Perfil/Configurações/Glossário/Sobre);
+//  - SUBS_INTERNAS: as sub-abas são faixas de cartões da MESMA seção (Treino e Dieta). Cada cartão marca a sua com data-sub
+//    (pode listar mais de uma, separadas por espaço); os demais ganham .sub-off (display:none).
+// showTab aceita "treino:progresso" para abrir direto numa sub-aba.
+const GRUPOS_SECOES = {corpo:["corpo","recomendacoes"], perfil:["perfil","config","glossario","sobre"]};
+const SUBS_INTERNAS = {treino:["plano","progresso","biblioteca","calculadoras"], dieta:["metas","cardapio"]};
+const subAtual = {corpo:"corpo", perfil:"perfil", treino:"plano", dieta:"metas"};
 const dirtyViews = new Set();   // v94 P1: seções que precisam ser redesenhadas ao abrir
+function abaPrincipal(id){ for(const g in GRUPOS_SECOES){ if(GRUPOS_SECOES[g].includes(id)) return g; } return id; }
+function aplicaSubInterna(g){
+  if(!SUBS_INTERNAS[g]) return;
+  const view = document.getElementById("view-"+g); if(!view) return;
+  const atual = subAtual[g];
+  view.querySelectorAll(":scope > [data-sub]").forEach(el=>{
+    el.classList.toggle("sub-off", !el.dataset.sub.split(" ").includes(atual));
+  });
+}
 function showTab(name){
-  let mainName = name;
-  if(CORPO_GROUP.includes(name)){
-    corpoSubTab = name;
-    mainName = "corpo";
+  name = String(name);
+  if(name.includes(":")){
+    const par = name.split(":");
+    if(SUBS_INTERNAS[par[0]] && SUBS_INTERNAS[par[0]].includes(par[1])) subAtual[par[0]] = par[1];
+    name = par[0];
   }
+  const mainName = abaPrincipal(name);
+  if(GRUPOS_SECOES[mainName]) subAtual[mainName] = name;
   document.querySelectorAll(".view").forEach(v=>{
     const id = v.id.replace("view-","");
-    v.hidden = CORPO_GROUP.includes(id) ? !(mainName === "corpo" && id === corpoSubTab) : id !== mainName;
+    const g = abaPrincipal(id);
+    v.hidden = GRUPOS_SECOES[g] ? !(mainName === g && id === subAtual[g]) : id !== mainName;
   });
   document.querySelectorAll(".tab-btn:not(.subtab-btn)").forEach(b=>{
     b.setAttribute("aria-selected", String(b.dataset.tab === mainName));
   });
-  // v98 F3: no celular, Glossário e Config não têm botão na barra — o Perfil fica marcado enquanto elas estão abertas
-  if(mainName === "glossario" || mainName === "config"){
-    const pf = document.getElementById("tab-perfil");
-    if(pf && getComputedStyle(document.getElementById("tab-"+mainName)).display === "none") pf.setAttribute("aria-selected","true");
-  }
-  const subnav = document.getElementById("corpo-subnav");
-  if(subnav){
-    subnav.hidden = mainName !== "corpo";
-    subnav.querySelectorAll(".subtab-btn").forEach(b=>{
-      b.setAttribute("aria-selected", String(b.dataset.subtab === corpoSubTab));
+  let temSub = false;
+  document.querySelectorAll("#subnav-host [data-subnav]").forEach(nav=>{
+    const g = nav.dataset.subnav, ativo = g === mainName;
+    nav.hidden = !ativo; if(ativo) temSub = true;
+    nav.querySelectorAll(".subtab-btn").forEach(b=>{
+      b.setAttribute("aria-selected", String((b.dataset.sub || b.dataset.subtab) === subAtual[g]));
     });
-  }
+  });
+  const host = document.getElementById("subnav-host"); if(host) host.hidden = !temSub;
+  aplicaSubInterna(mainName);
   // a trilha semanal é medida pela largura real do card (clientWidth), que é 0
   // enquanto a aba Treino está oculta — ao trocar pra essa aba, refaz o cálculo
   // agora que o card está visível de verdade, senão ela fica com a largura
   // (errada) que tinha na primeira renderização, com a página ainda no Painel.
   if(mainName === "treino") renderWeekTrail();
   // v94 P1: seção que ficou "suja" enquanto estava oculta é desenhada agora, já visível (também resolve medidas de largura)
-  const visId = mainName === "corpo" ? corpoSubTab : mainName;
+  const visId = GRUPOS_SECOES[mainName] ? subAtual[mainName] : mainName;
   if(dirtyViews.has(visId)) renderSection(visId);
 }
-/* v85 (I1): troca de aba com View Transition — desliza na direção da aba (esq./dir.); sub-abas do Corpo só esmaecem */
+/* troca de sub-aba dentro de Treino/Dieta: mostra só os cartões da faixa e redesenha a seção (medidas de largura corretas) */
+function setSub(g, sub){
+  if(!SUBS_INTERNAS[g] || !SUBS_INTERNAS[g].includes(sub)) return;
+  showTab(g+":"+sub);
+  renderSection(g);
+  window.scrollTo(0, 0);
+}
+/* v85 (I1): troca de aba com View Transition — desliza na direção da aba (esq./dir.); sub-abas só esmaecem */
 function showTabAnimated(name){
   const curView = document.querySelector(".view:not([hidden])");
-  const norm = n => CORPO_GROUP.includes(n) ? "corpo" : n;
+  const base = String(name).split(":")[0];
   const cur = curView ? curView.id.replace("view-","") : "";
-  if(!cur || (cur === name)) { showTab(name); return Promise.resolve(); }
-  const a = TAB_ORDER.indexOf(norm(cur)), b = TAB_ORDER.indexOf(norm(name));
+  if(!cur) { showTab(name); return Promise.resolve(); }
+  const a = TAB_ORDER.indexOf(abaPrincipal(cur)), b = TAB_ORDER.indexOf(abaPrincipal(base));
   const dir = (a === b || a < 0 || b < 0) ? null : (b > a ? "fwd" : "back");
   return withTransition(()=> showTab(name), {nav:true, dir});
 }
@@ -5354,7 +5421,10 @@ document.querySelectorAll(".tab-btn:not(.subtab-btn)").forEach(b=>{
   b.addEventListener("click", ()=> showTabAnimated(b.dataset.tab));
 });
 document.querySelectorAll(".subtab-btn").forEach(b=>{
-  b.addEventListener("click", ()=> showTabAnimated(b.dataset.subtab));
+  b.addEventListener("click", ()=>{
+    if(b.dataset.sub) withTransition(()=> setSub(b.dataset.group, b.dataset.sub), {nav:true, dir:null});
+    else showTabAnimated(b.dataset.subtab);
+  });
 });
 /* v98 F3: a folha "Mais" foi removida (Glossário e Config ficam no card "Mais do app" do Perfil) */
 document.querySelectorAll("[data-goto]").forEach(b=>{
@@ -5368,7 +5438,7 @@ document.querySelectorAll("[data-goto]").forEach(b=>{
    (a trilha semanal, a própria barra de abas, gráficos) — aí o gesto nativo
    daquele elemento tem prioridade. Não usa preventDefault em nenhum momento,
    então o scroll da página nunca é bloqueado por engano. */
-const TAB_ORDER = ["painel","treino","dieta","corpo","perfil","glossario","config"];
+const TAB_ORDER = ["painel","treino","dieta","corpo","perfil"];
 (function setupSwipeTabs(){
   const app = document.querySelector(".app");
   if(!app) return;
@@ -10514,8 +10584,17 @@ function openRotinaEditor(){
   body.innerHTML =
     '<h2>Editar rotina</h2>'+
     '<div class="sub">Personalize o treino e os exercícios de cada dia da semana.</div>'+
+    '<div class="rotina-gen" id="rotina-gen" role="group" aria-labelledby="rotina-gen-t">'+
+      '<strong id="rotina-gen-t">Gerar um plano para mim</strong>'+
+      '<div class="hint">O app monta os dias e os exercícios pelo seu nível, local de treino, tempo e pelos focos que você marcar aqui. Os focos valem só para este plano; o foco do perfil continua o mesmo.</div>'+
+      '<label class="rotina-gen-dias">Dias de treino por semana<select id="rg-dias">'+[2,3,4,5,6].map(n=>'<option value="'+n+'">'+n+' por semana</option>').join("")+'</select></label>'+
+      '<div class="rotina-gen-focos"><span class="rotina-gen-lbl" id="rg-focos-t">Onde dar mais atenção (até 2)</span><div class="muscle-chips" role="group" aria-labelledby="rg-focos-t">'+
+        FOCOS.map(f=>'<button type="button" class="muscle-chip" data-rg-foco="'+f.id+'" aria-pressed="false">'+escapeHtml(f.label)+'</button>').join("")+'</div></div>'+
+      '<button class="btn small primary" type="button" id="rotina-gerar">Gerar plano</button>'+
+      '<div class="hint" id="rotina-gen-resumo" role="status" aria-live="polite"></div>'+
+    '</div>'+
     '<div class="rotina-template-row">'+
-      '<select id="rotina-template-select">'+
+      '<select id="rotina-template-select" aria-label="Modelo de rotina">'+
         '<option value="">Começar de um modelo…</option>'+
         Object.keys(ROTINA_TEMPLATES).map(k=>'<option value="'+k+'">'+escapeHtml(ROTINA_TEMPLATES[k].label)+'</option>').join("")+
       '</select>'+
@@ -10553,7 +10632,7 @@ function openRotinaEditor(){
         '<input type="number" min="1" max="20" class="ex-series" value="'+ex.series+'" title="séries">'+
         '<input type="text" class="ex-reps" value="'+escapeHtml(String(ex.reps))+'" placeholder="reps">'+
         '<input type="number" min="0" max="300" class="ex-meta" value="'+(ex.metaReps||0)+'" title="meta de reps totais (quest)" placeholder="meta">'+
-        '<button type="button" class="icon-btn ex-remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+        '<button type="button" class="icon-btn ex-remove" aria-label="Remover exercício"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
       const chipsWrap = document.createElement("div");
       chipsWrap.className = "muscle-chips";
       const musculosSet = new Set(ex.musculos||[]);
@@ -10587,6 +10666,28 @@ function openRotinaEditor(){
     DAYS.forEach(key=> buildDaySection(key, draft[key]));
   }
   renderDays();
+
+  /* gerador: monta o plano pelo perfil + dias + focos escolhidos aqui (planoInicial), no rascunho; só vale ao salvar */
+  const genDias = body.querySelector("#rg-dias"), genResumo = body.querySelector("#rotina-gen-resumo");
+  const genFocos = new Set(focosDoPerfil());
+  const nAtivos = DAYS.filter(k=> draft[k] && draft[k].ativo && (draft[k].exercicios||[]).length).length;
+  genDias.value = String(Math.max(2, Math.min(6, Math.round(Number(state.perfil && state.perfil.diasSemana)) || nAtivos || 3)));
+  const pintaFocos = ()=> body.querySelectorAll("[data-rg-foco]").forEach(b=>{ const on = genFocos.has(b.dataset.rgFoco); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
+  pintaFocos();
+  body.querySelectorAll("[data-rg-foco]").forEach(b=> b.addEventListener("click", ()=>{
+    const id = b.dataset.rgFoco;
+    if(genFocos.has(id)) genFocos.delete(id);
+    else if(id === "corpo_todo"){ genFocos.clear(); genFocos.add(id); }
+    else { genFocos.delete("corpo_todo"); if(genFocos.size >= 2) genFocos.delete(Array.from(genFocos)[0]); genFocos.add(id); }
+    pintaFocos();
+  }));
+  body.querySelector("#rotina-gerar").addEventListener("click", ()=>{
+    const base = state.perfil ? Object.assign({}, state.perfil) : {experiencia:"iniciante", local:"academia", objetivo:"manutencao"};
+    const pl = planoInicial(Object.assign(base, {diasSemana:Number(genDias.value), focos:Array.from(genFocos)}));
+    draft = pl.rotina; renderDays();
+    genResumo.textContent = pl.split+" · "+pl.sessoes+" treino"+(pl.sessoes>1?"s":"")+" por semana. "+pl.porque.slice(0,3).join(" ");
+    showToast('Plano gerado: '+pl.split+'. Revise os exercícios e confirme em "Salvar rotina".');
+  });
 
   const templateSelect = body.querySelector("#rotina-template-select");
   const templateDesc = body.querySelector("#rotina-template-desc");
@@ -11456,7 +11557,7 @@ function renderAjusteResultado(med, p, kcalAlvo, tdee){
       msg = 'Ganho acima da faixa. Parte do excesso tende a virar gordura, principalmente com mais tempo de treino. Considere reduzir ~150 kcal/dia (≈ '+num(novo,0)+' kcal) e reavaliar em 2 a 3 semanas.';
     }
     corpo = escala+'<div class="ajuste-box '+tone+'">'+msg+'</div>'+
-      '<div class="ajuste-src">Faixa: ~0,25–0,5% do peso/semana pra iniciante/intermediário, com superávit de ~10–20% (<a href="https://www.mdpi.com/2075-4663/7/7/154" target="_blank" rel="noopener">Iraki et al., 2019</a>). Seu superávit atual é de 10%. Avançados devem ser mais conservadores.</div>';
+      '<div class="ajuste-src">Faixa: ~0,25–0,5% do peso/semana pra iniciante/intermediário, com superávit de ~10–20%. Seu superávit atual é de 10%. Avançados devem ser mais conservadores.</div>';
   } else if(objetivoAtual === "deficit"){
     corpo = '<div class="ajuste-msg">Esse é o ritmo real do seu peso no objetivo de emagrecimento. Se ele ficou parado por 3 ou mais semanas apesar de seguir a meta, o mais provável é que a ingestão real esteja acima da registrada — revise porções e fins de semana antes de cortar mais calorias.</div>';
   } else {
@@ -11520,14 +11621,14 @@ const TOUR_PASSOS = [
   {aba:"painel", alvo:"#cc-semana", t:"Sua semana", x:"Os dias de treino da semana: feitos, perdidos e os que vêm. Perdeu um? O app oferece fazer o treino em outro dia."},
   {aba:"painel", alvo:"#cc-missoes", t:"Missões", x:"Desafios curtos que rendem XP extra. São opcionais: ajudam a manter o ritmo, não são cobrança."},
   {aba:"painel", alvo:"#main-tabs", t:"Navegação", x:"Use esta barra para trocar entre Hoje, Treino, Dieta, Corpo e Perfil."},
-  {aba:"treino", alvo:{h2:"Rotina semanal"}, t:"Sua rotina", x:"Os treinos de cada dia da semana. Dá para editar exercícios, séries e repetições, ou trocar um exercício de vez."},
-  {aba:"treino", alvo:{h2:"Cargas"}, t:"Carga, repetições e RPE", x:"Registre o peso e as repetições de cada série. RPE é o quanto a série foi difícil, de 1 a 10: perto de 8 (sobram umas 2 repetições) é o ponto certo. Suba a carga aos poucos, só quando completar as repetições com boa técnica."},
-  {aba:"treino", alvo:"#analise-treino-card", t:"Análise do treino", x:"Mostra se o volume de cada músculo está na faixa recomendada e como suas cargas evoluem com o tempo."},
-  {aba:"dieta", alvo:{h2:"Objetivo calórico"}, t:"Dieta", x:"Calorias e macronutrientes calculados pelo seu perfil e objetivo. É uma estimativa: o app ajusta pelo seu resultado. Para menores de 18 anos não há sugestão de déficit calórico."},
-  {aba:"dieta", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Meus alimentos para marcar só o que você come (o cardápio e a lista de compras seguem a sua escolha) e Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
+  {aba:"treino:plano", alvo:{h2:"Rotina semanal"}, t:"Sua rotina", x:"Os treinos de cada dia da semana. Dá para editar exercícios, séries e repetições, ou trocar um exercício de vez."},
+  {aba:"treino:progresso", alvo:{h2:"Cargas"}, t:"Carga, repetições e RPE", x:"Registre o peso e as repetições de cada série. RPE é o quanto a série foi difícil, de 1 a 10: perto de 8 (sobram umas 2 repetições) é o ponto certo. Suba a carga aos poucos, só quando completar as repetições com boa técnica."},
+  {aba:"treino:progresso", alvo:"#analise-treino-card", t:"Análise do treino", x:"Mostra se o volume de cada músculo está na faixa recomendada e como suas cargas evoluem com o tempo."},
+  {aba:"dieta:metas", alvo:{h2:"Objetivo calórico"}, t:"Dieta", x:"Calorias e macronutrientes calculados pelo seu perfil e objetivo. É uma estimativa: o app ajusta pelo seu resultado. Para menores de 18 anos não há sugestão de déficit calórico."},
+  {aba:"dieta:cardapio", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Meus alimentos para marcar só o que você come (o cardápio e a lista de compras seguem a sua escolha) e Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
   {aba:"corpo", alvo:{h2:"Nova medição"}, t:"Medidas e fotos", x:"Registre peso e medidas, de preferência sempre no mesmo horário, para ver a evolução nos gráficos. As fotos de progresso ficam só na sua conta."},
   {aba:"perfil", alvo:{h2:"Ficha de personagem"}, t:"Seu personagem", x:"Nível, XP e atributos sobem com a constância. As conquistas desbloqueiam quando você bate marcos."},
-  {aba:"perfil", alvo:"#perfil-mais", t:"Mais do app", x:"No celular, o Glossário (termos de treino explicados) e as Configurações ficam aqui."},
+  {aba:"perfil", alvo:"#perfil-subnav", t:"Mais do app", x:"As abas no topo do Perfil levam às Configurações, ao Glossário (termos explicados) e ao Sobre, com as fontes dos cálculos."},
   {aba:"config", alvo:"#cfg-conta", t:"Seus dados", x:"Tudo é salvo primeiro no aparelho, por isso o app funciona sem internet, e vai para a nuvem quando houver conexão. Aqui você sincroniza, sai da conta e pode pedir o código de novo depois de um tempo fora do app."},
   {aba:"config", alvo:"#cfg-instalar", t:"Instalar no celular", x:"Instale na tela inicial para abrir em tela cheia e usar sem internet. No iPhone: Compartilhar → Adicionar à Tela de Início."},
   {aba:"painel", alvo:null, t:"Antes de começar", x:"O NG+ orienta, mas não substitui profissional de educação física, nutrição ou saúde. Sentiu dor forte? Não force: faça um dia leve e procure um profissional. Bom treino!"}
@@ -11543,7 +11644,7 @@ function tourAlvo(p){
   if(!p.alvo) return null;
   let el = null;
   if(p.alvo.h2){
-    const v = document.getElementById("view-"+p.aba);
+    const v = document.getElementById("view-"+String(p.aba).split(":")[0]);
     const h = v && Array.from(v.querySelectorAll("h2")).find(x=> x.textContent.trim().indexOf(p.alvo.h2) === 0);
     el = h && (h.closest(".card") || h.closest("details") || h);
   } else el = document.querySelector(p.alvo);
@@ -12017,7 +12118,7 @@ function planoPorqueAtual(){
   const split = mesmo ? pi.split : null;
   const sit = situacoesDoPerfil(p);
   const maxSes = sit.idoso && BASE_PLANOS.idoso ? Math.min(EXP_SESSOES_MAX[p.experiencia], BASE_PLANOS.idoso.maxSessoes) : EXP_SESSOES_MAX[p.experiencia];
-  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes, foco:{nomes:focoNomes(p), adicionados:[], aplicado:focoMusculos(p).size > 0 && !(sit.idoso || sit.retorno || sit.tempo < 60)}})};
+  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes, rec:Math.min(EXP_SESSOES_REC[p.experiencia], maxSes), foco:{nomes:focoNomes(p), adicionados:[], aplicado:focoMusculos(p).size > 0 && !(sit.idoso || sit.retorno || sit.tempo < 60)}})};
 }
 function renderPlanoPorque(){
   const hoje = document.getElementById("plano-porque-hoje"), treino = document.getElementById("plano-porque-treino");
@@ -13144,27 +13245,19 @@ function renderSuplementos(){
    FONTES
    ============================================================ */
 function renderFontes(){
-  document.getElementById("fontes-corpo").innerHTML =
-    'Fórmulas: IMC — <a href="https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html" target="_blank" rel="noopener">classificação CDC/OMS</a> · '+
-    'RCQ — <a href="https://www.who.int/publications/i/item/9789241501491" target="_blank" rel="noopener">OMS, Waist Circumference and Waist-Hip Ratio (2008)</a> · '+
-    '% Gordura — método da Marinha dos EUA (<a href="https://www.omnicalculator.com/pt/saude/gordura-corporal-marinha-americana" target="_blank" rel="noopener">fórmula de Hodgdon &amp; Beckett</a>), classificação por faixas — <a href="https://www.acefitness.org/about-ace/press-room/in-the-news/8602/body-fat-percentage-charting-averages-in-men-and-women-very-well-health/" target="_blank" rel="noopener">ACE Fitness</a> · Cintura ÷ altura — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4800150/" target="_blank" rel="noopener">Ashwell &amp; Gibson, BMJ Open (2016)</a> · Hábitos — sono: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4434546/" target="_blank" rel="noopener">AASM/SRS (2015)</a>, passos: <a href="https://pubmed.ncbi.nlm.nih.gov/35247352/" target="_blank" rel="noopener">Paluch et al. (2022)</a>.';
-  document.getElementById("fontes-dieta").innerHTML =
-    'Fórmulas: TMB — <a href="https://www.omnicalculator.com/health/bmr" target="_blank" rel="noopener">equação de Mifflin-St Jeor</a> · '+
-    'Proteína — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">ISSN Position Stand: Protein and Exercise (2017)</a> · '+
-    'Gordura/Carboidrato — <a href="https://www.ncbi.nlm.nih.gov/books/NBK610333/" target="_blank" rel="noopener">Acceptable Macronutrient Distribution Range (IOM/National Academies)</a> · '+
-    'Cardápio — composição dos alimentos pela <a href="https://www.tabelatacoonline.com.br" target="_blank" rel="noopener">Tabela Brasileira de Composição de Alimentos (TACO, NEPA/UNICAMP)</a>; soja texturizada e proteínas em pó: valor típico de rótulo; vegano e vegetariano: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">ISSN Position Stand (2017)</a>; proteína por refeição: <a href="https://pubmed.ncbi.nlm.nih.gov/28642676/" target="_blank" rel="noopener">ISSN Position Stand (2017)</a>; nota sobre déficit: <a href="https://pubmed.ncbi.nlm.nih.gov/28698222/" target="_blank" rel="noopener">Morton et al. (2018)</a>.';
-  const fontesRec = document.getElementById("fontes-recomendacoes");
-  if(fontesRec){
-    fontesRec.innerHTML =
-      'Fontes: <a href="https://link.springer.com/article/10.1186/s12970-017-0173-z" target="_blank" rel="noopener">Kreider et al. (2017) — ISSN Position Stand: Creatine Supplementation</a> · '+
-      '<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">Jäger et al. (2017) — ISSN Position Stand: Protein and Exercise</a> · '+
-      '<a href="https://jissn.biomedcentral.com/track/pdf/10.1186/s12970-020-00383-4" target="_blank" rel="noopener">Guest et al. (2021) — ISSN Position Stand: Caffeine and Exercise Performance</a> · '+
-      '<a href="https://www.nutraingredients.com/Article/2025/01/22/issn-publishes-position-on-omega-3-for-athletes/" target="_blank" rel="noopener">ISSN (2025) — Omega-3 for Athletes (resumo)</a> · '+
-      '<a href="https://ods.od.nih.gov/factsheets/VitaminD-HealthProfessional/" target="_blank" rel="noopener">NIH ODS — Vitamin D Fact Sheet</a> · '+
-      '<a href="https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth" target="_blank" rel="noopener">RP Strength — Training Volume Landmarks (MEV/MAV/MRV)</a> · '+
-      '<a href="https://musclesquad.com/blogs/fitness-equipment/5-home-gym-essentials" target="_blank" rel="noopener">MuscleSquad — equipamentos essenciais de home gym</a>.';
-  }
+  const dados = (window.NG_DADOS && window.NG_DADOS.fontes) || {grupos:[]};
+  const box = document.getElementById("fontes-lista"); if(!box) return;
+  let total = 0;
+  box.innerHTML = (dados.grupos || []).map(g=>{
+    total += g.itens.length;
+    return '<section class="fontes-grupo" aria-labelledby="fontes-'+escapeHtml(g.id)+'-t"><h3 id="fontes-'+escapeHtml(g.id)+'-t">'+escapeHtml(g.titulo)+'</h3><ul class="fontes-ul">'+
+      g.itens.map(i=>'<li><a href="'+escapeHtml(i.u)+'" target="_blank" rel="noopener">'+escapeHtml(i.t)+'</a>'+(i.uso ? '<span class="fonte-uso">Usado em: '+escapeHtml(i.uso)+'</span>' : '')+'</li>').join("")+
+      '</ul></section>';
+  }).join("");
+  const c = document.getElementById("fontes-contagem"); if(c) c.textContent = total+" referências";
+  const av = document.getElementById("sobre-aviso"); if(av && dados.aviso) av.textContent = dados.aviso;
 }
+(function(){ const t = document.getElementById("sobre-tour"); if(t) t.addEventListener("click", ()=> iniciarTutorial(null)); })();
 
 /* ============================================================
    RENDER GERAL
@@ -13179,7 +13272,8 @@ const SECTION_RENDERERS = {
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
   perfil: [renderAttrs, renderPerfilSummary, renderAchievements],
   config: [renderTemas, renderSkins, renderConfigExtras, renderRecupConfig],
-  glossario: [renderGlossario]
+  glossario: [renderGlossario],
+  sobre: [renderFontes]
 };
 function renderSection(id){
   dirtyViews.delete(id);
@@ -13305,7 +13399,7 @@ window.addEventListener("resize", ()=>{
 /* cabeçalho que some ao rolar pra baixo e reaparece ao rolar pra cima — só em
    telas de toque; no topo da página (ou ao trocar de aba) fica sempre visível */
 (function setupAutoHideHeader(){
-  const bar = document.querySelector(".topbar");
+  const bar = document.querySelector(".topbar"), subHost = document.getElementById("subnav-host");
   if(!bar || !window.matchMedia) return;
   const mq = window.matchMedia("(hover:none) and (pointer:coarse)");
   let lastY = window.scrollY, ticking = false;
@@ -13313,9 +13407,9 @@ window.addEventListener("resize", ()=>{
     ticking = false;
     const y = Math.max(0, window.scrollY);
     const dy = y - lastY;
-    if(!mq.matches || y < 60){ bar.classList.remove("hide"); lastY = y; return; }
-    if(dy > 10){ bar.classList.add("hide"); lastY = y; }
-    else if(dy < -10){ bar.classList.remove("hide"); lastY = y; }
+    if(!mq.matches || y < 60){ bar.classList.remove("hide"); if(subHost) subHost.classList.remove("hide"); lastY = y; return; }
+    if(dy > 10){ bar.classList.add("hide"); if(subHost) subHost.classList.add("hide"); lastY = y; }
+    else if(dy < -10){ bar.classList.remove("hide"); if(subHost) subHost.classList.remove("hide"); lastY = y; }
   }
   window.addEventListener("scroll", ()=>{ if(!ticking){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
   // foco num campo dentro do cabeçalho (ex.: navegação por teclado) → mostra de volta

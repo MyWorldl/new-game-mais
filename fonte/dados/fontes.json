@@ -1,0 +1,57 @@
+{
+  "aviso": "O app reúne estimativas e orientações gerais calculadas no seu aparelho. Elas não substituem avaliação de médico, nutricionista ou profissional de educação física.",
+  "grupos": [
+    {
+      "id": "treino",
+      "titulo": "Treino",
+      "itens": [
+        {"t": "OMS (2020) — diretrizes de atividade física: 150–300 min/semana de aeróbico + força 2 ou mais dias", "u": "https://www.who.int/publications/i/item/9789240015128", "uso": "Formato da semana"},
+        {"t": "RP Strength — Training Volume Landmarks (MEV/MAV/MRV)", "u": "https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth", "uso": "Volume semanal por músculo e análise do treino"},
+        {"t": "Schoenfeld, Ogborn & Krieger (2016) — frequência de treino e hipertrofia", "u": "https://link.springer.com/article/10.1007/s40279-016-0543-8", "uso": "Por que treinar cada músculo 2× ou mais por semana"},
+        {"t": "Schoenfeld et al. (2021) — repetition continuum", "u": "https://www.mdpi.com/2075-4663/9/2/32", "uso": "Faixa de repetições"},
+        {"t": "Jeff Nippard — PPL Science Based (estrutura 6×/semana)", "u": "https://www.boostcamp.app/users/5BJfdr-jeff-nippard-ppl-science-based", "uso": "Divisão em 6 dias"},
+        {"t": "Helms et al. (2016) — dupla progressão e RPE", "u": "https://openrepository.aut.ac.nz/items/92cefeac-7c32-44f1-bfbc-f48f4a5dd8cf/full", "uso": "Análise do treino (progredindo / estagnado)"},
+        {"t": "Zourdos et al. (2016) — escala de esforço (RIR/RPE)", "u": "https://pubmed.ncbi.nlm.nih.gov/26049792/", "uso": "Análise do treino"}
+      ]
+    },
+    {
+      "id": "corpo",
+      "titulo": "Corpo e hábitos",
+      "itens": [
+        {"t": "CDC/OMS — classificação do IMC", "u": "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html", "uso": "IMC"},
+        {"t": "OMS (2008) — Waist Circumference and Waist-Hip Ratio", "u": "https://www.who.int/publications/i/item/9789241501491", "uso": "Relação cintura-quadril e cintura"},
+        {"t": "Hodgdon & Beckett (1984) — método da Marinha dos EUA", "u": "https://apps.dtic.mil/sti/pdfs/ADA143890.pdf", "uso": "% de gordura estimada"},
+        {"t": "Fórmula de Hodgdon & Beckett (calculadora)", "u": "https://www.omnicalculator.com/pt/saude/gordura-corporal-marinha-americana", "uso": "% de gordura estimada"},
+        {"t": "ACE Fitness — faixas de % de gordura por sexo", "u": "https://www.acefitness.org/about-ace/press-room/in-the-news/8602/body-fat-percentage-charting-averages-in-men-and-women-very-well-health/", "uso": "Classificação do % de gordura"},
+        {"t": "ACE — protocolo de medidas de circunferência", "u": "https://contentcdn.eacefitness.com/assets/certification/ace-answers/forms/pt/45_Circumference_Measurements_Protocol.pdf", "uso": "Como medir"},
+        {"t": "Ashwell & Gibson (2016), BMJ Open — cintura ÷ altura", "u": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4800150/", "uso": "Cintura ÷ altura"},
+        {"t": "AASM/SRS (2015) — duração de sono recomendada", "u": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4434546/", "uso": "Hábito de sono"},
+        {"t": "Paluch et al. (2022) — passos por dia e mortalidade", "u": "https://pubmed.ncbi.nlm.nih.gov/35247352/", "uso": "Hábito de passos"}
+      ]
+    },
+    {
+      "id": "dieta",
+      "titulo": "Dieta",
+      "itens": [
+        {"t": "Equação de Mifflin-St Jeor (calculadora)", "u": "https://www.omnicalculator.com/health/bmr", "uso": "Taxa metabólica basal"},
+        {"t": "ISSN Position Stand: Protein and Exercise (2017)", "u": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153", "uso": "Proteína por kg; vegano e vegetariano"},
+        {"t": "ISSN Position Stand (2017) — proteína por refeição", "u": "https://pubmed.ncbi.nlm.nih.gov/28642676/", "uso": "Distribuição da proteína nas refeições"},
+        {"t": "Acceptable Macronutrient Distribution Range (IOM/National Academies)", "u": "https://www.ncbi.nlm.nih.gov/books/NBK610333/", "uso": "Gordura e carboidrato"},
+        {"t": "Tabela Brasileira de Composição de Alimentos — TACO (NEPA/UNICAMP)", "u": "https://www.tabelatacoonline.com.br", "uso": "Composição dos alimentos do cardápio (soja texturizada e proteínas em pó usam o valor típico de rótulo)"},
+        {"t": "Morton et al. (2018) — proteína e ganho de massa magra", "u": "https://pubmed.ncbi.nlm.nih.gov/28698222/", "uso": "Nota sobre déficit calórico"},
+        {"t": "Iraki et al. (2019) — nutrição para fisiculturismo na fase de ganho", "u": "https://www.mdpi.com/2075-4663/7/7/154", "uso": "Ajuste pelo resultado (ritmo e superávit)"}
+      ]
+    },
+    {
+      "id": "dicas",
+      "titulo": "Dicas, suplementos e equipamento",
+      "itens": [
+        {"t": "Kreider et al. (2017) — ISSN Position Stand: Creatine Supplementation", "u": "https://link.springer.com/article/10.1186/s12970-017-0173-z", "uso": "Creatina"},
+        {"t": "Guest et al. (2021) — ISSN Position Stand: Caffeine and Exercise Performance", "u": "https://jissn.biomedcentral.com/track/pdf/10.1186/s12970-020-00383-4", "uso": "Cafeína"},
+        {"t": "ISSN (2025) — Omega-3 for Athletes (resumo)", "u": "https://www.nutraingredients.com/Article/2025/01/22/issn-publishes-position-on-omega-3-for-athletes/", "uso": "Ômega-3"},
+        {"t": "NIH ODS — Vitamin D Fact Sheet", "u": "https://ods.od.nih.gov/factsheets/VitaminD-HealthProfessional/", "uso": "Vitamina D"},
+        {"t": "MuscleSquad — equipamentos essenciais de home gym", "u": "https://musclesquad.com/blogs/fitness-equipment/5-home-gym-essentials", "uso": "Equipamento para treinar em casa"}
+      ]
+    }
+  ]
+}

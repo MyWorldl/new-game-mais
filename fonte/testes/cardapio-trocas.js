@@ -1,5 +1,6 @@
 // Pop-up "Trocar alimentos" do cardápio, no navegador. Uso: SP=/tmp/sp node fonte/testes/cardapio-trocas.js http://localhost:8791 [pasta-de-imagens]
-const { chromium } = require('playwright'); const fs = require('fs');
+const { chromium } = require('playwright');
+const { abreCardapio, escolhe, valorDe } = require('./cardapio-ajuda.js'); const fs = require('fs');
 const URL_ = (process.argv[2] || 'http://localhost:8791') + '/index.html';
 const SHOTS = process.argv[3] || '';
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 300) : '')); };
@@ -20,7 +21,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
       await db.doc('medicoes/' + hoje).set({ data: hoje, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 });
     }, hoje);
     await p.reload(); await p.waitForTimeout(1800);
-    await p.click('#tab-dieta'); await p.waitForTimeout(700);
+    await abreCardapio(p);
     return { c, p };
   };
   const salvo = p => p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); return d.exists ? (d.data().cardapio || null) : null; });
@@ -34,23 +35,22 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     t(L + 'botão "Trocar alimentos" existe no card', await btn.count() === 1 && /Trocar alimentos/.test(await btn.innerText()));
     const bb = await btn.boundingBox(), fb = await p.locator('.cdp-controls').boundingBox();
     t(L + 'botão fica dentro da área dos filtros', bb && fb && bb.y >= fb.y - 1 && bb.y + bb.height <= fb.y + fb.height + 1, JSON.stringify([bb, fb]));
-    t(L + 'botão fica logo abaixo dos filtros e acima dos dias, com a frase ao lado', await p.evaluate(() => { const r = document.querySelector('[data-cdp="restr"]').getBoundingClientRect(), b = document.querySelector('[data-cdp="editar"]').getBoundingClientRect(), d = document.querySelector('.cdp-days').getBoundingClientRect(); return b.top >= r.bottom - 1 && b.bottom <= d.top + 1; }));
-    if (w >= 1000) t(L + 'no desktop os chips da Rotina ficam em até 2 linhas (filtros não espremidos)', await p.evaluate(() => { const cs = [...document.querySelectorAll('[data-cdp="rotina"]')].map(x => Math.round(x.getBoundingClientRect().top)); return new Set(cs).size <= 2; }));
+    t(L + 'botão fica logo abaixo dos filtros e acima dos dias, com a frase ao lado', await p.evaluate(() => { const r = document.querySelector('.cdp-multi').getBoundingClientRect(), b = document.querySelector('[data-cdp="editar"]').getBoundingClientRect(), d = document.querySelector('.cdp-days').getBoundingClientRect(); return b.top >= r.bottom - 1 && b.bottom <= d.top + 1; }));
     if (w >= 700) t(L + 'filtros alinhados: Jeito de comer e Rotina começam na mesma altura', await p.evaluate(() => { const tops = [...document.querySelectorAll('.cdp-controls .cdp-lbl')].slice(0, 2).map(x => Math.round(x.getBoundingClientRect().top)); return tops.length === 2 && Math.max(...tops) - Math.min(...tops) <= 1; }));
-    t(L + 'Rotina tem 5 opções, a primeira é "Dia tradicional"', await p.locator('[data-cdp="rotina"]').count() === 5 && /Dia tradicional/.test(await p.locator('[data-cdp="rotina"]').first().innerText()));
+    t(L + 'Rotina é um campo selecionável com 5 opções, a primeira é "Dia tradicional"', await p.locator('[data-cdp-sel="rotina"] option').count() === 5 && /Dia tradicional/.test(await p.locator('[data-cdp-sel="rotina"] option').first().innerText()));
     t(L + 'card começa sem trocas', /Troque qualquer alimento/.test(await p.locator('[data-r="trocasinfo"]').innerText()));
 
     await p.click('.cdp-day[data-v="1"]'); await p.waitForTimeout(150);
     const baseTer = await refeicaoTxt(p, 1);
     await p.click('.cdp-day[data-v="0"]'); await p.waitForTimeout(150);
-    await p.click('[data-cdp="rotina"][data-v="tradicional"]'); await p.waitForTimeout(400);
-    t(L + 'Dia tradicional: ligado, 5 refeições, descrição visível', await p.locator('[data-cdp="rotina"][data-v="tradicional"].on').count() === 1 && await p.locator('.cdp-meal').count() === 5 && /arroz e feijão/.test(await p.locator('[data-r="rotdesc"]').innerText()));
+    await escolhe(p, 'rotina', 'tradicional');
+    t(L + 'Dia tradicional: escolhido, 5 refeições, descrição visível', await valorDe(p, 'rotina') === 'tradicional' && await p.locator('.cdp-meal').count() === 5 && /arroz e feijão/.test(await p.locator('[data-r="rotdesc"]').innerText()));
     t(L + 'Dia tradicional: feijão/lentilha no almoço e no jantar', /Feij|Lentilha/.test(await refeicaoTxt(p, 1)) && /Feij|Lentilha/.test(await refeicaoTxt(p, 3)));
-    await p.click('[data-cdp="rotina"][data-v="marmita"]'); await p.waitForTimeout(400);
+    await escolhe(p, 'rotina', 'marmita');
     // abre o pop-up
-    await btn.scrollIntoViewIfNeeded(); await p.waitForTimeout(150);
+    await p.evaluate(() => document.querySelector('[data-cdp="editar"]').scrollIntoView({ block: 'center', behavior: 'instant' })); await p.waitForTimeout(150);
     const y0 = await p.evaluate(() => scrollY);
-    await btn.click(); await p.waitForTimeout(400);
+    await btn.evaluate(b => { b.focus({ preventScroll: true }); b.click(); }); await p.waitForTimeout(400); // clique via DOM: o click() do Playwright rola a página por conta própria e mascara a medição
     t(L + 'pop-up abre como diálogo', await p.locator('#modal-root .modal[role="dialog"]').count() === 1 && /Trocar alimentos/.test(await p.locator('#modal-root h2').innerText()));
     t(L + 'app fica inerte atrás do pop-up', await p.evaluate(() => document.querySelector('.app').inert === true));
     t(L + 'tem 5 refeições (marmita), lista de alimentos e alternativas', await p.locator('[data-pop="refeicao"]').count() === 5 && await p.locator('[data-pop="alimento"]').count() >= 3 && await p.locator('[data-pop="para"]').count() >= 2);
@@ -132,7 +132,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
       t(L + 'dias sem esse alimento no café não mudam', naoTocados === 7 - comOriginal);
       t(L + 'lista de compras foi recalculada (inclui o alimento novo)', await p.evaluate(async () => { document.querySelector('.cdp-shop').open = true; return document.querySelector('.cdp-shop').innerText.length > 50; }));
       // persistência
-      await p.reload(); await p.waitForTimeout(1800); await p.click('#tab-dieta'); await p.waitForTimeout(600);
+      await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
       t(L + 'trocas persistem após recarregar', /1 troca feita/.test(await p.locator('[data-r="trocasinfo"]').innerText()));
       // restaurar tudo
       await p.click('[data-cdp="editar"]'); await p.waitForTimeout(300);
@@ -146,8 +146,8 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     // restrição: com troca por carne salva, virar vegano ignora a troca
     if (w === 390) {
       await p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); const s = d.exists ? d.data() : {}; s.cardapio = { jeito: 'omni', rotina: 'marmita', restricoes: { lactose: false, gluten: false }, trocas: [{ d: -1, s: 'almoco', de: 'frango', para: 'patinho' }, { d: 0, s: 'cafe', de: 'ovo', para: 'tofu' }] }; await db.doc('config/settings').set(s); });
-      await p.reload(); await p.waitForTimeout(1800); await p.click('#tab-dieta'); await p.waitForTimeout(600);
-      await p.click('.cdp-chip[data-cdp="jeito"][data-v="vegan"]'); await p.waitForTimeout(400);
+      await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
+      await escolhe(p, 'jeito', 'vegan');
       const info = await p.locator('[data-r="trocasinfo"]').innerText();
       t(L + 'no vegano, troca por carne guardada é ignorada e avisada', /não combin/.test(info) && !/patinho/i.test(await p.locator('.cdp-meals').innerText()), info);
       await p.click('[data-cdp="editar"]'); await p.waitForTimeout(300);
@@ -165,7 +165,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   if (axeSrc) {
     const { c, p } = await abre(390, 844);
     await p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); const s = d.exists ? d.data() : {}; s.cardapio = { jeito: 'omni', rotina: 'budget', restricoes: { lactose: false, gluten: false }, trocas: [{ d: 0, s: 'almoco', de: 'acem', para: 'patinho' }] }; await db.doc('config/settings').set(s); });
-    await p.reload(); await p.waitForTimeout(1800); await p.click('#tab-dieta'); await p.waitForTimeout(600);
+    await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
     await p.evaluate(axeSrc);
     const temas = [['game'], ['rosa', 'claro'], ['rosa', 'escuro'], ['roxo', 'claro'], ['roxo', 'escuro'], ['azul', 'claro'], ['azul', 'escuro']];
     const ap = (tm) => p.evaluate(([a, m]) => { const r = document.documentElement; if (a === 'game') { r.setAttribute('data-game', 'on'); r.removeAttribute('data-tema'); r.removeAttribute('data-modo'); } else { r.setAttribute('data-game', 'off'); r.setAttribute('data-tema', a); r.setAttribute('data-modo', m); } }, tm);
