@@ -608,6 +608,36 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   .topbar{ background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
 }
 
+/* 30. Topo separado do menu lateral (pedido do Gabriel): o topo é uma faixa própria, com fundo sólido e linha de separação; o menu começa logo abaixo dele.
+   Celular: fundo opaco (antes era um vidro a 78% que deixava o conteúdo aparecendo por trás e o topo parecia apagado). */
+:root{ --top-h:64px; }
+@media (max-width:767px){
+  .topbar{
+    background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none;
+    border-bottom:1px solid var(--line-strong, var(--line)); box-shadow:0 10px 24px -18px rgb(0 0 0 / .85);
+  }
+  .brand .top-icon, .brand .sync-pill{ background:var(--surface-2); }
+  .top-greet{ color:var(--ink); opacity:.78; }
+  .top-sec{ color:var(--ink); }
+}
+@media (min-width:768px){
+  .topbar{
+    position:fixed; inset-block-start:0; inset-inline:0; z-index:45; margin:0; padding:0; grid-column:auto; grid-row:auto;
+    block-size:var(--top-h); min-block-size:var(--top-h); justify-content:center;
+    background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none;
+    border-bottom:1px solid var(--line-strong, var(--line)); box-shadow:0 12px 30px -24px rgb(0 0 0 / .9);
+  }
+  .topbar > .brand{ inline-size:100%; max-inline-size:none; padding-inline:18px 24px; }
+  /* a marca passa para o topo (antes ficava no menu lateral) */
+  .topbar > .brand > div.mark{ display:grid; place-items:center; order:-1; position:static; inline-size:40px; block-size:40px; margin:0; padding:0; overflow:visible; clip-path:none; white-space:nowrap; flex:none; }
+  .brand > .nav-toggle{ order:-2; }
+  .side-brand{ display:none !important; }
+  .brand .cmdk-chip{ background:var(--surface-2); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .bottomnav{ inset-block-start:var(--top-h); block-size:calc(100dvh - var(--top-h)); padding-block-start:16px; }
+  .app{ padding-block-start:calc(var(--top-h) + 18px); }
+  .app > main{ grid-row:auto; }
+}
+
 /* ---- Aviso "Nova versão disponível" (criado por bff-runtime.js) ---- */
 .ng-atualiza{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom,0px) + 92px); z-index:9500; display:flex; align-items:center; gap:10px; max-width:min(92vw,420px); padding:10px 12px; background:var(--surface-2,var(--surface)); color:var(--ink); border:1px solid var(--accent); border-radius:14px; box-shadow:0 8px 28px rgba(0,0,0,.35); }
 .ng-atualiza span{ font-weight:600; font-size:var(--fs-14,14px); }

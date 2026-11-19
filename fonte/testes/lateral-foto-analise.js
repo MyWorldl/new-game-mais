@@ -126,12 +126,12 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(700);
     await p.evaluate(() => window.scrollTo(0, 700)); await p.waitForTimeout(300);
     const g = await p.evaluate(() => { const n = document.getElementById('bottomnav').getBoundingClientRect(), m = document.getElementById('main').getBoundingClientRect(); return { l: Math.round(n.left), t: Math.round(n.top), w: Math.round(n.width), h: Math.round(n.height), r: Math.round(n.right), ml: Math.round(m.left), vh: innerHeight, rola: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1 }; });
-    t(`[${w}px] menu cola na borda esquerda e cobre a altura toda, mesmo com a página rolada`, g.l === 0 && g.t === 0 && g.h === g.vh, J(g));
+    t(`[${w}px] menu cola na borda esquerda e cobre a altura abaixo do topo, mesmo com a página rolada`, g.l === 0 && g.t === 64 && g.h === g.vh - 64, J(g));   // o topo é uma faixa própria de 64 px; o menu começa logo abaixo dele
     t(`[${w}px] o conteúdo começa depois do menu e não há rolagem lateral`, g.ml >= g.r && !g.rola, J(g));
     if (w >= 1024) {
       await p.click('#nav-toggle'); await p.waitForTimeout(400);
       const g2 = await p.evaluate(() => { const n = document.getElementById('bottomnav').getBoundingClientRect(), m = document.getElementById('main').getBoundingClientRect(); return { w: Math.round(n.width), h: Math.round(n.height), ml: Math.round(m.left), mw: Math.round(m.width) }; });
-      t(`[${w}px] recolher o menu vira trilho estreito de altura total e o conteúdo ocupa o espaço`, g2.w <= 90 && g2.h === h && g2.ml >= g2.w, J(g2));
+      t(`[${w}px] recolher o menu vira trilho estreito (altura abaixo do topo) e o conteúdo ocupa o espaço`, g2.w <= 90 && g2.h === h - 64 && g2.ml >= g2.w, J(g2));
     }
     if (w === 1440) { const vis = await p.evaluate(() => { const s = document.getElementById('side-streak'); const r = s.getBoundingClientRect(); return r.bottom <= innerHeight && r.height > 0; }); t('card de sequência continua visível no rodapé do menu', vis || true); await p.screenshot({ path: (process.env.SP || '/tmp') + '/lateral-' + w + '.png' }); }
     await c.close();

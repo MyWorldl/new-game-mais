@@ -2725,6 +2725,8 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 .field-ic-group .field-ic-wrap input::placeholder{font-weight:400;}
 .field-ic-group .field-ic-wrap input[type="date"]{padding:10px 12px; height:var(--touch-min);}   /* F9: a data tinha o respiro do estilo antigo (6px 0) e o texto encostava na borda; agora igual aos outros campos */
 #form-habitos.u-gap10{gap:var(--sp-4) !important;}
+.hab-janela{margin:0; font-size:var(--fs-xs); line-height:1.4;}
+#form-habitos.hab-bloqueado .hab-num, #form-habitos.hab-bloqueado .hab-um{opacity:.55;}   /* dia fora da janela (hoje e ontem): campos desligados */
 #form-habitos > button[type="submit"]{margin-top:var(--sp-5);}   /* F9: botão um pouco mais abaixo dos campos */
 /* desktop: "Constância" ocupa a largura toda — as barras se esticam e ficam um pouco mais altas */
 @media (min-width:900px){
@@ -2826,8 +2828,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 
     <section class="card perdido-card" id="hoje-perdido" aria-labelledby="hp-t" hidden></section>
 
-    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>
-
     <button type="button" class="nivel-mini" id="nivel-mini" data-goto="perfil" style="--tier-color: var(--t1);" aria-label="Ver sua patente no Perfil">
       <span class="nivel-shield">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3z"/></svg>
@@ -2841,6 +2841,18 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <span class="nivel-mini-streak" id="nivel-mini-streak"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.5 2c.3 2.7-.6 4-2 5.6C8.9 9.4 7 11 7 14a5 5 0 0 0 10 0c0-1.4-.5-2.3-1.2-3.2-.2.9-.7 1.6-1.4 1.6-1 0-1.4-.9-1.1-1.9.5-1.7 1.7-3 1.7-5.4 0-1.4-.7-2.4-2.5-3.1Z"/></svg><b id="nivel-mini-streak-n">0</b><small>dias</small></span>
       <span class="nivel-mini-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></span>
     </button>
+
+    <section class="card" id="cc-missoes" aria-labelledby="missoes-t">
+      <div class="card-head"><h2 id="missoes-t">Missões</h2><span class="hint" id="challenges-count">0 de 6 concluídos</span></div>
+      <div class="seg chal-tabs" id="chal-tabs">
+        <button type="button" data-scope="semana" class="active">Esta semana</button>
+        <button type="button" data-scope="mes">Este mês</button>
+      </div>
+      <div class="chal-card-grid" id="chal-grid"></div>
+    </section>
+
+    <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>
+
 
     <div class="narrator-card" id="narrator-card" hidden>
       <div class="narrator-avatar" id="narrator-avatar"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bot"/></svg></div>
@@ -2916,14 +2928,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 
     <div class="grid grid-4" id="quick-stats"></div>
 
-    <section class="card" id="cc-missoes" aria-labelledby="missoes-t">
-      <div class="card-head"><h2 id="missoes-t">Missões</h2><span class="hint" id="challenges-count">0 de 6 concluídos</span></div>
-      <div class="seg chal-tabs" id="chal-tabs">
-        <button type="button" data-scope="semana" class="active">Esta semana</button>
-        <button type="button" data-scope="mes">Este mês</button>
-      </div>
-      <div class="chal-card-grid" id="chal-grid"></div>
-    </section>
 
     <details class="cc cc-group" id="cc-vermais" data-cc="vermais">
       <summary class="card card-head"><h2>Ver mais</h2><span class="hint">peso, resumo e recordes</span><svg class="cc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
@@ -3178,6 +3182,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
           <div class="field-ic-group"><label for="h-data">Dia</label><div class="field-ic-wrap">
             <input type="date" id="h-data"></div></div>
         </div>
+        <p class="hint hab-janela" id="hab-janela">Dá para registrar o dia de hoje e o dia anterior. Dias mais antigos ficam como estão e dias que ainda não chegaram não podem ser preenchidos.</p>
         <div class="field-row hab-num">
           <div class="field-ic-group"><label for="h-sono">Sono (horas)</label><div class="field-ic-wrap">
             <input type="number" step="0.5" min="0" max="16" id="h-sono" placeholder="7,5" inputmode="decimal"></div></div>
@@ -6164,6 +6169,22 @@ function habMsg(txt){
   const b = document.getElementById("hab-aviso"); if(!b) return;
   b.hidden = !txt; b.textContent = txt || "";
 }
+/* Janela de edição: só o dia de hoje e o dia anterior (esqueceu de ontem? dá para preencher hoje). Antes disso o registro fica como está; dia futuro nunca. */
+function habJanela(){ const hoje = todayISO(); return {min: addDaysISO(hoje, -1), max: hoje}; }
+function habEditavel(iso){ const j = habJanela(); return !!iso && iso >= j.min && iso <= j.max; }
+function habMotivoBloqueio(iso){
+  if(habEditavel(iso)) return "";
+  return iso > todayISO() ? "Esse dia ainda não chegou. Escolha hoje ou ontem." : "Só dá para registrar hábitos de hoje ou de ontem. Esse dia fica como está.";
+}
+/* liga/desliga o formulário conforme o dia escolhido (o seletor já limita a data; isto cobre quem digita a data à mão) */
+function habAtualizaForm(){
+  const dEl = document.getElementById("h-data"), f = document.getElementById("form-habitos");
+  if(!dEl || !f) return;
+  const bloq = !habEditavel(dEl.value);
+  f.querySelectorAll('input:not(#h-data), button[type="submit"]').forEach(e=>{ e.disabled = bloq; });
+  f.classList.toggle("hab-bloqueado", bloq);
+  habMsg(bloq && dEl.value ? habMotivoBloqueio(dEl.value) : null);
+}
 function habPreencher(iso){
   const h = habDe(iso) || {};
   const set = (id, v)=>{ const e = document.getElementById(id); if(e) e.value = v == null ? "" : String(v); };
@@ -6172,7 +6193,7 @@ function habPreencher(iso){
 function salvarHabitos(){
   const dEl = document.getElementById("h-data");
   const iso = (dEl && dEl.value) || todayISO();
-  if(iso > todayISO()){ habMsg("Escolha o dia de hoje ou um dia anterior."); return; }
+  if(!habEditavel(iso)){ habMsg(habMotivoBloqueio(iso) || "Escolha o dia de hoje ou o dia anterior."); return; }
   const rd = (id)=>{ const e = document.getElementById(id); const t = e ? e.value.trim().replace(",", ".") : ""; return t === "" ? null : Number(t); };
   const sono = rd("h-sono"), passos = rd("h-passos"), cardio = rd("h-cardio");
   if(sono != null && !(sono >= 0 && sono <= 16)){ habMsg("Sono: informe entre 0 e 16 horas."); return; }
@@ -6196,7 +6217,13 @@ function renderHabitos(){
   const box = document.getElementById("hab-resumo");
   if(!box) return;
   const dEl = document.getElementById("h-data");
-  if(dEl && !dEl.value){ dEl.value = todayISO(); dEl.max = todayISO(); habPreencher(dEl.value); }
+  const jan = habJanela();
+  if(dEl){
+    dEl.min = jan.min; dEl.max = jan.max;
+    // o dia virou com a tela aberta (ou o campo está vazio/fora da janela): volta para hoje
+    if(!dEl.value || (!habEditavel(dEl.value) && document.activeElement !== dEl)){ dEl.value = jan.max; habPreencher(dEl.value); }
+    habAtualizaForm();
+  }
   const hoje = todayISO();
   const dias = [];
   for(let i = 0; i < 7; i++) dias.push(addDaysISO(hoje, -i));
@@ -6227,9 +6254,9 @@ function renderHabitos(){
   const f = document.getElementById("form-habitos");
   if(!f) return;
   f.addEventListener("submit", (e)=>{ e.preventDefault(); salvarHabitos(); });
-  f.addEventListener("input", ()=> habMsg(null));
+  f.addEventListener("input", (e)=>{ if(!e.target || e.target.id !== "h-data") habMsg(null); });
   const d = document.getElementById("h-data");
-  if(d) d.addEventListener("change", ()=>{ if(d.value) habPreencher(d.value); });
+  if(d) d.addEventListener("change", ()=>{ if(d.value) habPreencher(d.value); habAtualizaForm(); });
 })();
 
 /* ---- dia leve ---- */
@@ -7510,11 +7537,12 @@ function renderChallengeGrid(elId, items){
   }).join("");
 }
 
-let challengeScope = "semana";
+/* Missões: "Hoje" (missões do dia, camada visual), "Esta semana" e "Este mês" no mesmo cartão */
+let challengeScope = document.getElementById("hoje-missoes") ? "hoje" : "semana";
 document.querySelectorAll("#chal-tabs button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     challengeScope = btn.dataset.scope;
-    document.querySelectorAll("#chal-tabs button").forEach(b=> b.classList.toggle("active", b===btn));
+    document.querySelectorAll("#chal-tabs button").forEach(b=>{ b.classList.toggle("active", b===btn); b.setAttribute("aria-pressed", String(b===btn)); });
     renderChallenges();
   });
 });
@@ -7523,8 +7551,14 @@ function renderChallenges(){
   const weekly = computeWeeklyChallenges();
   const monthly = computeMonthlyChallenges();
   renderChallengeGrid("chal-grid", challengeScope === "mes" ? monthly : weekly);
+  const hojeBox = document.getElementById("hoje-missoes"), gridEl = document.getElementById("chal-grid"), hojeCnt = document.getElementById("hmi-count");
+  const emHoje = challengeScope === "hoje" && !!hojeBox;
+  if(hojeBox) hojeBox.hidden = !emHoje;
+  if(gridEl) gridEl.hidden = emHoje;
+  if(hojeCnt) hojeCnt.hidden = !emHoje;
   const countEl = document.getElementById("challenges-count");
   if(countEl){
+    countEl.hidden = emHoje;
     const total = weekly.length + monthly.length;
     const done = weekly.filter(i=>i.done).length + monthly.filter(i=>i.done).length;
     countEl.textContent = done+" de "+total+" concluídos";
