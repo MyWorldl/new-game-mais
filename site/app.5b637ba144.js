@@ -622,6 +622,48 @@ function adequarIdadeNaRotina(rotina, p){
   return rotina;
 }
 /* mantém cada músculo dentro da faixa de volume do app: sobe até o MEV (só quem não é iniciante) e nunca passa do MRV */
+/* Foco corporal no plano inicial: o grupo escolhido ganha séries até a meta (focoAlvo; iniciante: faixa MAV) e, se ainda faltar, UM exercício da base é incluído
+   (filtrado por local, idade e nível; sem isométricos, sem fichas fora do plano inicial). Não se aplica a 60+, retorno após pausa e treino curto (aí o volume já é reduzido de propósito). */
+const FOCO_SEM_REPS = /prancha|parede|dead bug|bird|superman|iyt|pallof|copenhagen|isom/i;
+function aplicarFoco(rotina, o){
+  const p = o.p, exp = o.exp, local = o.local;
+  const res = {musculos:[], adicionados:[]};
+  const mus = Array.from(focoMusculos(p));
+  if(!mus.length || o.semSubir) return res;
+  const lista = ()=>{ const r=[]; DAYS.forEach(k=>{ const d=rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=> r.push({e, d})); }); return r; };
+  const total = m=> lista().reduce((s,x)=> s + ((x.e.musculos||[]).indexOf(m) >= 0 ? (Number(x.e.series)||0) : 0), 0);
+  const cabe = (mm, n)=> (mm||[]).every(k=> !MUSCLE_LANDMARKS[k] || total(k) + n <= MUSCLE_LANDMARKS[k].mrv);   // nunca passa do teto (MRV) de nenhum músculo do exercício
+  const capSeries = exp === "iniciante" ? 3 : exp === "intermediario" ? 4 : 5;
+  const subir = (m, alvo)=>{
+    for(let g=0; g<20 && total(m) < alvo; g++){
+      const c = lista().filter(x=> (x.e.musculos||[])[0] === m && x.e.series < capSeries && cabe(x.e.musculos, 1)).sort((x,y)=> x.e.series - y.e.series);
+      if(!c.length) return;
+      c[0].e.series += 1; c[0].e.metaReps = metaRepsDe(c[0].e.series, c[0].e.reps, c[0].e.metaReps);
+    }
+  };
+  const repsDe = m=> m === "abdomen" ? "15-20" : m === "panturrilha" ? "12-15" : (m === "gluteos" || m === "ombros" || m === "biceps" || m === "triceps") ? "10-15" : "8-12";
+  mus.forEach(m=>{
+    const lm = MUSCLE_LANDMARKS[m]; if(!lm) return;
+    const alvo = exp === "iniciante" ? lm.mav : focoAlvo(m);
+    res.musculos.push(m);
+    subir(m, alvo);
+    if(total(m) >= alvo) return;
+    const usados = lista().map(x=> x.e.nome);
+    const cand = (BASE_EXERCICIOS.exercicios||[]).filter(f=> f.musculos[0] === m && !f.foraPlanoInicial && (f.local||[]).indexOf(local) >= 0
+      && f.nomesApp && f.nomesApp.length && usados.indexOf(f.nomesApp[0]) < 0 && !(o.proibidos || {})[f.nomesApp[0]] && !FOCO_SEM_REPS.test(f.nomesApp[0]) && exercicioAdequadoAoPerfil(f.nomesApp[0], p));
+    const cand2 = cand.filter(f=> cabe(f.musculos, 3));
+    if(!cand2.length) return;
+    const dias = DAYS.map(k=> rotina[k]).filter(d=> d && d.ativo && d.exercicios.length < (o.maxEx || 7));
+    if(!dias.length) return;
+    const treina = d=> d.exercicios.some(e=> (e.musculos||[])[0] === m);
+    const dia = dias.filter(treina).sort((x,y)=> x.exercicios.length - y.exercicios.length)[0] || dias.sort((x,y)=> x.exercicios.length - y.exercicios.length)[0];
+    const f = cand2[0], reps = repsDe(m);
+    dia.exercicios.push({nome:f.nomesApp[0], series:3, reps, metaReps:metaRepsDe(3, reps, 0), musculos:f.musculos.slice()});
+    res.adicionados.push(f.nomesApp[0]);
+    subir(m, alvo);
+  });
+  return res;
+}
 function equilibrarVolumeInicial(rotina, exp, semSubir){
   const lista = ()=>{ const a=[]; DAYS.forEach(k=>{ const d=rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=> a.push(e)); }); return a; };
   const totais = ()=>{ const t={}; lista().forEach(e=> (e.musculos||[]).forEach(m=>{ t[m] = (t[m]||0) + (Number(e.series)||0); })); return t; };
@@ -683,6 +725,9 @@ function montaPorque(o){
     if(tn) porque.push(tn);
     sit.restricoes.forEach(k=> porque.push(c.restricoes[k].aviso));
   }
+  const fc = o.foco;
+  if(fc && fc.nomes && fc.nomes.length && fc.aplicado)
+    porque.push("Foco em "+fc.nomes.join(" e ")+": o plano soma séries nesse grupo até a meta da semana"+(fc.adicionados && fc.adicionados.length ? " e inclui "+fc.adicionados.join(", ") : "")+". O foco muda onde entra mais volume de treino; não escolhe onde o corpo perde gordura.");
   porque.push(objetivo === "superavit" ? "Objetivo ganhar massa: aumente a carga aos poucos quando passar do topo da faixa de repetições e cuide da alimentação na aba Dieta."
     : objetivo === "deficit" ? "Objetivo emagrecer: o treino de força segue sendo a base; a diferença está na alimentação (aba Dieta) e em caminhar nos dias de descanso."
     : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
@@ -716,9 +761,15 @@ function planoInicial(p){
     base = buildPPLRotina();
   }
   const adaptada = adequarIdadeNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), p);
-  const rotina = equilibrarVolumeInicial(aplicarSituacoes(adaptada, {local, sit}), exp, sit.idoso || sit.retorno || sit.tempo < 60);
-  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes});
-  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit};
+  const semSubir = !!(sit.idoso || sit.retorno || sit.tempo < 60);
+  const comSit = aplicarSituacoes(adaptada, {local, sit});
+  const proibidos = {};   // o foco nunca reintroduz o que a restrição articular ou o 60+ trocou
+  sit.restricoes.forEach(k=> Object.keys(BASE_PLANOS.restricoes[k].trocas).forEach(n=>{ proibidos[n] = true; }));
+  const tcfg = (BASE_PLANOS.tempo && BASE_PLANOS.tempo[String(sit.tempo)]) || {};
+  const foco = aplicarFoco(comSit, {p, exp, local, semSubir, proibidos, maxEx: tcfg.maxExercicios});
+  const rotina = equilibrarVolumeInicial(comSit, exp, semSubir);
+  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}});
+  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit, foco};
 }
 
 /* v98: a rotina inicial vem do perfil (experiência, dias, equipamento, objetivo e idade). Sem perfil: Full Body 3× (o que o app recomenda para iniciantes). */
@@ -9366,7 +9417,7 @@ function planoPorqueAtual(){
   const split = mesmo ? pi.split : null;
   const sit = situacoesDoPerfil(p);
   const maxSes = sit.idoso && BASE_PLANOS.idoso ? Math.min(EXP_SESSOES_MAX[p.experiencia], BASE_PLANOS.idoso.maxSessoes) : EXP_SESSOES_MAX[p.experiencia];
-  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes})};
+  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes, foco:{nomes:focoNomes(p), adicionados:[], aplicado:focoMusculos(p).size > 0 && !(sit.idoso || sit.retorno || sit.tempo < 60)}})};
 }
 function renderPlanoPorque(){
   const hoje = document.getElementById("plano-porque-hoje"), treino = document.getElementById("plano-porque-treino");
