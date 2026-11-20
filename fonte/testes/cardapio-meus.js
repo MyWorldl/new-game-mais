@@ -1,5 +1,6 @@
 // "Meus alimentos" no navegador. Uso: SP=/tmp/sp node fonte/testes/cardapio-meus.js http://localhost:8791
-const { chromium } = require('playwright'); const fs = require('fs');
+const { chromium } = require('playwright');
+const { abreCardapio, escolhe, valorDe } = require('./cardapio-ajuda.js'); const fs = require('fs');
 const URL_ = (process.argv[2] || 'http://localhost:8791') + '/index.html';
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 300) : '')); };
 const axeSrc = process.env.SP && fs.existsSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js') ? fs.readFileSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js', 'utf8') : null;
@@ -20,7 +21,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
       await db.doc('medicoes/' + hoje).set({ data: hoje, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 });
     }, hoje);
     await p.reload(); await p.waitForTimeout(1800);
-    await p.click('#tab-dieta'); await p.waitForTimeout(700);
+    await abreCardapio(p);
     const salvo = () => p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); return d.exists ? (d.data().cardapio || null) : null; });
     const lista = async () => { await p.evaluate(() => { document.querySelector('.cdp-shop').open = true; }); return p.locator('[data-r="compras"]').innerText(); };
 
@@ -52,7 +53,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     t(L + 'frase do card mostra a escolha e a lista avisa a origem', /só os \d+ alimentos/.test(await p.locator('[data-r="meusinfo"]').innerText()) && /Só aparecem alimentos de Meus alimentos/.test(depois));
 
     // continua valendo depois de recarregar
-    await p.reload(); await p.waitForTimeout(1800); await p.click('#tab-dieta'); await p.waitForTimeout(700);
+    await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
     t(L + 'escolha sobrevive ao recarregar', !/Iogurte/.test(await lista()) && Array.isArray((await salvo()).meus));
 
     // não deixa desmarcar tudo

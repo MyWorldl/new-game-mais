@@ -119,9 +119,9 @@ rep('renderNivel(); renderNavExtras();            // aparece','renderNivel(); re
 
 # ===== Fase 6 (v3) — Dieta: anel de calorias e macros (só visual) =====
 dieta=open(base+'/ng-dieta.js',encoding='utf8').read()
-rep('    <div class="card" data-dieta-dados>\n      <div class="card-head">\n        <h2>Objetivo calórico</h2>',
-    '    <section class="card dieta-anel is-vazio" id="dieta-anel" data-dieta-dados aria-label="Resumo da meta diária"></section>\n'
-    '    <div class="card" data-dieta-dados>\n      <div class="card-head">\n        <h2>Objetivo calórico</h2>')
+rep('    <div class="card" data-dieta-dados data-sub="metas">\n      <div class="card-head">\n        <h2>Objetivo calórico</h2>',
+    '    <section class="card dieta-anel is-vazio" id="dieta-anel" data-dieta-dados data-sub="metas" aria-label="Resumo da meta diária"></section>\n'
+    '    <div class="card" data-dieta-dados data-sub="metas">\n      <div class="card-head">\n        <h2>Objetivo calórico</h2>')
 rep('function renderNivel(){\n', dieta+'function renderNivel(){\n')
 rep('  renderMetaPeso(med, p, kcalAlvo, tdee);\n  renderCardapio(kcalAlvo, macros);\n}','  renderMetaPeso(med, p, kcalAlvo, tdee);\n  renderDietaAnel(kcalAlvo, macros);\n  renderCardapio(kcalAlvo, macros);\n}')
 rep('    renderCardapio(null, null);\n    return;\n  }\n\n  const tmb','    renderDietaAnel(null, null);\n    renderCardapio(null, null);\n    return;\n  }\n\n  const tmb')

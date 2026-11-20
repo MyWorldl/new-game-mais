@@ -100,8 +100,8 @@ const sel = async (p, id) => p.evaluate(i => document.getElementById(i).getAttri
   // ---------- desktop ----------
   {
     const { c, p } = await abre(b, 1280, 'dark');
-    const v = await p.evaluate(() => ({ fab: getComputedStyle(document.getElementById('nav-fab')).display, perfil: document.getElementById('tab-perfil').offsetParent !== null, extras: ['tab-glossario', 'tab-config'].every(i => document.getElementById(i).offsetParent !== null) }));
-    t('[1280] menu lateral completo: Perfil, Glossário e Config visíveis; sem botão central', v.fab === 'none' && v.perfil && v.extras, JSON.stringify(v));
+    const v = await p.evaluate(() => ({ fab: getComputedStyle(document.getElementById('nav-fab')).display, perfil: document.getElementById('tab-perfil').offsetParent !== null, extras: ['tab-glossario', 'tab-config'].every(i => document.getElementById(i).offsetParent === null) }));
+    t('[1280] menu lateral: Perfil visível; Glossário e Config viraram sub-abas do Perfil (fora do menu); sem botão central', v.fab === 'none' && v.perfil && v.extras, JSON.stringify(v));
     await c.close();
   }
   // ---------- tema pastel claro ----------

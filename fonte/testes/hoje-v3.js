@@ -4,11 +4,11 @@ const { chromium } = require('playwright');
 const { abre } = require('./telas-dados-seed.js');
 const axeSrc = process.env.SP && fs.existsSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js') ? fs.readFileSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js', 'utf8') : null;
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 300) : '')); };
-// treinos concluídos na semana = dias de rotina (seg–sex) anteriores a hoje, limitado à meta de 4 (o teste não pode depender do dia em que roda)
-const SEM_FEITOS = (() => { const d = new Date().getDay(); const antes = d === 0 ? 5 : Math.min(d, 6) - 1; return Math.min(antes, 5) > 4 ? 4 : Math.max(0, Math.min(antes, 5)); })();
+// treinos concluídos na semana = dias de rotina (seg–sex) anteriores a hoje, limitado à meta de 5 (o plano agora honra os 5 dias pedidos; o teste não pode depender do dia em que roda)
+const SEM_FEITOS = (() => { const d = new Date().getDay(); const antes = d === 0 ? 5 : Math.min(d, 6) - 1; return Math.max(0, Math.min(antes, 5)); })();
 // exercícios do dia na rotina do seed (seg 3, ter 2, qua–sex 1): o teste não pode depender do dia em que roda
 const N_HOJE = ({ 1: 3, 2: 2 })[new Date().getDay()] || 1;
-const SEM_APOS = Math.min(SEM_FEITOS + 1, 4) / 4;
+const SEM_APOS = Math.min(SEM_FEITOS + 1, 5) / 5;
 const URL_ = (process.argv[2] || 'http://localhost:8791') + '/index.html';
 const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('aria-selected'), id);
 (async () => {
@@ -21,13 +21,13 @@ const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('
     // ---- anel duplo ----
     const an = await p.evaluate(() => { const o = document.getElementById('today-ring'), i = document.getElementById('today-ring-semana'); const f = e => { const c = +e.getAttribute('stroke-dasharray'); return c ? 1 - (+e.getAttribute('stroke-dashoffset')) / c : null; }; return { o: o && f(o), i: i && f(i), aria: document.getElementById('today-ring-box').getAttribute('aria-label'), role: document.getElementById('today-ring-box').getAttribute('role') }; });
     t(L + 'anel duplo: anel de fora = hoje (1/1 → 100%)', an.o !== null && Math.abs(an.o - 1) < 0.01, JSON.stringify(an));
-    t(L + 'anel duplo: anel de dentro = semana (treinos feitos antes de hoje / meta de 4)', an.i !== null && Math.abs(an.i - SEM_FEITOS / 4) < 0.02, JSON.stringify(an));
-    t(L + 'anel duplo: descrição em texto para leitor de tela (hoje e semana)', an.role === 'img' && new RegExp('hoje: ' + N_HOJE + ' de ' + N_HOJE + ' exercícios', 'i').test(an.aria) && new RegExp('semana: ' + SEM_FEITOS + ' de 4 treinos', 'i').test(an.aria), an.aria);
+    t(L + 'anel duplo: anel de dentro = semana (treinos feitos antes de hoje / meta de 5)', an.i !== null && Math.abs(an.i - SEM_FEITOS / 5) < 0.02, JSON.stringify(an));
+    t(L + 'anel duplo: descrição em texto para leitor de tela (hoje e semana)', an.role === 'img' && new RegExp('hoje: ' + N_HOJE + ' de ' + N_HOJE + ' exercícios', 'i').test(an.aria) && new RegExp('semana: ' + SEM_FEITOS + ' de 5 treinos', 'i').test(an.aria), an.aria);
     // ---- carrossel ----
     const cards = p.locator('#hm-trilho .hm-card');
     t(L + 'carrossel: 4 cartões (Sequência, Treinos da semana, Peso atual, Hábitos de hoje)', (await cards.count()) === 4 && JSON.stringify((await cards.locator('.eyebrow').allInnerTexts()).map(s => s.trim().toLowerCase())) === JSON.stringify(['sequência', 'treinos da semana', 'peso atual', 'hábitos de hoje']), (await cards.locator('.eyebrow').allInnerTexts()).join('|'));
     const txt = (await cards.allInnerTexts()).map(s => s.replace(/\s+/g, ' '));
-    t(L + 'carrossel: valores reais (sequência, treinos da semana, 74,5 kg, 3/3)', /\d{2} dias/.test(txt[0]) && new RegExp(SEM_FEITOS + '/4').test(txt[1]) && /74,5/.test(txt[2]) && /3\/3/.test(txt[3]), JSON.stringify(txt));
+    t(L + 'carrossel: valores reais (sequência, treinos da semana, 74,5 kg, 3/3)', /\d{2} dias/.test(txt[0]) && new RegExp(SEM_FEITOS + '/5').test(txt[1]) && /74,5/.test(txt[2]) && /3\/3/.test(txt[3]), JSON.stringify(txt));
     t(L + 'carrossel: cada cartão descreve nome, valor e detalhe para leitor de tela', await cards.evaluateAll(es => es.every(e => /^\d de 4: /.test(e.getAttribute('aria-label')))));
     const g = await p.evaluate(() => { const tr = document.getElementById('hm-trilho'), cs = [...tr.querySelectorAll('.hm-card')], s = getComputedStyle(tr); return { sw: tr.scrollWidth, cw: tr.clientWidth, snap: s.scrollSnapType, disp: s.display, dots: getComputedStyle(document.getElementById('hm-dots')).display, h: cs.map(e => Math.round(e.getBoundingClientRect().height)), page: document.documentElement.scrollWidth <= innerWidth + 1 }; });
     if (w < 768) {
@@ -66,7 +66,7 @@ const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('
       await p.evaluate(() => document.getElementById('tab-painel').click()); await p.waitForTimeout(700);
       await p.evaluate(() => document.getElementById('btn-quick-checkin').click()); await p.waitForTimeout(1500);
       await p.evaluate(() => document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()));
-      t(L + 'depois de concluir: missões mostram "3 de 3 feitas" e a semana soma mais um treino (limitado à meta)', /3 de 3 feitas/.test(await p.locator('#hmi-count').innerText()) && (m => !!m && +m[1] >= Math.min(SEM_FEITOS + 1, 4))((await p.locator('#hm-trilho .hm-card').nth(1).innerText()).replace(/\s+/g, '').match(/(\d+)\/4/)), await p.locator('#hmi-count').innerText());
+      t(L + 'depois de concluir: missões mostram "3 de 3 feitas" e a semana soma mais um treino (limitado à meta)', /3 de 3 feitas/.test(await p.locator('#hmi-count').innerText()) && (m => !!m && +m[1] >= Math.min(SEM_FEITOS + 1, 5))((await p.locator('#hm-trilho .hm-card').nth(1).innerText()).replace(/\s+/g, '').match(/(\d+)\/5/)), await p.locator('#hmi-count').innerText());
       t(L + 'depois de concluir: anel de dentro sobe um treino (limitado à meta)', await p.evaluate(esp => { const i = document.getElementById('today-ring-semana'), c = +i.getAttribute('stroke-dasharray'); return Math.abs((1 - (+i.getAttribute('stroke-dashoffset')) / c) - esp) < 0.02; }, SEM_APOS));
     }
     t(L + 'sem erro de console', p.errs.length === 0, p.errs.join(' | '));

@@ -7,17 +7,19 @@ try{ const ua = navigator.userAgent; if(/AppleWebKit/.test(ua) && !/Chrome|Chrom
 /* v88 U2: mede as barras fixas para o scroll-padding do <html>. */
 (function medeBarrasFixas(){
   const root = document.documentElement;
-  const tb = document.querySelector(".topbar"), bn = document.getElementById("bottomnav");
+  const tb = document.querySelector(".topbar"), bn = document.getElementById("bottomnav"), sn = document.getElementById("subnav-host");
   function fixa(el){ if(!el) return 0; const pos = getComputedStyle(el).position; return (pos === "fixed" || pos === "sticky") ? Math.round(el.getBoundingClientRect().height) : 0; }
   function mede(){
     // no desktop a navegação vira menu lateral (sticky na coluna) — não cobre o rodapé
     const bnBaixo = bn && getComputedStyle(bn).position === "fixed" ? Math.round(bn.getBoundingClientRect().height) : 0;
     root.style.setProperty("--tb-h", fixa(tb)+"px");
+    root.style.setProperty("--sn-h", (sn && !sn.hidden ? fixa(sn) : 0)+"px");   // faixa de sub-abas (também gruda no topo)
     root.style.setProperty("--bn-h", bnBaixo+"px");
   }
   mede();
   addEventListener("resize", mede, {passive:true});
-  if(window.ResizeObserver){ const ro = new ResizeObserver(mede); if(tb) ro.observe(tb); if(bn) ro.observe(bn); }
+  if(window.ResizeObserver){ const ro = new ResizeObserver(mede); if(tb) ro.observe(tb); if(bn) ro.observe(bn); if(sn) ro.observe(sn); }
+  if(sn && window.MutationObserver) new MutationObserver(mede).observe(sn, {attributes:true, attributeFilter:["hidden"]});
 })();
 
 /* v98 Fase 6 — teclado do celular.
@@ -437,7 +439,11 @@ function buildFullBodyRotina(){
    v98 — Fase 2: plano inicial por perfil (experiência, dias, equipamento, objetivo e idade; nunca por sexo)
    planoInicial(perfil) → {rotina, split, sessoes, porque:[...]}. É só a SUGESTÃO inicial: a pessoa edita tudo em Editar rotina.
    ============================================================ */
-const EXP_SESSOES_MAX = {iniciante:3, intermediario:4, avancado:6};   // sessões por semana que o nível sustenta com boa recuperação
+/* Dias por semana: o plano HONRA o que a pessoa pediu (2 a 6). O nível só define o que é recomendado (EXP_SESSOES_REC) e o teto
+   (EXP_SESSOES_MAX: iniciante 5, os outros 6). Acima do recomendado o plano segue, com poucas séries por exercício e um aviso claro.
+   60+ continua limitado por BASE_PLANOS.idoso.maxSessoes. */
+const EXP_SESSOES_REC = {iniciante:3, intermediario:4, avancado:6};   // sessões por semana que costumam bastar para o nível, com boa recuperação
+const EXP_SESSOES_MAX = {iniciante:5, intermediario:6, avancado:6};   // teto honrado quando a pessoa pede mais
 const SUBST_LOCAL = {
   casa: {   // halteres, elásticos e um banco: troca barras, máquinas e cabos
     "Agachamento livre":["Agachamento goblet (com halter)","10-15"],
@@ -664,6 +670,10 @@ function aplicarFoco(rotina, o){
   });
   return res;
 }
+function limitaSeries(rotina, max){
+  DAYS.forEach(k=>{ const d = rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=>{ if(e.series > max){ e.series = max; e.metaReps = metaRepsDe(e.series, e.reps, e.metaReps); } }); });
+  return rotina;
+}
 function equilibrarVolumeInicial(rotina, exp, semSubir){
   const lista = ()=>{ const a=[]; DAYS.forEach(k=>{ const d=rotina[k]; if(d && d.ativo) d.exercicios.forEach(e=> a.push(e)); }); return a; };
   const totais = ()=>{ const t={}; lista().forEach(e=> (e.musculos||[]).forEach(m=>{ t[m] = (t[m]||0) + (Number(e.series)||0); })); return t; };
@@ -697,16 +707,21 @@ function equilibrarVolumeInicial(rotina, exp, semSubir){
 function montaPorque(o){
   const {exp, split, n, pedidos, local, menor, objetivo} = o;
   const maxSes = o.maxSes || EXP_SESSOES_MAX[exp];
+  const rec = o.rec || EXP_SESSOES_REC[exp];
   const porque = [];
   porque.push(!split
     ? "Sua rotina de hoje tem "+n+" treino"+(n>1?"s":"")+" por semana, com exercícios em cada um."
-    : exp === "iniciante"
-      ? "Você está começando: treinar o corpo todo "+n+"× por semana dá prática em cada movimento e deixa dias de descanso entre as sessões."
-      : split === "Full Body"
-        ? "Com "+n+" dias por semana, treinar o corpo todo em cada sessão faz cada músculo trabalhar 2× ou mais por semana, que é o que mais rende."
+    : split === "Full Body"
+      ? (exp === "iniciante"
+        ? "Você está começando: treinar o corpo todo "+n+"× por semana dá prática em cada movimento e deixa dias de descanso entre as sessões."
+        : "Com "+n+" dias por semana, treinar o corpo todo em cada sessão faz cada músculo trabalhar 2× ou mais por semana, que é o que mais rende.")
+      : split === SPLIT_PERNAS
+        ? "Com 6 sessões e o foco em pernas e glúteos, o plano treina pernas e glúteos 3× por semana, costas e ombros 2× e peito e braços 1×, para o volume ir onde você quer."
         : n === 4
           ? "Upper/Lower em 4 dias: parte de cima e parte de baixo, cada uma 2× por semana, com descanso entre os dias parecidos."
           : "Com "+n+" sessões por semana, cada grupo principal (peito e ombros, costas e pernas) é treinado 2×, com mais volume por sessão.");
+  if(split && n > rec && pedidos >= n)
+    porque.push("Você pediu "+n+" dias, mais do que os "+rec+" que costumam bastar para o seu nível. O plano respeita o seu pedido, com poucas séries por exercício para dar para recuperar. Se o cansaço ou a dor se acumularem, tire um dia em Editar rotina.");
   if(pedidos > n){
     porque.push(n >= maxSes   // o nível (ou a idade) é o que limita as sessões; senão é a rotina que ainda não tem exercícios nos outros dias
       ? "Você escolheu "+pedidos+" dias, mas para o seu perfil o plano usa "+n+" sessões: é o que dá para recuperar bem. Nos outros dias, caminhe ou faça uma atividade leve. Dá para adicionar sessões em Editar rotina quando quiser."
@@ -733,6 +748,7 @@ function montaPorque(o){
     : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
   return porque;
 }
+const SPLIT_PERNAS = "A–F (Pernas e glúteos 3×)";
 function planoInicial(p){
   const exp = p && EXP_SESSOES_MAX[p.experiencia] ? p.experiencia : "iniciante";
   const local = p && (p.local === "casa" || p.local === "pouco") ? p.local : "academia";
@@ -756,11 +772,15 @@ function planoInicial(p){
     split = "A, B, C + Upper e Lower";
     const ppl = buildPPLRotina(), ul = buildUpperLowerRotina(), rest = {nome:"Descanso", ativo:false, exercicios:[]};
     base = {seg:ppl.seg, ter:ppl.ter, qua:ppl.qua, qui:rest, sex:ul.qui, sab:ul.sex, dom:rest};
+  } else if(focoSoPernas(p)){
+    split = SPLIT_PERNAS;      // plano feito para o foco: pernas e glúteos 3×, costas e ombros 2×, peito e braços 1×
+    base = buildPernasGluteosRotina();
   } else {
     split = "A–F (Peito, Costas e Pernas 2×)";
     base = buildPPLRotina();
   }
   const adaptada = adequarIdadeNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), p);
+  if(n > Math.min(EXP_SESSOES_REC[exp], maxSes)) limitaSeries(adaptada, 3);   // mais dias que o recomendado: séries enxutas para dar para recuperar
   const semSubir = !!(sit.idoso || sit.retorno || sit.tempo < 60);
   const comSit = aplicarSituacoes(adaptada, {local, sit});
   const proibidos = {};   // o foco nunca reintroduz o que a restrição articular ou o 60+ trocou
@@ -768,7 +788,7 @@ function planoInicial(p){
   const tcfg = (BASE_PLANOS.tempo && BASE_PLANOS.tempo[String(sit.tempo)]) || {};
   const foco = aplicarFoco(comSit, {p, exp, local, semSubir, proibidos, maxEx: tcfg.maxExercicios});
   const rotina = equilibrarVolumeInicial(comSit, exp, semSubir);
-  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}});
+  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, rec:Math.min(EXP_SESSOES_REC[exp], maxSes), foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}});
   return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit, foco};
 }
 
@@ -850,6 +870,11 @@ function focoMusculos(p){
   const set = new Set();
   focosDoPerfil(p).forEach(id=>{ FOCOS.find(f=> f.id === id).musc.forEach(m=> set.add(m)); });
   return set;
+}
+/* foco só em pernas, glúteos ou panturrilhas (e nenhum grupo de cima): o plano de 6 dias usa a divisão com ênfase em pernas */
+function focoSoPernas(p){
+  const mus = Array.from(focoMusculos(p));
+  return mus.length > 0 && mus.every(m=> ["gluteos","quadriceps","posterior","panturrilha"].indexOf(m) >= 0);
 }
 function focoAlvo(m){ const lm = MUSCLE_LANDMARKS[m]; return Math.min(lm.mrv, Math.round((lm.mav + lm.mrv) / 2)); }
 function focoNomes(p){ return focosDoPerfil(p).map(id=> FOCOS.find(f=> f.id === id).label); }
@@ -1279,7 +1304,6 @@ function comoMedirHtml(sexo){
     '</ul>'+
     '<div>Meça duas vezes; se os valores diferirem mais de 5 mm, meça de novo e use a média. De preferência antes do treino, no mesmo horário e nas mesmas condições.</div>'+
     '<div><b>O ponto da cintura importa.</b> A OMS mede em outro lugar (meio caminho entre a última costela e o topo do osso do quadril), então números de fontes diferentes não se comparam. Escolha um ponto e repita sempre o mesmo.</div>'+
-    '<div class="cm-fontes">Fontes: <a href="https://apps.dtic.mil/sti/pdfs/ADA143890.pdf" target="_blank" rel="noopener">Hodgdon &amp; Beckett (1984), Marinha dos EUA</a> · <a href="https://contentcdn.eacefitness.com/assets/certification/ace-answers/forms/pt/45_Circumference_Measurements_Protocol.pdf" target="_blank" rel="noopener">ACE — protocolo de circunferências</a> · <a href="https://www.who.int/publications/i/item/9789241501491" target="_blank" rel="noopener">OMS — cintura e relação cintura-quadril</a></div>'+
   '</div>';
 }
 function renderComoMedir(){
@@ -1661,34 +1685,51 @@ function applyLocalFallback(path, data){
 // de lugar, menor risco), só que agora são tratadas como um grupo: a nav
 // principal só tem o botão "Corpo", e uma segunda barrinha (corpo-subnav)
 // aparece só quando esse grupo está ativo, pra escolher qual das 3 mostrar.
-const CORPO_GROUP = ["corpo","recomendacoes"];   // v98 F3: Dieta virou item próprio da barra; Corpo ficou só com Corpo e Dicas
-let corpoSubTab = "corpo";
+// Grupos de sub-abas. Duas famílias:
+//  - GRUPOS_SECOES: cada sub-aba é uma <section class="view"> própria (Corpo/Dicas; Perfil/Configurações/Glossário/Sobre);
+//  - SUBS_INTERNAS: as sub-abas são faixas de cartões da MESMA seção (Treino e Dieta). Cada cartão marca a sua com data-sub
+//    (pode listar mais de uma, separadas por espaço); os demais ganham .sub-off (display:none).
+// showTab aceita "treino:progresso" para abrir direto numa sub-aba.
+const GRUPOS_SECOES = {corpo:["corpo","recomendacoes"], perfil:["perfil","config","glossario","sobre"]};
+const SUBS_INTERNAS = {treino:["plano","progresso","biblioteca","calculadoras"], dieta:["metas","cardapio"]};
+const subAtual = {corpo:"corpo", perfil:"perfil", treino:"plano", dieta:"metas"};
 const dirtyViews = new Set();   // v94 P1: seções que precisam ser redesenhadas ao abrir
+function abaPrincipal(id){ for(const g in GRUPOS_SECOES){ if(GRUPOS_SECOES[g].includes(id)) return g; } return id; }
+function aplicaSubInterna(g){
+  if(!SUBS_INTERNAS[g]) return;
+  const view = document.getElementById("view-"+g); if(!view) return;
+  const atual = subAtual[g];
+  view.querySelectorAll(":scope > [data-sub]").forEach(el=>{
+    el.classList.toggle("sub-off", !el.dataset.sub.split(" ").includes(atual));
+  });
+}
 function showTab(name){
-  let mainName = name;
-  if(CORPO_GROUP.includes(name)){
-    corpoSubTab = name;
-    mainName = "corpo";
+  name = String(name);
+  if(name.includes(":")){
+    const par = name.split(":");
+    if(SUBS_INTERNAS[par[0]] && SUBS_INTERNAS[par[0]].includes(par[1])) subAtual[par[0]] = par[1];
+    name = par[0];
   }
+  const mainName = abaPrincipal(name);
+  if(GRUPOS_SECOES[mainName]) subAtual[mainName] = name;
   document.querySelectorAll(".view").forEach(v=>{
     const id = v.id.replace("view-","");
-    v.hidden = CORPO_GROUP.includes(id) ? !(mainName === "corpo" && id === corpoSubTab) : id !== mainName;
+    const g = abaPrincipal(id);
+    v.hidden = GRUPOS_SECOES[g] ? !(mainName === g && id === subAtual[g]) : id !== mainName;
   });
   document.querySelectorAll(".tab-btn:not(.subtab-btn)").forEach(b=>{
     b.setAttribute("aria-selected", String(b.dataset.tab === mainName));
   });
-  // v98 F3: no celular, Glossário e Config não têm botão na barra — o Perfil fica marcado enquanto elas estão abertas
-  if(mainName === "glossario" || mainName === "config"){
-    const pf = document.getElementById("tab-perfil");
-    if(pf && getComputedStyle(document.getElementById("tab-"+mainName)).display === "none") pf.setAttribute("aria-selected","true");
-  }
-  const subnav = document.getElementById("corpo-subnav");
-  if(subnav){
-    subnav.hidden = mainName !== "corpo";
-    subnav.querySelectorAll(".subtab-btn").forEach(b=>{
-      b.setAttribute("aria-selected", String(b.dataset.subtab === corpoSubTab));
+  let temSub = false;
+  document.querySelectorAll("#subnav-host [data-subnav]").forEach(nav=>{
+    const g = nav.dataset.subnav, ativo = g === mainName;
+    nav.hidden = !ativo; if(ativo) temSub = true;
+    nav.querySelectorAll(".subtab-btn").forEach(b=>{
+      b.setAttribute("aria-selected", String((b.dataset.sub || b.dataset.subtab) === subAtual[g]));
     });
-  }
+  });
+  const host = document.getElementById("subnav-host"); if(host) host.hidden = !temSub;
+  aplicaSubInterna(mainName);
   // a trilha semanal é medida pela largura real do card (clientWidth), que é 0
   // enquanto a aba Treino está oculta — ao trocar pra essa aba, refaz o cálculo
   // agora que o card está visível de verdade, senão ela fica com a largura
@@ -1696,16 +1737,23 @@ function showTab(name){
   navTitulo(name);
   if(mainName === "treino") renderWeekTrail();
   // v94 P1: seção que ficou "suja" enquanto estava oculta é desenhada agora, já visível (também resolve medidas de largura)
-  const visId = mainName === "corpo" ? corpoSubTab : mainName;
+  const visId = GRUPOS_SECOES[mainName] ? subAtual[mainName] : mainName;
   if(dirtyViews.has(visId)) renderSection(visId);
 }
-/* v85 (I1): troca de aba com View Transition — desliza na direção da aba (esq./dir.); sub-abas do Corpo só esmaecem */
+/* troca de sub-aba dentro de Treino/Dieta: mostra só os cartões da faixa e redesenha a seção (medidas de largura corretas) */
+function setSub(g, sub){
+  if(!SUBS_INTERNAS[g] || !SUBS_INTERNAS[g].includes(sub)) return;
+  showTab(g+":"+sub);
+  renderSection(g);
+  window.scrollTo(0, 0);
+}
+/* v85 (I1): troca de aba com View Transition — desliza na direção da aba (esq./dir.); sub-abas só esmaecem */
 function showTabAnimated(name){
   const curView = document.querySelector(".view:not([hidden])");
-  const norm = n => CORPO_GROUP.includes(n) ? "corpo" : n;
+  const base = String(name).split(":")[0];
   const cur = curView ? curView.id.replace("view-","") : "";
-  if(!cur || (cur === name)) { showTab(name); return Promise.resolve(); }
-  const a = TAB_ORDER.indexOf(norm(cur)), b = TAB_ORDER.indexOf(norm(name));
+  if(!cur) { showTab(name); return Promise.resolve(); }
+  const a = TAB_ORDER.indexOf(abaPrincipal(cur)), b = TAB_ORDER.indexOf(abaPrincipal(base));
   const dir = (a === b || a < 0 || b < 0) ? null : (b > a ? "fwd" : "back");
   return withTransition(()=> showTab(name), {nav:true, dir});
 }
@@ -1713,7 +1761,10 @@ document.querySelectorAll(".tab-btn:not(.subtab-btn)").forEach(b=>{
   b.addEventListener("click", ()=> showTabAnimated(b.dataset.tab));
 });
 document.querySelectorAll(".subtab-btn").forEach(b=>{
-  b.addEventListener("click", ()=> showTabAnimated(b.dataset.subtab));
+  b.addEventListener("click", ()=>{
+    if(b.dataset.sub) withTransition(()=> setSub(b.dataset.group, b.dataset.sub), {nav:true, dir:null});
+    else showTabAnimated(b.dataset.subtab);
+  });
 });
 /* v98 F3: a folha "Mais" foi removida (Glossário e Config ficam no card "Mais do app" do Perfil) */
 document.querySelectorAll("[data-goto]").forEach(b=>{
@@ -1727,7 +1778,7 @@ document.querySelectorAll("[data-goto]").forEach(b=>{
    (a trilha semanal, a própria barra de abas, gráficos) — aí o gesto nativo
    daquele elemento tem prioridade. Não usa preventDefault em nenhum momento,
    então o scroll da página nunca é bloqueado por engano. */
-const TAB_ORDER = ["painel","treino","dieta","corpo","perfil","glossario","config"];
+const TAB_ORDER = ["painel","treino","dieta","corpo","perfil"];
 (function setupSwipeTabs(){
   const app = document.querySelector(".app");
   if(!app) return;
@@ -7819,8 +7870,17 @@ function openRotinaEditor(){
   body.innerHTML =
     '<h2>Editar rotina</h2>'+
     '<div class="sub">Personalize o treino e os exercícios de cada dia da semana.</div>'+
+    '<div class="rotina-gen" id="rotina-gen" role="group" aria-labelledby="rotina-gen-t">'+
+      '<strong id="rotina-gen-t">Gerar um plano para mim</strong>'+
+      '<div class="hint">O app monta os dias e os exercícios pelo seu nível, local de treino, tempo e pelos focos que você marcar aqui. Os focos valem só para este plano; o foco do perfil continua o mesmo.</div>'+
+      '<label class="rotina-gen-dias">Dias de treino por semana<select id="rg-dias">'+[2,3,4,5,6].map(n=>'<option value="'+n+'">'+n+' por semana</option>').join("")+'</select></label>'+
+      '<div class="rotina-gen-focos"><span class="rotina-gen-lbl" id="rg-focos-t">Onde dar mais atenção (até 2)</span><div class="muscle-chips" role="group" aria-labelledby="rg-focos-t">'+
+        FOCOS.map(f=>'<button type="button" class="muscle-chip" data-rg-foco="'+f.id+'" aria-pressed="false">'+escapeHtml(f.label)+'</button>').join("")+'</div></div>'+
+      '<button class="btn small primary" type="button" id="rotina-gerar">Gerar plano</button>'+
+      '<div class="hint" id="rotina-gen-resumo" role="status" aria-live="polite"></div>'+
+    '</div>'+
     '<div class="rotina-template-row">'+
-      '<select id="rotina-template-select">'+
+      '<select id="rotina-template-select" aria-label="Modelo de rotina">'+
         '<option value="">Começar de um modelo…</option>'+
         Object.keys(ROTINA_TEMPLATES).map(k=>'<option value="'+k+'">'+escapeHtml(ROTINA_TEMPLATES[k].label)+'</option>').join("")+
       '</select>'+
@@ -7858,7 +7918,7 @@ function openRotinaEditor(){
         '<input type="number" min="1" max="20" class="ex-series" value="'+ex.series+'" title="séries">'+
         '<input type="text" class="ex-reps" value="'+escapeHtml(String(ex.reps))+'" placeholder="reps">'+
         '<input type="number" min="0" max="300" class="ex-meta" value="'+(ex.metaReps||0)+'" title="meta de reps totais (quest)" placeholder="meta">'+
-        '<button type="button" class="icon-btn ex-remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+        '<button type="button" class="icon-btn ex-remove" aria-label="Remover exercício"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
       const chipsWrap = document.createElement("div");
       chipsWrap.className = "muscle-chips";
       const musculosSet = new Set(ex.musculos||[]);
@@ -7892,6 +7952,28 @@ function openRotinaEditor(){
     DAYS.forEach(key=> buildDaySection(key, draft[key]));
   }
   renderDays();
+
+  /* gerador: monta o plano pelo perfil + dias + focos escolhidos aqui (planoInicial), no rascunho; só vale ao salvar */
+  const genDias = body.querySelector("#rg-dias"), genResumo = body.querySelector("#rotina-gen-resumo");
+  const genFocos = new Set(focosDoPerfil());
+  const nAtivos = DAYS.filter(k=> draft[k] && draft[k].ativo && (draft[k].exercicios||[]).length).length;
+  genDias.value = String(Math.max(2, Math.min(6, Math.round(Number(state.perfil && state.perfil.diasSemana)) || nAtivos || 3)));
+  const pintaFocos = ()=> body.querySelectorAll("[data-rg-foco]").forEach(b=>{ const on = genFocos.has(b.dataset.rgFoco); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
+  pintaFocos();
+  body.querySelectorAll("[data-rg-foco]").forEach(b=> b.addEventListener("click", ()=>{
+    const id = b.dataset.rgFoco;
+    if(genFocos.has(id)) genFocos.delete(id);
+    else if(id === "corpo_todo"){ genFocos.clear(); genFocos.add(id); }
+    else { genFocos.delete("corpo_todo"); if(genFocos.size >= 2) genFocos.delete(Array.from(genFocos)[0]); genFocos.add(id); }
+    pintaFocos();
+  }));
+  body.querySelector("#rotina-gerar").addEventListener("click", ()=>{
+    const base = state.perfil ? Object.assign({}, state.perfil) : {experiencia:"iniciante", local:"academia", objetivo:"manutencao"};
+    const pl = planoInicial(Object.assign(base, {diasSemana:Number(genDias.value), focos:Array.from(genFocos)}));
+    draft = pl.rotina; renderDays();
+    genResumo.textContent = pl.split+" · "+pl.sessoes+" treino"+(pl.sessoes>1?"s":"")+" por semana. "+pl.porque.slice(0,3).join(" ");
+    showToast('Plano gerado: '+pl.split+'. Revise os exercícios e confirme em "Salvar rotina".');
+  });
 
   const templateSelect = body.querySelector("#rotina-template-select");
   const templateDesc = body.querySelector("#rotina-template-desc");
@@ -8671,7 +8753,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.17c1aab163.js";
+const CARDAPIO_URL = "./cardapio.da7fbcb271.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)
@@ -8768,7 +8850,7 @@ function renderAjusteResultado(med, p, kcalAlvo, tdee){
       msg = 'Ganho acima da faixa. Parte do excesso tende a virar gordura, principalmente com mais tempo de treino. Considere reduzir ~150 kcal/dia (≈ '+num(novo,0)+' kcal) e reavaliar em 2 a 3 semanas.';
     }
     corpo = escala+'<div class="ajuste-box '+tone+'">'+msg+'</div>'+
-      '<div class="ajuste-src">Faixa: ~0,25–0,5% do peso/semana pra iniciante/intermediário, com superávit de ~10–20% (<a href="https://www.mdpi.com/2075-4663/7/7/154" target="_blank" rel="noopener">Iraki et al., 2019</a>). Seu superávit atual é de 10%. Avançados devem ser mais conservadores.</div>';
+      '<div class="ajuste-src">Faixa: ~0,25–0,5% do peso/semana pra iniciante/intermediário, com superávit de ~10–20%. Seu superávit atual é de 10%. Avançados devem ser mais conservadores.</div>';
   } else if(objetivoAtual === "deficit"){
     corpo = '<div class="ajuste-msg">Esse é o ritmo real do seu peso no objetivo de emagrecimento. Se ele ficou parado por 3 ou mais semanas apesar de seguir a meta, o mais provável é que a ingestão real esteja acima da registrada — revise porções e fins de semana antes de cortar mais calorias.</div>';
   } else {
@@ -8832,14 +8914,14 @@ const TOUR_PASSOS = [
   {aba:"painel", alvo:"#cc-semana", t:"Sua semana", x:"Os dias de treino da semana: feitos, perdidos e os que vêm. Perdeu um? O app oferece fazer o treino em outro dia."},
   {aba:"painel", alvo:"#cc-missoes", t:"Missões", x:"Desafios curtos que rendem XP extra. São opcionais: ajudam a manter o ritmo, não são cobrança."},
   {aba:"painel", alvo:"#main-tabs", t:"Navegação", x:"Use esta barra para trocar entre Hoje, Treino, Dieta, Corpo e Perfil."},
-  {aba:"treino", alvo:{h2:"Rotina semanal"}, t:"Sua rotina", x:"Os treinos de cada dia da semana. Dá para editar exercícios, séries e repetições, ou trocar um exercício de vez."},
-  {aba:"treino", alvo:{h2:"Cargas"}, t:"Carga, repetições e RPE", x:"Registre o peso e as repetições de cada série. RPE é o quanto a série foi difícil, de 1 a 10: perto de 8 (sobram umas 2 repetições) é o ponto certo. Suba a carga aos poucos, só quando completar as repetições com boa técnica."},
-  {aba:"treino", alvo:"#analise-treino-card", t:"Análise do treino", x:"Mostra se o volume de cada músculo está na faixa recomendada e como suas cargas evoluem com o tempo."},
-  {aba:"dieta", alvo:{h2:"Objetivo calórico"}, t:"Dieta", x:"Calorias e macronutrientes calculados pelo seu perfil e objetivo. É uma estimativa: o app ajusta pelo seu resultado. Para menores de 18 anos não há sugestão de déficit calórico."},
-  {aba:"dieta", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Meus alimentos para marcar só o que você come (o cardápio e a lista de compras seguem a sua escolha) e Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
+  {aba:"treino:plano", alvo:{h2:"Rotina semanal"}, t:"Sua rotina", x:"Os treinos de cada dia da semana. Dá para editar exercícios, séries e repetições, ou trocar um exercício de vez."},
+  {aba:"treino:progresso", alvo:{h2:"Cargas"}, t:"Carga, repetições e RPE", x:"Registre o peso e as repetições de cada série. RPE é o quanto a série foi difícil, de 1 a 10: perto de 8 (sobram umas 2 repetições) é o ponto certo. Suba a carga aos poucos, só quando completar as repetições com boa técnica."},
+  {aba:"treino:progresso", alvo:"#analise-treino-card", t:"Análise do treino", x:"Mostra se o volume de cada músculo está na faixa recomendada e como suas cargas evoluem com o tempo."},
+  {aba:"dieta:metas", alvo:{h2:"Objetivo calórico"}, t:"Dieta", x:"Calorias e macronutrientes calculados pelo seu perfil e objetivo. É uma estimativa: o app ajusta pelo seu resultado. Para menores de 18 anos não há sugestão de déficit calórico."},
+  {aba:"dieta:cardapio", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Meus alimentos para marcar só o que você come (o cardápio e a lista de compras seguem a sua escolha) e Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
   {aba:"corpo", alvo:{h2:"Nova medição"}, t:"Medidas e fotos", x:"Registre peso e medidas, de preferência sempre no mesmo horário, para ver a evolução nos gráficos. As fotos de progresso ficam só na sua conta."},
   {aba:"perfil", alvo:{h2:"Ficha de personagem"}, t:"Seu personagem", x:"Nível, XP e atributos sobem com a constância. As conquistas desbloqueiam quando você bate marcos."},
-  {aba:"perfil", alvo:"#perfil-mais", t:"Mais do app", x:"No celular, o Glossário (termos de treino explicados) e as Configurações ficam aqui."},
+  {aba:"perfil", alvo:"#perfil-subnav", t:"Mais do app", x:"As abas no topo do Perfil levam às Configurações, ao Glossário (termos explicados) e ao Sobre, com as fontes dos cálculos."},
   {aba:"config", alvo:"#cfg-conta", t:"Seus dados", x:"Tudo é salvo primeiro no aparelho, por isso o app funciona sem internet, e vai para a nuvem quando houver conexão. Aqui você sincroniza, sai da conta e pode pedir o código de novo depois de um tempo fora do app."},
   {aba:"config", alvo:"#cfg-instalar", t:"Instalar no celular", x:"Instale na tela inicial para abrir em tela cheia e usar sem internet. No iPhone: Compartilhar → Adicionar à Tela de Início."},
   {aba:"painel", alvo:null, t:"Antes de começar", x:"O NG+ orienta, mas não substitui profissional de educação física, nutrição ou saúde. Sentiu dor forte? Não force: faça um dia leve e procure um profissional. Bom treino!"}
@@ -8855,7 +8937,7 @@ function tourAlvo(p){
   if(!p.alvo) return null;
   let el = null;
   if(p.alvo.h2){
-    const v = document.getElementById("view-"+p.aba);
+    const v = document.getElementById("view-"+String(p.aba).split(":")[0]);
     const h = v && Array.from(v.querySelectorAll("h2")).find(x=> x.textContent.trim().indexOf(p.alvo.h2) === 0);
     el = h && (h.closest(".card") || h.closest("details") || h);
   } else el = document.querySelector(p.alvo);
@@ -9329,7 +9411,7 @@ function planoPorqueAtual(){
   const split = mesmo ? pi.split : null;
   const sit = situacoesDoPerfil(p);
   const maxSes = sit.idoso && BASE_PLANOS.idoso ? Math.min(EXP_SESSOES_MAX[p.experiencia], BASE_PLANOS.idoso.maxSessoes) : EXP_SESSOES_MAX[p.experiencia];
-  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes, foco:{nomes:focoNomes(p), adicionados:[], aplicado:focoMusculos(p).size > 0 && !(sit.idoso || sit.retorno || sit.tempo < 60)}})};
+  return {split, sessoes:n, porque: montaPorque({exp:p.experiencia, split, n, pedidos, local, menor, objetivo, sit, maxSes, rec:Math.min(EXP_SESSOES_REC[p.experiencia], maxSes), foco:{nomes:focoNomes(p), adicionados:[], aplicado:focoMusculos(p).size > 0 && !(sit.idoso || sit.retorno || sit.tempo < 60)}})};
 }
 function renderPlanoPorque(){
   const hoje = document.getElementById("plano-porque-hoje"), treino = document.getElementById("plano-porque-treino");
@@ -10466,27 +10548,19 @@ function renderSuplementos(){
    FONTES
    ============================================================ */
 function renderFontes(){
-  document.getElementById("fontes-corpo").innerHTML =
-    'Fórmulas: IMC — <a href="https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html" target="_blank" rel="noopener">classificação CDC/OMS</a> · '+
-    'RCQ — <a href="https://www.who.int/publications/i/item/9789241501491" target="_blank" rel="noopener">OMS, Waist Circumference and Waist-Hip Ratio (2008)</a> · '+
-    '% Gordura — método da Marinha dos EUA (<a href="https://www.omnicalculator.com/pt/saude/gordura-corporal-marinha-americana" target="_blank" rel="noopener">fórmula de Hodgdon &amp; Beckett</a>), classificação por faixas — <a href="https://www.acefitness.org/about-ace/press-room/in-the-news/8602/body-fat-percentage-charting-averages-in-men-and-women-very-well-health/" target="_blank" rel="noopener">ACE Fitness</a> · Cintura ÷ altura — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4800150/" target="_blank" rel="noopener">Ashwell &amp; Gibson, BMJ Open (2016)</a> · Hábitos — sono: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4434546/" target="_blank" rel="noopener">AASM/SRS (2015)</a>, passos: <a href="https://pubmed.ncbi.nlm.nih.gov/35247352/" target="_blank" rel="noopener">Paluch et al. (2022)</a>.';
-  document.getElementById("fontes-dieta").innerHTML =
-    'Fórmulas: TMB — <a href="https://www.omnicalculator.com/health/bmr" target="_blank" rel="noopener">equação de Mifflin-St Jeor</a> · '+
-    'Proteína — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">ISSN Position Stand: Protein and Exercise (2017)</a> · '+
-    'Gordura/Carboidrato — <a href="https://www.ncbi.nlm.nih.gov/books/NBK610333/" target="_blank" rel="noopener">Acceptable Macronutrient Distribution Range (IOM/National Academies)</a> · '+
-    'Cardápio — composição dos alimentos pela <a href="https://www.tabelatacoonline.com.br" target="_blank" rel="noopener">Tabela Brasileira de Composição de Alimentos (TACO, NEPA/UNICAMP)</a>; soja texturizada e proteínas em pó: valor típico de rótulo; vegano e vegetariano: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">ISSN Position Stand (2017)</a>; proteína por refeição: <a href="https://pubmed.ncbi.nlm.nih.gov/28642676/" target="_blank" rel="noopener">ISSN Position Stand (2017)</a>; nota sobre déficit: <a href="https://pubmed.ncbi.nlm.nih.gov/28698222/" target="_blank" rel="noopener">Morton et al. (2018)</a>.';
-  const fontesRec = document.getElementById("fontes-recomendacoes");
-  if(fontesRec){
-    fontesRec.innerHTML =
-      'Fontes: <a href="https://link.springer.com/article/10.1186/s12970-017-0173-z" target="_blank" rel="noopener">Kreider et al. (2017) — ISSN Position Stand: Creatine Supplementation</a> · '+
-      '<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153" target="_blank" rel="noopener">Jäger et al. (2017) — ISSN Position Stand: Protein and Exercise</a> · '+
-      '<a href="https://jissn.biomedcentral.com/track/pdf/10.1186/s12970-020-00383-4" target="_blank" rel="noopener">Guest et al. (2021) — ISSN Position Stand: Caffeine and Exercise Performance</a> · '+
-      '<a href="https://www.nutraingredients.com/Article/2025/01/22/issn-publishes-position-on-omega-3-for-athletes/" target="_blank" rel="noopener">ISSN (2025) — Omega-3 for Athletes (resumo)</a> · '+
-      '<a href="https://ods.od.nih.gov/factsheets/VitaminD-HealthProfessional/" target="_blank" rel="noopener">NIH ODS — Vitamin D Fact Sheet</a> · '+
-      '<a href="https://rpstrength.com/blogs/articles/training-volume-landmarks-muscle-growth" target="_blank" rel="noopener">RP Strength — Training Volume Landmarks (MEV/MAV/MRV)</a> · '+
-      '<a href="https://musclesquad.com/blogs/fitness-equipment/5-home-gym-essentials" target="_blank" rel="noopener">MuscleSquad — equipamentos essenciais de home gym</a>.';
-  }
+  const dados = (window.NG_DADOS && window.NG_DADOS.fontes) || {grupos:[]};
+  const box = document.getElementById("fontes-lista"); if(!box) return;
+  let total = 0;
+  box.innerHTML = (dados.grupos || []).map(g=>{
+    total += g.itens.length;
+    return '<section class="fontes-grupo" aria-labelledby="fontes-'+escapeHtml(g.id)+'-t"><h3 id="fontes-'+escapeHtml(g.id)+'-t">'+escapeHtml(g.titulo)+'</h3><ul class="fontes-ul">'+
+      g.itens.map(i=>'<li><a href="'+escapeHtml(i.u)+'" target="_blank" rel="noopener">'+escapeHtml(i.t)+'</a>'+(i.uso ? '<span class="fonte-uso">Usado em: '+escapeHtml(i.uso)+'</span>' : '')+'</li>').join("")+
+      '</ul></section>';
+  }).join("");
+  const c = document.getElementById("fontes-contagem"); if(c) c.textContent = total+" referências";
+  const av = document.getElementById("sobre-aviso"); if(av && dados.aviso) av.textContent = dados.aviso;
 }
+(function(){ const t = document.getElementById("sobre-tour"); if(t) t.addEventListener("click", ()=> iniciarTutorial(null)); })();
 
 /* ============================================================
    RENDER GERAL
@@ -10501,7 +10575,8 @@ const SECTION_RENDERERS = {
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
   perfil: [renderRadar, renderAttrs, renderPerfilSummary, renderMarcos, renderAchievements],
   config: [renderTemas, renderSkins, renderConfigExtras, renderRecupConfig],
-  glossario: [renderGlossario]
+  glossario: [renderGlossario],
+  sobre: [renderFontes]
 };
 function renderSection(id){
   dirtyViews.delete(id);
@@ -10627,7 +10702,7 @@ window.addEventListener("resize", ()=>{
 /* cabeçalho que some ao rolar pra baixo e reaparece ao rolar pra cima — só em
    telas de toque; no topo da página (ou ao trocar de aba) fica sempre visível */
 (function setupAutoHideHeader(){
-  const bar = document.querySelector(".topbar");
+  const bar = document.querySelector(".topbar"), subHost = document.getElementById("subnav-host");
   if(!bar || !window.matchMedia) return;
   const mq = window.matchMedia("(hover:none) and (pointer:coarse)");
   let lastY = window.scrollY, ticking = false;
@@ -10635,9 +10710,9 @@ window.addEventListener("resize", ()=>{
     ticking = false;
     const y = Math.max(0, window.scrollY);
     const dy = y - lastY;
-    if(!mq.matches || y < 60){ bar.classList.remove("hide"); lastY = y; return; }
-    if(dy > 10){ bar.classList.add("hide"); lastY = y; }
-    else if(dy < -10){ bar.classList.remove("hide"); lastY = y; }
+    if(!mq.matches || y < 60){ bar.classList.remove("hide"); if(subHost) subHost.classList.remove("hide"); lastY = y; return; }
+    if(dy > 10){ bar.classList.add("hide"); if(subHost) subHost.classList.add("hide"); lastY = y; }
+    else if(dy < -10){ bar.classList.remove("hide"); if(subHost) subHost.classList.remove("hide"); lastY = y; }
   }
   window.addEventListener("scroll", ()=>{ if(!ticking){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
   // foco num campo dentro do cabeçalho (ex.: navegação por teclado) → mostra de volta

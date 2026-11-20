@@ -1,5 +1,6 @@
 // Teste do cardápio da semana no navegador. Uso: (na pasta site) python3 -m http.server 8765 &  node cardapio-e2e.js http://localhost:8765
 const { chromium } = require('playwright');
+const { abreCardapio, escolhe, valorDe } = require('./cardapio-ajuda.js');
 const URL_ = (process.argv[2] || 'http://localhost:8765') + '/index.html';
 const SHOT = process.argv[3] || '';
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); };
@@ -18,7 +19,17 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await db.doc('medicoes/' + hoje).set({ data: hoje, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 });
   }, hoje);
   await p.reload(); await p.waitForTimeout(1800);
-  await p.click('#tab-dieta'); await p.waitForTimeout(600);
+  // primeiro uso: o cardápio vem vazio e o formulário abre sozinho numa caixa flutuante
+  await p.evaluate(() => document.getElementById('tab-dieta').click()); await p.waitForTimeout(500);
+  await p.evaluate(() => document.getElementById('subtab-dieta-cardapio').click()); await p.waitForTimeout(1200);
+  t('primeiro uso: formulário abre sozinho (caixa flutuante)', await p.locator('.cdp-form').isVisible() && /Monte seu cardápio/.test(await p.locator('.modal, .cdp-form').first().innerText()));
+  t('formulário tem jeito, rotina, refeições, restrições e alimentos', await p.locator('[data-form="jeito"]').count() === 1 && await p.locator('[data-form="rotina"]').count() === 1 && await p.locator('[data-form="nref"]').count() === 1 && await p.locator('[data-form="restr"]').count() === 8 && await p.locator('[data-form="alimento"]').count() > 20);
+  t('campos do formulário são selecionáveis (select)', await p.evaluate(() => ['jeito', 'rotina', 'nref'].every(k => document.querySelector('[data-form="' + k + '"]').tagName === 'SELECT')));
+  await p.click('[data-form="cancelar"]'); await p.waitForTimeout(600);
+  t('"Agora não": card segue vazio, sem dias nem refeições, com convite', await p.locator('.cdp-vazio').isVisible() && await p.locator('.cdp-day').count() === 0 && await p.locator('.cdp-meal').count() === 0);
+  await p.click('[data-cdp="montar"]'); await p.waitForTimeout(600);
+  t('botão "Montar meu cardápio" reabre o formulário', await p.locator('.cdp-form').isVisible());
+  await p.click('[data-form="salvar"]'); await p.waitForTimeout(1200);
   const body = () => p.evaluate(() => (document.getElementById('cardapio-body') || {}).innerText || '');
   let txt = await body();
   t('card aparece com 7 dias', await p.locator('.cdp-day').count() === 7);
@@ -29,20 +40,18 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   await p.click('.cdp-day[data-v="2"]'); await p.waitForTimeout(200);
   t('dia 3 (descanso) selecionado', await p.locator('.cdp-day.on').getAttribute('data-v') === '2' && /descanso/.test(await p.locator('.cdp-day.on').innerText()));
   // trocar rotina
-  await p.click('.cdp-chip[data-cdp="rotina"][data-v="corrido"]'); await p.waitForTimeout(400);
+  await escolhe(p, 'rotina', 'corrido');
   t('rotina corrido = 4 refeições', await p.locator('.cdp-meal').count() === 4);
   // jeito vegano + sem lactose + sem glúten: nenhum alimento proibido
-  await p.click('.cdp-chip[data-cdp="jeito"][data-v="vegan"]'); await p.waitForTimeout(300);
-  await p.click('.cdp-chip[data-cdp="restr"][data-v="lactose"]'); await p.waitForTimeout(300);
-  await p.click('.cdp-chip[data-cdp="restr"][data-v="gluten"]'); await p.waitForTimeout(300);
+  await escolhe(p, 'jeito', 'vegan'); await escolhe(p, 'restr', 'lactose'); await escolhe(p, 'restr', 'gluten');
   txt = await body();
   t('vegano sem carne/ovo/queijo/iogurte/whey/pão', !/frango|patinho|acém|sardinha|abadejo|pintado|ovo|queijo|iogurte|whey|pão|aveia/i.test(await p.locator('.cdp-meals').innerText()));
   t('nota do vegano visível', /vitamina B12/.test(txt));
   // salvo em settings.cardapio
   const salvo = await p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); return d.exists ? d.data().cardapio : null; });
   t('escolhas salvas em settings.cardapio', salvo && salvo.jeito === 'vegan' && salvo.rotina === 'corrido' && salvo.restricoes.lactose && salvo.restricoes.gluten, JSON.stringify(salvo));
-  await p.reload(); await p.waitForTimeout(1800); await p.click('#tab-dieta'); await p.waitForTimeout(500);
-  t('escolhas persistem após reload', await p.locator('.cdp-chip.on[data-v="vegan"]').count() === 1 && await p.locator('.cdp-meal').count() === 4);
+  await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
+  t('escolhas persistem após reload (sem pedir o formulário de novo)', await valorDe(p, 'jeito') === 'vegan' && await valorDe(p, 'rotina') === 'corrido' && await valorDe(p, 'restr', 'lactose') && await p.locator('.cdp-meal').count() === 4 && await p.locator('.cdp-form').count() === 0);
   // lista de compras abre
   await p.click('.cdp-shop summary'); await p.waitForTimeout(200);
   t('lista de compras abre com itens', await p.locator('.cdp-shop .cdp-it').count() > 5);

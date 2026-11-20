@@ -574,6 +574,7 @@ function normalizaCfg(settings) {
   const c = settings && settings.cardapio || {};
   const r = c.restricoes || {};
   return {
+    configurado: c.configurado === true || c.configurado !== false && Object.keys(c).length > 0,
     jeito: STYLE[c.jeito] ? c.jeito : r.vegetariano ? "veg" : "omni",
     // quem usava o antigo "Vegetariano" mantém a escolha
     rotina: ROUT[c.rotina] ? c.rotina : "marmita",
@@ -665,7 +666,7 @@ function montaVisao(e, h) {
     total,
     avisos: avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join(""),
     refeicoes,
-    compras: compraHtml + (temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "") + '<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.' + (cfg.meus ? " Só aparecem alimentos de Meus alimentos." : " Para ver só o que você come, marque em Meus alimentos.") + "</div>",
+    compras: '<div class="cdp-note">Tudo o que aparece nos 7 dias do seu cardápio, somado: ' + compra.length + " alimento" + (compra.length > 1 ? "s" : "") + ".</div>" + compraHtml + (temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "") + '<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.' + (cfg.meus ? " Só aparecem alimentos de Meus alimentos." : " Para ver só o que você come, marque em Meus alimentos.") + "</div>",
     rodape: '<div class="cdp-note">Média da semana: ' + num(media.k, 0) + " kcal e " + num(media.P, 0) + ' g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div><div class="cdp-note">Horários sugeridos como ponto de partida: 3 a 4 horas entre as refeições e o jantar com folga antes de dormir. Ajuste ao seu dia de trabalho e de treino.</div>' + (notaJeito ? '<div class="cdp-note">' + escapeHtml(notaJeito) + "</div>" : "") + (menor ? '<div class="cdp-note">Para menores de 18 anos o cardápio nunca usa déficit calórico e o ganho de massa é moderado.</div>' : "") + '<div class="cdp-note">Exemplo calculado a partir da sua meta, com porções de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde.</div>',
     ligados: Object.assign(
       { jeito: cfg.jeito, rotina: cfg.rotina, dia: String(dia), nref: String(nRefeicoes(motor)), nrefFixo: cfg.rotina === "marmita" },
@@ -759,6 +760,34 @@ function montaPopupMeus(e, h) {
     html: '<h2>Meus alimentos</h2><div class="sub">Marque só o que você come. O cardápio e a lista de compras usam apenas esses alimentos; o que ficar desmarcado não aparece. Os filtros de jeito de comer e restrições continuam valendo.</div><div class="cdp-note" role="status" aria-live="polite" data-meus-msg>' + marcados.length + " de " + disp.length + " alimentos marcados.</div>" + avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join("") + grupos + '<div class="modal-actions"><button type="button" class="btn" data-meus="auto">Voltar ao automático</button><button type="button" class="btn primary" data-meus="fechar">Pronto</button></div>'
   };
 }
+function montaFormulario(e, h, draft) {
+  const { escapeHtml, num } = h;
+  const cfg = Object.assign({}, e.cfg, draft);
+  const motor = motorDe(Object.assign({}, e, { cfg }));
+  const disp = alimentosDisponiveis(motor);
+  const marcados = cfg.meus ? disp.filter((id) => cfg.meus.indexOf(id) >= 0) : disp.slice();
+  const fixo = cfg.rotina === "marmita";
+  const nref = nRefeicoes(motor);
+  const opt = (itens, atual) => itens.map((i) => '<option value="' + i[0] + '"' + (String(i[0]) === String(atual) ? " selected" : "") + ">" + escapeHtml(i[1]) + "</option>").join("");
+  const nomeHtml = (id) => escapeHtml(nomeLimpo(FOODS[id]));
+  const alimentos = CDP_GRUPOS_MEUS.map((g) => {
+    const ids = disp.filter((id) => FOODS[id].role === g[1]);
+    if (!ids.length) return "";
+    const n = ids.filter((id) => marcados.indexOf(id) >= 0).length;
+    return '<div class="cdp-pop-sec"><span class="cdp-lbl">' + g[0] + " <small>(" + n + " de " + ids.length + ')</small></span><div class="cdp-chips" role="group" aria-label="' + g[0] + '">' + ids.map((id) => {
+      const on = marcados.indexOf(id) >= 0;
+      return '<button type="button" class="cdp-chip' + (on ? " on" : "") + '" data-form="alimento" data-v="' + id + '" aria-pressed="' + on + '">' + nomeHtml(id) + "</button>";
+    }).join("") + "</div></div>";
+  }).join("");
+  const avisos = marcados.length ? validaRestricoes(Object.assign({}, motor, { meus: marcados.length === disp.length ? null : marcados })).avisos : [];
+  const restr = CDP_RESTR.map((i) => '<label class="cdp-chk"><input type="checkbox" data-form="restr" data-v="' + i[0] + '"' + (cfg.restricoes[i[0]] ? " checked" : "") + "><span>" + escapeHtml(i[1]) + "</span></label>").join("");
+  return {
+    marcados: marcados.length,
+    total: disp.length,
+    avisos,
+    html: '<h2>Monte seu cardápio</h2><div class="sub">Conte como você come. O app monta 7 dias que fecham sua meta (' + num(e.kcalAlvo, 0) + " kcal e " + num(e.macros.proteina.g, 0) + ' g de proteína por dia) e soma tudo na lista de compras. Dá para mudar quando quiser.</div><div class="cdp-form"><label class="cdp-field"><span class="cdp-lbl">Jeito de comer</span><select class="cdp-sel" data-form="jeito">' + opt(CDP_JEITOS, cfg.jeito) + '</select></label><label class="cdp-field"><span class="cdp-lbl">Rotina</span><select class="cdp-sel" data-form="rotina">' + opt(CDP_ROTINAS, cfg.rotina) + '</select><span class="cdp-note">' + escapeHtml(CDP_ROT_DESC[cfg.rotina](nref)) + '</span></label><label class="cdp-field"><span class="cdp-lbl">Refeições por dia</span><select class="cdp-sel" data-form="nref"' + (fixo ? " disabled" : "") + ">" + opt(CDP_NREF.map((n) => [n, n + " refeições"]), nref) + "</select>" + (fixo ? '<span class="cdp-note">Na Marmita da semana são sempre 5 refeições (os lotes dependem disso).</span>' : "") + '</label><fieldset class="cdp-fs"><legend class="cdp-lbl">Restrições</legend><div class="cdp-chk-list">' + restr + '</div></fieldset><div class="cdp-field"><span class="cdp-lbl">Alimentos que eu como</span><div class="cdp-note" role="status" aria-live="polite" data-form-msg>' + marcados.length + " de " + disp.length + ' alimentos marcados. O cardápio e a lista de compras usam só os marcados.</div><div class="cdp-note"><button type="button" class="btn small" data-form="todos">Marcar todos</button> <button type="button" class="btn small" data-form="nenhum">Limpar</button></div>' + avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join("") + alimentos + '</div></div><div class="modal-actions"><button type="button" class="btn" data-form="cancelar">Agora não</button><button type="button" class="btn primary" data-form="salvar">Montar meu cardápio</button></div>'
+  };
+}
 function criaCardapio(ctx) {
   for (const k of ["estado", "objetivo", "salvaSettings", "redesenhaDieta", "tocaSom", "num", "escapeHtml", "menorDeIdade"]) {
     if (typeof ctx[k] !== "function") throw new Error("cardapio: ctx." + k + " ausente (função esperada)");
@@ -769,14 +798,14 @@ function criaCardapio(ctx) {
   let montado = false;
   const ultimo = {};
   function cdpSalvar(cfg) {
-    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, { cardapio: { jeito: cfg.jeito, rotina: cfg.rotina, nref: cfg.nref || null, restricoes: Object.assign({}, cfg.restricoes), trocas: cfg.trocas || [], meus: cfg.meus || null } }));
+    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, { cardapio: { configurado: true, jeito: cfg.jeito, rotina: cfg.rotina, nref: cfg.nref || null, restricoes: Object.assign({}, cfg.restricoes), trocas: cfg.trocas || [], meus: cfg.meus || null } }));
   }
   const regiao = (el, nome) => el.querySelector('[data-r="' + nome + '"]');
   const botao = (el, rot, v) => el.querySelector('[data-cdp="' + rot + '"][data-v="' + v + '"]');
-  const grupo = (rotulo, itens, rot) => '<div class="cdp-chips" role="group" aria-label="' + rotulo + '">' + itens.map((i) => '<button type="button" class="cdp-chip" data-cdp="' + rot + '" data-v="' + i[0] + '" aria-pressed="false">' + i[1] + "</button>").join("") + "</div>";
+  const seletor = (rot, itens) => '<select class="cdp-sel" data-cdp-sel="' + rot + '">' + itens.map((i) => '<option value="' + i[0] + '">' + i[1] + "</option>").join("") + "</select>";
   function monta(el) {
     const dias = DAYS.map((nome, i) => '<button type="button" class="cdp-day" data-cdp="dia" data-v="' + i + '" aria-pressed="false" aria-label="' + nome + (TRAIN[i] ? ", dia de treino" : ", dia de descanso") + '">' + nome + "<small>" + (TRAIN[i] ? "treino" : "descanso") + "</small></button>").join("");
-    el.innerHTML = '<p class="cdp-sub" data-r="sub"></p><div class="cdp-controls"><div class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>' + grupo("Jeito de comer", CDP_JEITOS, "jeito") + '</div><div class="cdp-field"><span class="cdp-lbl">Rotina</span>' + grupo("Rotina", CDP_ROTINAS, "rotina") + '<span class="cdp-note" data-r="rotdesc"></span></div><div class="cdp-field"><span class="cdp-lbl">Refeições por dia</span>' + grupo("Refeições por dia", CDP_NREF.map((n) => [String(n), n + " refeições"]), "nref") + '<span class="cdp-note" data-r="nrefinfo"></span></div><div class="cdp-field cdp-field-restr"><span class="cdp-lbl">Restrições</span>' + grupo("Restrições", CDP_RESTR, "restr") + '</div><div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><button type="button" class="btn cdp-edit-btn" data-cdp="meus" aria-haspopup="dialog">Meus alimentos</button><span class="cdp-note" data-r="trocasinfo"></span><span class="cdp-note" data-r="meusinfo"></span></div></div><div class="cdp-days" role="group" aria-label="Dia da semana">' + dias + '</div><div class="cdp-total" aria-label="Total do dia" data-r="total"></div><div data-r="avisos"></div><div class="cdp-meals" data-r="refeicoes"></div><details class="cdp-shop"><summary>Lista de compras da semana</summary><div data-r="compras"></div></details><div data-r="rodape"></div>';
+    el.innerHTML = '<p class="cdp-sub" data-r="sub"></p><div class="cdp-controls"><label class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>' + seletor("jeito", CDP_JEITOS) + '</label><label class="cdp-field"><span class="cdp-lbl">Rotina</span>' + seletor("rotina", CDP_ROTINAS) + '<span class="cdp-note" data-r="rotdesc"></span></label><label class="cdp-field"><span class="cdp-lbl">Refeições por dia</span>' + seletor("nref", CDP_NREF.map((n) => [String(n), n + " refeições"])) + '<span class="cdp-note" data-r="nrefinfo"></span></label><details class="cdp-field cdp-field-restr cdp-multi"><summary><span class="cdp-lbl">Restrições</span><span class="cdp-multi-val" data-r="restrinfo"></span></summary><div class="cdp-chk-list" role="group" aria-label="Restrições">' + CDP_RESTR.map((i) => '<label class="cdp-chk"><input type="checkbox" data-cdp-chk="restr" data-v="' + i[0] + '"><span>' + i[1] + "</span></label>").join("") + '</div></details><div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><button type="button" class="btn cdp-edit-btn" data-cdp="meus" aria-haspopup="dialog">Meus alimentos</button><button type="button" class="btn cdp-edit-btn" data-cdp="montar" aria-haspopup="dialog">Refazer formulário</button><span class="cdp-note" data-r="trocasinfo"></span><span class="cdp-note" data-r="meusinfo"></span></div></div><div class="cdp-days" role="group" aria-label="Dia da semana">' + dias + '</div><div class="cdp-total" aria-label="Total do dia" data-r="total"></div><div data-r="avisos"></div><div class="cdp-meals" data-r="refeicoes"></div><details class="cdp-shop"><summary>Lista de compras da semana</summary><div data-r="compras"></div></details><div data-r="rodape"></div>';
     for (const k in ultimo) delete ultimo[k];
     montado = true;
   }
@@ -787,6 +816,17 @@ function criaCardapio(ctx) {
     no.innerHTML = html;
     ultimo[nome] = html;
   }
+  const escapeTxt = (t) => ctx.escapeHtml(t);
+  const restrResumo = (cfg) => {
+    const n = CDP_RESTR.filter((i) => cfg.restricoes[i[0]]).length;
+    return n ? n + (n > 1 ? " selecionadas" : " selecionada") : "nenhuma";
+  };
+  const defineSel = (el, rot, v) => {
+    const x = el.querySelector('[data-cdp-sel="' + rot + '"]');
+    if (x && x.value !== String(v)) x.value = String(v);
+  };
+  let pediuForm = false;
+  const vazioHtml = (kcalAlvo, macros2) => '<div class="cdp-vazio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false"><path d="M5 3v5a3 3 0 0 0 6 0V3M8 3v18"/><path d="M16 3c-2 2-2.5 5-2.5 8h2.5v10"/></svg><h3>Seu cardápio ainda não foi montado</h3><p>Conte como você come (jeito de comer, rotina, refeições por dia, restrições e os alimentos que você gosta). O app monta 7 dias que fecham sua meta de ' + ctx.num(kcalAlvo, 0) + " kcal e " + ctx.num(macros2.proteina.g, 0) + ' g de proteína por dia e soma tudo na lista de compras.</p><button type="button" class="btn primary" data-cdp="montar" aria-haspopup="dialog">Montar meu cardápio</button></div>';
   function liga(el, rot, v, ligado) {
     const b = botao(el, rot, v);
     if (!b) return;
@@ -804,8 +844,18 @@ function criaCardapio(ctx) {
       return;
     }
     cdpUltimo = { k: kcalAlvo, m: macros2 };
-    if (!montado) monta(el);
     const cfg = normalizaCfg(ctx.estado().settings);
+    if (!cfg.configurado) {
+      montado = false;
+      for (const k in ultimo) delete ultimo[k];
+      el.innerHTML = vazioHtml(kcalAlvo, macros2);
+      if (!pediuForm && el.getClientRects().length > 0 && typeof ctx.abreModal === "function") {
+        pediuForm = true;
+        setTimeout(abreFormulario, 80);
+      }
+      return;
+    }
+    if (!montado) monta(el);
     const v = montaVisao({ kcalAlvo, macros: macros2, cfg, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: cdpDia }, h);
     troca(el, "sub", v.sub);
     troca(el, "rotdesc", v.rotdesc);
@@ -817,14 +867,16 @@ function criaCardapio(ctx) {
     troca(el, "refeicoes", v.refeicoes);
     troca(el, "compras", v.compras);
     troca(el, "rodape", v.rodape);
-    CDP_JEITOS.forEach((i) => liga(el, "jeito", i[0], v.ligados.jeito === i[0]));
-    CDP_ROTINAS.forEach((i) => liga(el, "rotina", i[0], v.ligados.rotina === i[0]));
-    CDP_RESTR.forEach((i) => liga(el, "restr", i[0], v.ligados[i[0]]));
-    CDP_NREF.forEach((n) => {
-      liga(el, "nref", String(n), v.ligados.nref === String(n));
-      const b = botao(el, "nref", String(n));
-      if (b && b.disabled !== v.ligados.nrefFixo) b.disabled = v.ligados.nrefFixo;
+    defineSel(el, "jeito", v.ligados.jeito);
+    defineSel(el, "rotina", v.ligados.rotina);
+    defineSel(el, "nref", v.ligados.nref);
+    const selN = el.querySelector('[data-cdp-sel="nref"]');
+    if (selN && selN.disabled !== v.ligados.nrefFixo) selN.disabled = v.ligados.nrefFixo;
+    CDP_RESTR.forEach((i) => {
+      const c = el.querySelector('[data-cdp-chk="restr"][data-v="' + i[0] + '"]');
+      if (c && c.checked !== !!v.ligados[i[0]]) c.checked = !!v.ligados[i[0]];
     });
+    troca(el, "restrinfo", escapeTxt(restrResumo(cfg)));
     for (let d = 0; d < 7; d++) liga(el, "dia", String(d), v.ligados.dia === String(d));
   }
   function abrePopup() {
@@ -950,9 +1002,94 @@ function criaCardapio(ctx) {
     ctx.abreModal(corpo);
     desenha();
   }
+  function abreFormulario() {
+    if (typeof ctx.abreModal !== "function" || !cdpUltimo) return;
+    const corpo = document.createElement("div");
+    const base = normalizaCfg(ctx.estado().settings);
+    const draft = { jeito: base.jeito, rotina: base.rotina, nref: base.nref, restricoes: Object.assign({}, base.restricoes), meus: base.meus };
+    const contexto = () => ({ kcalAlvo: cdpUltimo.k, macros: cdpUltimo.m, cfg: base, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: 0 });
+    const disponiveis = () => alimentosDisponiveis(motorDe(Object.assign({}, contexto(), { cfg: Object.assign({}, base, draft) })));
+    function desenha(foco, msg) {
+      const y = corpo.scrollTop;
+      const r = montaFormulario(contexto(), h, draft);
+      corpo.innerHTML = r.html;
+      const m = corpo.querySelector("[data-form-msg]");
+      if (m && msg) m.textContent = msg;
+      if (foco) {
+        const b = corpo.querySelector('[data-form="' + foco[0] + '"]' + (foco[1] ? '[data-v="' + foco[1] + '"]' : ""));
+        if (b) b.focus({ preventScroll: true });
+      }
+      corpo.scrollTop = y;
+    }
+    const marcadosAgora = () => {
+      const d = disponiveis();
+      return draft.meus ? d.filter((id) => draft.meus.indexOf(id) >= 0) : d.slice();
+    };
+    corpo.addEventListener("change", (ev) => {
+      const b = ev.target.closest("[data-form]");
+      if (!b) return;
+      const act = b.dataset.form;
+      if (act === "jeito" || act === "rotina") draft[act] = b.value;
+      else if (act === "nref") draft.nref = Number(b.value) || null;
+      else if (act === "restr") draft.restricoes[b.dataset.v] = b.checked;
+      else return;
+      ctx.tocaSom("tick");
+      desenha([act, act === "restr" ? b.dataset.v : ""]);
+    });
+    corpo.addEventListener("click", (ev) => {
+      const b = ev.target.closest("button[data-form]");
+      if (!b) return;
+      const act = b.dataset.form, v = b.dataset.v;
+      if (act === "cancelar") {
+        ctx.fechaModal();
+        return;
+      }
+      if (act === "salvar") {
+        const disp2 = disponiveis(), marcados2 = marcadosAgora();
+        if (!marcados2.length) {
+          desenha(["salvar", ""], "Mantenha pelo menos um alimento marcado.");
+          return;
+        }
+        const cfg = Object.assign({}, base, draft, { nref: draft.rotina === "marmita" ? null : draft.nref });
+        cfg.meus = marcados2.length === disp2.length ? null : marcados2;
+        cdpSalvar(cfg);
+        ctx.tocaSom("tick");
+        ctx.fechaModal();
+        ctx.redesenhaDieta();
+        return;
+      }
+      ctx.tocaSom("tick");
+      let marcados = marcadosAgora();
+      const disp = disponiveis();
+      if (act === "alimento") marcados = marcados.indexOf(v) >= 0 ? marcados.filter((id) => id !== v) : marcados.concat([v]);
+      else if (act === "todos") marcados = disp.slice();
+      else if (act === "nenhum") marcados = [];
+      draft.meus = marcados.length === disp.length ? null : marcados;
+      desenha([act, v || ""]);
+    });
+    ctx.abreModal(corpo);
+    desenha();
+  }
   function setupCardapio() {
     const el = document.getElementById("cardapio-body");
     if (!el) return;
+    el.addEventListener("change", (ev) => {
+      const sel = ev.target.closest("[data-cdp-sel]"), chk = ev.target.closest("[data-cdp-chk]");
+      if (!sel && !chk) return;
+      const cfg = normalizaCfg(ctx.estado().settings);
+      if (sel) {
+        const act = sel.dataset.cdpSel;
+        if (act === "jeito") cfg.jeito = sel.value;
+        else if (act === "rotina") cfg.rotina = sel.value;
+        else if (act === "nref") {
+          if (cfg.rotina === "marmita" || sel.disabled) return;
+          cfg.nref = Number(sel.value) || null;
+        }
+      } else cfg.restricoes[chk.dataset.v] = chk.checked;
+      cdpSalvar(cfg);
+      ctx.tocaSom("tick");
+      ctx.redesenhaDieta();
+    });
     el.addEventListener("click", (ev) => {
       const b = ev.target.closest("[data-cdp]");
       if (!b) return;
@@ -962,6 +1099,10 @@ function criaCardapio(ctx) {
       }
       if (b.dataset.cdp === "meus") {
         abrePopupMeus();
+        return;
+      }
+      if (b.dataset.cdp === "montar") {
+        abreFormulario();
         return;
       }
       const act = b.dataset.cdp, cfg = normalizaCfg(ctx.estado().settings);
@@ -1003,6 +1144,7 @@ function criaCardapio(ctx) {
 }
 export {
   criaCardapio,
+  montaFormulario,
   montaPopup,
   montaPopupMeus,
   montaVisao,

@@ -14,15 +14,19 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await p.evaluate(async (hoje) => { const db = await window.claude.use('db'); await db.doc('config/perfil').set({ nomeCompleto: 'Teste', nomeUsuario: 't', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', pesoMetaKg: 80, experiencia: 'intermediario', local: 'academia', criadoEm: '2026-10-01' }); await db.doc('medicoes/' + hoje).set({ data: hoje, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 }); }, hoje);
     await p.reload(); await p.waitForTimeout(1800);
     await p.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); document.getElementById('tab-dieta').click(); }); await p.waitForTimeout(700);
-    const sels = ['.cdp-day[data-v="3"]', '[data-cdp="jeito"][data-v="vegan"]', '[data-cdp="rotina"][data-v="fora"]', '[data-cdp="restr"][data-v="lactose"]', '[data-cdp="dia"][data-v="1"]', '[data-cdp="jeito"][data-v="omni"]'];
+    await p.evaluate(() => document.getElementById('subtab-dieta-cardapio').click()); await p.waitForTimeout(1200);
+    { const f = p.locator('[data-form="salvar"]'); if (await f.count()) { await f.evaluate(e => e.click()); await p.waitForTimeout(900); } }
+    const sels = ['.cdp-day[data-v="3"]', 'sel:jeito:vegan', 'sel:rotina:fora', '[data-cdp-chk="restr"][data-v="lactose"]', '[data-cdp="dia"][data-v="1"]', 'sel:jeito:omni'];
     for (const dy of [0, 400, 900]) {
       await p.evaluate(() => document.querySelector('#cardapio-card').scrollIntoView({ block: 'start' }));
       await p.evaluate(d => window.scrollBy(0, d), dy - 0); await p.waitForTimeout(300);
       for (const s of sels) {
-        const el = p.locator(s).first(); if (!(await el.count())) { t(`[${w}] existe ${s}`, false); continue; }
+        const ehSel = s.startsWith('sel:'), [, campo, valor] = ehSel ? s.split(':') : [];
+        if (!ehSel) await p.evaluate(() => { const d = document.querySelector('details.cdp-multi'); if (d) d.open = true; });
+        const el = p.locator(ehSel ? '[data-cdp-sel="' + campo + '"]' : s).first(); if (!(await el.count())) { t(`[${w}] existe ${s}`, false); continue; }
         await el.evaluate(e => e.scrollIntoView({ block: 'center' })); await p.waitForTimeout(250);
         const y0 = await p.evaluate(() => Math.round(scrollY));
-        await el.evaluate(e => e.click()); await p.waitForTimeout(500);   // clique do DOM: sem a rolagem automática do Playwright
+        await el.evaluate((e, v) => { if (v) { e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); } else e.click(); }, valor); await p.waitForTimeout(500);   // clique do DOM: sem a rolagem automática do Playwright
         const y1 = await p.evaluate(() => Math.round(scrollY));
         t(`[${w}px] clicar ${s} não muda a rolagem`, Math.abs(y1 - y0) <= 3, y0 + ' -> ' + y1);
       }
@@ -37,6 +41,8 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     const p = await c.newPage(); await p.goto(URL_); await p.waitForTimeout(1200);
     await p.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/perfil').set({ nomeCompleto: 'Teste', nomeUsuario: 't', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', pesoMetaKg: 80, experiencia: 'intermediario', local: 'academia', criadoEm: '2026-10-01' }); const x = new Date(); const hj = x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); await db.doc('medicoes/' + hj).set({ data: hj, pesoKg: 82.4, cinturaCm: 90, quadrilCm: 100 }); });
     await p.reload(); await p.waitForTimeout(1800); await p.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); document.getElementById('tab-dieta').click(); }); await p.waitForTimeout(600);
+    await p.evaluate(() => document.getElementById('subtab-dieta-cardapio').click()); await p.waitForTimeout(1200);
+    { const f = p.locator('[data-form="salvar"]'); if (await f.count()) { await f.evaluate(e => e.click()); await p.waitForTimeout(900); } }
     const alvoY = await p.evaluate(() => { window.scrollTo(0, 700); const b = document.querySelector('#cardapio-body .cdp-day'); b.id = 'bt-salto'; b.addEventListener('click', () => setTimeout(() => { document.scrollingElement.scrollTop = 130; }, 40)); b.scrollIntoView({ block: 'center' }); return Math.round(scrollY); });
     await p.waitForTimeout(250);
     const y0 = await p.evaluate(() => Math.round(scrollY));

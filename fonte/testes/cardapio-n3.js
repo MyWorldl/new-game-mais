@@ -1,11 +1,20 @@
 // Cardápio (noite 3): nº de refeições por dia, horários sugeridos, mais restrições e base de alimentos maior. Uso: node cardapio-n3.js http://localhost:8791
 const fs = require('fs');
 const { chromium } = require('playwright');
+const { abreCardapio, escolhe, valorDe } = require('./cardapio-ajuda.js');
 const { abre } = require('./telas-dados-seed.js');
 const axeSrc = process.env.SP && fs.existsSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js') ? fs.readFileSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js', 'utf8') : null;
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 300) : '')); };
-const irDieta = async p => { await p.evaluate(() => document.getElementById('tab-dieta').click()); await p.waitForTimeout(2200); };
-const clica = async (p, rot, v) => { await p.evaluate(([r, v]) => document.querySelector('[data-cdp="' + r + '"][data-v="' + v + '"]').click(), [rot, v]); await p.waitForTimeout(450); };
+const irDieta = async p => { await abreCardapio(p, { espera: 2200 }); };
+// jeito/rotina/refeições por dia são campos selecionáveis (data-cdp-sel); restrições são caixas de marcar (data-cdp-chk); dia segue sendo botão
+const clica = async (p, rot, v) => {
+  await p.evaluate(([r, v]) => {
+    if (r === 'dia') return document.querySelector('[data-cdp="dia"][data-v="' + v + '"]').click();
+    if (r === 'restr') { const d = document.querySelector('details.cdp-multi'); if (d) d.open = true; return document.querySelector('[data-cdp-chk="restr"][data-v="' + v + '"]').click(); }
+    const e = document.querySelector('[data-cdp-sel="' + r + '"]'); e.value = String(v); e.dispatchEvent(new Event('change', { bubbles: true }));
+  }, [rot, v]); await p.waitForTimeout(450);
+};
+const selVal = (p, r) => p.evaluate(r => document.querySelector('[data-cdp-sel="' + r + '"]').value, r);
 const nomes = p => p.evaluate(() => [...document.querySelectorAll('.cdp-meal .cdp-n')].map(x => x.innerText));
 const semana = async p => { const out = []; for (let d = 0; d < 7; d++) { await clica(p, 'dia', d); out.push(...(await nomes(p))); } return out; };
 const hm = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
@@ -21,13 +30,13 @@ const PROIBIDOS = {
     for (const rot of ['tradicional', 'corrido', 'budget', 'fora']) {
       await clica(p, 'rotina', rot);
       const r = {};
-      for (const n of [3, 4, 5, 6]) { await clica(p, 'nref', n); r[n] = await p.evaluate(() => ({ m: document.querySelectorAll('.cdp-meal').length, on: document.querySelector('[data-cdp="nref"].on').dataset.v, desc: document.querySelector('[data-r="rotdesc"]').innerText })); }
-      t(w + ' ' + rot + ': 3, 4, 5 e 6 refeições mudam o cardápio e o botão ligado', [3, 4, 5, 6].every(n => r[n].m === n && r[n].on === String(n)), JSON.stringify(Object.values(r).map(x => x.m)));
+      for (const n of [3, 4, 5, 6]) { await clica(p, 'nref', n); r[n] = await p.evaluate(() => ({ m: document.querySelectorAll('.cdp-meal').length, on: document.querySelector('[data-cdp-sel="nref"]').value, desc: document.querySelector('[data-r="rotdesc"]').innerText })); }
+      t(w + ' ' + rot + ': 3, 4, 5 e 6 refeições mudam o cardápio e o campo', [3, 4, 5, 6].every(n => r[n].m === n && r[n].on === String(n)), JSON.stringify(Object.values(r).map(x => x.m)));
       t(w + ' ' + rot + ': descrição da rotina acompanha o nº de refeições', /^6 refeições/.test(r[6].desc) && /^3 refeições/.test(r[3].desc), r[6].desc.slice(0, 30));
     }
     await clica(p, 'rotina', 'marmita');
-    const mm = await p.evaluate(() => ({ dis: [...document.querySelectorAll('[data-cdp="nref"]')].every(x => x.disabled), meals: document.querySelectorAll('.cdp-meal').length, on: document.querySelector('[data-cdp="nref"].on').dataset.v, nota: document.querySelector('[data-r="nrefinfo"]').innerText }));
-    t(w + ' marmita: botões de refeições desligados, sempre 5 refeições, com explicação', mm.dis && mm.meals === 5 && mm.on === '5' && /Marmita da semana/.test(mm.nota), JSON.stringify(mm));
+    const mm = await p.evaluate(() => ({ dis: document.querySelector('[data-cdp-sel="nref"]').disabled, meals: document.querySelectorAll('.cdp-meal').length, on: document.querySelector('[data-cdp-sel="nref"]').value, nota: document.querySelector('[data-r="nrefinfo"]').innerText }));
+    t(w + ' marmita: campo de refeições por dia desligado, sempre 5 refeições, com explicação', mm.dis && mm.meals === 5 && mm.on === '5' && /Marmita da semana/.test(mm.nota), JSON.stringify(mm));
     t(w + ': sem rolagem horizontal na Dieta', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     // ---- horários sugeridos ----
     for (const [rot, n] of [['tradicional', 6], ['corrido', 3], ['fora', 4]]) {
@@ -42,13 +51,13 @@ const PROIBIDOS = {
     t(w + ': café, almoço e jantar sempre nos mesmos horários base (07:00 / 12:xx / 19:xx)', await p.evaluate(() => { const m = [...document.querySelectorAll('.cdp-meal')]; const g = s => (m.find(x => x.dataset.slot === s) || { querySelector: () => null }).querySelector('time'); return /^07:00/.test((g('cafe') || {}).textContent || '') && /^12:/.test((g('almoco') || {}).textContent || '') && /^19:/.test((g('jantar') || {}).textContent || ''); }));
     // ---- restrições novas ----
     await clica(p, 'rotina', 'tradicional'); await clica(p, 'nref', 5);
-    t(w + ': 8 restrições disponíveis', (await p.evaluate(() => document.querySelectorAll('[data-cdp="restr"]').length)) === 8);
+    t(w + ': 8 restrições disponíveis', (await p.evaluate(() => document.querySelectorAll('[data-cdp-chk="restr"]').length)) === 8);
     for (const r of ['ovo', 'soja', 'peixe', 'castanhas', 'porco', 'vermelha', 'lactose', 'gluten']) {
       await clica(p, 'restr', r);
-      const lig = await p.evaluate(r => document.querySelector('[data-cdp="restr"][data-v="' + r + '"]').getAttribute('aria-pressed'), r);
+      const lig = await p.evaluate(r => String(document.querySelector('[data-cdp-chk="restr"][data-v="' + r + '"]').checked), r);
       const todos = (await semana(p)).join(' | ');
       const compras = await p.evaluate(() => { document.querySelector('.cdp-shop').open = true; return document.querySelector('[data-r="compras"]').innerText; });
-      t(w + ' sem ' + r + ': botão ligado e nenhum alimento proibido na semana nem na lista de compras', lig === 'true' && !PROIBIDOS[r].test(todos) && !PROIBIDOS[r].test(compras), (todos.match(PROIBIDOS[r]) || compras.match(PROIBIDOS[r]) || [''])[0]);
+      t(w + ' sem ' + r + ': caixa marcada e nenhum alimento proibido na semana nem na lista de compras', lig === 'true' && !PROIBIDOS[r].test(todos) && !PROIBIDOS[r].test(compras), (todos.match(PROIBIDOS[r]) || compras.match(PROIBIDOS[r]) || [''])[0]);
       await clica(p, 'restr', r);
     }
     // ---- pescetariano ----
@@ -67,7 +76,7 @@ const PROIBIDOS = {
     // ---- persistência ----
     await clica(p, 'rotina', 'corrido'); await clica(p, 'nref', 6); await clica(p, 'restr', 'ovo'); await clica(p, 'restr', 'vermelha');
     await p.reload(); await p.waitForTimeout(1800); await irDieta(p);
-    const per = await p.evaluate(() => ({ n: document.querySelector('[data-cdp="nref"].on').dataset.v, rot: document.querySelector('[data-cdp="rotina"].on').dataset.v, restr: [...document.querySelectorAll('[data-cdp="restr"].on')].map(x => x.dataset.v).sort().join(), meals: document.querySelectorAll('.cdp-meal').length }));
+    const per = await p.evaluate(() => ({ n: document.querySelector('[data-cdp-sel="nref"]').value, rot: document.querySelector('[data-cdp-sel="rotina"]').value, restr: [...document.querySelectorAll('[data-cdp-chk="restr"]:checked')].map(x => x.dataset.v).sort().join(), meals: document.querySelectorAll('.cdp-meal').length }));
     t(w + ': escolhas (rotina, 6 refeições, sem ovo e sem carne vermelha) persistem após recarregar', per.n === '6' && per.rot === 'corrido' && per.restr === 'ovo,vermelha' && per.meals === 6, JSON.stringify(per));
     // pop-up de troca respeita as novas restrições
     await p.evaluate(() => document.querySelector('[data-cdp="editar"]').click()); await p.waitForTimeout(400);
@@ -81,8 +90,8 @@ const PROIBIDOS = {
       t(w + ': axe no card do cardápio', v.length === 0, v.slice(0, 3).join(' | '));
     }
     if (w < 800) {
-      const al = await p.evaluate(() => [...document.querySelectorAll('.cdp-chip')].filter(e => e.getBoundingClientRect().width > 0 && !e.disabled).map(e => Math.round(e.getBoundingClientRect().height)));
-      t(w + ': botões de filtro com alvo ≥ 44 px no toque', Math.min(...al) >= 44, 'min ' + Math.min(...al));
+      const al = await p.evaluate(() => [...document.querySelectorAll('select[data-cdp-sel], .cdp-multi summary, [data-cdp-chk="restr"]')].filter(e => e.getBoundingClientRect().width > 0 && !e.disabled).map(e => { const l = e.closest('label') || e; return Math.round(l.getBoundingClientRect().height); }));
+      t(w + ': campos de filtro com alvo ≥ 44 px no toque', al.length > 0 && Math.min(...al) >= 44, 'min ' + Math.min(...al));
     }
     t(w + ': sem erro de console', p.errs.length === 0, p.errs.join(' | '));
     await c.close();

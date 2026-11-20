@@ -638,6 +638,57 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   .app > main{ grid-row:auto; }
 }
 
+/* 31. Sub-abas (Treino, Dieta, Corpo, Perfil) numa faixa própria logo abaixo do topo.
+   Antes ficavam dentro do .topbar; com o topo fixo do desktop elas não tinham onde caber. A faixa gruda sob o topo e,
+   no celular, some e volta junto com ele (classe .hide, ver setupAutoHideHeader). Em Treino/Dieta os cartões fora da sub-aba ganham .sub-off. */
+.subnav-host{ position:sticky; top:calc(env(safe-area-inset-top,0px) + var(--tb-h,0px)); z-index:19; padding-block:6px; margin-block-start:-8px; background:var(--bg); transition:transform .25s ease; }
+.subnav-host[hidden]{ display:none; }
+.subnav-host .subtabs-wrap{ max-inline-size:100%; }
+.subnav-host.hide{ transform:translateY(calc(-100% - var(--tb-h,0px) - env(safe-area-inset-top,0px) - 4px)); }
+@media (prefers-reduced-motion: reduce){ .subnav-host{ transition:none; } }
+@media (max-width:767px){
+  .subnav-host .subtabs-wrap{ flex-wrap:nowrap; overflow-x:auto; inline-size:100%; scrollbar-width:none; }
+  .subnav-host .subtabs-wrap::-webkit-scrollbar{ display:none; }
+  .subnav-host .subtabs-wrap .tab-btn{ flex:1 0 auto; white-space:nowrap; padding-inline:12px; }
+}
+@media (min-width:768px){
+  .subnav-host{ top:var(--top-h); margin-block-start:0; inline-size:fit-content; max-inline-size:100%; border-radius:18px; background:color-mix(in srgb, var(--bg) 70%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+}
+.sub-off{ display:none !important; }
+/* Glossário e Config agora são sub-abas do Perfil: os botões extras do menu lateral ficam só no DOM (atalhos de teclado e testes) */
+.bottomnav .tab-extra{ display:none !important; }
+/* Sobre: bloco de fontes */
+.sobre-texto{ margin:0 0 var(--sp-3); line-height:1.55; max-inline-size:68ch; }
+.fontes-grupo + .fontes-grupo{ margin-block-start:var(--sp-4); }
+.fontes-grupo h3{ margin:0 0 var(--sp-2); font-size:var(--fs-sm); letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
+.fontes-ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.fontes-ul li{ display:flex; flex-direction:column; gap:2px; padding-block:var(--sp-2); border-block-end:1px solid var(--line); min-inline-size:0; }
+.fontes-ul li:last-child{ border-block-end:0; }
+.fontes-ul a{ overflow-wrap:anywhere; padding-block:.4em; }
+.fonte-uso{ font-size:var(--fs-xs); color:var(--muted); }
+
+/* 32. Cardápio: campos selecionáveis, formulário em caixa flutuante e estado vazio */
+.cdp-sel{ inline-size:100%; min-block-size:44px; }
+.cdp-multi{ border:1px solid var(--line-strong, var(--line)); border-radius:var(--r-md, 14px); background:var(--surface-2, var(--surface)); padding:0; }
+.cdp-multi > summary{ list-style:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:var(--sp-3); min-block-size:44px; padding:6px var(--sp-3); }
+.cdp-multi > summary::-webkit-details-marker{ display:none; }
+.cdp-multi > summary::after{ content:"▾"; color:var(--muted); margin-inline-start:auto; }
+.cdp-multi[open] > summary::after{ content:"▴"; }
+.cdp-multi-val{ font-size:var(--fs-sm); color:var(--ink-soft); }
+.cdp-multi > summary:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:var(--r-md, 14px); }
+.cdp-chk-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:var(--sp-1) var(--sp-3); padding:var(--sp-2) var(--sp-3) var(--sp-3); }
+.cdp-fs .cdp-chk-list{ padding-inline:0; }
+.cdp-chk-list .cdp-chk{ display:flex; flex-direction:row; align-items:center; justify-content:flex-start; text-align:start; gap:var(--sp-2); min-block-size:44px; font-size:var(--fs-sm); font-weight:500; text-transform:none; letter-spacing:0; color:var(--ink); cursor:pointer; }
+.cdp-chk-list .cdp-chk input{ margin:0; }
+.cdp-chk input{ inline-size:20px; block-size:20px; flex:none; accent-color:var(--accent); }
+.cdp-form{ display:grid; gap:var(--sp-4); margin-block:var(--sp-3); }
+.cdp-fs{ border:0; margin:0; padding:0; min-inline-size:0; }
+.cdp-fs legend{ padding:0; margin-block-end:var(--sp-1); }
+.cdp-vazio{ display:grid; justify-items:start; gap:var(--sp-3); padding:var(--sp-4); border:1px dashed var(--line-strong, var(--line)); border-radius:var(--r-lg, 18px); background:color-mix(in srgb, var(--accent) 5%, transparent); }
+.cdp-vazio svg{ inline-size:36px; block-size:36px; color:var(--accent-fg, var(--accent)); }
+.cdp-vazio h3{ margin:0; font-size:var(--fs-lg, 18px); }
+.cdp-vazio p{ margin:0; max-inline-size:62ch; line-height:1.55; color:var(--ink-soft); }
+
 /* ---- Aviso "Nova versão disponível" (criado por bff-runtime.js) ---- */
 .ng-atualiza{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom,0px) + 92px); z-index:9500; display:flex; align-items:center; gap:10px; max-width:min(92vw,420px); padding:10px 12px; background:var(--surface-2,var(--surface)); color:var(--ink); border:1px solid var(--accent); border-radius:14px; box-shadow:0 8px 28px rgba(0,0,0,.35); }
 .ng-atualiza span{ font-weight:600; font-size:var(--fs-14,14px); }
@@ -1207,3 +1258,13 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .cdp-hr svg{ inline-size:12px; block-size:12px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .cdp-hr time{ color:var(--ink); }
 @media (pointer:coarse){ .cdp-chip{ min-block-size:44px; } }
+
+/* 33. Editar rotina › "Gerar um plano para mim": dias + focos escolhidos no próprio editor */
+.rotina-gen{ display:flex; flex-direction:column; gap:var(--sp-2); padding:var(--sp-3); margin-bottom:var(--sp-3); border:1px solid var(--line-strong, var(--line)); border-radius:var(--r-md, 14px); background:var(--surface-2, var(--surface)); }
+.rotina-gen > strong{ font-family:'Barlow Condensed',sans-serif; font-size:var(--fs-base); }
+.rotina-gen-dias{ display:flex; flex-direction:column; gap:4px; max-inline-size:260px; }
+.rotina-gen-lbl{ display:block; font-size:var(--fs-xs); color:var(--ink-soft); margin-bottom:4px; }
+.rotina-gen .btn{ align-self:flex-start; }
+.rotina-gen .muscle-chip{ min-block-size:40px; }
+@media (pointer:coarse){ .rotina-gen .muscle-chip, .rotina-gen .btn, .rotina-gen select{ min-block-size:44px; } }
+.rotina-gen .hint{ font-size:var(--fs-xs); line-height:1.45; color:var(--ink-soft); margin:0; }
