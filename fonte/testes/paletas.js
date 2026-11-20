@@ -35,7 +35,7 @@ const ACC = { lima: '#a3e635', violeta: '#a78bfa', ouro: '#e5b83d' };
       await p.evaluate(k => { const f = () => document.querySelector('#theme-row [data-paleta="' + k + '"]'); document.getElementById('tab-config').click(); setTimeout(() => f().click(), 200); }, k); await p.waitForTimeout(800);
       for (const tab of ['painel', 'treino', 'corpo', 'perfil', 'config']) {
         await ir('tab-' + tab);
-        await p.evaluate(() => document.querySelectorAll('[data-cargadia]').forEach(b => { if (b.getAttribute('aria-expanded') !== 'true') b.click(); }));
+        await p.evaluate(() => document.querySelectorAll('[data-cargadia]:not(:disabled)').forEach(b => b.click()));
         if (!(await p.evaluate(() => typeof axe !== 'undefined'))) await p.evaluate(axeSrc);
         const v = await p.evaluate(async () => { const r = await axe.run(document, { runOnly: ['color-contrast'] }); return r.violations.flatMap(x => x.nodes.map(n => n.target.join(' ') + ' :: ' + (n.any[0] && n.any[0].message || ''))); });
         t(k + ' / ' + tab + ': contraste AA (axe)', v.length === 0, v.slice(0, 3).join(' | '));

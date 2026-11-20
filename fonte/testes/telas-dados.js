@@ -12,7 +12,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     const ir = async id => { await p.evaluate(i => document.getElementById(i).click(), id); await p.waitForTimeout(700); };
     // ---- exercícios ----
     await ir('tab-treino');
-    await p.evaluate(() => document.querySelectorAll('[data-cargadia]').forEach(b => { if (b.getAttribute('aria-expanded') !== 'true') b.click(); }));
+    await p.evaluate(() => { const r = document.querySelector('.carga-row[data-ex="Supino reto"]'); const d = r && r.closest('.carga-cat').dataset.dia; const b = d && document.querySelector('[data-cargadia="' + d + '"]'); if (b) b.click(); });
     await p.waitForTimeout(300);
     const sup = p.locator('.carga-row[data-ex="Supino reto"]');
     t(L + 'exercício: mostra % do recorde quando a última carga está abaixo do pico', /46% do recorde/.test(await sup.innerText()));

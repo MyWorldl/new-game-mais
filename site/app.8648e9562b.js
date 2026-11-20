@@ -3562,6 +3562,205 @@ function renderDietaAnel(kcalAlvo, macros){
       '<ul class="da-lista" aria-label="Macronutrientes da meta diária">'+lista+'</ul></div>';
   if(animar) setTimeout(()=> box.classList.remove("da-anim"), 1200);   // não repete ao voltar para a aba
 }
+/* NG+ — seletor próprio (lista de opções com a cara do app).
+   Troca a lista padrão do Android/iOS por um painel do app: no celular sobe como "folha" de baixo; no computador abre ao lado do botão.
+   Opt-in: <select data-ngselect>. O <select> original continua no DOM (escondido) e é a fonte da verdade: o painel só lê as
+   <option>/<optgroup> dele, grava o valor nele e dispara "change". Se o app trocar as opções, o botão se atualiza sozinho.
+   Opções aceitam data-meta (texto pequeno à direita, ex.: última carga). Teclado: setas, Home/End, Enter, Esc, digitar para buscar. */
+(function setupNgSelect(){
+  const IC_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  const IC_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  const IC_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const norm = t => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const reduz = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const celular = () => window.matchMedia && matchMedia("(max-width:767px)").matches;
+  let uid = 0, aberto = null;   // aberto = {sel, btn, root, ...}
+
+  function lerOpcoes(sel){
+    const out = [];   // {tipo:"grupo",rotulo} | {tipo:"op",valor,rotulo,meta,desabilitada}
+    [...sel.children].forEach(n=>{
+      if(n.tagName === "OPTGROUP"){
+        out.push({tipo:"grupo", rotulo:n.label});
+        [...n.children].forEach(o=> out.push(op(o)));
+      } else if(n.tagName === "OPTION") out.push(op(n));
+    });
+    return out;
+    function op(o){ return {tipo:"op", valor:o.value, rotulo:o.textContent.trim(), meta:o.dataset.meta || "", desabilitada:o.disabled}; }
+  }
+
+  function sincroniza(sel){
+    const w = sel._ngs; if(!w) return;
+    const o = sel.selectedOptions && sel.selectedOptions[0];
+    w.val.textContent = o ? o.textContent.trim() : (sel.dataset.placeholder || "Selecionar");
+    w.btn.disabled = sel.disabled || !sel.options.length;
+    w.btn.classList.toggle("is-vazio", !o || !o.value);
+  }
+
+  function melhora(sel){
+    if(sel._ngs) return;
+    const id = "ngs-" + (++uid);
+    const wrap = document.createElement("div");
+    wrap.className = "ngs";
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "ngs-btn"; btn.id = id + "-btn";
+    btn.setAttribute("aria-haspopup", "listbox"); btn.setAttribute("aria-expanded", "false");
+    const rotulo = sel.getAttribute("aria-label") || "";
+    if(rotulo) btn.setAttribute("aria-label", rotulo + " — escolher");
+    btn.innerHTML = '<span class="ngs-val"></span><span class="ngs-chev" aria-hidden="true">' + IC_CHEV + '</span>';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(btn); wrap.appendChild(sel);
+    sel.classList.add("ngs-nativo"); sel.tabIndex = -1; sel.setAttribute("aria-hidden", "true");
+    sel._ngs = {wrap, btn, val:btn.querySelector(".ngs-val"), titulo: rotulo};
+    btn.addEventListener("click", ()=> aberto && aberto.sel === sel ? fecha() : abre(sel));
+    btn.addEventListener("keydown", e=>{ if(e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); abre(sel); } });
+    sel.addEventListener("change", ()=> sincroniza(sel));
+    new MutationObserver(()=> sincroniza(sel)).observe(sel, {childList:true, subtree:true, attributes:true, attributeFilter:["disabled","selected"]});
+    sincroniza(sel);
+  }
+
+  function abre(sel){
+    if(aberto) fecha(true);
+    const w = sel._ngs; if(!w || w.btn.disabled) return;
+    const ops = lerOpcoes(sel), nOps = ops.filter(x=> x.tipo === "op").length;
+    const comBusca = nOps > 7;
+    const root = document.createElement("div");
+    root.id = "ngsl" + (++uid);
+    root.className = "ngs-layer" + (celular() ? " is-sheet" : " is-pop");
+    root.innerHTML =
+      '<div class="ngs-scrim" data-ngs-fecha></div>' +
+      '<div class="ngs-panel" role="dialog" aria-modal="true" aria-label="' + esc(w.titulo || "Escolher opção") + '">' +
+        '<div class="ngs-grab" aria-hidden="true"></div>' +
+        '<div class="ngs-head"><span class="ngs-title">' + esc(w.titulo || "Escolher") + '</span>' +
+          '<button type="button" class="ngs-x" data-ngs-fecha aria-label="Fechar">' + IC_X + '</button></div>' +
+        (comBusca ? '<div class="ngs-busca"><input type="search" class="ngs-q" placeholder="Buscar…" aria-label="Buscar na lista" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div>' : '') +
+        '<div class="ngs-lista" role="listbox" tabindex="-1" aria-label="' + esc(w.titulo || "Opções") + '"></div>' +
+      '</div>';
+    document.body.appendChild(root);
+    const lista = root.querySelector(".ngs-lista"), q = root.querySelector(".ngs-q"), panel = root.querySelector(".ngs-panel");
+    const estado = {sel, btn:w.btn, root, lista, q, ops, ativo:-1, digitado:"", t:null};
+    aberto = estado;
+    desenha(estado, "");
+    w.btn.setAttribute("aria-expanded", "true");
+    posiciona(estado, panel);
+    requestAnimationFrame(()=>{ root.classList.add("in"); });
+    const atual = lista.querySelector('[aria-selected="true"]') || lista.querySelector(".ngs-op:not([aria-disabled])");
+    if(atual) marca(estado, atual, true);
+    if(q && !celular()) q.focus({preventScroll:true}); else lista.focus({preventScroll:true});
+
+    root.addEventListener("click", e=>{
+      if(e.target.closest("[data-ngs-fecha]")){ fecha(); return; }
+      const o = e.target.closest(".ngs-op"); if(o && !o.hasAttribute("aria-disabled")) escolhe(estado, o.dataset.v);
+    });
+    root.addEventListener("keydown", e=> teclado(e, estado));
+    if(q) q.addEventListener("input", ()=> desenha(estado, q.value));
+    estado.onResize = ()=> posiciona(estado, panel);
+    addEventListener("resize", estado.onResize, {passive:true});
+    estado.onScroll = ()=>{ if(!celular()) posiciona(estado, panel); };
+    addEventListener("scroll", estado.onScroll, {passive:true});
+  }
+
+  function desenha(est, termo){
+    const t = norm(termo).trim();
+    const valorAtual = est.sel.value;
+    let html = "", grupoPendente = null, achou = 0, marcado = false;
+    est.ops.forEach(x=>{
+      if(x.tipo === "grupo"){ grupoPendente = x.rotulo; return; }
+      if(t && !norm(x.rotulo + " " + (x.meta || "") + " " + (grupoPendente || "")).includes(t)) return;
+      if(grupoPendente){ html += '<div class="ngs-grupo" role="presentation">' + esc(grupoPendente) + '</div>'; grupoPendente = null; }
+      const sel = !marcado && x.valor === valorAtual; if(sel) marcado = true;
+      html += '<div class="ngs-op" role="option" id="' + est.root.id + 'o' + (achou++) + '" data-v="' + esc(x.valor) + '" aria-selected="' + sel + '"' + (x.desabilitada ? ' aria-disabled="true"' : '') + '>' +
+        '<span class="ngs-op-t">' + esc(x.rotulo) + '</span>' + (x.meta ? '<span class="ngs-op-m">' + esc(x.meta) + '</span>' : '') +
+        '<span class="ngs-ok" aria-hidden="true">' + IC_CHECK + '</span></div>';
+    });
+    est.lista.innerHTML = html || '<div class="ngs-vazio">Nada encontrado' + (termo ? ' para “' + esc(termo) + '”' : '') + '.</div>';
+    est.ativo = -1;
+    const prim = est.lista.querySelector('[aria-selected="true"]') || est.lista.querySelector(".ngs-op:not([aria-disabled])");
+    if(prim && t) marca(est, prim, false);
+  }
+
+  function marca(est, el, rola){
+    est.lista.querySelectorAll(".ngs-op.ativo").forEach(x=> x.classList.remove("ativo"));
+    el.classList.add("ativo");
+    est.lista.setAttribute("aria-activedescendant", el.id);
+    if(est.q) est.q.setAttribute("aria-activedescendant", el.id);
+    if(rola) el.scrollIntoView({block:"nearest"});
+    else el.scrollIntoView({block:"nearest"});
+  }
+
+  function mover(est, passo, extremo){
+    const ops = [...est.lista.querySelectorAll(".ngs-op:not([aria-disabled])")]; if(!ops.length) return;
+    const i = ops.findIndex(x=> x.classList.contains("ativo"));
+    let n = extremo === "ini" ? 0 : extremo === "fim" ? ops.length - 1 : Math.min(ops.length - 1, Math.max(0, (i < 0 ? (passo > 0 ? -1 : ops.length) : i) + passo));
+    marca(est, ops[n], true);
+  }
+
+  function teclado(e, est){
+    if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fecha(); return; }
+    if(e.key === "ArrowDown"){ e.preventDefault(); mover(est, 1); return; }
+    if(e.key === "ArrowUp"){ e.preventDefault(); mover(est, -1); return; }
+    if(e.key === "Home" && !(est.q && e.target === est.q)){ e.preventDefault(); mover(est, 0, "ini"); return; }
+    if(e.key === "End" && !(est.q && e.target === est.q)){ e.preventDefault(); mover(est, 0, "fim"); return; }
+    if(e.key === "Enter"){
+      const a = est.lista.querySelector(".ngs-op.ativo");
+      if(a){ e.preventDefault(); escolhe(est, a.dataset.v); }
+      return;
+    }
+    if(e.key === "Tab"){   // mantém o foco dentro do painel
+      const f = [...est.root.querySelectorAll("input,button,[tabindex='-1'].ngs-lista")].filter(x=> !x.disabled && x.getClientRects().length);
+      if(!f.length) return;
+      const i = f.indexOf(document.activeElement);
+      if(e.shiftKey && i <= 0){ e.preventDefault(); f[f.length - 1].focus(); }
+      else if(!e.shiftKey && i === f.length - 1){ e.preventDefault(); f[0].focus(); }
+      return;
+    }
+    if(!est.q && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey){   // digitar para pular (sem caixa de busca)
+      clearTimeout(est.t); est.digitado += norm(e.key); est.t = setTimeout(()=>{ est.digitado = ""; }, 700);
+      const alvo = [...est.lista.querySelectorAll(".ngs-op:not([aria-disabled])")].find(x=> norm(x.querySelector(".ngs-op-t").textContent).startsWith(est.digitado));
+      if(alvo) marca(est, alvo, true);
+    }
+  }
+
+  function escolhe(est, valor){
+    const sel = est.sel;
+    const mudou = sel.value !== valor;
+    sel.value = valor;
+    fecha();
+    sincroniza(sel);
+    if(mudou) sel.dispatchEvent(new Event("change", {bubbles:true}));
+  }
+
+  function posiciona(est, panel){
+    if(celular()){ panel.style.cssText = ""; est.root.classList.add("is-sheet"); est.root.classList.remove("is-pop"); return; }
+    est.root.classList.add("is-pop"); est.root.classList.remove("is-sheet");
+    const r = est.btn.getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
+    const larg = Math.min(Math.max(r.width, 300), vw - 24);
+    let esq = Math.min(Math.max(12, r.left), vw - larg - 12);
+    const abaixo = vh - r.bottom - 12, acima = r.top - 12;
+    const embaixo = abaixo >= 260 || abaixo >= acima;
+    const altMax = Math.max(180, Math.min(420, (embaixo ? abaixo : acima) - 8));
+    panel.style.cssText = "left:" + Math.round(esq) + "px;width:" + Math.round(larg) + "px;max-height:" + Math.round(altMax) + "px;" +
+      (embaixo ? "top:" + Math.round(r.bottom + 8) + "px;" : "bottom:" + Math.round(vh - r.top + 8) + "px;");
+    est.root.classList.toggle("sobe", !embaixo);
+  }
+
+  function fecha(rapido){
+    const est = aberto; if(!est) return;
+    aberto = null;
+    removeEventListener("resize", est.onResize); removeEventListener("scroll", est.onScroll);
+    est.btn.setAttribute("aria-expanded", "false");
+    const tira = ()=>{ est.root.remove(); };
+    est.root.classList.remove("in");
+    if(rapido || reduz()) tira(); else setTimeout(tira, 220);
+    if(!rapido) try{ est.btn.focus({preventScroll:true}); }catch(e){}
+  }
+
+  document.addEventListener("keydown", e=>{ if(e.key === "Escape" && aberto){ e.preventDefault(); fecha(); } }, true);
+  window.ngSelectSync = sincroniza;
+  window.ngSelectAbre = abre;
+  window.ngSelectFecha = fecha;
+  document.querySelectorAll("select[data-ngselect]").forEach(melhora);
+})();
 function renderNivel(){
   const info = computeNivelInfo();
   const n = info.tierIndex+1;
@@ -6514,6 +6713,10 @@ function renderAnaliseTreino(){
     let filtro = analiseFiltro;
     if(filtro !== "todos" && !(filtro && cont[filtro])) filtro = ORD_F.find(k=> cont[k]) || "todos";
     const vis = filtro === "todos" ? itens : itens.filter(i=> i.cls.estado === filtro);
+    const pctProg = Math.round((cont.progredindo||0)/Math.max(1, comDados)*100);
+    h += '<div class="an-hero"><div class="an-hero-n"><b>'+pctProg+'<small>%</small></b><span>dos exercícios com registro estão progredindo</span></div>'+
+      '<div class="an-dist" role="img" aria-label="Distribuição: '+ORD_F.filter(k=> cont[k]).map(k=> cont[k]+' '+ANALISE_ESTADO[k].t.replace(/^\S+\s/,"").toLowerCase()).join(", ")+'">'+
+      ORD_F.filter(k=> cont[k]).map(k=>'<i class="an-seg '+ANALISE_ESTADO[k].c+'" style="flex:'+cont[k]+'"></i>').join("")+'</div></div>';
     h += '<div class="an-sum" role="group" aria-label="Filtrar a análise por situação">'+
       ["estagnado","progredindo","estavel","sem-dados"].filter(k=> cont[k]).map(k=>'<button type="button" class="chip an-f '+ANALISE_ESTADO[k].c+'" data-anf="'+k+'" aria-pressed="'+(filtro === k)+'">'+ANALISE_ESTADO[k].t+' · '+cont[k]+'</button>').join("")+
       '<button type="button" class="chip an-f neutral" data-anf="todos" aria-pressed="'+(filtro === "todos")+'">Todos · '+itens.length+'</button></div>';
@@ -6522,7 +6725,7 @@ function renderAnaliseTreino(){
       const st = ANALISE_ESTADO[i.cls.estado];
       const tab = i.sess.length ? '<div class="an-tabw" tabindex="0" role="region" aria-label="Últimas sessões de '+escapeHtml(i.nome)+'"><table class="an-tab"><thead><tr><th scope="col">Data</th><th scope="col">Carga</th><th scope="col">Reps por série</th><th scope="col">RPE</th></tr></thead><tbody>'+
         i.sess.slice(-ANALISE_JANELA).reverse().map(x=>'<tr><td>'+escapeHtml(fmtDateBR(x.iso))+'</td><td>'+(x.peso != null ? fmtKg(x.peso)+' kg' : '—')+'</td><td>'+x.sets.join(" · ")+(x.unid==="s" ? " s" : "")+'</td><td>'+(x.rpe != null ? x.rpe : '—')+'</td></tr>').join("")+'</tbody></table></div>' : '';
-      return '<li><details class="an-ex"><summary><span class="an-name">'+escapeHtml(i.nome)+'</span><span class="chip '+st.c+'">'+st.t+'</span></summary>'+
+      return '<li><details class="an-ex st-'+st.c+'"><summary><span class="an-name">'+escapeHtml(i.nome)+'</span><span class="chip '+st.c+'">'+st.t+'</span><span class="an-chev" aria-hidden="true">'+ICON_CHEVRON+'</span></summary>'+
         '<div class="an-body"><p class="an-resumo">'+escapeHtml(i.resumo)+'</p>'+
         (i.tendencia ? '<p class="an-tend">'+escapeHtml(i.tendencia)+'</p>' : '')+
         (i.linhas.length ? '<ul class="an-linhas">'+i.linhas.map(l=>'<li>'+escapeHtml(l)+'</li>').join("")+'</ul>' : '')+tab+'</div></details></li>';
@@ -6534,8 +6737,8 @@ function renderAnaliseTreino(){
   const linhasVol = MUSCLE_ORDER.filter(m=> (plan[m]||0) > 0).map(m=>{
     const lm = MUSCLE_LANDMARKS[m], pl = plan[m], rl = real[m]||0, pct = Math.min(100, Math.round(rl / pl * 100));
     const nota = (lm.mev && ant[m] > 0 && ant[m] < lm.mev) ? ' <span class="an-nota">Semana passada: '+ant[m]+' séries, abaixo do mínimo ('+lm.mev+').</span>' : '';
-    return '<div class="an-vol"><div class="an-vol-top"><span>'+escapeHtml(lm.label)+'</span><span><b>'+rl+'</b> de '+pl+' séries</span></div>'+
-      '<div class="quest-track" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
+    return '<div class="an-vol"><div class="an-vol-top"><span class="an-vol-m">'+escapeHtml(lm.label)+'</span><span class="an-vol-n"><b>'+rl+'</b> de '+pl+' séries</span></div>'+
+      '<div class="quest-track an-track'+(pct>=100?' cheia':'')+'" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
       '<div class="an-vol-sub">Referência semanal: mínimo '+lm.mev+' · ideal '+lm.mav+' · teto '+lm.mrv+nota+'</div></div>';
   }).join("");
   if(linhasVol) h += '<h3 class="an-h3">Volume desta semana (realizado × planejado)</h3><div class="an-volwrap">'+linhasVol+'</div>';
@@ -7556,7 +7759,7 @@ function renderWeekGrid(){
 }
 
 let cargaChartExercise = null;
-const cargasAbertos = new Set();   // v80: dias (seg..dom) expandidos na lista de cargas
+let cargasDia = null;   // dia (seg..dom) exibido na lista de cargas; null = hoje (ou o 1º dia com exercícios)
 
 function allActiveExercises(){
   const list = [];
@@ -7617,6 +7820,11 @@ function updateCargaChartExercise(exList){
   cargaChartExercise = (withHist || exList[0]).nome;
 }
 
+function nomeDiaCarga(key){
+  const d = state.rotina[key], n = d && d.nome ? String(d.nome).trim() : "";
+  if(!n) return DAY_FULL[key];
+  return n.toLowerCase().startsWith(DAY_FULL[key].toLowerCase()) ? n : DAY_FULL[key]+" — "+n;   // evita "Segunda — Segunda A"
+}
 function populateCargaSelect(exList){
   const sel = document.getElementById("carga-chart-select");
   if(!sel) return;
@@ -7624,8 +7832,17 @@ function populateCargaSelect(exList){
     sel.innerHTML = '<option value="">Nenhum exercício ativo</option>';
     return;
   }
-  sel.innerHTML = exList.map(e=> '<option value="'+escapeHtml(e.nome)+'">'+escapeHtml(e.nome)+' ('+DAY_FULL[e.dia].slice(0,3)+')</option>').join("");
+  // agrupado pelo dia em que o exercício aparece primeiro; cada opção mostra a última carga como dica
+  const porDia = {};
+  exList.forEach(e=>{ (porDia[e.dia] = porDia[e.dia] || []).push(e); });
+  sel.innerHTML = DAYS.filter(k=> porDia[k]).map(k=>{
+    return '<optgroup label="'+escapeHtml(nomeDiaCarga(k))+'">'+porDia[k].map(e=>{
+      const h = getCargaHistory(e.nome);
+      return '<option value="'+escapeHtml(e.nome)+'"'+(h.length ? ' data-meta="'+escapeHtml(fmtKg(h[h.length-1].peso)+" kg")+'"' : '')+'>'+escapeHtml(e.nome)+'</option>';
+    }).join("")+'</optgroup>';
+  }).join("");
   if(cargaChartExercise) sel.value = cargaChartExercise;
+  if(window.ngSelectSync) ngSelectSync(sel);
 }
 
 let cargaPeriodo = (()=>{ try{ const v = localStorage.getItem("bff_carga_periodo"); return ["90","180","all"].includes(v) ? v : "all"; }catch(e){ return "all"; } })();
@@ -7727,7 +7944,7 @@ function renderCargaChart(){
 document.getElementById("carga-chart-select").addEventListener("change", (e)=>{
   cargaChartExercise = e.target.value || null;
   const it = allActiveExercises().find(x=> x.nome === cargaChartExercise);
-  if(it) cargasAbertos.add(it.dia);   // v80: ao escolher no seletor, abre o dia do exercício
+  if(it) cargasDia = it.dia;   // ao escolher no seletor, mostra o dia do exercício
   renderCargas();
 });
 
@@ -7739,9 +7956,11 @@ function renderCargas(){
   populateCargaSelect(exList);
   renderCargaChart();
 
-  const catsHtml = DAYS.map(key=>{
+  const diasComEx = DAYS.filter(k=> state.rotina[k] && state.rotina[k].ativo && (state.rotina[k].exercicios||[]).length);
+  const hojeKey = (()=>{ try{ return dayKeyFromISO(todayISO()); }catch(e){ return null; } })();
+  if(!cargasDia || !diasComEx.includes(cargasDia)) cargasDia = diasComEx.includes(hojeKey) ? hojeKey : diasComEx[0] || null;
+  const painelHtml = diasComEx.map(key=>{
     const day = state.rotina[key];
-    if(!day || !day.ativo || !(day.exercicios||[]).length) return "";
     const rows = day.exercicios.map(ex=>{
       const hist = getCargaHistory(ex.nome);
       const isSelected = ex.nome === cargaChartExercise;
@@ -7771,43 +7990,39 @@ function renderCargas(){
           '<div class="carga-stat"><b>'+fmtKg(pr)+' kg</b><span>Recorde · '+fmtDateBR(prH.iso)+'</span></div>'+
         '</div></div>'+barHtml+cargaMedalhasHtml(ex, lastH.iso)+'</div>';
     }).join("");
-    const aberto = cargasAbertos.has(key);
     const nEx = day.exercicios.length;
     const nReg = day.exercicios.filter(ex=> getCargaHistory(ex.nome).length).length;
-    return '<div class="carga-cat'+(aberto?' open':'')+'" data-dia="'+key+'">'+
-      '<button type="button" class="carga-cat-btn" data-cargadia="'+key+'" aria-expanded="'+aberto+'" aria-controls="carga-rows-'+key+'">'+
-        '<span class="carga-cat-txt"><span class="carga-cat-h">'+DAY_FULL[key]+' — '+escapeHtml(day.nome||"")+'</span>'+
-        '<span class="carga-cat-sub">'+nEx+' exercício'+(nEx===1?'':'s')+' · '+nReg+' com carga registrada</span></span>'+
-        '<span class="carga-cat-chev" aria-hidden="true">'+ICON_CHEVRON+'</span></button>'+
-      '<div class="carga-cat-rows" id="carga-rows-'+key+'"'+(aberto?'':' hidden')+'>'+rows+'</div></div>';
+    const aberto = key === cargasDia;
+    return '<div class="carga-cat" data-dia="'+key+'" id="carga-rows-'+key+'" role="tabpanel" aria-labelledby="carga-dia-'+key+'"'+(aberto?'':' hidden')+'>'+
+      '<div class="carga-cat-head"><span class="carga-cat-h">'+escapeHtml(nomeDiaCarga(key))+'</span>'+
+      '<span class="carga-cat-sub">'+nEx+' exercício'+(nEx===1?'':'s')+' · '+nReg+' com carga registrada</span></div>'+
+      '<div class="carga-rows">'+rows+'</div></div>';
   }).join("");
-  const diasAtivos = DAYS.filter(k=> state.rotina[k] && state.rotina[k].ativo && (state.rotina[k].exercicios||[]).length);
-  const todosAbertos = diasAtivos.length && diasAtivos.every(k=> cargasAbertos.has(k));
-  el.innerHTML = catsHtml
-    ? '<div class="carga-tools"><button type="button" class="btn small ghost" data-cargatudo="'+(todosAbertos?'fechar':'abrir')+'">'+(todosAbertos?'Recolher tudo':'Expandir tudo')+'</button></div>'+catsHtml
+  const chipsHtml = DAYS.map(key=>{
+    const day = state.rotina[key];
+    const tem = diasComEx.includes(key);
+    const nEx = tem ? day.exercicios.length : 0;
+    const nReg = tem ? day.exercicios.filter(ex=> getCargaHistory(ex.nome).length).length : 0;
+    const pct = nEx ? Math.round(nReg/nEx*100) : 0;
+    const sel = key === cargasDia;
+    return '<button type="button" class="carga-day'+(tem?'':' off')+(key===hojeKey?' hoje':'')+'" id="carga-dia-'+key+'" role="tab" data-cargadia="'+key+'" aria-selected="'+sel+'" aria-controls="carga-rows-'+key+'"'+(tem?'':' disabled')+
+      ' aria-label="'+DAY_FULL[key]+(tem ? ': '+nEx+' exercício'+(nEx===1?'':'s')+', '+nReg+' com carga registrada' : ': descanso')+(key===hojeKey?' (hoje)':'')+'">'+
+      '<b>'+DAY_FULL[key].slice(0,3)+'</b><small>'+(tem ? nReg+'/'+nEx : '—')+'</small><i aria-hidden="true"><u style="width:'+pct+'%"></u></i></button>';
+  }).join("");
+  el.innerHTML = painelHtml
+    ? '<div class="carga-days" role="tablist" aria-label="Dia da semana">'+chipsHtml+'</div>'+painelHtml
     : '<div class="hint">Nenhum exercício ativo na rotina ainda.</div>';
   el.querySelectorAll("[data-cargadia]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
-      const k = btn.dataset.cargadia;
-      const abre = !cargasAbertos.has(k);
-      if(abre) cargasAbertos.add(k); else cargasAbertos.delete(k);
-      const cat = btn.closest(".carga-cat");
-      cat.classList.toggle("open", abre);
-      btn.setAttribute("aria-expanded", String(abre));
-      cat.querySelector(".carga-cat-rows").hidden = !abre;
-      const tudo = el.querySelector("[data-cargatudo]");
-      if(tudo){
-        const todos = diasAtivos.every(d=> cargasAbertos.has(d));
-        tudo.dataset.cargatudo = todos ? "fechar" : "abrir";
-        tudo.textContent = todos ? "Recolher tudo" : "Expandir tudo";
-      }
+      cargasDia = btn.dataset.cargadia;
+      el.querySelectorAll("[data-cargadia]").forEach(b=> b.setAttribute("aria-selected", String(b === btn)));
+      el.querySelectorAll(".carga-cat").forEach(c=>{ const on = c.dataset.dia === cargasDia; c.hidden = !on; if(on){ c.classList.remove("entra"); void c.offsetWidth; c.classList.add("entra"); } });
     });
-  });
-  const tudoBtn = el.querySelector("[data-cargatudo]");
-  if(tudoBtn) tudoBtn.addEventListener("click", ()=>{
-    if(tudoBtn.dataset.cargatudo === "abrir") diasAtivos.forEach(k=> cargasAbertos.add(k)); else cargasAbertos.clear();
-    renderCargas();
-    const nb = el.querySelector("[data-cargatudo]"); if(nb) nb.focus();
+    btn.addEventListener("keydown", e=>{
+      if(e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const bs = [...el.querySelectorAll("[data-cargadia]:not(:disabled)")]; const i = bs.indexOf(btn); if(i < 0) return;
+      e.preventDefault(); const n = bs[(i + (e.key === "ArrowRight" ? 1 : -1) + bs.length) % bs.length]; n.focus(); n.click();
+    });
   });
   el.querySelectorAll(".carga-row[data-ex]").forEach(row=>{
     row.addEventListener("click", ()=>{
