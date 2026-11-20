@@ -1,4 +1,4 @@
-// Sub-abas: Treino (Plano | Progresso | Biblioteca | Calculadoras), Dieta (Metas | Cardápio), Perfil (Perfil | Configurações | Glossário | Sobre).
+// Sub-abas: Treino (Plano | Progresso | Calculadoras; a Biblioteca vive dentro de Plano), Dieta (Metas | Cardápio), Perfil (Perfil | Configurações | Sobre; o Glossário vive dentro de Sobre).
 // Sobre reúne as fontes (28 referências) e nenhuma aba traz mais citações no rodapé. Uso: node sub-abas.js http://localhost:8791
 const { chromium } = require('playwright');
 const { abre } = require('./telas-dados-seed.js');
@@ -16,13 +16,13 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
 
     // ---- Treino ----
     await ir('tab-treino');
-    t(L + 'Treino: barra de sub-abas com 4 itens', await p.evaluate(() => { const n = document.getElementById('treino-subnav'); return !n.hidden && n.querySelectorAll('.subtab-btn').length === 4; }));
+    t(L + 'Treino: barra de sub-abas com 3 itens (Plano, Progresso, Calculadoras)', await p.evaluate(() => { const n = document.getElementById('treino-subnav'); return !n.hidden && n.querySelectorAll('.subtab-btn').length === 3; }));
     t(L + 'Treino: abre em Plano (formato e rotina visíveis; análise oculta)', (await marcada('#subtab-treino-plano')) === 'true' && await vis('#formato-card') && await vis('#btn-edit-rotina') && !(await vis('#analise-treino-card')));
     await sub('#subtab-treino-progresso');
     t(L + 'Treino › Progresso: constância, cargas e análise aparecem; formato some', await vis('#constancia-title') && await vis('#analise-treino-card') && await vis('.carga-cat') && !(await vis('#formato-card')));
     t(L + 'Treino › Progresso: marcada como atual', (await marcada('#subtab-treino-progresso')) === 'true' && (await marcada('#subtab-treino-plano')) === 'false');
-    await sub('#subtab-treino-biblioteca');
-    t(L + 'Treino › Biblioteca: busca visível, calculadoras ocultas', await vis('#biblioteca-busca') && !(await vis('#calc-1rm-peso')));
+    await sub('#subtab-treino-plano');
+    t(L + 'Treino › Plano: Biblioteca de exercícios visível (acima da ciência), sem sub-aba própria', await vis('#biblioteca-busca') && !(await p.evaluate(() => !!document.getElementById('subtab-treino-biblioteca'))) && await p.evaluate(() => { const b = document.getElementById('biblioteca-card'), c = [...document.querySelectorAll('#view-treino h2')].find(h => /A ciência por trás/.test(h.textContent)); return !!b && !!c && !!(b.compareDocumentPosition(c.closest('.card')) & Node.DOCUMENT_POSITION_FOLLOWING); }));
     await sub('#subtab-treino-calculadoras');
     t(L + 'Treino › Calculadoras: campos visíveis, biblioteca oculta', await vis('#calc-1rm-peso') && !(await vis('#biblioteca-busca')));
     // lembra a sub-aba ao sair e voltar
@@ -39,13 +39,12 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
 
     // ---- Perfil ----
     await ir('tab-perfil');
-    t(L + 'Perfil: 4 sub-abas (Perfil, Configurações, Glossário, Sobre)', await p.evaluate(() => [...document.querySelectorAll('#perfil-subnav .subtab-btn')].map(b => b.textContent.trim()).join('|')) === 'Perfil|Configurações|Glossário|Sobre');
+    t(L + 'Perfil: 3 sub-abas (Perfil, Configurações, Sobre)', await p.evaluate(() => [...document.querySelectorAll('#perfil-subnav .subtab-btn')].map(b => b.textContent.trim()).join('|')) === 'Perfil|Configurações|Sobre');
     t(L + 'Perfil: ficha de personagem visível e o cartão "Mais do app" não existe mais', await vis('#attrs-grid') && !(await p.evaluate(() => !!document.getElementById('perfil-mais'))));
     await sub('#subtab-config');
     t(L + 'Perfil › Configurações: conta visível; o item principal "Perfil" segue marcado', await vis('#cfg-usuario') && (await p.evaluate(() => document.getElementById('tab-perfil').getAttribute('aria-selected'))) === 'true');
-    await sub('#subtab-glossario');
-    t(L + 'Perfil › Glossário: busca visível', await vis('#glossario-busca'));
     await sub('#subtab-sobre');
+    t(L + 'Perfil › Sobre: Glossário (com busca) logo abaixo de "Sobre o app", sem sub-aba própria', await vis('#glossario-busca') && !(await p.evaluate(() => !!document.getElementById('subtab-glossario') || !!document.getElementById('view-glossario'))) && await p.evaluate(() => { const cs = [...document.querySelectorAll('#view-sobre > .card')].map(c => c.querySelector('h2').textContent.trim()); return cs[0] === 'Sobre o app' && cs[1] === 'Glossário'; }));
     const sobre = await p.evaluate(() => {
       const as = [...document.querySelectorAll('#fontes-lista a')];
       return { n: as.length, bons: as.every(a => a.target === '_blank' && /noopener/.test(a.rel) && /^https:\/\//.test(a.href)), grupos: [...document.querySelectorAll('#fontes-lista h3')].map(h => h.textContent.trim()).join('|'), cont: document.getElementById('fontes-contagem').textContent };
@@ -57,7 +56,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     const sobras = await p.evaluate(() => ['view-treino', 'view-dieta', 'view-corpo', 'view-recomendacoes', 'view-painel'].map(id => { const v = document.getElementById(id); return [id, v.querySelectorAll('a[target="_blank"]:not(.ex-video-link):not(.video)').length, v.querySelectorAll('.src a, .cm-fontes, .ajuste-src a').length]; }).filter(x => x[1] || x[2]));
     t(L + 'abas sem rodapé de citações nem links de fonte (vídeos de exercício não contam)', sobras.length === 0, JSON.stringify(sobras));
     // os extras do menu lateral não aparecem mais (viraram sub-abas), mas o botão continua no DOM
-    t(L + 'botões extras do menu lateral ocultos', await p.evaluate(() => ['tab-glossario', 'tab-config'].every(i => { const e = document.getElementById(i); return e && e.getClientRects().length === 0; })));
+    t(L + 'botões extras do menu lateral ocultos', await p.evaluate(() => ['tab-config'].every(i => { const e = document.getElementById(i); return e && e.getClientRects().length === 0; })));
     // barra de sub-abas some fora dos grupos
     await ir('tab-painel');
     t(L + 'Hoje: sem barra de sub-abas', await p.evaluate(() => document.getElementById('subnav-host').hidden));
