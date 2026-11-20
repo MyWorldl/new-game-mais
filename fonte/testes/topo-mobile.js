@@ -9,11 +9,13 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     const L = '[' + w + '] ';
     const { c, p } = await abre(b, w, 'dark', true);
     await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(600);
+    // a troca de aba pode deixar a página rolada e o topo recolhido por um instante (rolagem suave): volta ao início e espera assentar
+    await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForFunction(() => !document.querySelector('.topbar').classList.contains('hide'), null, { timeout: 4000 }).catch(() => {}); await p.waitForTimeout(700);
     const r = await p.evaluate(() => {
       const tb = document.querySelector('.topbar'), sn = document.getElementById('subnav-host');
       const rs = getComputedStyle(document.documentElement), ts = getComputedStyle(tb);
       const rt = tb.getBoundingClientRect(), rn = sn.getBoundingClientRect();
-      return { rootPad: rs.paddingTop, topbarTop: ts.top, topbarY: Math.round(rt.top), tbH: Math.round(rt.height), snY: Math.round(rn.top), bg: ts.backgroundColor, alpha: /rgba/.test(ts.backgroundColor) && !/, 1\)/.test(ts.backgroundColor) };
+      return { sy: Math.round(scrollY), rootPad: rs.paddingTop, topbarTop: ts.top, topbarY: Math.round(rt.top), tbH: Math.round(rt.height), snY: Math.round(rn.top), bg: ts.backgroundColor, alpha: /rgba/.test(ts.backgroundColor) && !/, 1\)/.test(ts.backgroundColor) };
     });
     t(L + 'topo começa no pixel 0 (sem vão acima)', r.topbarY === 0 && r.rootPad === '0px' && r.topbarTop === '0px', JSON.stringify(r));
     t(L + 'topo opaco no celular', !r.alpha, r.bg);

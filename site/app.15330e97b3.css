@@ -4241,3 +4241,22 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .cdp-buy.feito .cdp-n, .cdp-buy.feito .cdp-q{ color:var(--muted); text-decoration:line-through; text-decoration-color:color-mix(in srgb, var(--muted) 60%, transparent); }
 @media (prefers-reduced-motion: reduce){ .cdp-day, .cdp-buy-box, .cdp-buy-bar i, .cdp-shop-chev{ transition:none; } }
 .cdp-days.cdp-days{ grid-template-columns:repeat(7,minmax(0,1fr)); }
+
+/* 40. Configurações em grupos: um cartão grande por assunto, com blocos separados por linha fina; Conta e sincronização por último */
+.cfg-jump{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:2px 1px 4px; margin-block-end:2px; }
+.cfg-jump::-webkit-scrollbar{ display:none; }
+.cfg-jump-b{ flex:none; min-block-size:40px; padding:0 14px; border:1px solid var(--line); border-radius:99px; background:var(--surface-2); color:var(--ink-soft); font:600 var(--fs-xs,12px) 'IBM Plex Mono',monospace; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; transition:border-color .18s, color .18s, background-color .18s; }
+.cfg-jump-b:hover{ border-color:var(--accent); color:var(--ink); }
+.cfg-jump-b:focus-visible{ outline:2px solid var(--focus,var(--accent)); outline-offset:2px; }
+.cfg-grupo{ border:1px solid var(--line); border-radius:22px; background:var(--surface); padding:6px 16px 2px; }
+.cfg-grupo-h{ display:flex; align-items:center; gap:12px; padding:14px 0 10px; }
+.cfg-grupo-ic{ display:grid; place-items:center; flex:none; inline-size:42px; block-size:42px; border-radius:14px; background:color-mix(in srgb, var(--accent) 15%, transparent); color:var(--accent-fg,var(--accent)); }
+.cfg-grupo-ic svg{ inline-size:22px; block-size:22px; }
+.cfg-grupo-h h2{ margin:0; font:700 var(--fs-lg,20px)/1.15 'Barlow Condensed',sans-serif; color:var(--ink); }
+.cfg-grupo-h p{ margin:2px 0 0; font-size:var(--fs-xs,12px); color:var(--muted); }
+.cfg-grupo > .cfg-bloco{ margin:0; padding:16px 0; border:0; border-block-start:1px solid var(--line); border-radius:0; background:transparent; box-shadow:none; }
+.cfg-grupo > .cfg-bloco[hidden]{ display:none; }
+.cfg-grupo > .cfg-bloco .card-head{ margin-block-end:10px; }
+.cfg-grupo > .cfg-bloco .card-head h2{ font-size:var(--fs-md,17px); }
+.cfg-grupo > .cfg-bloco .card-head h2::before{ display:none; }
+.cfg-grupo:not(:has(.cfg-bloco:not([hidden]))){ display:none; }
