@@ -29,7 +29,7 @@ const S = (a) => a.map(r => ({ r }));
       { iso: D(7), dia: kD(7), cargas: { 'Supino reto': 22.5, 'Agachamento livre': 40 }, sets: { 0: S([9, 8, 8]), 1: S([10, 10, 10]) }, rpe: { 1: 10 }, progresso: { 0: 25, 1: 30 } }] }]);
     await p.reload(); await p.waitForTimeout(1500);
     await p.evaluate(() => document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()));
-    await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(800);
+    await p.evaluate(() => { document.getElementById('tab-treino').click(); document.getElementById('subtab-treino-progresso').click(); }); await p.waitForTimeout(800);   // a análise fica em Treino › Progresso
     return { c, p };
   };
   let { c, p } = await mk({});
@@ -56,7 +56,7 @@ const S = (a) => a.map(r => ({ r }));
     function S2(a) { return a.map(r => ({ r })); } }, [D(0), kD(0)]);
   await p.reload(); await p.waitForTimeout(1500);
   await p.evaluate(() => document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()));
-  await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(800);
+  await p.evaluate(() => { document.getElementById('tab-treino').click(); document.getElementById('subtab-treino-progresso').click(); }); await p.waitForTimeout(800);   // a análise fica em Treino › Progresso
   const dia = await p.locator('#week-trail-detail .qc-analise').innerText().catch(() => '');
   t('análise do dia aparece ao concluir o treino', /Análise de hoje/.test(dia), dia.replace(/\s+/g, ' ').slice(0, 300));
   t('dia: supino melhorou, agachamento igual', /Supino reto — Melhor/.test(dia.replace(/\s+/g, ' ')) && /Agachamento livre — Igual/.test(dia.replace(/\s+/g, ' ')), dia.replace(/\s+/g, ' '));

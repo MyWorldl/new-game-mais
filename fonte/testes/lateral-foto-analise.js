@@ -33,6 +33,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
   // ---------------- A) análise do treino com filtros
   let { c, p } = await mk();
   await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(900);
+  await p.evaluate(() => document.getElementById('subtab-treino-progresso').click()); await p.waitForTimeout(600);   // a análise fica em Treino › Progresso
   const chips = await p.locator('#analise-treino-body .an-f').evaluateAll(l => l.map(x => x.tagName + ':' + x.dataset.anf + ':' + x.getAttribute('aria-pressed')));
   t('Análise: os selos viram botões-filtro (e há "Todos")', chips.length >= 2 && chips.every(x => x.startsWith('BUTTON')) && chips.some(x => x.includes(':todos:')), chips.join(' '));
   const marcado = chips.filter(x => x.endsWith(':true'));
