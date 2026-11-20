@@ -761,17 +761,13 @@ function planoInicial(p){
   let base, split;
   if(n <= 3){
     split = "Full Body";
-    base = buildFullBodyRotina();
-    if(n === 2){   // 2 sessões: A na segunda e B na quinta, mantendo 2 dias de folga entre elas
-      base = Object.assign({}, base, {qua:{nome:"Descanso", ativo:false, exercicios:[]}, qui:base.qua, sex:{nome:"Descanso", ativo:false, exercicios:[]}});
-    }
+    base = n === 2 ? buildFullBody2Rotina() : buildFullBodyRotina();   // 2 sessões: A na segunda e B na quinta, mantendo 2 dias de folga entre elas
   } else if(n === 4){
     split = "Upper/Lower";
     base = buildUpperLowerRotina();
   } else if(n === 5){
     split = "A, B, C + Upper e Lower";
-    const ppl = buildPPLRotina(), ul = buildUpperLowerRotina(), rest = {nome:"Descanso", ativo:false, exercicios:[]};
-    base = {seg:ppl.seg, ter:ppl.ter, qua:ppl.qua, qui:rest, sex:ul.qui, sab:ul.sex, dom:rest};
+    base = buildCincoDiasRotina();
   } else if(focoSoPernas(p)){
     split = SPLIT_PERNAS;      // plano feito para o foco: pernas e glúteos 3×, costas e ombros 2×, peito e braços 1×
     base = buildPernasGluteosRotina();
@@ -794,11 +790,114 @@ function planoInicial(p){
 
 /* v98: a rotina inicial vem do perfil (experiência, dias, equipamento, objetivo e idade). Sem perfil: Full Body 3× (o que o app recomenda para iniciantes). */
 function defaultRotina(perfil){ return planoInicial(perfil || null).rotina; }
+/* Modelos extras do editor (v. ng-modular-37). Reaproveitam os modelos acima e as adaptações do motor (local, nível e situações); só os de 4 dias têm treinos próprios. */
+const DESCANSO_DIA = ()=> ({nome:"Descanso", ativo:false, exercicios:[]});
+function buildFullBody2Rotina(){   // 2 sessões (segunda e quinta): cada uma leva o corpo todo, inclusive quadríceps E posterior, para cada músculo treinar 2×
+  return {
+    seg:{nome:"Full Body A", ativo:true, exercicios:[
+      mkEx("Agachamento livre",3,"8-12",["quadriceps","gluteos"]),
+      mkEx("Supino reto",3,"8-12",["peito","triceps"]),
+      mkEx("Remada curvada com barra",3,"8-12",["costas","biceps"]),
+      mkEx("Stiff (levantamento terra romeno)",3,"8-12",["posterior","gluteos"]),
+      mkEx("Desenvolvimento com halteres",2,"10-12",["ombros","triceps"]),
+      mkEx("Prancha",3,"30-45s",["abdomen"])]},
+    ter:DESCANSO_DIA(), qua:DESCANSO_DIA(),
+    qui:{nome:"Full Body B", ativo:true, exercicios:[
+      mkEx("Leg press",3,"10-15",["quadriceps","gluteos"]),
+      mkEx("Supino inclinado com halteres",3,"8-12",["peito","triceps"]),
+      mkEx("Puxada na polia (pegada aberta)",3,"8-12",["costas","biceps"]),
+      mkEx("Mesa flexora",3,"10-12",["posterior"]),
+      mkEx("Elevação lateral",3,"12-15",["ombros"]),
+      mkEx("Elevação de panturrilha em pé",3,"12-15",["panturrilha"])]},
+    sex:DESCANSO_DIA(), sab:DESCANSO_DIA(), dom:DESCANSO_DIA()
+  };
+}
+function buildCincoDiasRotina(){
+  const ppl = buildPPLRotina(), ul = buildUpperLowerRotina();
+  return {seg:ppl.seg, ter:ppl.ter, qua:ppl.qua, qui:DESCANSO_DIA(), sex:ul.qui, sab:ul.sex, dom:DESCANSO_DIA()};
+}
+function buildPernasGluteos4Rotina(){
+  return {
+    seg:{nome:"A · Pernas e Glúteos", ativo:true, exercicios:[
+      mkEx("Agachamento livre",4,"6-10",["quadriceps","gluteos"]),
+      mkEx("Mesa flexora",3,"10-12",["posterior"]),
+      mkEx("Cadeira extensora",3,"12-15",["quadriceps"]),
+      mkEx("Elevação de panturrilha em pé",3,"12-15",["panturrilha"]),
+      mkEx("Prancha",3,"30-45s",["abdomen"])]},
+    ter:{nome:"B · Superior", ativo:true, exercicios:[
+      mkEx("Supino inclinado com halteres",3,"8-12",["peito","triceps"]),
+      mkEx("Puxada na polia (pegada aberta)",3,"8-12",["costas","biceps"]),
+      mkEx("Desenvolvimento com halteres",3,"8-12",["ombros","triceps"]),
+      mkEx("Remada unilateral com halter",3,"10-12 por lado",["costas"]),
+      mkEx("Rosca direta",2,"10-12",["biceps"]),
+      mkEx("Tríceps na polia (corda)",2,"10-15",["triceps"])]},
+    qua:DESCANSO_DIA(),
+    qui:{nome:"C · Glúteos e Posterior", ativo:true, exercicios:[
+      mkEx("Stiff (levantamento terra romeno)",4,"8-12",["posterior","gluteos"]),
+      mkEx("Hip thrust",4,"10-15",["gluteos"]),
+      mkEx("Leg press",3,"10-15",["quadriceps","gluteos"]),
+      mkEx("Cadeira abdutora",3,"15-20",["gluteos"]),
+      mkEx("Elevação de panturrilha sentado",3,"12-15",["panturrilha"])]},
+    sex:{nome:"D · Superior", ativo:true, exercicios:[
+      mkEx("Remada curvada com barra",3,"8-12",["costas","biceps"]),
+      mkEx("Supino na smith (ou máquina)",3,"8-12",["peito","triceps"]),
+      mkEx("Elevação lateral no cabo",3,"15-20",["ombros"]),
+      mkEx("Rosca alternada com halteres",2,"10-12",["biceps"]),
+      mkEx("Tríceps francês",2,"10-12",["triceps"])]},
+    sab:DESCANSO_DIA(), dom:DESCANSO_DIA()
+  };
+}
+function buildSuperior4Rotina(){
+  return {
+    seg:{nome:"A · Peito e Costas", ativo:true, exercicios:[
+      mkEx("Supino reto",4,"8-12",["peito","triceps"]),
+      mkEx("Remada curvada com barra",4,"8-12",["costas","biceps"]),
+      mkEx("Supino inclinado com halteres",3,"8-12",["peito","triceps"]),
+      mkEx("Puxada na polia (pegada aberta)",3,"8-12",["costas","biceps"])]},
+    ter:{nome:"B · Pernas", ativo:true, exercicios:[
+      mkEx("Agachamento livre",3,"8-12",["quadriceps","gluteos"]),
+      mkEx("Stiff (levantamento terra romeno)",3,"8-12",["posterior","gluteos"]),
+      mkEx("Cadeira extensora",2,"12-15",["quadriceps"]),
+      mkEx("Elevação de panturrilha em pé",3,"12-15",["panturrilha"]),
+      mkEx("Prancha",3,"30-45s",["abdomen"])]},
+    qua:DESCANSO_DIA(),
+    qui:{nome:"C · Ombros e Braços", ativo:true, exercicios:[
+      mkEx("Desenvolvimento com halteres",3,"8-12",["ombros","triceps"]),
+      mkEx("Elevação lateral",4,"12-15",["ombros"]),
+      mkEx("Face pull",3,"12-15",["ombros","costas"]),
+      mkEx("Rosca direta",3,"10-12",["biceps"]),
+      mkEx("Tríceps francês",3,"10-12",["triceps"])]},
+    sex:{nome:"D · Costas, Peito e Braços", ativo:true, exercicios:[
+      mkEx("Barra fixa (ou puxada frente)",3,"8-12",["costas","biceps"]),
+      mkEx("Supino na smith (ou máquina)",3,"8-12",["peito","triceps"]),
+      mkEx("Remada unilateral com halter",3,"10-12 por lado",["costas"]),
+      mkEx("Elevação lateral no cabo",2,"15-20",["ombros"]),
+      mkEx("Rosca alternada com halteres",2,"10-12",["biceps"]),
+      mkEx("Tríceps na polia (corda)",3,"10-15",["triceps"])]},
+    sab:DESCANSO_DIA(), dom:DESCANSO_DIA()
+  };
+}
+/* base + local/nível + situação (retorno após pausa, 60+): a mesma conta do plano inicial, para o modelo e o gerador não divergirem */
+function rotinaDoModelo(base, o){
+  const local = o.local || "academia";
+  const adaptada = adaptarRotinaAoPerfil(base, {local, menor:false, exp:o.exp || "iniciante"});
+  return aplicarSituacoes(adaptada, {local, sit:situacoesDoPerfil(o.perfil || null)});
+}
+const ROTINA_GRUPOS = ["2 a 3 dias por semana", "4 dias por semana", "5 a 6 dias por semana", "Situações especiais"];
 const ROTINA_TEMPLATES = {
-  ppl: {label:"A–F — Peito, Costas e Pernas 2× (PPL)", desc:"6 dias de treino (Peito e Ombros, Costas e Bíceps e Pernas, 2× cada), 1 de descanso. Pra quem já tem mais experiência e tempo disponível.", build: ()=> buildPPLRotina()},
-  pernasGluteos: {label:"A–F — Ênfase em pernas e glúteos", desc:"6 dias de treino: pernas e glúteos 3× por semana, costas e ombros 2×, peito e braços 1×; 1 de descanso. Para quem quer mais volume em pernas e glúteos (opção, não sugestão automática).", build: buildPernasGluteosRotina},
-  upperLower: {label:"Upper/Lower (4×/semana)", desc:"4 dias de treino (Superior/Inferior 2×), 3 de descanso. Bom equilíbrio entre frequência e recuperação — indicado pra nível intermediário.", build: buildUpperLowerRotina},
-  fullBody: {label:"Full Body (3×/semana)", desc:"3 dias de treino com o corpo inteiro, 4 de descanso. Ideal pra quem está começando ou tem pouco tempo disponível por semana.", build: buildFullBodyRotina},
+  fullBody2: {grupo:0, label:"Full Body (2×/semana)", desc:"2 dias de treino com o corpo inteiro (segunda e quinta), 5 de descanso. Para agenda apertada ou quem está começando: é o mínimo para cada músculo treinar 2× por semana.", build: buildFullBody2Rotina},
+  fullBody: {grupo:0, label:"Full Body (3×/semana)", desc:"3 dias de treino com o corpo inteiro, 4 de descanso. Ideal pra quem está começando ou tem pouco tempo disponível por semana.", build: buildFullBodyRotina},
+  fullBodyCasa: {grupo:0, label:"Full Body em casa (3×/semana)", desc:"3 dias com o corpo inteiro usando halteres, elástico e um banco: barras, máquinas e cabos trocados por versões de casa.", build: ()=> rotinaDoModelo(buildFullBodyRotina(), {local:"casa"})},
+  fullBodySemEquip: {grupo:0, label:"Full Body sem equipamento (3×/semana)", desc:"3 dias com o corpo inteiro só com o peso do corpo e, no máximo, um elástico. Dá para treinar em qualquer lugar.", build: ()=> rotinaDoModelo(buildFullBodyRotina(), {local:"pouco"})},
+  upperLower: {grupo:1, label:"Upper/Lower (4×/semana)", desc:"4 dias de treino (Superior/Inferior 2×), 3 de descanso. Bom equilíbrio entre frequência e recuperação — indicado pra nível intermediário.", build: buildUpperLowerRotina},
+  upperLowerCasa: {grupo:1, label:"Upper/Lower em casa (4×/semana)", desc:"4 dias (Superior/Inferior 2×) com halteres, elástico e um banco, sem máquinas.", build: ()=> rotinaDoModelo(buildUpperLowerRotina(), {local:"casa"})},
+  pernasGluteos4: {grupo:1, label:"Ênfase em pernas e glúteos (4×/semana)", desc:"4 dias: pernas e glúteos 2× (um dia de pernas completas, outro de glúteos e posterior) e superior 2×; 3 de descanso. Versão enxuta do modelo de 6 dias.", build: buildPernasGluteos4Rotina},
+  superior4: {grupo:1, label:"Ênfase em ombros, braços e costas (4×/semana)", desc:"4 dias: peito, costas, ombros e braços 2× cada e pernas 1×; 3 de descanso. Para quem quer mais volume na parte de cima (opção, não sugestão automática).", build: buildSuperior4Rotina},
+  cinco: {grupo:2, label:"5×/semana — A, B, C + Upper e Lower", desc:"5 dias: três treinos divididos (peito e ombros, costas e bíceps, pernas) mais Superior e Inferior, 2 de descanso. É o plano que o app monta para quem pede 5 dias.", build: buildCincoDiasRotina},
+  ppl: {grupo:2, label:"A–F — Peito, Costas e Pernas 2× (PPL)", desc:"6 dias de treino (Peito e Ombros, Costas e Bíceps e Pernas, 2× cada), 1 de descanso. Pra quem já tem mais experiência e tempo disponível.", build: ()=> buildPPLRotina()},
+  pernasGluteos: {grupo:2, label:"A–F — Ênfase em pernas e glúteos", desc:"6 dias de treino: pernas e glúteos 3× por semana, costas e ombros 2×, peito e braços 1×; 1 de descanso. Para quem quer mais volume em pernas e glúteos (opção, não sugestão automática).", build: buildPernasGluteosRotina},
+  retorno: {grupo:3, label:"Retorno após pausa (Full Body leve, 3×)", desc:"3 dias com o corpo inteiro, com menos séries e repetições de 10 a 15: nas primeiras 2 a 3 semanas depois de uma pausa. Depois, aumente aos poucos. Rascunho de adaptação, sem revisão profissional.", build: ()=> rotinaDoModelo(buildFullBodyRotina(), {perfil:{retorno:true}})},
+  idoso: {grupo:3, label:"60+ com máquinas (Full Body, 3×)", desc:"3 dias com o corpo inteiro, máquinas no lugar de barras, até 3 séries de 10 a 15 repetições, 2 a 3 repetições sobrando no fim da série. Vale uma avaliação médica antes de começar. Rascunho de adaptação, sem revisão profissional.", build: ()=> rotinaDoModelo(buildFullBodyRotina(), {perfil:{idade:60}})}
 };
 
 // Faixas de referência gerais MEV/MAV/MRV (séries/semana), com base no
@@ -7902,7 +8001,7 @@ function openRotinaEditor(){
     '<div class="rotina-template-row">'+
       '<select id="rotina-template-select" aria-label="Modelo de rotina">'+
         '<option value="">Começar de um modelo…</option>'+
-        Object.keys(ROTINA_TEMPLATES).map(k=>'<option value="'+k+'">'+escapeHtml(ROTINA_TEMPLATES[k].label)+'</option>').join("")+
+        ROTINA_GRUPOS.map((g, gi)=> '<optgroup label="'+escapeHtml(g)+'">'+Object.keys(ROTINA_TEMPLATES).filter(k=> ROTINA_TEMPLATES[k].grupo === gi).map(k=>'<option value="'+k+'">'+escapeHtml(ROTINA_TEMPLATES[k].label)+'</option>').join("")+'</optgroup>').join("")+
       '</select>'+
       '<button class="btn small ghost" type="button" id="rotina-template-apply">Aplicar modelo</button>'+
     '</div>'+
@@ -10758,5 +10857,5 @@ function resumoParaTreinador(){
   };
 }
 window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
-try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque, filtraAlternativas, exercicioAdequadoAoPerfil, BASE_EXERCICIOS, BASE_PLANOS, situacoesDoPerfil, fichaDoApp, MUSCLE_LANDMARKS}; }catch(e){}
+try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque, filtraAlternativas, exercicioAdequadoAoPerfil, BASE_EXERCICIOS, BASE_PLANOS, situacoesDoPerfil, fichaDoApp, MUSCLE_LANDMARKS, ROTINA_TEMPLATES, ROTINA_GRUPOS}; }catch(e){}
 })();
