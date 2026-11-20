@@ -3433,6 +3433,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .fontes-ul li{ display:flex; flex-direction:column; gap:2px; padding-block:var(--sp-2); border-block-end:1px solid var(--line); min-inline-size:0; }
 .fontes-ul li:last-child{ border-block-end:0; }
 .fontes-ul a{ overflow-wrap:anywhere; padding-block:.4em; }
+@media (pointer:coarse){ .fontes-ul a{ display:flex; align-items:center; min-block-size:44px; } }
 .fonte-uso{ font-size:var(--fs-xs); color:var(--muted); }
 
 /* 32. Cardápio: campos selecionáveis, formulário em caixa flutuante e estado vazio */
