@@ -5667,17 +5667,33 @@ function desenharFormatoPanel(t){
     '</div>'+
     '<div class="fp-note">Resultado: <strong>'+n+'×'+r+'</strong> ('+n+' treino · '+r+' descanso).'+
       (n===0?' Escolha ao menos 1 dia.':'')+
-      (vazios.length?' Sem exercícios em '+vazios.map(k=>DAY_ABBR[k]).join(", ")+': até você preencher em "Editar rotina", contam como descanso.':'')+
+      (vazios.length?' Em '+vazios.map(k=>DAY_ABBR[k]).join(", ")+' ainda não há treino: ao aplicar, o app monta o plano completo para os dias escolhidos, a partir do seu perfil e dos seus focos (dá para desfazer).':'')+
       ' Nada é apagado: os dias desligados mantêm seus exercícios.</div>'+
     '<div class="fp-actions"><button class="btn primary small" type="button" id="fp-apply"'+(n===0?' disabled':'')+'>Aplicar '+n+'×'+r+'</button><button class="btn small ghost" type="button" id="fp-cancel">Cancelar</button></div>';
+}
+/* Formato da semana: se algum dia escolhido ainda não tem treino, o APP monta o plano (mesmo motor do cadastro: perfil, nível, local, focos)
+   com tantas sessões quanto os dias escolhidos, na ordem da semana. A pessoa não precisa preencher nada; o Desfazer devolve o que havia. */
+function planoParaFormato(escolhidos){
+  const base = state.perfil ? Object.assign({}, state.perfil) : {experiencia:"iniciante", local:"academia", objetivo:"manutencao"};
+  const pl = planoInicial(Object.assign(base, {diasSemana: escolhidos.length, focos: focosDoPerfil()}));
+  const sessoes = DAYS.filter(k=> pl.rotina[k] && pl.rotina[k].ativo && (pl.rotina[k].exercicios||[]).length).map(k=> pl.rotina[k]);
+  return {pl, sessoes};
 }
 async function aplicarFormato(){
   const jobs = [];
   const snapRotina = {}; DAYS.forEach(k=>{ snapRotina[k] = state.rotina[k]; });
   const eraExemplo = state.rotinaIsExample;
+  const escolhidos = DAYS.filter(k=> formatoSel.has(k));
+  const temVazio = escolhidos.some(k=> !((state.rotina[k]||{}).exercicios||[]).length);
+  const gerado = temVazio ? planoParaFormato(escolhidos) : null;
+  const montou = !!(gerado && gerado.sessoes.length);
   DAYS.forEach(k=>{
     const d = state.rotina[k] || {nome:DAY_FULL[k], ativo:false, exercicios:[]};
-    const nd = Object.assign({}, d, {ativo: formatoSel.has(k)});
+    let nd = Object.assign({}, d, {ativo: formatoSel.has(k)});
+    if(montou && formatoSel.has(k)){
+      const i = escolhidos.indexOf(k), s = gerado.sessoes[i];
+      nd = s ? {nome:s.nome, ativo:true, exercicios:JSON.parse(JSON.stringify(s.exercicios))} : Object.assign({}, d, {ativo:false});   // sem sessão para o dia (limite do perfil): fica de descanso
+    }
     state.rotina[k] = nd;
     jobs.push(saveDoc("rotina/"+k, nd));   // salva os 7 dias (como o editor), senão a rotina de exemplo ficaria incompleta
   });
@@ -5687,7 +5703,11 @@ async function aplicarFormato(){
   render();
   microReward();
   await Promise.all(jobs);
-  showToast("Formato "+formatoSel.size+"×"+(7-formatoSel.size)+" aplicado.", {action:{label:"Desfazer", fn:async ()=>{
+  const nFinal = DAYS.filter(k=> treinoAtivoKey(k)).length;
+  const msg = montou
+    ? "Formato "+nFinal+"×"+(7-nFinal)+" aplicado: montei o plano "+gerado.pl.split+" para o seu perfil."+(gerado.sessoes.length < escolhidos.length ? " O seu perfil comporta "+gerado.sessoes.length+" treinos por semana; os outros dias ficaram de descanso." : "")
+    : "Formato "+formatoSel.size+"×"+(7-formatoSel.size)+" aplicado.";
+  showToast(msg, {action:{label:"Desfazer", fn:async ()=>{
     const js = [];
     DAYS.forEach(k=>{
       const d = snapRotina[k];
