@@ -4246,7 +4246,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 /* 40. Configurações em grupos: um cartão grande por assunto, com blocos separados por linha fina; Conta e sincronização por último */
 .cfg-jump{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:2px 1px 4px; margin-block-end:2px; }
 .cfg-jump::-webkit-scrollbar{ display:none; }
-.cfg-jump-b{ flex:none; min-block-size:40px; padding:0 14px; border:1px solid var(--line); border-radius:99px; background:var(--surface-2); color:var(--ink-soft); font:600 var(--fs-xs,12px) 'IBM Plex Mono',monospace; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; transition:border-color .18s, color .18s, background-color .18s; }
+.cfg-jump-b{ flex:none; min-block-size:44px; padding:0 14px; border:1px solid var(--line); border-radius:99px; background:var(--surface-2); color:var(--ink-soft); font:600 var(--fs-xs,12px) 'IBM Plex Mono',monospace; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; transition:border-color .18s, color .18s, background-color .18s; }
 .cfg-jump-b:hover{ border-color:var(--accent); color:var(--ink); }
 .cfg-jump-b:focus-visible{ outline:2px solid var(--focus,var(--accent)); outline-offset:2px; }
 .cfg-grupo{ border:1px solid var(--line); border-radius:22px; background:var(--surface); padding:6px 16px 2px; }
