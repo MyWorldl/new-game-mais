@@ -1,4 +1,4 @@
-:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+:root{color-scheme:light;box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
 
 @font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2');}
 @font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2');}
@@ -160,15 +160,15 @@ button{font-family:inherit;}
 /* ---------- layout shell ---------- */
 .app{max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:18px;}
 .topbar{
-  position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
-  background:var(--bg); padding-block:6px 2px; margin:0 calc(-1 * var(--pr)) 0 calc(-1 * var(--pl)); padding-inline:var(--pl) var(--pr);
+  position:sticky; top:0; z-index:20;
+  background:var(--bg); padding-block:calc(env(safe-area-inset-top,0px) + 6px) 2px; margin:0 calc(-1 * var(--pr)) 0 calc(-1 * var(--pl)); padding-inline:var(--pl) var(--pr);
   display:flex; flex-direction:column; gap:var(--sp-3);
   transition:transform .25s ease;
 }
 /* em celular o cabeçalho some ao rolar pra baixo e volta ao rolar pra cima
    (classe .hide controlada por JS só em telas de toque) — devolve até 37% da
    altura da tela pro conteúdo */
-.topbar.hide{ transform:translateY(calc(-100% - env(safe-area-inset-top,0px) - 4px)); }
+.topbar.hide{ transform:translateY(calc(-100% - 4px)); }
 @media (prefers-reduced-motion: reduce){ .topbar{transition:none;} }
 .brand{display:flex; align-items:baseline; gap:10px;}
 .brand .mark{
@@ -2082,7 +2082,7 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
 /* I7 — barra de progresso de leitura (Glossário e Dicas); só onde há animation-timeline */
 #read-progress{display:none; position:fixed; inset:0 0 auto 0; block-size:3px; z-index:60; background:var(--accent); transform-origin:0 50%; transform:scaleX(0); pointer-events:none;}
 @supports (animation-timeline: scroll()){
-  html:has(#view-glossario:not([hidden])) #read-progress, html:has(#view-recomendacoes:not([hidden])) #read-progress{display:block;}
+  html:has(#view-sobre:not([hidden])) #read-progress, html:has(#view-recomendacoes:not([hidden])) #read-progress{display:block;}
   #read-progress{animation:read-grow linear both; animation-timeline:scroll(root block);}
   @keyframes read-grow{to{transform:scaleX(1);}}
 }
@@ -2813,7 +2813,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
   background:color-mix(in srgb, var(--bg) 78%, transparent);
   -webkit-backdrop-filter:blur(14px) saturate(1.25); backdrop-filter:blur(14px) saturate(1.25);
   border-bottom:1px solid color-mix(in srgb, var(--line) 80%, transparent);
-  padding-block:8px 8px;
+  padding-block:calc(env(safe-area-inset-top,0px) + 8px) 8px;   /* a área segura do aparelho (notch/ilha) fica DENTRO do topo: sem vão de outra cor acima */
 }
 .brand{ align-items:center; }
 .brand .mark{
@@ -3290,8 +3290,6 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
   :root .bottomnav .tab-btn{ border-radius:14px; min-block-size:48px; }
   :root .bottomnav .tab-btn[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); box-shadow:0 8px 22px -10px color-mix(in srgb, var(--accent) 85%, transparent); }
   :root .bottomnav .tab-btn:not([aria-selected="true"]):hover{ background:color-mix(in oklab, var(--surface-3) 80%, transparent); color:var(--ink); }
-  .bottomnav #tab-glossario{ margin-top:14px; position:relative; }
-  .bottomnav #tab-glossario::before{ content:""; position:absolute; inset-inline:8px; top:-8px; border-top:1px solid var(--line); }
   /* card de sequência (rodapé do menu) */
   .side-streak{ display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:auto; padding:10px 4px; border-radius:16px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); }
   .ss-head{ display:flex; align-items:center; gap:6px; color:var(--flame-warm,var(--accent-fg)); }
@@ -3411,10 +3409,10 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 /* 31. Sub-abas (Treino, Dieta, Corpo, Perfil) numa faixa própria logo abaixo do topo.
    Antes ficavam dentro do .topbar; com o topo fixo do desktop elas não tinham onde caber. A faixa gruda sob o topo e,
    no celular, some e volta junto com ele (classe .hide, ver setupAutoHideHeader). Em Treino/Dieta os cartões fora da sub-aba ganham .sub-off. */
-.subnav-host{ position:sticky; top:calc(env(safe-area-inset-top,0px) + var(--tb-h,0px)); z-index:19; padding-block:6px; margin-block-start:-8px; background:var(--bg); transition:transform .25s ease; }
+.subnav-host{ position:sticky; top:var(--tb-h,0px); z-index:19; padding-block:6px; margin-block-start:-8px; background:var(--bg); transition:transform .25s ease; }
 .subnav-host[hidden]{ display:none; }
 .subnav-host .subtabs-wrap{ max-inline-size:100%; }
-.subnav-host.hide{ transform:translateY(calc(-100% - var(--tb-h,0px) - env(safe-area-inset-top,0px) - 4px)); }
+.subnav-host.hide{ transform:translateY(calc(-100% - var(--tb-h,0px) - 4px)); }
 @media (prefers-reduced-motion: reduce){ .subnav-host{ transition:none; } }
 @media (max-width:767px){
   .subnav-host .subtabs-wrap{ flex-wrap:nowrap; overflow-x:auto; inline-size:100%; scrollbar-width:none; }
@@ -4038,3 +4036,11 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .rotina-gen .muscle-chip{ min-block-size:40px; }
 @media (pointer:coarse){ .rotina-gen .muscle-chip, .rotina-gen .btn, .rotina-gen select{ min-block-size:44px; } }
 .rotina-gen .hint{ font-size:var(--fs-xs); line-height:1.45; color:var(--ink-soft); margin:0; }
+
+
+/* 34. Celular: faixa da área segura (notch / barra de status) sempre da cor do topo, mesmo com o topo recolhido ao rolar.
+   Antes o :root tinha padding-top = área segura e o topo grudava abaixo dele, deixando um vão de outra cor (e o conteúdo rolando por trás). */
+@media (max-width:767px){
+  body{ padding-block-start:0; }   /* os 20px de folga em cima do <body> eram o "espaço vazio" acima do topo no celular */
+  body::before{ content:""; position:fixed; inset:0 0 auto 0; block-size:env(safe-area-inset-top,0px); background:var(--surface); z-index:21; pointer-events:none; }
+}

@@ -6,8 +6,8 @@ const { abre } = require('./telas-dados-seed.js');
 const BASE = process.argv[2] || 'http://localhost:8791';
 const axeSrc = process.env.SP && fs.existsSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js') ? fs.readFileSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js', 'utf8') : null;
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 400) : '')); };
-const ABAS = ['painel', 'treino', 'dieta', 'corpo', 'perfil', 'config', 'glossario'];
-const irAba = async (p, a) => { await p.evaluate(a => document.getElementById('tab-' + a).click(), a); await p.waitForTimeout(900); };
+const ABAS = ['painel', 'treino', 'dieta', 'corpo', 'perfil', 'config', 'sobre'];
+const irAba = async (p, a) => { await p.evaluate(a => { if (a === 'sobre') { document.getElementById('tab-perfil').click(); document.getElementById('subtab-sobre').click(); } else document.getElementById('tab-' + a).click(); }, a); await p.waitForTimeout(900); };
 // troca de tema pelos botões do próprio app (Config): paletas do jogo, ou pastel em modo claro/escuro
 const tema = async (p, k, modo) => {
   await irAba(p, 'config');

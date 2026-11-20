@@ -1785,12 +1785,12 @@ function applyLocalFallback(path, data){
 // principal só tem o botão "Corpo", e uma segunda barrinha (corpo-subnav)
 // aparece só quando esse grupo está ativo, pra escolher qual das 3 mostrar.
 // Grupos de sub-abas. Duas famílias:
-//  - GRUPOS_SECOES: cada sub-aba é uma <section class="view"> própria (Corpo/Dicas; Perfil/Configurações/Glossário/Sobre);
+//  - GRUPOS_SECOES: cada sub-aba é uma <section class="view"> própria (Corpo/Dicas; Perfil/Configurações/Sobre — o Glossário agora é um cartão de Sobre);
 //  - SUBS_INTERNAS: as sub-abas são faixas de cartões da MESMA seção (Treino e Dieta). Cada cartão marca a sua com data-sub
 //    (pode listar mais de uma, separadas por espaço); os demais ganham .sub-off (display:none).
 // showTab aceita "treino:progresso" para abrir direto numa sub-aba.
-const GRUPOS_SECOES = {corpo:["corpo","recomendacoes"], perfil:["perfil","config","glossario","sobre"]};
-const SUBS_INTERNAS = {treino:["plano","progresso","biblioteca","calculadoras"], dieta:["metas","cardapio"]};
+const GRUPOS_SECOES = {corpo:["corpo","recomendacoes"], perfil:["perfil","config","sobre"]};
+const SUBS_INTERNAS = {treino:["plano","progresso","calculadoras"], dieta:["metas","cardapio"]};
 const subAtual = {corpo:"corpo", perfil:"perfil", treino:"plano", dieta:"metas"};
 const dirtyViews = new Set();   // v94 P1: seções que precisam ser redesenhadas ao abrir
 function abaPrincipal(id){ for(const g in GRUPOS_SECOES){ if(GRUPOS_SECOES[g].includes(id)) return g; } return id; }
@@ -1804,6 +1804,8 @@ function aplicaSubInterna(g){
 }
 function showTab(name){
   name = String(name);
+  if(name === "glossario") name = "sobre";   // o Glossário virou um cartão dentro de Sobre (atalhos antigos continuam valendo)
+  if(name === "treino:biblioteca") name = "treino:plano";
   if(name.includes(":")){
     const par = name.split(":");
     if(SUBS_INTERNAS[par[0]] && SUBS_INTERNAS[par[0]].includes(par[1])) subAtual[par[0]] = par[1];
@@ -1847,7 +1849,15 @@ function setSub(g, sub){
   window.scrollTo(0, 0);
 }
 /* v85 (I1): troca de aba com View Transition — desliza na direção da aba (esq./dir.); sub-abas só esmaecem */
+function irAoGlossario(){
+  return showTabAnimated("sobre").then(()=>{
+    renderGlossario();
+    const c = document.getElementById("glossario-card");
+    if(c) c.scrollIntoView({block:"start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  });
+}
 function showTabAnimated(name){
+  if(String(name) === "glossario") return irAoGlossario();
   const curView = document.querySelector(".view:not([hidden])");
   const base = String(name).split(":")[0];
   const cur = curView ? curView.id.replace("view-","") : "";
@@ -2121,7 +2131,7 @@ function tipBtn(k){
     if(!go) return;
     glossarioCat = go.dataset.tipgo;
     pop.hidePopover();
-    showTabAnimated("glossario").then(()=> renderGlossario());
+    showTabAnimated("sobre").then(()=>{ renderGlossario(); const c = document.getElementById("glossario-card"); if(c) c.scrollIntoView({block:"start", behavior:"smooth"}); });
   });
 })();
 
@@ -2146,7 +2156,7 @@ function tipBtn(k){
     {t:"Ir para Dieta", k:"calorias macros cardapio refeicoes", h:"g d", run:irPara("dieta")},
     {t:"Ir para Dicas", k:"recomendacoes", h:"", run:irPara("recomendacoes")},
     {t:"Ir para Perfil", k:"nivel patente xp conquistas fotos", h:"g p", run:irPara("perfil")},
-    {t:"Ir para Glossário", k:"termos significado ajuda", h:"g l", run:irPara("glossario")},
+    {t:"Ir para Glossário", k:"termos significado ajuda", h:"g l", run:()=> irAoGlossario()},
     {t:"Ir para Configurações", k:"config backup exportar importar som", h:"g o", run:irPara("config")},
     {t:"Começar treino de hoje", k:"comecar treinar quest iniciar ao vivo", h:"", run:()=>{
       showTab("painel");
@@ -3040,7 +3050,7 @@ function computeNivelInfo(){
 /* NG+ — topo e menu lateral (referência Kinora): título da seção + saudação, avatar, card de sequência no menu e
    botão de recolher o menu. Só leitura dos dados que o app já calcula; a única preferência guardada é a do menu
    (recolhido/expandido), no navegador (localStorage, com try/catch). */
-const NAV_TITULOS = {painel:"Hoje", treino:"Treino", dieta:"Dieta", corpo:"Corpo", recomendacoes:"Dicas", perfil:"Perfil", glossario:"Glossário", config:"Configurações"};
+const NAV_TITULOS = {painel:"Hoje", treino:"Treino", dieta:"Dieta", corpo:"Corpo", recomendacoes:"Dicas", perfil:"Perfil", config:"Configurações"};
 function navTitulo(id){
   const el = document.getElementById("top-sec");
   if(el) el.textContent = NAV_TITULOS[id] || "NG+";
@@ -9040,7 +9050,7 @@ const TOUR_PASSOS = [
   {aba:"dieta:cardapio", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Meus alimentos para marcar só o que você come (o cardápio e a lista de compras seguem a sua escolha) e Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
   {aba:"corpo", alvo:{h2:"Nova medição"}, t:"Medidas e fotos", x:"Registre peso e medidas, de preferência sempre no mesmo horário, para ver a evolução nos gráficos. As fotos de progresso ficam só na sua conta."},
   {aba:"perfil", alvo:{h2:"Ficha de personagem"}, t:"Seu personagem", x:"Nível, XP e atributos sobem com a constância. As conquistas desbloqueiam quando você bate marcos."},
-  {aba:"perfil", alvo:"#perfil-subnav", t:"Mais do app", x:"As abas no topo do Perfil levam às Configurações, ao Glossário (termos explicados) e ao Sobre, com as fontes dos cálculos."},
+  {aba:"perfil", alvo:"#perfil-subnav", t:"Mais do app", x:"As abas no topo do Perfil levam às Configurações e ao Sobre, que reúne o Glossário (termos explicados) e as fontes dos cálculos."},
   {aba:"config", alvo:"#cfg-conta", t:"Seus dados", x:"Tudo é salvo primeiro no aparelho, por isso o app funciona sem internet, e vai para a nuvem quando houver conexão. Aqui você sincroniza, sai da conta e pode pedir o código de novo depois de um tempo fora do app."},
   {aba:"config", alvo:"#cfg-instalar", t:"Instalar no celular", x:"Instale na tela inicial para abrir em tela cheia e usar sem internet. No iPhone: Compartilhar → Adicionar à Tela de Início."},
   {aba:"painel", alvo:null, t:"Antes de começar", x:"O NG+ orienta, mas não substitui profissional de educação física, nutrição ou saúde. Sentiu dor forte? Não force: faça um dia leve e procure um profissional. Bom treino!"}
@@ -10694,8 +10704,7 @@ const SECTION_RENDERERS = {
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
   perfil: [renderRadar, renderAttrs, renderPerfilSummary, renderMarcos, renderAchievements],
   config: [renderTemas, renderSkins, renderConfigExtras, renderRecupConfig],
-  glossario: [renderGlossario],
-  sobre: [renderFontes]
+  sobre: [renderFontes, renderGlossario]
 };
 function renderSection(id){
   dirtyViews.delete(id);
