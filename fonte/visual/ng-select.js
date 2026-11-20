@@ -28,7 +28,9 @@
   function sincroniza(sel){
     const w = sel._ngs; if(!w) return;
     const o = sel.selectedOptions && sel.selectedOptions[0];
-    w.val.textContent = o ? o.textContent.trim() : (sel.dataset.placeholder || "Selecionar");
+    const txt = o ? o.textContent.trim() : (sel.dataset.placeholder || "Selecionar");
+    if(!w.txt){ w.txt = document.createTextNode(""); w.val.appendChild(w.txt); }
+    if(w.txt.nodeValue !== txt) w.txt.nodeValue = txt;   // só o texto muda (nenhum nó novo)
     w.btn.disabled = sel.disabled || !sel.options.length;
     w.btn.classList.toggle("is-vazio", !o || !o.value);
   }
@@ -196,4 +198,10 @@
   window.ngSelectAbre = abre;
   window.ngSelectFecha = fecha;
   document.querySelectorAll("select[data-ngselect]").forEach(melhora);
+  // selects criados depois (ex.: o cartão do Cardápio é montado sob demanda)
+  new MutationObserver(ms=> ms.forEach(m=> m.addedNodes.forEach(n=>{
+    if(n.nodeType !== 1) return;
+    if(n.matches && n.matches("select[data-ngselect]")) melhora(n);
+    if(n.querySelectorAll) n.querySelectorAll("select[data-ngselect]").forEach(melhora);
+  }))).observe(document.body, {childList:true, subtree:true});
 })();

@@ -11611,6 +11611,7 @@ function renderCardapio(kcalAlvo, macros){
       redesenhaDieta: ()=> renderDieta(),
       tocaSom: (nome)=> playSound(nome),
       abreModal: (el)=> openModal(el), fechaModal: ()=> closeModal(),   // para os pop-ups "Trocar alimentos" e "Meus alimentos"
+      toast: (m)=> showToast(m),
       num, escapeHtml, menorDeIdade
     });
     if(cardapioMeta) CARDAPIO.render(cardapioMeta[0], cardapioMeta[1]);

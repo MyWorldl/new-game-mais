@@ -3592,7 +3592,9 @@ function renderDietaAnel(kcalAlvo, macros){
   function sincroniza(sel){
     const w = sel._ngs; if(!w) return;
     const o = sel.selectedOptions && sel.selectedOptions[0];
-    w.val.textContent = o ? o.textContent.trim() : (sel.dataset.placeholder || "Selecionar");
+    const txt = o ? o.textContent.trim() : (sel.dataset.placeholder || "Selecionar");
+    if(!w.txt){ w.txt = document.createTextNode(""); w.val.appendChild(w.txt); }
+    if(w.txt.nodeValue !== txt) w.txt.nodeValue = txt;   // só o texto muda (nenhum nó novo)
     w.btn.disabled = sel.disabled || !sel.options.length;
     w.btn.classList.toggle("is-vazio", !o || !o.value);
   }
@@ -3760,6 +3762,12 @@ function renderDietaAnel(kcalAlvo, macros){
   window.ngSelectAbre = abre;
   window.ngSelectFecha = fecha;
   document.querySelectorAll("select[data-ngselect]").forEach(melhora);
+  // selects criados depois (ex.: o cartão do Cardápio é montado sob demanda)
+  new MutationObserver(ms=> ms.forEach(m=> m.addedNodes.forEach(n=>{
+    if(n.nodeType !== 1) return;
+    if(n.matches && n.matches("select[data-ngselect]")) melhora(n);
+    if(n.querySelectorAll) n.querySelectorAll("select[data-ngselect]").forEach(melhora);
+  }))).observe(document.body, {childList:true, subtree:true});
 })();
 function renderNivel(){
   const info = computeNivelInfo();
@@ -9097,7 +9105,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.da7fbcb271.js";
+const CARDAPIO_URL = "./cardapio.64b684c556.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)
@@ -9114,6 +9122,7 @@ function renderCardapio(kcalAlvo, macros){
       redesenhaDieta: ()=> renderDieta(),
       tocaSom: (nome)=> playSound(nome),
       abreModal: (el)=> openModal(el), fechaModal: ()=> closeModal(),   // para os pop-ups "Trocar alimentos" e "Meus alimentos"
+      toast: (m)=> showToast(m),
       num, escapeHtml, menorDeIdade
     });
     if(cardapioMeta) CARDAPIO.render(cardapioMeta[0], cardapioMeta[1]);
