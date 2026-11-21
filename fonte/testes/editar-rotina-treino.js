@@ -29,12 +29,15 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     t(L + 'seletor lista treinos dos modelos + Descanso + Personalizado', base.opcoes >= 12 && base.temDescanso && base.temPers && base.grupos.length >= 4, JSON.stringify(base.grupos) + ' ' + base.opcoes);
 
     // abrir a caixa de verdade (clique no botão) e conferir a lista
-    await p.evaluate(() => { document.querySelectorAll('.re-day')[1].querySelector('.ngs-btn').click(); });
+    await p.locator('.re-day').nth(1).locator('.ngs-btn').scrollIntoViewIfNeeded(); await p.locator('.re-day').nth(1).locator('.ngs-btn').click();
     await p.waitForTimeout(500);
-    const lista = await p.evaluate(() => ({ painel: !!document.querySelector('.ngs-painel, .ngs-sheet, [role="listbox"]'), itens: document.querySelectorAll('[role="option"]').length }));
-    t(L + 'clicar na caixa abre a lista de treinos', lista.painel && lista.itens >= 12, JSON.stringify(lista));
-    await p.keyboard.press('Escape'); await p.waitForTimeout(300);
-
+    const lista = await p.evaluate(() => { const op = document.querySelector('.ngs-layer .ngs-op.ativo') || document.querySelector('.ngs-layer [role="option"]'); const o = op && op.getBoundingClientRect(); const topo = o && document.elementFromPoint(o.left + o.width / 2, o.top + Math.min(o.height / 2, 10)); return { painel: !!op, itens: document.querySelectorAll('.ngs-layer [role="option"]').length, visivel: !!(topo && topo.closest('.ngs-layer')) }; });
+    t(L + 'clicar na caixa abre a lista de treinos, visível por cima da janela', lista.painel && lista.itens >= 12 && lista.visivel, JSON.stringify(lista));
+    await p.fill('.ngs-layer .ngs-q', 'Descanso'); await p.waitForTimeout(150);
+    await p.locator('.ngs-layer [role="option"]', { hasText: 'Descanso' }).first().click(); await p.waitForTimeout(400);
+    const viaMouse = await p.evaluate(() => { const d = document.querySelectorAll('.re-day')[1]; return { fechou: !document.querySelector('.ngs-layer'), modal: !!document.querySelector('.modal'), conf: !d.querySelector('.re-confirma').hidden }; });
+    t(L + 'escolher com o mouse fecha a lista, mantém a janela e pede confirmação', viaMouse.fechou && viaMouse.modal && viaMouse.conf, JSON.stringify(viaMouse));
+    await p.evaluate(() => document.querySelectorAll('.re-day')[1].querySelector('[data-re-acao="cancelar"]').click());
     // dia com exercícios: escolher outro treino pede confirmação
     const pega = key => p.evaluate(k => { const d = [...document.querySelectorAll('.re-day')].find(x => x.dataset.key === k); return {
       nomes: [...d.querySelectorAll('.ex-nome')].map(i => i.value), nome: d.querySelector('.d-nome').value, conf: !d.querySelector('.re-confirma').hidden,
