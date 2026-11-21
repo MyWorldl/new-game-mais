@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-44", data: "21/11/2026", titulo: "Ranking dos amigos", itens: [
+      { t: "novo", x: "Ranking entre os cadastrados do NG+: XP e nível, sequência de dias e volume total em kg. Aparece em Hoje (top 3 e a sua posição) e em Treino › Ranking, com todas as posições." },
+      { t: "novo", x: "Privacidade: só maiores de 18 anos entram; aparecem apenas apelido e esses 3 números (nunca peso, medidas, fotos, hábitos ou nome completo). Quem quiser sai em Configurações › Ranking, e o servidor apaga os números na hora." },
+      { t: "melhoria", x: "Resetar seus dados e excluir a conta também tiram você do ranking." }
+    ] },
     { v: "ng-modular-43", data: "21/11/2026", titulo: "Todo mundo sobe de nível", itens: [
       { t: "melhoria", x: "Quem treina em casa ou com pouco equipamento, menores de 18, 60+, retorno após pausa e restrição articular também passam a receber exercícios mais exigentes quando se declaram intermediário ou avançado, cada grupo com a progressão que combina com a situação." },
       { t: "melhoria", x: "Para 60+, retorno e restrição articular a subida é gradual (1 exercício por dia) e nunca traz de volta o que a sua situação pede para evitar; menores só recebem exercícios liberados para a idade e sem séries de carga máxima." },
@@ -873,6 +878,7 @@
       if (manter) del = del.neq("path", "config/perfil");
       var rd = await del; if (rd.error) throw rd.error;
       await limparFotosDaNuvem();
+      try { await client.rpc("sair_do_ranking"); } catch(e){}   // os números do ranking também são apagados (o apelido sai do quadro até a pessoa voltar a treinar)
       var rc = await client.from("user_docs").select("path", {count: "exact", head: true});   // confere: não pode sobrar nada (além do perfil, se mantido)
       if (rc.error) throw rc.error;
       if ((rc.count || 0) > (manter ? 1 : 0)) throw new Error("sobrou_registro");
