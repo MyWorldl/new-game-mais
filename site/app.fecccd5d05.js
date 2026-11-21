@@ -740,6 +740,13 @@ function montaPorque(o){
     if(tn) porque.push(tn);
     sit.restricoes.forEach(k=> porque.push(c.restricoes[k].aviso));
   }
+  const nv = o.nivel;
+  if(nv && nv.trocas && nv.trocas.length){
+    const ex = nv.trocas.slice(0, 3).map(t=> t.de+" → "+t.para).join("; ");
+    porque.push("Nível "+(exp === "avancado" ? "avançado" : "intermediário")+": "+nv.trocas.length+" exercício"+(nv.trocas.length>1?"s":"")+" do plano ficaram mais exigentes ("+ex+(nv.trocas.length>3?"; e outros":"")+"). Se algum pesar demais, a lista de variações do treino devolve a versão mais simples.");
+  } else if(nv && nv.motivo === "situacao"){
+    porque.push("Você marcou "+(exp === "avancado" ? "avançado" : "intermediário")+", mas a situação que você informou (60+, retorno após pausa ou restrição articular) pede exercícios mais conservadores; por isso o plano não ganhou versões mais exigentes.");
+  }
   const fc = o.foco;
   if(fc && fc.nomes && fc.nomes.length && fc.aplicado)
     porque.push("Foco em "+fc.nomes.join(" e ")+": o plano soma séries nesse grupo até a meta da semana"+(fc.adicionados && fc.adicionados.length ? " e inclui "+fc.adicionados.join(", ") : "")+". O foco muda onde entra mais volume de treino; não escolhe onde o corpo perde gordura.");
@@ -747,6 +754,40 @@ function montaPorque(o){
     : objetivo === "deficit" ? "Objetivo emagrecer: o treino de força segue sendo a base; a diferença está na alimentação (aba Dieta) e em caminhar nos dias de descanso."
     : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
   return porque;
+}
+/* Nível (v. ng-modular-42): quem se declara intermediário ou avançado recebe versões mais exigentes de alguns exercícios do plano inicial
+   (tabela em fonte/dados/planos.json › niveis). Só 18+, só na academia, e nunca junto de 60+, retorno após pausa ou restrição articular.
+   Troca no máximo N exercícios por dia, nunca cria exercício repetido no dia e respeita o filtro de idade/nível da base. Rascunho sem revisão profissional. */
+function adaptarNivelNaRotina(rotina, o){
+  const cfg = BASE_PLANOS && BASE_PLANOS.niveis;
+  const vazio = {rotina, trocas:[], motivo:null};
+  if(!cfg || (o.exp !== "intermediario" && o.exp !== "avancado")) return vazio;
+  if(o.menor) return {rotina, trocas:[], motivo:"menor"};
+  const sit = o.sit || {};
+  if(sit.idoso || sit.retorno || (sit.restricoes && sit.restricoes.length)) return {rotina, trocas:[], motivo:"situacao"};
+  if(o.local !== "academia") return {rotina, trocas:[], motivo:"local"};
+  const nivel = cfg[o.exp], base = cfg.intermediario;
+  if(!nivel || !base) return vazio;
+  const out = JSON.parse(JSON.stringify(rotina)), trocas = [];
+  DAYS.forEach(k=>{
+    const d = out[k]; if(!d || !d.ativo || !d.exercicios) return;
+    const nomes = new Set(d.exercicios.map(e=> e.nome));
+    let feitas = 0;
+    d.exercicios.forEach(ex=>{
+      if(feitas >= (nivel.maxPorDia || 2)) return;
+      const alvo = (o.exp === "avancado" && nivel.trocas && nivel.trocas[ex.nome]) || (base.trocas && base.trocas[ex.nome]);
+      if(!alvo || nomes.has(alvo) || !exercicioAdequadoAoPerfil(alvo, o.p)) return;
+      const f = fichaDoApp(alvo);
+      const reps = (nivel.reps && nivel.reps[alvo]) || (base.reps && base.reps[alvo]) || ex.reps;
+      trocas.push({de:ex.nome, para:alvo, dia:k});
+      nomes.delete(ex.nome); nomes.add(alvo);
+      ex.nome = alvo; ex.reps = reps; delete ex.nota;
+      if(f && f.musculos && f.musculos.length && f.musculos.every(m=> MUSCLE_LANDMARKS[m])) ex.musculos = f.musculos.slice();
+      ex.metaReps = metaRepsDe(ex.series, ex.reps, ex.metaReps);
+      feitas++;
+    });
+  });
+  return {rotina:out, trocas, motivo:null};
 }
 const SPLIT_PERNAS = "A–F (Pernas e glúteos 3×)";
 function planoInicial(p){
@@ -775,7 +816,8 @@ function planoInicial(p){
     split = "A–F (Peito, Costas e Pernas 2×)";
     base = buildPPLRotina();
   }
-  const adaptada = adequarIdadeNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), p);
+  const nv = adaptarNivelNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), {exp, menor, local, sit, p});
+  const adaptada = adequarIdadeNaRotina(nv.rotina, p);
   if(n > Math.min(EXP_SESSOES_REC[exp], maxSes)) limitaSeries(adaptada, 3);   // mais dias que o recomendado: séries enxutas para dar para recuperar
   const semSubir = !!(sit.idoso || sit.retorno || sit.tempo < 60);
   const comSit = aplicarSituacoes(adaptada, {local, sit});
@@ -784,8 +826,8 @@ function planoInicial(p){
   const tcfg = (BASE_PLANOS.tempo && BASE_PLANOS.tempo[String(sit.tempo)]) || {};
   const foco = aplicarFoco(comSit, {p, exp, local, semSubir, proibidos, maxEx: tcfg.maxExercicios});
   const rotina = equilibrarVolumeInicial(comSit, exp, semSubir);
-  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, rec:Math.min(EXP_SESSOES_REC[exp], maxSes), foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}});
-  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit, foco};
+  const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, rec:Math.min(EXP_SESSOES_REC[exp], maxSes), foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}, nivel:nv});
+  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit, foco, nivel:nv.trocas};
 }
 
 /* v98: a rotina inicial vem do perfil (experiência, dias, equipamento, objetivo e idade). Sem perfil: Full Body 3× (o que o app recomenda para iniciantes). */
@@ -6681,8 +6723,23 @@ function exDoDia(ex, iso, idx){
   return t ? Object.assign({}, ex, {nome:t, original:ex.nome, trocado:true, nota:""})
            : Object.assign({}, ex, {original:ex.nome, trocado:false});
 }
-function alternativasDoDia(ex){
-  return filtraAlternativas(alternativasDoDiaBruta(ex), state.perfil, ex.original);
+/* nomes que os OUTROS exercícios do dia têm agora (rotina + trocas de hoje): um exercício não pode se repetir no mesmo treino */
+function nomesOutrosDoDia(iso, idx){
+  const day = state.rotina && state.rotina[treinoKey(iso)];
+  const out = new Set();
+  ((day && day.exercicios) || []).forEach((e, j)=>{ if(j !== idx) out.add(exTrocado(iso, j) || e.nome); });
+  return out;
+}
+function alternativasDoDia(ex, iso, idx){
+  const alts = filtraAlternativas(alternativasDoDiaBruta(ex), state.perfil, ex.original);
+  if(iso == null || idx == null) return alts;
+  const usados = nomesOutrosDoDia(iso, idx);
+  return alts.filter(a=> !usados.has(a));
+}
+/* aviso quando existem variações, mas todas já estão em outro exercício deste treino */
+function altSemLivreHtml(ex, alt, cls){
+  if(alt.length || !alternativasDoDiaBruta(ex).length) return "";
+  return '<div class="qc-alt '+cls+'"><span class="qc-alt-label">'+ICON_SWAP+'Sem variação livre hoje: as opções já estão em outros exercícios deste treino</span></div>';
 }
 function alternativasDoDiaBruta(ex){
   if(ex.trocado){
@@ -6697,12 +6754,17 @@ function alternativasDoDiaBruta(ex){
   return [];
 }
 function saveTroca(iso, idx, nome){
+  if(nome != null && nomesOutrosDoDia(iso, idx).has(nome)){   // nunca repete exercício no mesmo treino (cobre dado antigo e toque duplo)
+    showToast(nome+" já está neste treino. Escolha outra variação.");
+    return false;
+  }
   const cur = state.checkins[iso] || {};
   const trocas = Object.assign({}, cur.trocas);
   if(nome==null) delete trocas[idx]; else trocas[idx] = nome;
   const data = Object.assign({}, cur, {data:iso, dia:treinoKey(iso), trocas});
   state.checkins[iso] = data;
   saveDoc("checkins/"+iso, data);
+  return true;
 }
 /* Onde você treina (Config): adapta a SEMANA INTEIRA de uma vez. Troca, em todos os dias da rotina, os exercícios que têm
    equivalente sem academia (mesma tabela do plano inicial: SUBST_LOCAL). É como trocar o "cardápio" da semana: o que tem versão
@@ -6800,6 +6862,7 @@ async function tornarTrocaPermanente(iso, idx, after){
   const novo = exTrocado(iso, idx);
   if(!day || !novo || !(day.exercicios||[])[idx]) return;
   const velho = day.exercicios[idx].nome;
+  if(day.exercicios.some((e, j)=> j !== idx && e.nome === novo)){ showToast(novo+" já está neste treino. Escolha outra variação."); return; }
   const exs = day.exercicios.map((e,j)=> j===idx ? Object.assign({}, e, {nome:novo, nota:""}) : e);
   const jobs = [];
   state.rotina[key] = Object.assign({}, day, {exercicios:exs});
@@ -7594,7 +7657,7 @@ function renderLiveWorkout(body){
   }
   const rpeAtual = (checkin && checkin.rpe && checkin.rpe[i]!=null) ? Number(checkin.rpe[i]) : null;
   const sug = (!cargaAtual) ? sugestaoProgressao(ex.nome) : null;
-  const alt = alternativasDoDia(ex);
+  const alt = alternativasDoDia(ex, iso, i);
 
   body.innerHTML =
     '<div class="lw-head">'+escapeHtml(day.nome)+' · Exercício '+(i+1)+' de '+n+'</div>'+
@@ -7602,7 +7665,7 @@ function renderLiveWorkout(body){
     (ex.nota ? '<div class="quest-nota">'+ic('bulb')+' '+escapeHtml(ex.nota)+'</div>' : '')+
     (ex.trocado ? '<div class="qc-swapped lw-swapped">Trocado hoje · original: '+escapeHtml(ex.original)+'</div>' : '')+
     guiaExecucaoHtml(ex.nome, 'lw')+
-    (alt.length ? '<div class="qc-alt lw-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : '')+
+    (alt.length ? '<div class="qc-alt lw-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : altSemLivreHtml(ex, alt, 'lw-alt'))+
     permBtnHtml(i, ex)+
     '<div class="lw-video-row"><a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer">'+ICON_PLAY+'<span>Ver vídeo de execução</span></a></div>'+
     '<div class="lw-progress">'+serieLogHtml(i, ex, checkin, 'lw')+'</div>'+
@@ -7622,7 +7685,7 @@ function renderLiveWorkout(body){
     btn.addEventListener("click", ()=>{
       const base = exercicios[i];
       const novo = btn.dataset.qalt === base.nome ? null : btn.dataset.qalt;
-      saveTroca(iso, i, novo);
+      if(saveTroca(iso, i, novo) === false) return;
       hapticPulse(10);
       playSound("tick");
       renderLiveWorkout(body);
@@ -7828,7 +7891,7 @@ function renderWeekTrailDetail(){
         "Última: "+fmtKg(lastPeso)+" kg"+(prPeso>lastPeso ? " · Recorde: "+fmtKg(prPeso)+" kg" : "");
       const rpeAtual = (checkin && checkin.rpe && checkin.rpe[i]!=null) ? Number(checkin.rpe[i]) : null;
       const sug = (cargaAtual==="") ? sugestaoProgressao(ex.nome) : null;
-      const alt = alternativasDoDia(ex);
+      const alt = alternativasDoDia(ex, iso, i);
       const open = questExpanded.has(i);
       const timer = restTimers[i];
 
@@ -7874,7 +7937,7 @@ function renderWeekTrailDetail(){
           '<div class="qc-field"><span class="qc-label">Descanso</span>'+restTimerCellHtml(i, ex.nome)+'</div>'+
           (ex.nota ? '<div class="qc-note">'+ICON_TIP+'<span>'+escapeHtml(ex.nota)+'</span></div>' : '')+
           guiaExecucaoHtml(ex.nome)+
-          (alt.length ? '<div class="qc-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : '')+
+          (alt.length ? '<div class="qc-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : altSemLivreHtml(ex, alt, ''))+
           permBtnHtml(i, ex)+
         '</div>';
 
@@ -8026,7 +8089,7 @@ function renderWeekTrailDetail(){
       const base = state.rotina[todayKey] && state.rotina[todayKey].exercicios[idx];
       if(!base) return;
       const novo = btn.dataset.qalt === base.nome ? null : btn.dataset.qalt;
-      saveTroca(iso, idx, novo);
+      if(saveTroca(iso, idx, novo) === false) return;
       questExpanded.add(idx);
       hapticPulse(10);
       playSound("tick");

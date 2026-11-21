@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-42", data: "21/11/2026", titulo: "Troca sem repetir exercício e plano por nível", itens: [
+      { t: "correcao", x: "Ao trocar um exercício no treino, a lista de variações não oferece mais o que já está em outro exercício do mesmo dia (ex.: Cadeira abdutora no lugar do Hip thrust quando ela já estava no treino)." },
+      { t: "melhoria", x: "Quem se declara intermediário ou avançado (18+, na academia) agora recebe versões mais exigentes de alguns exercícios no plano, como Barra fixa, Remada curvada, Supino com pausa e Hack squat." },
+      { t: "melhoria", x: "O texto \"Por que esse plano\" explica quais exercícios subiram de nível e, para 60+, retorno após pausa ou restrição articular, por que o plano segue mais conservador." }
+    ] },
     { v: "ng-modular-41", data: "20/11/2026", titulo: "Treino, rotina e hábitos redesenhados", itens: [
       { t: "novo", x: "Calendário do app para escolher o dia dos hábitos, no lugar do seletor do Android (só hoje e ontem ficam ativos)." },
       { t: "melhoria", x: "Volume semanal por grupo e Foco do plano reorganizados: cartões por categoria, barras com zonas e legenda explicada." },

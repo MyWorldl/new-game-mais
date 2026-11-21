@@ -22,6 +22,8 @@ for t in base-guias filtro-alternativas planos-situacoes perfil-situacoes regra-
 done
 TEMPO=900; roda auditoria-v3 node auditoria-v3.js http://localhost:8791; TEMPO=280   # auditoria final do redesign v3 (~7 min)
 roda redesign-r2 node redesign-r2.js http://localhost:8791
+roda troca-sem-repeticao node troca-sem-repeticao.js http://localhost:8791
+roda nivel-avancado node nivel-avancado.js http://localhost:8791
 roda cardapio-e2e node cardapio-e2e.js http://localhost:8791
 roda cardapio-nos node cardapio-nos.js http://localhost:8791
 roda cardapio-sob-demanda node cardapio-sob-demanda.js http://localhost:8791
