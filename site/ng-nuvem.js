@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-46", data: "21/11/2026", titulo: "Listas de seleção no computador", itens: [
+      { t: "correcao", x: "No computador, as caixas de seleção dentro de janelas (como o treino do dia e os dias por semana em Editar rotina) abriam escondidas atrás da janela. Agora a lista aparece por cima, como no celular." },
+      { t: "melhoria", x: "A mesma correção vale para a lista de descanso no registro de séries e para qualquer outra caixa de seleção aberta dentro de uma janela ou folha." },
+      { t: "melhoria", x: "Nada muda nos seus dados: é só a forma como a lista é exibida. Escolher com o mouse, o toque ou o teclado funciona igual." }
+    ] },
     { v: "ng-modular-45", data: "21/11/2026", titulo: "Editar rotina mais clara", itens: [
       { t: "novo", x: "Em Editar rotina, o nome do treino do dia virou uma caixa de seleção: escolha entre os treinos dos modelos do app (já adaptados ao seu perfil), Descanso ou Personalizado… para digitar o seu próprio nome." },
       { t: "melhoria", x: "Ao escolher um treino num dia que já tem exercícios, o app pergunta se você quer trocar pelos exercícios do treino, só renomear ou cancelar. Em dia vazio, os exercícios entram direto." },

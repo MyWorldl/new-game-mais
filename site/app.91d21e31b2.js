@@ -3944,7 +3944,13 @@ function renderDietaAnel(kcalAlvo, macros){
         (comBusca ? '<div class="ngs-busca"><input type="search" class="ngs-q" placeholder="Buscar…" aria-label="Buscar na lista" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div>' : '') +
         '<div class="ngs-lista" role="listbox" tabindex="-1" aria-label="' + esc(w.titulo || "Opções") + '"></div>' +
       '</div>';
-    document.body.appendChild(root);
+    /* modais e folhas do app vivem na camada superior (popover): uma lista no <body> ficaria escondida atrás deles */
+    let hospedeiro = document.body;
+    try{
+      const pop = w.btn.closest("[popover]:popover-open");
+      if(pop) hospedeiro = pop.id === "modal-root" ? (w.btn.closest(".modal-backdrop") || pop) : pop;
+    }catch(e){}
+    hospedeiro.appendChild(root);
     const lista = root.querySelector(".ngs-lista"), q = root.querySelector(".ngs-q"), panel = root.querySelector(".ngs-panel");
     const estado = {sel, btn:w.btn, root, lista, q, ops, ativo:-1, digitado:"", t:null};
     aberto = estado;
