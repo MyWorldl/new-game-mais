@@ -136,6 +136,12 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-47", data: "21/11/2026", titulo: "Séries, unilaterais, análise e volume", itens: [
+      { t: "novo", x: "Medalhas das séries: cada série tem uma medalha própria, da maior repetição para a menor (empate: vale a mais tarde). Ao lado vem +n ou −n comparando com a mesma série do último treino, para você se superar." },
+      { t: "correcao", x: "Exercícios unilaterais (afundo, passada, búlgaro, rosca alternada…): a meta agora diz “por perna/lado/braço” e o total conta os dois lados. Registre as repetições de um lado; as de 12 por perna são 24 no total. Sua rotina atual foi ajustada automaticamente." },
+      { t: "melhoria", x: "Análise do treino organizada por categorias, como na Biblioteca de exercícios: Peito, ombros e tríceps, Costas e bíceps, Pernas e Core. Cada categoria abre e fecha e mostra o resumo de quem está progredindo." },
+      { t: "correcao", x: "Volume semanal por grupo muscular agora separa o planejado na rotina (barra clara) do que você já fez nesta semana (barra forte), com “feito X de Y”. Antes só aparecia o planejado, por isso grupos ainda não treinados pareciam cheios." }
+    ] },
     { v: "ng-modular-46", data: "21/11/2026", titulo: "Listas de seleção no computador", itens: [
       { t: "correcao", x: "No computador, as caixas de seleção dentro de janelas (como o treino do dia e os dias por semana em Editar rotina) abriam escondidas atrás da janela. Agora a lista aparece por cima, como no celular." },
       { t: "melhoria", x: "A mesma correção vale para a lista de descanso no registro de séries e para qualquer outra caixa de seleção aberta dentro de uma janela ou folha." },

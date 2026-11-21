@@ -26,7 +26,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     });
     t(L + 'volume: categorias e linhas desenhadas', vol.cats >= 2 && vol.rows >= 6, JSON.stringify(vol));
     t(L + 'volume: toda linha tem trilha e valor, estado definido', vol.semTrilha === 0 && vol.semValor === 0 && vol.estados.every(Boolean), JSON.stringify(vol.estados));
-    t(L + 'volume: legenda com 4 itens e sem rolagem lateral', vol.legenda === 4 && vol.sw <= 0, vol.legenda + ' / ' + vol.sw);
+    t(L + 'volume: legenda com 6 itens (feito, planejado, 3 faixas, zona) e sem rolagem lateral', vol.legenda === 6 && vol.sw <= 0, vol.legenda + ' / ' + vol.sw);
 
     // ---- Editar rotina
     await go('#subtab-treino-plano'); await go('#btn-edit-rotina');
