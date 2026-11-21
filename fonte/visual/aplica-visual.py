@@ -135,4 +135,8 @@ rep('function renderNivel(){\n', cfgjs+'function renderNivel(){\n')
 ngsel=open(base+'/ng-select.js',encoding='utf8').read()
 rep('function renderNivel(){\n', ngsel+'function renderNivel(){\n')
 
+# ===== Calendário próprio (no lugar do seletor de data do Android/iOS) =====
+ngdate=open(base+'/ng-datepicker.js',encoding='utf8').read()
+rep('function renderNivel(){\n', ngdate+'function renderNivel(){\n')
+
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))

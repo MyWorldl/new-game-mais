@@ -136,6 +136,13 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-41", data: "20/11/2026", titulo: "Treino, rotina e hábitos redesenhados", itens: [
+      { t: "novo", x: "Calendário do app para escolher o dia dos hábitos, no lugar do seletor do Android (só hoje e ontem ficam ativos)." },
+      { t: "melhoria", x: "Volume semanal por grupo e Foco do plano reorganizados: cartões por categoria, barras com zonas e legenda explicada." },
+      { t: "melhoria", x: "Treino ao vivo: descanso com lista do app, botão Iniciar descanso e interruptor de descanso automático; Como executar e variações mais compactos." },
+      { t: "melhoria", x: "Editar rotina: caixa Gerar plano, modelo em lista do app e um cartão por dia, com interruptor de dia de treino e campos com legenda." },
+      { t: "melhoria", x: "Evolução com métricas em faixa rolável e período em controle segmentado; grade das últimas 12 semanas de Hábitos em cartões." }
+    ] },
     { v: "ng-modular-40", data: "20/11/2026", titulo: "Redesenho do app e tela de entrada nova", itens: [
       { t: "novo", x: "Tela de entrada nova, com Início e Atualizações (esta que você está vendo)." },
       { t: "novo", x: "Lista de compras da semana com visual novo e exportação em PDF." },
