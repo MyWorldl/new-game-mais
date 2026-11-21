@@ -10834,6 +10834,40 @@ function renderHeatmap(){
 
 /* ---- editor de rotina ---- */
 document.getElementById("btn-edit-rotina").addEventListener("click", openRotinaEditor);
+/* Catálogo de treinos do seletor de "Editar rotina": os treinos nomeados dos modelos do app (versão academia),
+   adaptados ao perfil (local, nível, idade, situações). Um nome só aparece uma vez. */
+const TREINO_FAMILIAS = [
+  {k:"fullBody2", g:"Corpo inteiro"}, {k:"fullBody", g:"Corpo inteiro"},
+  {k:"upperLower", g:"Superior e inferior"},
+  {k:"pernasGluteos4", g:"Pernas e glúteos"}, {k:"pernasGluteos", g:"Pernas e glúteos"},
+  {k:"superior4", g:"Divisão por músculos"}, {k:"cinco", g:"Divisão por músculos"}, {k:"ppl", g:"Divisão por músculos"}
+];
+function catalogoTreinosEditor(){
+  const p = state.perfil || null;
+  const exp = p && EXP_SESSOES_MAX[p.experiencia] ? p.experiencia : "iniciante";
+  const local = p && (p.local === "casa" || p.local === "pouco") ? p.local : "academia";
+  const menor = !!(p && menorDeIdade(p.idade));
+  const sit = situacoesDoPerfil(p);
+  const vistos = new Set(), grupos = [];
+  TREINO_FAMILIAS.forEach(f=>{
+    const t = ROTINA_TEMPLATES[f.k]; if(!t) return;
+    let base; try{ base = t.build(); }catch(e){ return; }
+    let rot;
+    try{
+      const nv = adaptarNivelNaRotina(adaptarRotinaAoPerfil(base, {local, menor, exp}), {exp, menor, local, sit, p});
+      rot = aplicarSituacoes(adequarIdadeNaRotina(nv.rotina, p), {local, sit});
+    }catch(e){ rot = base; }
+    DAYS.forEach(k=>{
+      const d = rot[k]; if(!d || !d.ativo || !(d.exercicios||[]).length || !d.nome || vistos.has(d.nome)) return;
+      vistos.add(d.nome);
+      let gr = grupos.find(x=> x.g === f.g); if(!gr){ gr = {g:f.g, itens:[]}; grupos.push(gr); }
+      gr.itens.push({nome:d.nome, exercicios:JSON.parse(JSON.stringify(d.exercicios))});
+    });
+  });
+  return grupos;
+}
+const TREINO_DESCANSO = "__descanso", TREINO_PERSONALIZADO = "__outro", TREINO_MANTER = "__manter";
+
 function openRotinaEditor(){
   let draft = JSON.parse(JSON.stringify(state.rotina));
   const body = document.createElement("div");
@@ -10862,22 +10896,46 @@ function openRotinaEditor(){
   openModal(body);
 
   const daysWrap = body.querySelector("#rotina-editor-days");
+  const catalogo = catalogoTreinosEditor();
 
   function buildDaySection(key, d){
     const section = document.createElement("div");
     section.className = "re-day"+(d.ativo ? "" : " off");
     section.dataset.key = key;
+    const nomeAtual = (d.nome||"").trim();
+    const nomeEhPadrao = !nomeAtual || nomeAtual === DAY_FULL[key] || nomeAtual === "Descanso";
+    const opcoesTreino =
+      '<option value="'+TREINO_MANTER+'">'+(nomeEhPadrao ? "Escolher o treino…" : escapeHtml(nomeAtual)+" (atual)")+'</option>'+
+      catalogo.map(gr=> '<optgroup label="'+escapeHtml(gr.g)+'">'+gr.itens.map((it, i)=> it.nome === nomeAtual ? "" : '<option value="'+escapeHtml(gr.g+"|"+i)+'">'+escapeHtml(it.nome)+' · '+it.exercicios.length+' exercícios</option>').join("")+'</optgroup>').join("")+
+      '<optgroup label="Outras opções"><option value="'+TREINO_DESCANSO+'">Descanso</option><option value="'+TREINO_PERSONALIZADO+'">Personalizado… (digitar o nome)</option></optgroup>';
     section.innerHTML =
       '<div class="re-head">'+
         '<strong class="re-dia">'+DAY_FULL[key]+'</strong>'+
         '<label class="re-switch"><input type="checkbox" role="switch" class="d-ativo" '+(d.ativo?"checked":"")+'><span>Dia de treino</span></label>'+
-        '<input type="text" class="d-nome" value="'+escapeHtml(d.nome||"")+'" placeholder="Nome do treino (ex.: A · Peito e Ombros)" aria-label="Nome do treino de '+DAY_FULL[key]+'">'+
+      '</div>'+
+      '<div class="re-treino">'+
+        '<span class="re-lbl" id="re-lbl-'+key+'">Treino deste dia</span>'+
+        '<select class="d-treino" data-ngselect aria-label="Treino de '+DAY_FULL[key]+'" aria-labelledby="re-lbl-'+key+'">'+opcoesTreino+'</select>'+
+        '<input type="text" class="d-nome" value="'+escapeHtml(d.nome||"")+'" placeholder="Nome do treino (ex.: A · Peito e Ombros)" aria-label="Nome do treino de '+DAY_FULL[key]+'" '+'hidden'+'>'+
+        '<div class="re-confirma" role="group" aria-label="Trocar os exercícios deste dia?" hidden>'+
+          '<p class="re-confirma-t"></p>'+
+          '<div class="re-confirma-a"><button type="button" class="btn small primary" data-re-acao="trocar">Trocar exercícios</button><button type="button" class="btn small ghost" data-re-acao="renomear">Só renomear</button><button type="button" class="btn small ghost" data-re-acao="cancelar">Cancelar</button></div>'+
+        '</div>'+
+        '<div class="re-resumo" aria-live="polite"></div>'+
       '</div>'+
       '<div class="ex-rows u-col8"></div>'+
       '<button class="btn small ghost add-ex" type="button">+ Adicionar exercício</button>';
     section.querySelector(".d-ativo").addEventListener("change", e=> section.classList.toggle("off", !e.target.checked));
     daysWrap.appendChild(section);
     const rowsWrap = section.querySelector(".ex-rows");
+    const selTreino = section.querySelector(".d-treino"), inpNome = section.querySelector(".d-nome");
+    const caixaConf = section.querySelector(".re-confirma"), resumo = section.querySelector(".re-resumo");
+    const atualizaResumo = ()=>{
+      const ents = [...rowsWrap.querySelectorAll(".ex-entry")];
+      ents.forEach((en, i)=>{ const n = en.querySelector(".ex-num"); if(n) n.textContent = String(i+1); });
+      const series = ents.reduce((t, en)=> t + (Number(en.querySelector(".ex-series").value) || 0), 0);
+      resumo.textContent = ents.length ? ents.length+" exercício"+(ents.length>1?"s":"")+" · "+series+" série"+(series>1?"s":"")+" no total" : "Nenhum exercício neste dia ainda.";
+    };
     function addExRow(ex){
       ex = ex || {nome:"",series:3,reps:"",metaReps:0,musculos:[],nota:""};
       const entry = document.createElement("div");
@@ -10885,15 +10943,21 @@ function openRotinaEditor(){
       const row = document.createElement("div");
       row.className = "ex-row";
       row.innerHTML =
-        '<div class="ex-top"><input type="text" class="ex-nome" value="'+escapeHtml(ex.nome)+'" placeholder="Nome do exercício" aria-label="Nome do exercício">'+
+        '<div class="ex-top"><span class="ex-num" aria-hidden="true">1</span>'+
+        '<input type="text" class="ex-nome" value="'+escapeHtml(ex.nome)+'" placeholder="Nome do exercício" aria-label="Nome do exercício">'+
         '<button type="button" class="icon-btn ex-remove" aria-label="Remover exercício"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'+
         '<div class="ex-nums">'+
           '<label class="ex-f"><span>Séries</span><input type="number" min="1" max="20" inputmode="numeric" class="ex-series" value="'+ex.series+'"></label>'+
           '<label class="ex-f"><span>Repetições</span><input type="text" class="ex-reps" value="'+escapeHtml(String(ex.reps))+'" placeholder="ex.: 8-12"></label>'+
           '<label class="ex-f" title="Meta de repetições totais do exercício (quest)"><span>Meta total</span><input type="number" min="0" max="300" inputmode="numeric" class="ex-meta" value="'+(ex.metaReps||0)+'" placeholder="0"></label>'+
         '</div>';
+      const musc = document.createElement("div");
+      musc.className = "ex-sec ex-musc";
+      const muscLbl = document.createElement("span");
+      muscLbl.className = "ex-lbl"; muscLbl.textContent = "Músculos trabalhados";
       const chipsWrap = document.createElement("div");
       chipsWrap.className = "muscle-chips";
+      chipsWrap.setAttribute("role","group"); chipsWrap.setAttribute("aria-label","Músculos trabalhados");
       const musculosSet = new Set(ex.musculos||[]);
       MUSCLE_ORDER.forEach(m=>{
         const chip = document.createElement("button");
@@ -10901,23 +10965,92 @@ function openRotinaEditor(){
         chip.className = "muscle-chip" + (musculosSet.has(m)?" on":"");
         chip.textContent = MUSCLE_LANDMARKS[m].label;
         chip.dataset.muscle = m;
-        chip.addEventListener("click", ()=> chip.classList.toggle("on"));
+        chip.setAttribute("aria-pressed", musculosSet.has(m) ? "true" : "false");
+        chip.addEventListener("click", ()=>{ chip.classList.toggle("on"); chip.setAttribute("aria-pressed", chip.classList.contains("on") ? "true" : "false"); });
         chipsWrap.appendChild(chip);
       });
+      musc.appendChild(muscLbl); musc.appendChild(chipsWrap);
+      const dica = document.createElement("label");
+      dica.className = "ex-sec ex-dica";
+      dica.innerHTML = '<span class="ex-lbl">Dica técnica <em>(opcional)</em></span>';
       const notaInput = document.createElement("input");
       notaInput.type = "text";
       notaInput.className = "ex-nota";
-      notaInput.placeholder = "Dica técnica (opcional) — ex.: cotovelos a 45°, não trancar no topo";
+      notaInput.placeholder = "ex.: cotovelos a 45°, não trancar no topo";
       notaInput.value = ex.nota || "";
-      notaInput.setAttribute("aria-label", "Dica técnica (opcional)");
+      dica.appendChild(notaInput);
       entry.appendChild(row);
-      entry.appendChild(chipsWrap);
-      entry.appendChild(notaInput);
-      row.querySelector(".ex-remove").addEventListener("click", ()=> entry.remove());
+      entry.appendChild(musc);
+      entry.appendChild(dica);
+      row.querySelector(".ex-remove").addEventListener("click", ()=>{ entry.remove(); atualizaResumo(); });
+      row.querySelector(".ex-series").addEventListener("input", atualizaResumo);
       rowsWrap.appendChild(entry);
+      atualizaResumo();
     }
     (d.exercicios||[]).forEach(addExRow);
-    section.querySelector(".add-ex").addEventListener("click", ()=> addExRow());
+    section.querySelector(".add-ex").addEventListener("click", ()=>{ addExRow(); const ult = rowsWrap.lastElementChild; if(ult) ult.querySelector(".ex-nome").focus(); });
+
+    /* seletor do treino do dia */
+    let pend = null;   // escolha aguardando confirmação (quando o dia já tem exercícios)
+    const exerciciosAtuais = ()=> [...rowsWrap.querySelectorAll(".ex-nome")].filter(i=> i.value.trim()).length;
+    const trocaExercicios = lista=>{ rowsWrap.innerHTML = ""; (lista||[]).forEach(ex=> addExRow(ex)); atualizaResumo(); };
+    const refleteNome = ()=>{   // a caixa passa a mostrar o treino escolhido ("… (atual)")
+      const op = selTreino.querySelector('option[value="'+TREINO_MANTER+'"]');
+      const nm = inpNome.value.trim();
+      op.textContent = (!nm || nm === DAY_FULL[key]) ? "Escolher o treino…" : nm+" (atual)";
+      selTreino.value = TREINO_MANTER; selTreino.dispatchEvent(new Event("change"));
+    };
+    inpNome.addEventListener("input", refleteNome);
+    const aplicaEscolha = (esc, trocar)=>{
+      if(esc.tipo === "descanso"){
+        inpNome.value = "Descanso"; inpNome.hidden = true;
+        if(trocar) trocaExercicios([]);
+        const sw = section.querySelector(".d-ativo"); sw.checked = false; section.classList.add("off");
+      } else if(esc.tipo === "outro"){
+        if(!inpNome.value.trim() || inpNome.value === "Descanso" || inpNome.value === DAY_FULL[key]) inpNome.value = "";
+        inpNome.hidden = false; inpNome.focus();
+        if(trocar) trocaExercicios([]);
+        const sw = section.querySelector(".d-ativo"); sw.checked = true; section.classList.remove("off");
+      } else {
+        inpNome.value = esc.item.nome; inpNome.hidden = true;
+        if(trocar) trocaExercicios(esc.item.exercicios);
+        const sw = section.querySelector(".d-ativo"); sw.checked = true; section.classList.remove("off");
+      }
+      caixaConf.hidden = true; pend = null;
+      refleteNome();
+    };
+    selTreino.addEventListener("change", ()=>{
+      const v = selTreino.value;
+      if(v === TREINO_MANTER){ caixaConf.hidden = true; pend = null; return; }
+      let esc;
+      if(v === TREINO_DESCANSO) esc = {tipo:"descanso"};
+      else if(v === TREINO_PERSONALIZADO) esc = {tipo:"outro"};
+      else {
+        const [g, i] = [v.slice(0, v.lastIndexOf("|")), Number(v.slice(v.lastIndexOf("|")+1))];
+        const gr = catalogo.find(x=> x.g === g); const item = gr && gr.itens[i];
+        if(!item) return;
+        esc = {tipo:"treino", item};
+      }
+      const n = exerciciosAtuais();
+      if(esc.tipo === "outro"){ aplicaEscolha(esc, false); return; }   // só libera o campo de nome; os exercícios ficam
+      if(n === 0){ aplicaEscolha(esc, true); return; }
+      pend = esc;
+      const alvo = esc.tipo === "descanso" ? "Descanso" : esc.item.nome;
+      caixaConf.querySelector(".re-confirma-t").textContent = esc.tipo === "descanso"
+        ? 'Este dia tem '+n+' exercício'+(n>1?'s':'')+'. Marcar como descanso e remover os exercícios?'
+        : 'Este dia tem '+n+' exercício'+(n>1?'s':'')+'. Trocar pelos exercícios de "'+alvo+'"?';
+      caixaConf.querySelector('[data-re-acao="trocar"]').textContent = esc.tipo === "descanso" ? "Remover e descansar" : "Trocar exercícios";
+      caixaConf.hidden = false;
+    });
+    caixaConf.addEventListener("click", e=>{
+      const b = e.target.closest("[data-re-acao]"); if(!b || !pend) return;
+      const a = b.dataset.reAcao;
+      if(a === "trocar") aplicaEscolha(pend, true);
+      else if(a === "renomear"){
+        if(pend.tipo === "descanso"){ aplicaEscolha(pend, false); }
+        else aplicaEscolha(pend, false);
+      } else { caixaConf.hidden = true; pend = null; selTreino.value = TREINO_MANTER; selTreino.dispatchEvent(new Event("change")); }
+    });
   }
 
   function renderDays(){

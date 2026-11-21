@@ -1749,3 +1749,28 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .rk-switch input[type="checkbox"]:disabled{ opacity:.55; cursor:not-allowed; }
 /* o reset de toque (24 px, !important) vive na camada legacy; um !important de camada mais cedo só se vence dentro da mesma camada */
 @layer legacy{ @media (hover:none) and (pointer:coarse){ .rk-switch input[type="checkbox"]{ width:56px !important; height:44px !important; } } }
+
+/* 48. Editar rotina: seletor do treino do dia + cartão de exercício estruturado (número, prescrição rotulada, músculos, dica) */
+.re-treino{ display:flex; flex-direction:column; gap:8px; padding:12px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+.re-lbl, .ex-lbl{ font:600 var(--fs-2xs,11px) 'IBM Plex Mono',ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.ex-lbl em{ font-style:normal; text-transform:none; letter-spacing:0; font-family:inherit; font-weight:500; }
+.re-treino .ngs{ inline-size:100%; }
+.re-treino .ngs-btn{ inline-size:100%; min-block-size:48px; }
+.re-treino .d-nome{ inline-size:100%; min-block-size:46px; font-weight:700; }
+.re-treino .d-nome[hidden], .re-confirma[hidden]{ display:none; }
+.re-resumo{ font-size:var(--fs-xs,12px); color:var(--ink-soft); }
+.re-confirma{ display:flex; flex-direction:column; gap:8px; padding:10px 12px; border:1px solid var(--accent); border-radius:12px; background:color-mix(in srgb, var(--accent) 10%, var(--surface-2)); }
+.re-confirma-t{ margin:0; font-size:var(--fs-sm,14px); color:var(--ink); }
+.re-confirma-a{ display:flex; flex-wrap:wrap; gap:8px; }
+.re-confirma-a .btn{ min-block-size:44px; flex:1 1 auto; }
+.ex-entry{ display:flex; flex-direction:column; gap:12px; padding:12px; border:1px solid var(--line); border-inline-start:3px solid var(--accent); border-radius:14px; background:var(--surface); }
+.ex-top{ display:grid; grid-template-columns:32px minmax(0,1fr) 44px; gap:8px; align-items:center; }
+.ex-num{ display:inline-grid; place-items:center; inline-size:32px; block-size:32px; border-radius:50%; background:color-mix(in srgb, var(--accent) 16%, var(--surface-2)); color:var(--ink); font:700 var(--fs-sm,14px) 'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+.ex-top .ex-nome{ inline-size:100%; min-inline-size:0; grid-column:2; grid-row:1; }
+.ex-top .ex-num{ grid-column:1; grid-row:1; }
+.ex-top .ex-remove{ grid-column:3; grid-row:1; justify-self:end; }
+.ex-nums{ padding:10px; border-radius:12px; background:var(--surface-2); }
+.ex-sec{ display:flex; flex-direction:column; gap:6px; min-inline-size:0; }
+.ex-dica .ex-nota{ inline-size:100%; min-block-size:44px; font-size:var(--fs-sm,14px); }
+.ex-musc .muscle-chip{ min-block-size:36px; }
+@media (hover:none) and (pointer:coarse){ .ex-musc .muscle-chip{ min-block-size:44px; } }
