@@ -2126,6 +2126,10 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
 .sl-ouro{--md-c:#e0b020;} .sl-prata{--md-c:#b9c2cf;} .sl-bronze{--md-c:#cd7f32;} .sl-cinza{--md-c:#8a8f98;}
 .sl-chip.sl-ouro, .sl-chip.sl-prata, .sl-chip.sl-bronze, .sl-chip.sl-cinza{border-color:var(--md-c); background:color-mix(in srgb, var(--md-c) 24%, var(--surface-2));}
 .sl-chip.sl-ouro{border-width:2px;}
+.sl-lado{font-size:var(--fs-xs,12px); color:var(--ink-soft); padding:6px 10px; border-radius:10px; background:color-mix(in srgb, var(--accent) 10%, var(--surface-2)); margin-block:6px;}
+.sl-d{font-style:normal; font:700 var(--fs-2xs,11px)/1 'IBM Plex Mono',ui-monospace,monospace; padding:2px 5px; border-radius:99px; background:color-mix(in srgb, var(--ink) 12%, transparent); color:var(--ink-soft);}
+.sl-d.up{background:color-mix(in srgb, var(--good,#3ddc97) 24%, transparent); color:var(--good,#3ddc97);}
+.sl-d.down{color:var(--ink-soft);}
 .sl-chip.on{outline:2px solid var(--accent); outline-offset:1px;}
 .sl-row{display:flex; flex-direction:column; gap:var(--sp-2);}
 .sl-lab{font-size:var(--fs-sm); font-weight:600;}
@@ -3075,7 +3079,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
     <div class="card" data-sub="progresso">
       <div class="card-head">
         <h2>Volume semanal por grupo muscular</h2>
-        <span class="hint">Séries planejadas na sua rotina ativa</span>
+        <span class="hint">Planejado na rotina × feito nesta semana</span>
       </div>
       <div id="volume-body"></div>
       <div id="volume-adjust" hidden></div>
@@ -3984,7 +3988,7 @@ function buildPPLRotina(){
       {nome:"Puxada na polia (pegada aberta)", series:4, reps:"8-12", metaReps:40, musculos:["costas","biceps"]},
       {nome:"Remada cavalinho (T-bar)", series:3, reps:"8-12", metaReps:30, musculos:["costas","biceps"], nota:"Peito apoiado ou tronco firme, puxe com os cotovelos (não com os braços) — evita compensar com a lombar."},
       {nome:"Remada unilateral com halter", series:3, reps:"10-12 por lado", metaReps:66, musculos:["costas"]},
-      {nome:"Rosca alternada com halteres", series:3, reps:"10-12", metaReps:33, musculos:["biceps"]},
+      {nome:"Rosca alternada com halteres", series:3, reps:"10-12 por braço", metaReps:66, musculos:["biceps"]},
       {nome:"Elevação de pernas", series:3, reps:"12-15", metaReps:42, musculos:["abdomen"]}]},
     sab:{nome:"F · Pernas", ativo:true, exercicios:[
       {nome:"Stiff (levantamento terra romeno)", series:4, reps:"8-12", metaReps:40, musculos:["posterior","gluteos"], nota:"Joelhos quase retos (leve flexão), empurre o quadril pra trás — a barra desliza perto das pernas, sem arredondar as costas."},
@@ -3999,9 +4003,34 @@ function buildPPLRotina(){
 
 /* v97: rotina com ênfase em pernas e glúteos (6 dias). Sugestão inicial do perfil feminino; sempre editável.
    Glúteos 15 séries/semana (3 dias), quadríceps 14, posterior 10, costas 16, ombros 15, bíceps 16, tríceps 12, peito 9: tudo dentro de MEV–MRV. */
+/* Exercícios UNILATERAIS (um lado de cada vez): as repetições são contadas POR LADO; a meta e o volume somam os dois lados.
+   Valor = como o lado é chamado na tela ("perna", "braço" ou "lado"). Uma só lista, usada pelo registro, pelas rotinas e pelo ranking. */
+const UNILATERAL = {
+  "Agachamento búlgaro":"perna", "Agachamento unipodal (apoiado)":"perna", "Avanço (afundo)":"perna", "Avanço (afundo) com halteres":"perna",
+  "Avanço (afundo) com peso do corpo":"perna", "Avanço lateral":"perna", "Avanço reverso":"perna", "Passada (caminhada) com halteres":"perna",
+  "Step-up com halteres":"perna", "Subida lateral no degrau":"perna", "Stiff unilateral com halter":"perna", "Stiff unilateral sem peso":"perna",
+  "Leg press unilateral":"perna", "Leg press (unilateral)":"perna", "Flexora em pé (unilateral)":"perna", "Panturrilha unilateral em pé":"perna",
+  "Ponte de glúteo unilateral":"perna", "Coice (extensão de quadril) com elástico":"perna", "Abdução de quadril com elástico":"perna",
+  "Abdução de quadril em pé no cabo":"perna", "Concha (clamshell) com elástico":"lado", "Caminhada lateral com elástico":"lado",
+  "Remada unilateral com halter":"lado", "Remada com elástico (unilateral)":"lado", "Rosca alternada com halteres":"braço", "Rosca concentrada":"braço",
+  "Tríceps coice (kickback)":"braço", "Prancha lateral":"lado", "Prancha Copenhagen":"lado", "Pallof press":"lado"
+};
+function ladoDe(nome){ return UNILATERAL[nome] || null; }
+/* ao trocar de exercício o texto das repetições acompanha o novo: ganha "por perna/lado" se ele é unilateral e perde se deixou de ser */
+function repsDoLado(nome, reps){
+  const r = String(reps == null ? "" : reps).replace(/ por (perna|lado|braço)$/, "");
+  return ladoDe(nome) ? repsComLado(nome, r) : r;
+}
+function fatorLados(nome){ return UNILATERAL[nome] ? 2 : 1; }
+/* "10-12" vira "10-12 por perna" nos exercícios unilaterais (e "30-45s" vira "30-45s por lado"); o que já tem "por" fica como está */
+function repsComLado(nome, reps){
+  const l = ladoDe(nome), r = String(reps == null ? "" : reps).trim();
+  if(!l || !r || /\bpor\b/.test(r) || !/^\d+(-\d+)?s?$/.test(r)) return reps;
+  return r+" por "+l;
+}
 function mkEx(nome, series, reps, musculos, nota){
-  const m = String(reps).match(/^(\d+)-(\d+)$/);
-  const e = {nome, series, reps, metaReps: m ? Math.ceil(series * (Number(m[1]) + Number(m[2])) / 2) : series, musculos};
+  reps = repsComLado(nome, reps);
+  const e = {nome, series, reps, metaReps: metaRepsDe(series, reps, series), musculos};
   if(nota) e.nota = nota;
   return e;
 }
@@ -4075,7 +4104,7 @@ function buildUpperLowerRotina(){
       {nome:"Remada unilateral com halter", series:3, reps:"10-12 por lado", metaReps:66, musculos:["costas"]},
       {nome:"Elevação lateral", series:3, reps:"12-15", metaReps:42, musculos:["ombros"]},
       {nome:"Barra fixa (ou puxada frente)", series:3, reps:"6-10", metaReps:24, musculos:["costas","biceps"]},
-      {nome:"Rosca alternada com halteres", series:3, reps:"10-12", metaReps:33, musculos:["biceps"]},
+      {nome:"Rosca alternada com halteres", series:3, reps:"10-12 por braço", metaReps:66, musculos:["biceps"]},
       {nome:"Tríceps francês", series:3, reps:"10-12", metaReps:33, musculos:["triceps"]}]},
     sex:{nome:"Lower B", ativo:true, exercicios:[
       {nome:"Levantamento terra", series:3, reps:"5-8", metaReps:21, musculos:["costas","posterior","gluteos"]},
@@ -4111,7 +4140,7 @@ function buildFullBodyRotina(){
       {nome:"Supino na smith (ou máquina)", series:3, reps:"8-12", metaReps:30, musculos:["peito","triceps"]},
       {nome:"Remada unilateral com halter", series:3, reps:"10-12 por lado", metaReps:66, musculos:["costas"]},
       {nome:"Stiff (levantamento terra romeno)", series:3, reps:"8-12", metaReps:30, musculos:["posterior","gluteos"]},
-      {nome:"Rosca alternada com halteres", series:2, reps:"10-12", metaReps:22, musculos:["biceps"]},
+      {nome:"Rosca alternada com halteres", series:2, reps:"10-12 por braço", metaReps:44, musculos:["biceps"]},
       {nome:"Abdominal supra (crunch)", series:3, reps:"15-20", metaReps:54, musculos:["abdomen"]}]},
     sab:{nome:"Descanso", ativo:false, exercicios:[]},
     dom:{nome:"Descanso", ativo:false, exercicios:[]},
@@ -4185,9 +4214,9 @@ function metaRepsDe(series, reps, antigo){
   const r = String(reps || "");
   let m = r.match(/^(\d+)-(\d+)$/);
   if(m) return Math.ceil(series * (Number(m[1]) + Number(m[2])) / 2);
-  m = r.match(/^(\d+)-(\d+) por (lado|perna)$/);
+  m = r.match(/^(\d+)-(\d+) por (lado|perna|braço)$/);
   if(m) return Math.ceil(series * (Number(m[1]) + Number(m[2])) / 2) * 2;
-  if(/^\d+-\d+s$/.test(r)) return series;
+  if(/^\d+-\d+s( por (lado|perna|braço))?$/.test(r)) return series;
   return antigo || series;
 }
 /* adapta um modelo de rotina ao perfil: equipamento, iniciante/menor de idade (sem carga máxima) e exercícios repetidos */
@@ -4203,6 +4232,7 @@ function adaptarRotinaAoPerfil(base, o){
       if(suave && (ex.reps === "5-8" || ex.reps === "6-10")) ex.reps = "8-12";
       const sub = o.local !== "academia" && SUBST_LOCAL[o.local] && SUBST_LOCAL[o.local][ex.nome];
       if(sub){ ex.nome = sub[0]; if(sub[1]) ex.reps = sub[1]; delete ex.nota; }
+      ex.reps = repsComLado(ex.nome, ex.reps);
       if(vistos[ex.nome]){ const keep = vistos[ex.nome]; keep.series = Math.min(5, keep.series + ex.series); keep.metaReps = metaRepsDe(keep.series, keep.reps, keep.metaReps); return; }
       ex.metaReps = metaRepsDe(ex.series, ex.reps, ex.metaReps);
       vistos[ex.nome] = ex; saida.push(ex);
@@ -4687,6 +4717,22 @@ function migrarNomesDias(r){
   });
   return mudou;
 }
+/* rotinas já salvas: unilateral sem "por perna/lado" nas repetições ganha o texto e a meta passa a contar os dois lados */
+function migrarLadoUnilateral(r){
+  const mudou = [];
+  Object.keys(r || {}).forEach(k=>{
+    const d = r[k]; if(!d || !Array.isArray(d.exercicios)) return;
+    let alterou = false;
+    const exs = d.exercicios.map(e=>{
+      const reps = repsComLado(e.nome, e.reps);
+      if(reps === e.reps) return e;
+      alterou = true;
+      return Object.assign({}, e, {reps, metaReps: metaRepsDe(Number(e.series)||1, reps, e.metaReps)});
+    });
+    if(alterou){ r[k] = Object.assign({}, d, {exercicios:exs}); mudou.push(k); }
+  });
+  return mudou;
+}
 const CATEGORY_ORDER = ["Peito, ombros e tríceps","Costas e bíceps","Pernas","Core"];
 
 /* ============================================================
@@ -4849,6 +4895,7 @@ function renderVolume(){
   const el = document.getElementById("volume-body");
   if(!el) return;
   const totals = computeVolumeTotals();
+  const feitoSem = semanaRealizadaPorMusculo(mondayOfISO(todayISO()));   // séries realmente registradas nesta semana
   const focoSet = focoMusculos();
   const byCat = {};
   CATEGORY_ORDER.forEach(c=> byCat[c]=[]);
@@ -4862,8 +4909,8 @@ function renderVolume(){
     if(!muscles.length) return "";
     const rows = muscles.map(m=>{
       const lm = MUSCLE_LANDMARKS[m];
-      const vol = totals[m]||0;
-      const scaleMax = Math.max(lm.mrv * 1.2, vol * 1.05);
+      const vol = totals[m]||0, feito = feitoSem[m]||0;
+      const scaleMax = Math.max(lm.mrv * 1.2, vol * 1.05, feito * 1.05);
       const pct = v => Math.max(0, Math.min(100, (v/scaleMax)*100));
       let fillClass = "";
       if(vol < lm.mev) fillClass = "warn";
@@ -4871,18 +4918,21 @@ function renderVolume(){
       const foco = focoSet.has(m), alvo = focoAlvo(m);
       const estado = vol < lm.mev ? "warn" : vol > lm.mrv ? "crit" : "ok";
       const rotuloEstado = estado === "warn" ? "abaixo do mínimo (MEV)" : estado === "crit" ? "acima do máximo (MRV)" : "dentro da faixa ideal";
-      return '<div class="volA-row '+estado+(foco?' foco':'')+'"><span class="m-name">'+lm.label+(foco?'<span class="foco-tag">foco</span>':'')+'</span>'+
-        '<span class="volA-val" aria-label="'+vol+' de '+lm.mrv+' séries, '+rotuloEstado+'"><b>'+vol+'</b>/'+lm.mrv+'</span>'+
-        '<div class="volA-track" role="img" aria-label="'+lm.label+': '+vol+' séries; faixa ideal de '+lm.mev+' a '+lm.mrv+'">'+
+      const feitoTxt = vol > 0 ? (feito > 0 ? 'feito <b>'+feito+'</b> de '+vol : 'nada feito ainda') : '';
+      return '<div class="volA-row '+estado+(foco?' foco':'')+'"><span class="m-name">'+lm.label+(foco?'<span class="foco-tag">foco</span>':'')+(feitoTxt?'<span class="volA-feito'+(feito>0?' tem':'')+'">'+feitoTxt+'</span>':'')+'</span>'+
+        '<span class="volA-val" aria-label="'+vol+' séries planejadas de um teto de '+lm.mrv+', '+rotuloEstado+'. Feitas nesta semana: '+feito+'"><b>'+vol+'</b>/'+lm.mrv+'</span>'+
+        '<div class="volA-track" role="img" aria-label="'+lm.label+': '+vol+' séries planejadas e '+feito+' feitas nesta semana; faixa ideal de '+lm.mev+' a '+lm.mrv+'">'+
           '<div class="volA-zone" style="left:'+pct(lm.mev).toFixed(1)+'%; width:'+(pct(lm.mrv)-pct(lm.mev)).toFixed(1)+'%;"></div>'+
-          '<div class="volA-fill '+fillClass+'" style="width:'+pct(vol).toFixed(1)+'%;"></div>'+
+          '<div class="volA-fill plan '+fillClass+'" style="width:'+pct(vol).toFixed(1)+'%;"></div>'+
+          (feito > 0 ? '<div class="volA-done" style="width:'+pct(feito).toFixed(1)+'%;"></div>' : '')+
           (foco ? '<div class="volA-goal" style="left:calc('+pct(alvo).toFixed(1)+'% - 1px);" title="Meta do foco: '+alvo+' séries"></div>' : '')+
         '</div>'+
         (foco ? '<div class="volA-foco-note">Meta do foco: <b>'+alvo+'</b> séries por semana · '+(vol >= alvo ? 'meta atingida' : 'faltam <b>'+(alvo - vol)+'</b>')+'</div>' : '')+
         '</div>';
     }).join("");
     const totalCat = muscles.reduce((t,m)=> t + (totals[m]||0), 0);
-    return '<section class="volA-cat" aria-label="'+cat+'"><div class="volA-cat-h"><span>'+cat+'</span><small>'+totalCat+' séries</small></div>'+rows+'</section>';
+    const feitoCat = muscles.reduce((t,m)=> t + (feitoSem[m]||0), 0);
+    return '<section class="volA-cat" aria-label="'+cat+'"><div class="volA-cat-h"><span>'+cat+'</span><small>'+feitoCat+' feitas · '+totalCat+' planejadas</small></div>'+rows+'</section>';
   }).join("");
 
   // v95 (T4): balanço quadríceps × posterior — referência suave, não regra
@@ -4896,6 +4946,8 @@ function renderVolume(){
   }
   el.innerHTML = focoBoxHtml() + catsHtml + balHtml +
     '<div class="heat-legend vol-legend">'+
+      '<div class="li"><span class="sw sw-feito"></span><span>Barra forte = feito <small>séries que você registrou nesta semana (segunda a domingo)</small></span></div>'+
+      '<div class="li"><span class="sw sw-plano"></span><span>Barra clara = planejado <small>séries previstas na sua rotina, ainda não treinadas</small></span></div>'+
       '<div class="li"><span class="sw u-bg-teal"></span><span>Dentro da faixa ideal <small>entre MEV e MRV</small></span>'+tipBtn("mav")+'</div>'+
       '<div class="li"><span class="sw u-bg-warn"></span><span>Abaixo do MEV <small>pouco volume para estimular ganho</small></span>'+tipBtn("mev")+'</div>'+
       '<div class="li"><span class="sw u-bg-crit"></span><span>Acima do MRV <small>risco de overtraining</small></span>'+tipBtn("mrv")+'</div>'+
@@ -5358,7 +5410,7 @@ async function initStore(){
     const r = {};
     qsnap.docs.forEach(d=>{ r[d.id] = d.data(); });
     for(const k of DAYS){ if(!r[k]) r[k] = state.rotina[k] || {nome:DAY_FULL[k], ativo:false, exercicios:[]}; }
-    migrarNomesDias(r).forEach(k=>{ try{ if(state.db) Promise.resolve(state.db.doc("rotina/"+k).set(r[k])).catch(e=>ngReporta(e,"rotina:migrar")); }catch(e){ ngReporta(e,"rotina:migrar"); } });   // v96: grava só os dias renomeados (sem aviso: quem só lê, vê o nome novo e nada quebra)
+    Array.from(new Set(migrarNomesDias(r).concat(migrarLadoUnilateral(r)))).forEach(k=>{ try{ if(state.db) Promise.resolve(state.db.doc("rotina/"+k).set(r[k])).catch(e=>ngReporta(e,"rotina:migrar")); }catch(e){ ngReporta(e,"rotina:migrar"); } });   // v96: grava só os dias renomeados (sem aviso: quem só lê, vê o nome novo e nada quebra)
     state.rotina = r;
     state.rotinaIsExample = false;
     render(); marca("rotina");
@@ -9079,7 +9131,7 @@ function exTrocado(iso, idx){
 }
 function exDoDia(ex, iso, idx){
   const t = exTrocado(iso, idx);
-  return t ? Object.assign({}, ex, {nome:t, original:ex.nome, trocado:true, nota:""})
+  return t ? Object.assign({}, ex, {nome:t, original:ex.nome, trocado:true, nota:"", reps:repsDoLado(t, ex.reps)})
            : Object.assign({}, ex, {original:ex.nome, trocado:false});
 }
 /* nomes que os OUTROS exercícios do dia têm agora (rotina + trocas de hoje): um exercício não pode se repetir no mesmo treino */
@@ -9151,6 +9203,7 @@ function adaptarSemanaLocal(rotinaBase, modo){
       nomes.add(sub[0]);
       const ne = Object.assign({}, e, {nome: sub[0]});
       if(sub[1]) ne.reps = sub[1];
+      ne.reps = repsDoLado(ne.nome, ne.reps);
       delete ne.nota;
       ne.metaReps = metaRepsDe(ne.series, ne.reps, e.metaReps);
       bk.push({i, de:e.nome, para:ne.nome, reps:e.reps == null ? null : e.reps, nota:e.nota == null ? null : e.nota, metaReps:e.metaReps == null ? null : e.metaReps, repsNovo:ne.reps, metaNovo:ne.metaReps});
@@ -9434,6 +9487,7 @@ const ANALISE_ESTADO = {
 /* Análise do treino: os selos de resumo viram filtros. Só aparece o grupo escolhido (padrão: o que pede atenção primeiro) —
    "Todos" mostra tudo. Cada exercício vem fechado; toque no nome para abrir o detalhe. */
 let analiseFiltro = null;
+const analiseCatFechada = {};   // categorias recolhidas na Análise (sobrevive aos redesenhos); padrão: todas abertas
 function renderAnaliseTreino(){
   const el = document.getElementById("analise-treino-body"); if(!el) return;
   const exList = allActiveExercises();
@@ -9461,7 +9515,7 @@ function renderAnaliseTreino(){
       ["estagnado","progredindo","estavel","sem-dados"].filter(k=> cont[k]).map(k=>'<button type="button" class="chip an-f '+ANALISE_ESTADO[k].c+'" data-anf="'+k+'" aria-pressed="'+(filtro === k)+'">'+ANALISE_ESTADO[k].t+' · '+cont[k]+'</button>').join("")+
       '<button type="button" class="chip an-f neutral" data-anf="todos" aria-pressed="'+(filtro === "todos")+'">Todos · '+itens.length+'</button></div>';
     h += '<div class="an-count" role="status" aria-live="polite">Mostrando '+vis.length+' de '+itens.length+' exercícios — toque em um nome para ver o detalhe.</div>';
-    h += '<ul class="an-list">'+vis.map(i=>{
+    const itemHtml = i=>{
       const st = ANALISE_ESTADO[i.cls.estado];
       const tab = i.sess.length ? '<div class="an-tabw" tabindex="0" role="region" aria-label="Últimas sessões de '+escapeHtml(i.nome)+'"><table class="an-tab"><thead><tr><th scope="col">Data</th><th scope="col">Carga</th><th scope="col">Reps por série</th><th scope="col">RPE</th></tr></thead><tbody>'+
         i.sess.slice(-ANALISE_JANELA).reverse().map(x=>'<tr><td>'+escapeHtml(fmtDateBR(x.iso))+'</td><td>'+(x.peso != null ? fmtKg(x.peso)+' kg' : '—')+'</td><td>'+x.sets.join(" · ")+(x.unid==="s" ? " s" : "")+'</td><td>'+(x.rpe != null ? x.rpe : '—')+'</td></tr>').join("")+'</tbody></table></div>' : '';
@@ -9469,7 +9523,20 @@ function renderAnaliseTreino(){
         '<div class="an-body"><p class="an-resumo">'+escapeHtml(i.resumo)+'</p>'+
         (i.tendencia ? '<p class="an-tend">'+escapeHtml(i.tendencia)+'</p>' : '')+
         (i.linhas.length ? '<ul class="an-linhas">'+i.linhas.map(l=>'<li>'+escapeHtml(l)+'</li>').join("")+'</ul>' : '')+tab+'</div></details></li>';
-    }).join("")+'</ul>';
+    };
+    /* agrupa por categoria, como a Biblioteca de exercícios (categoria do 1º músculo do exercício) */
+    const porCat = {}; CATEGORY_ORDER.forEach(c=> porCat[c] = []);
+    vis.forEach(i=>{ const prim = (musc[i.nome]||[])[0]; const cat = (prim && MUSCLE_CATEGORY[prim]) || "Core"; (porCat[cat] = porCat[cat] || []).push(i); });
+    h += CATEGORY_ORDER.filter(c=> porCat[c] && porCat[c].length).map(cat=>{
+      const lista = porCat[cat];
+      const cc = {}; lista.forEach(i=> cc[i.cls.estado] = (cc[i.cls.estado]||0) + 1);
+      const resumoCat = ORD_F.filter(k=> cc[k]).map(k=>'<span class="chip '+ANALISE_ESTADO[k].c+' an-cat-chip">'+cc[k]+' '+ANALISE_ESTADO[k].t.replace(/^\S+\s/,"").toLowerCase()+'</span>').join("");
+      return '<details class="biblio-cat an-cat" data-ancat="'+escapeHtml(cat)+'"'+(analiseCatFechada[cat] ? '' : ' open')+'><summary>'+
+        '<span class="biblio-cat-ic">'+(CATEGORY_ICON[cat]||ICON_CORE)+'</span>'+
+        '<span class="biblio-cat-txt"><span class="biblio-cat-name">'+escapeHtml(cat)+'</span><span class="biblio-cat-count">'+lista.length+(lista.length===1?' exercício':' exercícios')+'</span></span>'+
+        '<span class="an-cat-resumo">'+resumoCat+'</span></summary>'+
+        '<ul class="an-list">'+lista.map(itemHtml).join("")+'</ul></details>';
+    }).join("");
   }
   // volume da semana: realizado x planejado, e a semana passada contra o mínimo
   const seg = mondayOfISO(todayISO()), segAnt = addDaysISO(seg, -7);
@@ -9484,6 +9551,10 @@ function renderAnaliseTreino(){
   if(linhasVol) h += '<h3 class="an-h3">Volume desta semana (realizado × planejado)</h3><div class="an-volwrap">'+linhasVol+'</div>';
   el.innerHTML = h;
 }
+document.addEventListener("toggle", (e)=>{
+  const d = e.target;
+  if(d && d.matches && d.matches("details.an-cat") && d.dataset.ancat) analiseCatFechada[d.dataset.ancat] = !d.open;
+}, true);
 document.addEventListener("click", (e)=>{
   const b = e.target.closest && e.target.closest("[data-anf]");
   if(!b || !b.closest("#analise-treino-body")) return;
@@ -9572,7 +9643,7 @@ const XP_PARCIAL_PISO = 0.5;   // exercício encerrado antes do fim vale, no mí
 const MOTIVOS_ENCERRAR = {cansaco:"Cansaço", dor:"Dor ou desconforto", tempo:"Falta de tempo", equipamento:"Equipamento ocupado", outro:"Outro motivo"};
 function faixaDeReps(reps){
   const r = String(reps||"");
-  let m = r.match(/^(\d+)-(\d+)s$/); if(m) return {min:+m[1], max:+m[2], unid:"s"};
+  let m = r.match(/^(\d+)-(\d+)s( por \S+)?$/); if(m) return {min:+m[1], max:+m[2], unid:"s"};
   m = r.match(/^(\d+)-(\d+)/); if(m) return {min:+m[1], max:+m[2], unid:"reps"};
   m = r.match(/^(\d+)$/); if(m) return {min:+m[1], max:+m[1], unid:"reps"};
   return {min:0, max:0, unid:"reps"};
@@ -9710,32 +9781,62 @@ function rotuloFaixa(r, ex){
 function semFocoEmCampo(fn){
   return ()=>{ const a = document.activeElement; if(a && a.matches && a.matches("input,select,textarea") && a.closest("#week-trail-detail, .live-workout")) return; fn(); };
 }
-/* ranking das séries do exercício: maior desempenho = ouro, 2º = prata, 3º = bronze, 4º em diante = cinza; valores iguais dividem a mesma posição */
+/* ranking das séries do exercício: cada medalha é única (ouro, prata, bronze e, depois, cinza). Em empate de repetições vale a série MAIS TARDE,
+   porque repetir o número com mais cansaço é mais difícil — assim duas séries nunca dividem a mesma cor. */
 const MEDALHAS = [{k:'ouro', t:'melhor desempenho (ouro)'}, {k:'prata', t:'2º melhor (prata)'}, {k:'bronze', t:'3º melhor (bronze)'}, {k:'cinza', t:'demais séries (cinza)'}];
 function rankSeries(sets){
-  const vals = Array.from(new Set((sets||[]).map(s=>s.r))).sort((a,b)=>b-a);
-  return (sets||[]).map(s=>MEDALHAS[Math.min(vals.indexOf(s.r), 3)]);
+  const ord = (sets||[]).map((s,i)=>({i, r:s.r})).sort((a,b)=> b.r - a.r || b.i - a.i);
+  const out = new Array((sets||[]).length);
+  ord.forEach((o,pos)=>{ out[o.i] = MEDALHAS[Math.min(pos, 3)]; });
+  return out;
+}
+/* séries da última sessão ANTERIOR a "iso" em que o exercício foi registrado (a base da comparação "+n / −n") */
+function setsAnteriores(nome, iso){
+  const datas = Object.keys(state.checkins||{}).filter(d=> d < iso).sort().reverse();
+  for(const d of datas){
+    const c = state.checkins[d]; if(!c) continue;
+    const dia = state.rotina[c.dia || treinoKey(d)];
+    const lista = (dia && dia.exercicios) || [];
+    const idx = lista.findIndex(e=> e.nome === nome);
+    if(idx < 0) continue;
+    const sets = setsDe(c, idx, lista[idx]);
+    if(sets.length) return sets;
+  }
+  return null;
+}
+/* diferença de cada série para a MESMA série (1ª com 1ª, 2ª com 2ª…) do último treino; null quando não há base */
+function deltasSeries(sets, ant){
+  return (sets||[]).map((s,k)=> (ant && ant[k]) ? s.r - ant[k].r : null);
+}
+function deltaHtml(d, unLong){
+  if(d == null) return "";
+  const t = d > 0 ? "+"+d : d < 0 ? "−"+Math.abs(d) : "=";
+  return '<em class="sl-d '+(d > 0 ? 'up' : d < 0 ? 'down' : 'eq')+'" title="'+(d > 0 ? 'a mais' : d < 0 ? 'a menos' : 'igual')+' que a mesma série do último treino">'+t+'</em>';
 }
 function serieLogHtml(i, ex, c, pfx){
   const e = estadoEx(c, i, ex), f = faixaDeReps(ex.reps);
-  const un = f.unid === "s" ? " s" : "", unLong = f.unid === "s" ? "segundos" : "repetições";
+  const lado = ladoDe(ex.nome), porLado = lado ? " por "+lado : "";
+  const un = f.unid === "s" ? " s" : "", unLong = (f.unid === "s" ? "segundos" : "repetições")+porLado;
   const editK = (setEdit[i] != null && setEdit[i] < e.n) ? setEdit[i] : null;
   if(setEdit[i] != null && editK == null) delete setEdit[i];
   const alvo = alvoReps(ex, e.sets);
   const draft = setDraft[i] != null ? setDraft[i] : String(editK != null ? e.sets[editK].r : alvo);
   const pct = Math.min(100, Math.round(e.n/e.prev*100));
-  const faixaTxt = f.max ? "meta "+(f.min === f.max ? f.min : f.min+"–"+f.max)+(f.unid === "s" ? " s" : " reps")+" por série" : "";
+  const faixaTxt = f.max ? "meta "+(f.min === f.max ? f.min : f.min+"–"+f.max)+(f.unid === "s" ? " s" : " reps")+porLado+" · por série" : "";
   const ranks = rankSeries(e.sets);
+  const deltas = deltasSeries(e.sets, setsAnteriores(ex.nome, (c && c.data) || todayISO()));
   const chips = e.sets.map((s,k)=>{
-    const rf = rotuloFaixa(s.r, ex), md = ranks[k];
-    return '<li><button type="button" class="sl-chip sl-'+md.k+(editK===k?' on':'')+'" data-medalha="'+md.k+'" data-slchip="'+k+'" aria-pressed="'+(editK===k)+'" aria-label="Série '+(k+1)+': '+s.r+' '+unLong+(rf ? ', '+rf.t : '')+', '+md.t+'. Toque para editar.">'+
-      '<span class="sl-chip-n">'+(k+1)+'ª</span><b>'+s.r+un+'</b>'+(rf ? '<small aria-hidden="true">'+rf.s+'</small>' : '')+'</button></li>';
+    const rf = rotuloFaixa(s.r, ex), md = ranks[k], dl = deltas[k];
+    const dTxt = dl == null ? '' : dl > 0 ? ', '+dl+' a mais que no último treino' : dl < 0 ? ', '+Math.abs(dl)+' a menos que no último treino' : ', igual ao último treino';
+    return '<li><button type="button" class="sl-chip sl-'+md.k+(editK===k?' on':'')+'" data-medalha="'+md.k+'" data-slchip="'+k+'" aria-pressed="'+(editK===k)+'" aria-label="Série '+(k+1)+': '+s.r+' '+unLong+(rf ? ', '+rf.t : '')+', '+md.t+dTxt+'. Toque para editar.">'+
+      '<span class="sl-chip-n">'+(k+1)+'ª</span><b>'+s.r+un+'</b>'+(rf ? '<small aria-hidden="true">'+rf.s+'</small>' : '')+deltaHtml(dl, unLong)+'</button></li>';
   }).join("");
   let h = '<div class="sl" data-sl="'+i+'" data-pfx="'+pfx+'">'+
     '<div class="sl-top"><span class="sl-count" tabindex="-1"><b>'+e.n+'</b> de '+e.prev+' série'+(e.prev===1?'':'s')+'</span>'+(faixaTxt ? '<span class="sl-faixa">'+faixaTxt+'</span>' : '')+'</div>'+
     '<div class="sl-segs" aria-hidden="true" style="--n:'+Math.max(1,e.prev)+';">'+Array.from({length:Math.max(1,e.prev)},(_,k)=>'<i class="'+(k<e.n?'on':(k===e.n?'next':''))+'"></i>').join("")+'</div>'+
+    (lado ? '<div class="sl-lado">Conte as repetições de '+({perna:'uma perna', "braço":'um braço', lado:'um lado'})[lado]+' por vez; o total do exercício soma '+({perna:'as duas', "braço":'os dois', lado:'os dois lados'})[lado]+'.</div>' : '')+
     (e.n ? '<ul class="sl-sets" aria-label="Séries registradas">'+chips+'</ul>' : '');
-  if(e.n && f.max) h += '<div class="sl-leg"><span class="sl-rk"><i class="sl-dot sl-ouro"></i>melhor</span><span class="sl-rk"><i class="sl-dot sl-prata"></i>2º</span><span class="sl-rk"><i class="sl-dot sl-bronze"></i>3º</span><span class="sl-rk"><i class="sl-dot sl-cinza"></i>demais</span><span class="sl-rg">▼ abaixo · ● na faixa · ▲ acima da faixa — sem certo ou errado</span></div>';
+  if(e.n && f.max) h += '<div class="sl-leg"><span class="sl-rk"><i class="sl-dot sl-ouro"></i>melhor</span><span class="sl-rk"><i class="sl-dot sl-prata"></i>2º</span><span class="sl-rk"><i class="sl-dot sl-bronze"></i>3º</span><span class="sl-rk"><i class="sl-dot sl-cinza"></i>demais</span><span class="sl-rg">▼ abaixo · ● na faixa · ▲ acima da faixa — sem certo ou errado</span><span class="sl-rg">+n / −n: comparado à mesma série do último treino. Empate de reps: vale a série mais tarde.</span></div>';
   if(e.status === "parcial" || e.status === "pulado"){
     const m = (c && c.motivo && c.motivo[i]) || null;
     h += '<div class="sl-status '+e.status+'" role="status"><b>'+(e.status === "parcial" ? 'Encerrado aqui' : 'Exercício pulado')+'</b> — '+
@@ -13827,7 +13928,7 @@ function resumoParaTreinador(){
   };
 }
 window.ngApp = { resumoParaTreinador, exportarBackup: ()=> exportarDadosJSON(), perfilCarregado: ()=> !!state.perfil, idade: ()=> { const n = Number((state.perfil||{}).idade); return isFinite(n) && n > 0 ? n : null; } };
-try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque, filtraAlternativas, exercicioAdequadoAoPerfil, BASE_EXERCICIOS, BASE_PLANOS, situacoesDoPerfil, fichaDoApp, MUSCLE_LANDMARKS, ROTINA_TEMPLATES, ROTINA_GRUPOS}; }catch(e){}
+try{ if(localStorage.getItem("ng_test_hooks") === "1" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) window.__ngTest = {sugestaoProgressao, TIPS, GLOSSARIO, state: ()=> state, analiseExercicio, classificarExercicio, sessoesDoExercicio, semanaRealizadaPorMusculo, renderAnaliseTreino, diasAtivos, diasLigados, diasLigadosVazios, metaSemanalMin, statsSemana, mondayOfISO, todayISO, addDaysISO, computeWeeklyChallenges, renderLastWeekRecap, planoInicial, montaPorque, filtraAlternativas, exercicioAdequadoAoPerfil, BASE_EXERCICIOS, BASE_PLANOS, situacoesDoPerfil, fichaDoApp, MUSCLE_LANDMARKS, ROTINA_TEMPLATES, ROTINA_GRUPOS, UNILATERAL, ladoDe, repsComLado, repsDoLado, metaRepsDe, faixaDeReps, migrarLadoUnilateral, exDoDia, rankSeries, setsAnteriores, deltasSeries}; }catch(e){}
 })();
 </script>
 

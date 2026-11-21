@@ -24,7 +24,7 @@ function rkVolumeKg(){
       if(!(peso > 0) || faixaDeReps(x.reps).unid !== "reps") return;
       const est = estadoEx(c, i, x);
       if(est.status === "pulado" || !est.n) return;
-      total += peso * est.sets.reduce((a, s)=> a + (Number(s.r) || 0), 0);
+      total += peso * fatorLados(x.nome) * est.sets.reduce((a, s)=> a + (Number(s.r) || 0), 0);
     });
   });
   return Math.round(total);

@@ -24,6 +24,7 @@ const exs = [
       const db = await window.claude.use('db');
       await db.doc('config/perfil').set({ nomeCompleto: 'Teste', nomeUsuario: 'teste.rk', sexo: 'M', idade: 30, alturaCm: 178, ativo: true, nivelAtividade: 'ativo', objetivo: 'manutencao', experiencia: 'intermediario', criadoEm: ontem });
       for (const k of new Set([kH, kO])) await db.doc('rotina/' + k).set({ nome: 'Treino ' + k, ativo: true, exercicios: exs });
+      await db.doc('checkins/' + ontem).set({ data: ontem, dia: kO, concluido: true, sets: { 1: [{ r: 10 }, { r: 8 }, { r: 6 }, { r: 8 }] } });
     }, [hoje, ontem, kH, kO, exs]);
     await p.reload(); await p.waitForTimeout(1500);
     await p.evaluate(() => document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()));
@@ -35,17 +36,20 @@ const exs = [
     const R = '[' + modo + '] ';
     await reg(0, [12, 12, 10, 10]);
     const m0 = await medalhas(0);
-    t(R + '12,12,10,10 → ouro, ouro, prata, prata', JSON.stringify(m0) === '["ouro","ouro","prata","prata"]', JSON.stringify(m0));
-    t(R + 'empatados têm exatamente a mesma cor', (await cor(0, 0)) === (await cor(0, 1)) && (await cor(0, 2)) === (await cor(0, 3)));
-    t(R + 'ouro, prata e cinza têm cores diferentes entre si', (await cor(0, 0)) !== (await cor(0, 2)));
+    t(R + '12,12,10,10 → empate vale a série mais tarde: prata, ouro, cinza, bronze', JSON.stringify(m0) === '["prata","ouro","cinza","bronze"]', JSON.stringify(m0));
+    const cores0 = await Promise.all([0, 1, 2, 3].map(k => cor(0, k)));
+    t(R + 'nenhuma série divide a mesma cor (4 cores diferentes)', new Set(cores0).size === 4, JSON.stringify(cores0));
     await reg(1, [8, 8, 8, 8]);
     const m1 = await medalhas(1);
-    t(R + '8,8,8,8 → todas ouro', JSON.stringify(m1) === '["ouro","ouro","ouro","ouro"]', JSON.stringify(m1));
+    t(R + '8,8,8,8 → ouro só na última, e cada série com medalha diferente', JSON.stringify(m1) === '["cinza","bronze","prata","ouro"]', JSON.stringify(m1));
+    const d1 = await box(1).locator('.sl-chip .sl-d').allInnerTexts();
+    t(R + 'compara com a mesma série do último treino: 8 vs 10,8,6,8 → −2, =, +2, =', JSON.stringify(d1) === '["−2","=","+2","="]', JSON.stringify(d1));
+    t(R + 'sem treino anterior não mostra comparação', (await box(0).locator('.sl-chip .sl-d').count()) === 0);
     await reg(2, [12, 11, 10, 9, 8]);
     const m2 = await medalhas(2);
     t(R + '12,11,10,9,8 → ouro, prata, bronze, cinza, cinza', JSON.stringify(m2) === '["ouro","prata","bronze","cinza","cinza"]', JSON.stringify(m2));
-    t(R + 'aria-label cita a medalha', /ouro/.test(await box(0).locator('.sl-chip').nth(0).getAttribute('aria-label')) && /bronze/.test(await box(2).locator('.sl-chip').nth(2).getAttribute('aria-label')));
-    t(R + 'legenda explica ouro/prata/bronze/demais em texto', /melhor.*2º.*3º.*demais/.test((await box(0).locator('.sl-leg').innerText()).replace(/\s+/g, ' ')));
+    t(R + 'aria-label cita a medalha', /ouro/.test(await box(0).locator('.sl-chip').nth(1).getAttribute('aria-label')) && /bronze/.test(await box(2).locator('.sl-chip').nth(2).getAttribute('aria-label')));
+    t(R + 'legenda explica ouro/prata/bronze/demais, o empate e o +n/−n', /melhor.*2º.*3º.*demais/.test((await box(0).locator('.sl-leg').innerText()).replace(/\s+/g, ' ')) && /Empate/.test(await box(0).locator('.sl-leg').innerText()) && /último treino/.test(await box(0).locator('.sl-leg').innerText()));
     // ordem desordenada, série menor primeiro: 8, 12, 10 (+ extra)
     await reg(3, [30, 40, 35]);
     const m3 = await medalhas(3);
@@ -54,7 +58,7 @@ const exs = [
     await box(0).locator('.sl-chip').nth(2).click(); await p.waitForTimeout(250);
     await box(0).locator('[data-slin]').fill('14'); await box(0).locator('[data-slok]').click(); await p.waitForTimeout(300);
     const m0b = await medalhas(0);
-    t(R + 'editar 10→14 recalcula: 14 ouro, 12 prata, 10 bronze', JSON.stringify(m0b) === '["prata","prata","ouro","bronze"]', JSON.stringify(m0b));
+    t(R + 'editar 10→14 recalcula: 14 ouro, 12 (mais tarde) prata, 12 bronze, 10 cinza', JSON.stringify(m0b) === '["bronze","prata","ouro","cinza"]', JSON.stringify(m0b));
     if (modo === 'claro') await box(0).scrollIntoViewIfNeeded().catch(() => { });
     await p.screenshot({ path: '/tmp/rank-' + modo + '.png' });
     t(R + 'sem erros de página', errs.length === 0, errs.join(' | '));

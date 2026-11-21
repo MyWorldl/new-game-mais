@@ -26,6 +26,9 @@ roda troca-sem-repeticao node troca-sem-repeticao.js http://localhost:8791
 roda nivel-avancado node nivel-avancado.js http://localhost:8791
 roda ranking-amigos node ranking-amigos.js http://localhost:8791
 roda editar-rotina-treino node editar-rotina-treino.js http://localhost:8791
+roda unilaterais node unilaterais.js http://localhost:8791
+roda analise-categorias node analise-categorias.js http://localhost:8791
+roda volume-feito node volume-feito.js http://localhost:8791
 roda cardapio-e2e node cardapio-e2e.js http://localhost:8791
 roda cardapio-nos node cardapio-nos.js http://localhost:8791
 roda cardapio-sob-demanda node cardapio-sob-demanda.js http://localhost:8791

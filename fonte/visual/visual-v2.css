@@ -1774,3 +1774,20 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .ex-dica .ex-nota{ inline-size:100%; min-block-size:44px; font-size:var(--fs-sm,14px); }
 .ex-musc .muscle-chip{ min-block-size:36px; }
 @media (hover:none) and (pointer:coarse){ .ex-musc .muscle-chip{ min-block-size:44px; } }
+
+/* 49. Análise do treino por categoria (mesma família da Biblioteca): cabeçalho com resumo de situação e lista recolhível */
+.an-cat > summary{ flex-wrap:wrap; row-gap:6px; min-block-size:44px; }
+.an-cat-resumo{ display:flex; flex-wrap:wrap; gap:4px; margin-inline-start:auto; justify-content:flex-end; }
+.an-cat-chip{ font-size:var(--fs-2xs,11px); padding:2px 8px; }
+.an-cat > .an-list{ margin-block-start:2px; }
+@media (max-width:480px){ .an-cat-resumo{ margin-inline-start:44px; flex-basis:100%; justify-content:flex-start; } }
+
+/* 50. Volume semanal: planejado (barra clara) × feito (barra forte) */
+.volA-fill.plan{ opacity:.38; }
+.volA-done{ position:absolute; inset-block:0; inset-inline-start:0; border-radius:99px; background:var(--accent-fg,var(--accent)); box-shadow:0 0 0 2px var(--surface); min-inline-size:6px; z-index:1; }
+.volA-feito{ font:600 11px 'IBM Plex Mono',monospace; letter-spacing:.02em; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.volA-feito.tem{ color:var(--accent-fg,var(--accent)); }
+.volA-feito b{ font-weight:800; }
+.sw-feito{ background:var(--accent-fg,var(--accent)) !important; }
+.sw-plano{ background:color-mix(in srgb, var(--teal) 38%, var(--surface)) !important; }
+.volA-row.foco .volA-done{ box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 7%, var(--surface-2)); }
