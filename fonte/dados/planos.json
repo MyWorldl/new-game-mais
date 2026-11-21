@@ -85,17 +85,27 @@
   }
  },
  "niveis": {
-  "aviso": "Camada de nível do plano inicial: quem se declara intermediário ou avançado recebe versões mais exigentes de alguns exercícios. Só para 18+, só na academia e nunca junto de 60+, retorno após pausa ou restrição articular. Exercícios avançados são rascunho sem revisão profissional (CREF); a evidência é por padrão de movimento, sem estudo próprio de hipertrofia.",
+  "aviso": "Camada de nível do plano inicial: quem se declara intermediário ou avançado recebe versões mais exigentes de alguns exercícios, por grupo: academia (intermediario/avancado), casa e pouco equipamento (casa), menor de 18 (mesma tabela, só fichas liberadas para a idade e sem séries de carga máxima) e 60+/retorno/restrição articular (situacao: progressões conservadoras, 1 por dia, sem reintroduzir o que a situação troca ou evita). Exercícios avançados e as tabelas casa/situacao são rascunho sem revisão profissional (CREF); a evidência é por padrão de movimento, sem estudo próprio de hipertrofia.",
   "evidencia": "?",
   "intermediario": {
    "maxPorDia": 2,
    "trocas": {"Supino na smith (ou máquina)": "Supino reto", "Puxada na polia (pegada aberta)": "Barra fixa (ou puxada frente)", "Remada unilateral com halter": "Remada curvada com barra", "Desenvolvimento com halteres": "Desenvolvimento militar com barra", "Avanço (afundo) com halteres": "Agachamento búlgaro", "Leg press": "Agachamento livre", "Prancha": "Elevação de pernas"},
-   "reps": {"Supino reto": "6-10", "Remada curvada com barra": "6-10", "Desenvolvimento militar com barra": "6-10", "Agachamento livre": "6-10"}
+   "reps": {"Supino reto": "6-10", "Remada curvada com barra": "6-10", "Desenvolvimento militar com barra": "6-10", "Agachamento livre": "6-10", "Elevação de pernas": "12-15"}
   },
   "avancado": {
    "maxPorDia": 3,
    "trocas": {"Leg press": "Hack squat", "Agachamento livre": "Agachamento com pausa", "Supino reto": "Supino com pausa", "Supino na smith (ou máquina)": "Supino com pausa", "Remada curvada com barra": "Remada Pendlay", "Remada unilateral com halter": "Remada Pendlay", "Barra fixa (ou puxada frente)": "Barra fixa com lastro"},
    "reps": {"Supino com pausa": "5-8", "Agachamento com pausa": "5-8", "Remada Pendlay": "5-8", "Hack squat": "8-12", "Barra fixa com lastro": "6-10"}
+  },
+  "casa": {
+   "trocas": {"Agachamento goblet (com halter)": "Agachamento búlgaro", "Avanço (afundo) com halteres": "Agachamento unipodal (apoiado)", "Stiff (levantamento terra romeno)": "Stiff unilateral com halter", "Desenvolvimento com halteres": "Arnold press", "Tríceps francês": "Flexão diamante", "Crucifixo com halteres": "Crucifixo inclinado com halteres", "Flexão de braço": "Flexão com pés elevados", "Agachamento com peso do corpo": "Agachamento unipodal (apoiado)", "Avanço (afundo) com peso do corpo": "Agachamento unipodal (apoiado)", "Mergulho (dips) no banco": "Flexão diamante", "Prancha": "Elevação de pernas"},
+   "reps": {"Agachamento búlgaro": "8-12 por perna", "Agachamento unipodal (apoiado)": "8-12 por perna", "Stiff unilateral com halter": "8-12 por perna", "Arnold press": "8-12", "Flexão diamante": "8-15", "Flexão com pés elevados": "8-15", "Crucifixo inclinado com halteres": "10-12", "Elevação de pernas": "12-15"}
+  },
+  "situacao": {
+   "maxPorDia": 1,
+   "trocas": {"Supino na smith (ou máquina)": "Supino com halteres", "Leg press": "Leg press (unilateral)", "Prancha": "Elevação de pernas", "Abdominal supra (crunch)": "Abdominal no banco declinado", "Crucifixo (voador)": "Crucifixo com halteres", "Stiff (levantamento terra romeno)": "Stiff unilateral com halter", "Agachamento com peso do corpo": "Agachamento unipodal (apoiado)", "Flexão de braço": "Flexão com pés elevados", "Crucifixo com halteres": "Crucifixo inclinado com halteres"},
+   "reps": {"Leg press (unilateral)": "10-12 por perna", "Stiff unilateral com halter": "10-12 por perna", "Agachamento unipodal (apoiado)": "10-12 por perna", "Elevação de pernas": "12-15", "Flexão com pés elevados": "10-15"},
+   "evita": {"idoso": ["Stiff unilateral com halter", "Flexão com pés elevados", "Crucifixo inclinado com halteres"], "ombro": ["Flexão com pés elevados", "Crucifixo inclinado com halteres", "Crucifixo com halteres"], "joelho": ["Leg press (unilateral)", "Agachamento unipodal (apoiado)"], "lombar": ["Stiff unilateral com halter", "Elevação de pernas", "Abdominal no banco declinado"]}
   }
  }
 }
