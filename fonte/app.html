@@ -3189,7 +3189,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <form id="form-habitos" class="grid u-gap10" novalidate>
         <div class="field-row hab-dia">
           <div class="field-ic-group"><label for="h-data">Dia</label><div class="field-ic-wrap">
-            <input type="date" id="h-data"></div></div>
+            <input type="date" id="h-data" data-ngdate aria-label="Dia"></div></div>
         </div>
         <p class="hint hab-janela" id="hab-janela">Dá para registrar o dia de hoje e o dia anterior. Dias mais antigos ficam como estão e dias que ainda não chegaram não podem ser preenchidos.</p>
         <div class="field-row hab-num">
@@ -4668,13 +4668,14 @@ function wireFocoChips(root, sel, onMsg, onTouch){
 }
 function focoBoxHtml(){
   const ids = focosDoPerfil();
+  const ic = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg>';
   if(!ids.length){
-    return '<div class="foco-box" id="foco-box"><div class="foco-top"><div><b>Foco corporal'+tipBtn("foco")+'</b><span>Escolha o seu foco: até 2 grupos (glúteos, pernas, costas…) para o app subir a meta de séries neles, mostrar uma dica e criar uma missão semanal, ou Corpo todo.</span></div>'+
-      '<button type="button" class="btn small" data-foco-edit>Escolher foco</button></div></div>';
+    return '<div class="foco-box" id="foco-box"><div class="foco-top"><span class="foco-ic">'+ic+'</span><div><b>Foco corporal'+tipBtn("foco")+'</b><span>Escolha até 2 grupos (glúteos, pernas, costas…) para o app subir a meta de séries neles, mostrar uma dica e criar uma missão semanal, ou Corpo todo.</span></div>'+
+      '<button type="button" class="btn small foco-btn" data-foco-edit>Escolher foco</button></div></div>';
   }
   if(ids.indexOf("corpo_todo") >= 0){
-    return '<div class="foco-box" id="foco-box"><div class="foco-top"><div><b>Foco: Corpo todo (full body)'+tipBtn("foco")+'</b><span>O volume fica equilibrado entre todos os grupos, sem meta extra em nenhum.</span></div>'+
-      '<button type="button" class="btn small ghost" data-foco-edit>Mudar foco</button></div></div>';
+    return '<div class="foco-box" id="foco-box"><div class="foco-top"><span class="foco-ic">'+ic+'</span><div><b>Foco: Corpo todo (full body)'+tipBtn("foco")+'</b><span>O volume fica equilibrado entre todos os grupos, sem meta extra em nenhum.</span></div>'+
+      '<button type="button" class="btn small ghost foco-btn" data-foco-edit>Mudar foco</button></div></div>';
   }
   const itens = ids.map(id=>{
     const f = FOCOS.find(x=> x.id === id);
@@ -4682,10 +4683,11 @@ function focoBoxHtml(){
     const freq = n >= 2 ? 'Treinado em '+n+' dias por semana: boa frequência.'
       : n === 1 ? 'Só 1 dia por semana na rotina: com 2 ou mais dias o músculo costuma crescer melhor com o mesmo volume (Schoenfeld et al., 2016).'
       : 'Nenhum dia da rotina treina esse grupo ainda: adicione um exercício em Editar rotina.';
-    return '<div class="foco-item"><b>'+f.label+'</b><span>'+freq+'</span><span>'+FOCO_DICAS[id]+'</span></div>';
+    const curto = n >= 2 ? n+' dias/sem' : n === 1 ? '1 dia/sem' : 'sem dia';
+    return '<details class="foco-item'+(n >= 2 ? '' : ' atencao')+'"><summary><b>'+f.label+'</b><span class="foco-freq">'+curto+'</span></summary><p>'+freq+'</p><p>'+FOCO_DICAS[id]+'</p></details>';
   }).join("");
-  return '<div class="foco-box" id="foco-box"><div class="foco-top"><div><b>Foco: '+focoNomes().join(" e ")+tipBtn("foco")+'</b><span>A meta de séries destes grupos está maior. O foco muda onde você coloca mais treino, não onde o corpo perde gordura.</span></div>'+
-    '<button type="button" class="btn small ghost" data-foco-edit>Mudar foco</button></div>'+itens+'</div>';
+  return '<div class="foco-box" id="foco-box"><div class="foco-top"><span class="foco-ic">'+ic+'</span><div><b>Foco: '+focoNomes().join(" e ")+tipBtn("foco")+'</b><span>A meta de séries destes grupos está maior. O foco muda onde você coloca mais treino, não onde o corpo perde gordura.</span></div>'+
+    '<button type="button" class="btn small ghost foco-btn" data-foco-edit>Mudar foco</button></div><div class="foco-itens">'+itens+'</div></div>';
 }
 /* escolha rápida do foco (conta antiga sem foco, ou "Mudar foco" no Treino): salva só o foco no perfil */
 function openFocoEscolha(){
@@ -4771,17 +4773,20 @@ function renderVolume(){
       if(vol < lm.mev) fillClass = "warn";
       else if(vol > lm.mrv) fillClass = "crit";
       const foco = focoSet.has(m), alvo = focoAlvo(m);
-      return '<div class="volA-row'+(foco?' foco':'')+'"><span class="m-name">'+lm.label+(foco?'<span class="foco-tag">foco</span>':'')+'</span>'+
-        '<div class="volA-track">'+
+      const estado = vol < lm.mev ? "warn" : vol > lm.mrv ? "crit" : "ok";
+      const rotuloEstado = estado === "warn" ? "abaixo do mínimo (MEV)" : estado === "crit" ? "acima do máximo (MRV)" : "dentro da faixa ideal";
+      return '<div class="volA-row '+estado+(foco?' foco':'')+'"><span class="m-name">'+lm.label+(foco?'<span class="foco-tag">foco</span>':'')+'</span>'+
+        '<span class="volA-val" aria-label="'+vol+' de '+lm.mrv+' séries, '+rotuloEstado+'"><b>'+vol+'</b>/'+lm.mrv+'</span>'+
+        '<div class="volA-track" role="img" aria-label="'+lm.label+': '+vol+' séries; faixa ideal de '+lm.mev+' a '+lm.mrv+'">'+
           '<div class="volA-zone" style="left:'+pct(lm.mev).toFixed(1)+'%; width:'+(pct(lm.mrv)-pct(lm.mev)).toFixed(1)+'%;"></div>'+
           '<div class="volA-fill '+fillClass+'" style="width:'+pct(vol).toFixed(1)+'%;"></div>'+
           (foco ? '<div class="volA-goal" style="left:calc('+pct(alvo).toFixed(1)+'% - 1px);" title="Meta do foco: '+alvo+' séries"></div>' : '')+
         '</div>'+
-        '<span class="volA-val">'+vol+'/'+lm.mrv+'</span>'+
-        (foco ? '<div class="volA-foco-note">Meta do foco: '+alvo+' séries por semana · '+(vol >= alvo ? 'meta atingida' : 'faltam '+(alvo - vol))+'</div>' : '')+
+        (foco ? '<div class="volA-foco-note">Meta do foco: <b>'+alvo+'</b> séries por semana · '+(vol >= alvo ? 'meta atingida' : 'faltam <b>'+(alvo - vol)+'</b>')+'</div>' : '')+
         '</div>';
     }).join("");
-    return '<div class="volA-cat"><div class="volA-cat-h">'+cat+'</div>'+rows+'</div>';
+    const totalCat = muscles.reduce((t,m)=> t + (totals[m]||0), 0);
+    return '<section class="volA-cat" aria-label="'+cat+'"><div class="volA-cat-h"><span>'+cat+'</span><small>'+totalCat+' séries</small></div>'+rows+'</section>';
   }).join("");
 
   // v95 (T4): balanço quadríceps × posterior — referência suave, não regra
@@ -4794,11 +4799,11 @@ function renderVolume(){
     balHtml = '<div class="vol-bal'+(aviso?' warn':'')+'" id="vol-bal">Pernas: quadríceps <b>'+qd+'</b> séries × posterior <b>'+ps+'</b>.'+aviso+' <span class="vol-bal-note">É uma referência, não uma regra.</span></div>';
   }
   el.innerHTML = focoBoxHtml() + catsHtml + balHtml +
-    '<div class="heat-legend">'+
-      '<div class="li"><span class="sw u-bg-teal"></span>Dentro da faixa ideal (entre MEV e MRV)'+tipBtn("mav")+'</div>'+
-      '<div class="li"><span class="sw u-bg-warn"></span>Abaixo do MEV (pouco volume pra estimular ganho)'+tipBtn("mev")+'</div>'+
-      '<div class="li"><span class="sw u-bg-crit"></span>Acima do MRV (risco de overtraining)'+tipBtn("mrv")+'</div>'+
-      '<div class="li"><span class="sw" style="background:color-mix(in srgb, var(--good) 20%, var(--surface-2));"></span>Faixa recomendada (MEV–MRV)</div>'+
+    '<div class="heat-legend vol-legend">'+
+      '<div class="li"><span class="sw u-bg-teal"></span><span>Dentro da faixa ideal <small>entre MEV e MRV</small></span>'+tipBtn("mav")+'</div>'+
+      '<div class="li"><span class="sw u-bg-warn"></span><span>Abaixo do MEV <small>pouco volume para estimular ganho</small></span>'+tipBtn("mev")+'</div>'+
+      '<div class="li"><span class="sw u-bg-crit"></span><span>Acima do MRV <small>risco de overtraining</small></span>'+tipBtn("mrv")+'</div>'+
+      '<div class="li"><span class="sw sw-zona"></span><span>Faixa recomendada <small>MEV–MRV, o trilho mais claro</small></span></div>'+
     '</div>';
   renderVolumeAdjust();
 }
@@ -9784,7 +9789,7 @@ document.addEventListener("change", (e)=>{
   if(t && t.matches && t.matches("[data-restauto]")){ setRestAuto(t.checked); document.querySelectorAll("[data-restauto]").forEach(c=>{ c.checked = t.checked; }); }
 });
 function restAutoHtml(){
-  return '<label class="rest-auto"><input type="checkbox" data-restauto'+(restAutoOn()?' checked':'')+'><span>Descanso automático ao concluir uma série</span></label>';
+  return '<label class="rest-auto"><input type="checkbox" role="switch" data-restauto'+(restAutoOn()?' checked':'')+'><span class="rest-auto-t">Descanso automático<small>começa sozinho ao concluir uma série</small></span></label>';
 }
 function restTimerCellHtml(idx, exNome){
   const t = restTimers[idx];
@@ -9806,10 +9811,10 @@ function restTimerCellHtml(idx, exNome){
   const pref = restPref();
   const sg = exNome ? restSugerido(exNome) : null;   // v95 (T3)
   return '<div class="quest-rest-row">'+
-    '<select class="quest-rest-select" data-restsel="'+idx+'" aria-label="Duração do descanso">'+
+    '<select class="quest-rest-select" data-ngselect data-restsel="'+idx+'" aria-label="Duração do descanso">'+
       REST_PRESETS.map(s=>'<option value="'+s+'"'+(s===pref?' selected':'')+'>'+s+'s'+(sg && sg.presets.indexOf(s)>=0 ? ' · sugerido' : '')+'</option>').join("")+
     '</select>'+
-    '<button class="btn small ghost quest-rest-btn" type="button" data-rest="'+idx+'">'+ic('timer')+' Descanso</button>'+
+    '<button class="btn small quest-rest-btn" type="button" data-rest="'+idx+'">'+ic('timer')+' Iniciar descanso</button>'+
   '</div>'+
   (sg ? '<div class="rest-sug">Sugerido para este exercício: <b>'+sg.txt+'</b> · descanso livre também vale</div>' : '')+restAutoHtml();
 }
@@ -10721,14 +10726,14 @@ function openRotinaEditor(){
     '<div class="rotina-gen" id="rotina-gen" role="group" aria-labelledby="rotina-gen-t">'+
       '<strong id="rotina-gen-t">Gerar um plano para mim</strong>'+
       '<div class="hint">O app monta os dias e os exercícios pelo seu nível, local de treino, tempo e pelos focos que você marcar aqui. Os focos valem só para este plano; o foco do perfil continua o mesmo.</div>'+
-      '<label class="rotina-gen-dias">Dias de treino por semana<select id="rg-dias">'+[2,3,4,5,6].map(n=>'<option value="'+n+'">'+n+' por semana</option>').join("")+'</select></label>'+
+      '<label class="rotina-gen-dias">Dias de treino por semana<select id="rg-dias" data-ngselect aria-label="Dias de treino por semana">'+[2,3,4,5,6].map(n=>'<option value="'+n+'">'+n+' por semana</option>').join("")+'</select></label>'+
       '<div class="rotina-gen-focos"><span class="rotina-gen-lbl" id="rg-focos-t">Onde dar mais atenção (até 2)</span><div class="muscle-chips" role="group" aria-labelledby="rg-focos-t">'+
         FOCOS.map(f=>'<button type="button" class="muscle-chip" data-rg-foco="'+f.id+'" aria-pressed="false">'+escapeHtml(f.label)+'</button>').join("")+'</div></div>'+
       '<button class="btn small primary" type="button" id="rotina-gerar">Gerar plano</button>'+
       '<div class="hint" id="rotina-gen-resumo" role="status" aria-live="polite"></div>'+
     '</div>'+
     '<div class="rotina-template-row">'+
-      '<select id="rotina-template-select" aria-label="Modelo de rotina">'+
+      '<select id="rotina-template-select" data-ngselect aria-label="Modelo de rotina">'+
         '<option value="">Começar de um modelo…</option>'+
         ROTINA_GRUPOS.map((g, gi)=> '<optgroup label="'+escapeHtml(g)+'">'+Object.keys(ROTINA_TEMPLATES).filter(k=> ROTINA_TEMPLATES[k].grupo === gi).map(k=>'<option value="'+k+'">'+escapeHtml(ROTINA_TEMPLATES[k].label)+'</option>').join("")+'</optgroup>').join("")+
       '</select>'+
@@ -10743,16 +10748,17 @@ function openRotinaEditor(){
 
   function buildDaySection(key, d){
     const section = document.createElement("div");
-    section.style.cssText = "border:1px solid var(--line); border-radius:10px; padding:10px;";
+    section.className = "re-day"+(d.ativo ? "" : " off");
     section.dataset.key = key;
     section.innerHTML =
-      '<div style="display:flex; gap:var(--sp-2); align-items:center; margin-bottom:var(--sp-2); flex-wrap:wrap;">'+
-        '<strong style="font-family:Barlow Condensed; font-size:var(--fs-base); width:70px;">'+DAY_FULL[key]+'</strong>'+
-        '<input type="text" class="d-nome" value="'+escapeHtml(d.nome||"")+'" placeholder="Nome do treino" style="flex:1; min-width:120px;">'+
-        '<label style="flex-direction:row; align-items:center; gap:5px; font-weight:500;"><input type="checkbox" class="d-ativo" '+(d.ativo?"checked":"")+' style="width:auto;"> Dia de treino</label>'+
+      '<div class="re-head">'+
+        '<strong class="re-dia">'+DAY_FULL[key]+'</strong>'+
+        '<label class="re-switch"><input type="checkbox" role="switch" class="d-ativo" '+(d.ativo?"checked":"")+'><span>Dia de treino</span></label>'+
+        '<input type="text" class="d-nome" value="'+escapeHtml(d.nome||"")+'" placeholder="Nome do treino (ex.: A · Peito e Ombros)" aria-label="Nome do treino de '+DAY_FULL[key]+'">'+
       '</div>'+
       '<div class="ex-rows u-col8"></div>'+
-      '<button class="btn small ghost add-ex u-mt6" type="button">+ exercício</button>';
+      '<button class="btn small ghost add-ex" type="button">+ Adicionar exercício</button>';
+    section.querySelector(".d-ativo").addEventListener("change", e=> section.classList.toggle("off", !e.target.checked));
     daysWrap.appendChild(section);
     const rowsWrap = section.querySelector(".ex-rows");
     function addExRow(ex){
@@ -10762,11 +10768,13 @@ function openRotinaEditor(){
       const row = document.createElement("div");
       row.className = "ex-row";
       row.innerHTML =
-        '<input type="text" class="ex-nome" value="'+escapeHtml(ex.nome)+'" placeholder="Exercício">'+
-        '<input type="number" min="1" max="20" class="ex-series" value="'+ex.series+'" title="séries">'+
-        '<input type="text" class="ex-reps" value="'+escapeHtml(String(ex.reps))+'" placeholder="reps">'+
-        '<input type="number" min="0" max="300" class="ex-meta" value="'+(ex.metaReps||0)+'" title="meta de reps totais (quest)" placeholder="meta">'+
-        '<button type="button" class="icon-btn ex-remove" aria-label="Remover exercício"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+        '<div class="ex-top"><input type="text" class="ex-nome" value="'+escapeHtml(ex.nome)+'" placeholder="Nome do exercício" aria-label="Nome do exercício">'+
+        '<button type="button" class="icon-btn ex-remove" aria-label="Remover exercício"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'+
+        '<div class="ex-nums">'+
+          '<label class="ex-f"><span>Séries</span><input type="number" min="1" max="20" inputmode="numeric" class="ex-series" value="'+ex.series+'"></label>'+
+          '<label class="ex-f"><span>Repetições</span><input type="text" class="ex-reps" value="'+escapeHtml(String(ex.reps))+'" placeholder="ex.: 8-12"></label>'+
+          '<label class="ex-f" title="Meta de repetições totais do exercício (quest)"><span>Meta total</span><input type="number" min="0" max="300" inputmode="numeric" class="ex-meta" value="'+(ex.metaReps||0)+'" placeholder="0"></label>'+
+        '</div>';
       const chipsWrap = document.createElement("div");
       chipsWrap.className = "muscle-chips";
       const musculosSet = new Set(ex.musculos||[]);
@@ -10784,7 +10792,7 @@ function openRotinaEditor(){
       notaInput.className = "ex-nota";
       notaInput.placeholder = "Dica técnica (opcional) — ex.: cotovelos a 45°, não trancar no topo";
       notaInput.value = ex.nota || "";
-      notaInput.style.cssText = "width:100%; font-size:var(--fs-xs); margin-top:2px;";
+      notaInput.setAttribute("aria-label", "Dica técnica (opcional)");
       entry.appendChild(row);
       entry.appendChild(chipsWrap);
       entry.appendChild(notaInput);
