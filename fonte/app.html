@@ -2796,6 +2796,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <button class="tab-btn subtab-btn" type="button" id="subtab-treino-plano" aria-controls="view-treino" data-group="treino" data-sub="plano" role="tab" aria-selected="true">Plano</button>
       <button class="tab-btn subtab-btn" type="button" id="subtab-treino-progresso" aria-controls="view-treino" data-group="treino" data-sub="progresso" role="tab" aria-selected="false">Progresso</button>
       <button class="tab-btn subtab-btn" type="button" id="subtab-treino-calculadoras" aria-controls="view-treino" data-group="treino" data-sub="calculadoras" role="tab" aria-selected="false">Calculadoras</button>
+      <button class="tab-btn subtab-btn" type="button" id="subtab-treino-ranking" aria-controls="view-treino" data-group="treino" data-sub="ranking" role="tab" aria-selected="false">Ranking</button>
     </nav>
     <nav class="subtabs-wrap" id="dieta-subnav" data-subnav="dieta" role="tablist" aria-label="Seções da Dieta" hidden>
       <button class="tab-btn subtab-btn" type="button" id="subtab-dieta-metas" aria-controls="view-dieta" data-group="dieta" data-sub="metas" role="tab" aria-selected="true">Metas</button>
@@ -2865,6 +2866,12 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
 
     <section class="card plano-porque" id="plano-porque-hoje" aria-labelledby="ppq-hoje-t" hidden></section>
 
+
+    <section class="card rk-hoje" id="hoje-ranking" aria-labelledby="rk-h-t" hidden>
+      <div class="card-head"><h2 id="rk-h-t">Ranking dos amigos</h2><span class="hint" id="rk-h-sub"></span></div>
+      <ol class="rk-lista" id="rk-h-lista"></ol>
+      <div class="rk-rodape"><span id="rk-h-voce"></span><button type="button" class="btn small ghost" id="rk-h-ver">Ver todos</button></div>
+    </section>
 
     <div class="narrator-card" id="narrator-card" hidden>
       <div class="narrator-avatar" id="narrator-avatar"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bot"/></svg></div>
@@ -3120,6 +3127,15 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
     </div>
 
 
+    <section class="card rk-card" id="treino-ranking" data-sub="ranking" aria-labelledby="rk-t-t">
+      <div class="card-head"><h2 id="rk-t-t">Ranking dos amigos</h2><span class="hint" id="rk-t-sub"></span></div>
+      <div id="rk-t-corpo"></div>
+    </section>
+    <div class="card" data-sub="ranking" id="treino-ranking-info">
+      <div class="card-head"><h2>O que aparece no ranking</h2></div>
+      <p class="hint">Aparecem para os outros cadastrados: seu apelido (o mesmo de Configurações), XP e nível, sequência de dias e volume total (carga × repetições dos exercícios com carga registrada). <b>Nunca</b> aparecem peso, medidas, fotos, hábitos, treinos ou nome completo.</p>
+      <p class="hint">Só maiores de 18 anos participam. Você pode sair a qualquer momento em Configurações → Ranking; sair apaga seus números do quadro.</p>
+    </div>
     <div class="card" data-sub="calculadoras">
       <div class="card-head">
         <h2>Calculadoras rápidas</h2>
@@ -3442,6 +3458,15 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         <label>Apelido / nome de usuário<input type="text" id="cfg-usuario" placeholder="Como podemos te chamar?" maxlength="24"></label>
         <button class="btn primary" id="cfg-usuario-save">Salvar</button>
       </div>
+    </div>
+
+    <div class="card" id="cfg-ranking-card">
+      <div class="card-head">
+        <h2>Ranking</h2>
+        <span class="hint">entre os cadastrados do NG+</span>
+      </div>
+      <label class="rest-auto rk-switch"><input type="checkbox" role="switch" id="cfg-ranking" checked><span class="rest-auto-t">Aparecer no ranking dos amigos</span></label>
+      <p class="hint" id="cfg-ranking-nota"></p>
     </div>
 
     <div class="card">
@@ -5516,7 +5541,7 @@ function applyLocalFallback(path, data){
 //    (pode listar mais de uma, separadas por espaço); os demais ganham .sub-off (display:none).
 // showTab aceita "treino:progresso" para abrir direto numa sub-aba.
 const GRUPOS_SECOES = {corpo:["corpo","recomendacoes"], perfil:["perfil","config","sobre"]};
-const SUBS_INTERNAS = {treino:["plano","progresso","calculadoras"], dieta:["metas","cardapio"]};
+const SUBS_INTERNAS = {treino:["plano","progresso","calculadoras","ranking"], dieta:["metas","cardapio"]};
 const subAtual = {corpo:"corpo", perfil:"perfil", treino:"plano", dieta:"metas"};
 const dirtyViews = new Set();   // v94 P1: seções que precisam ser redesenhadas ao abrir
 function abaPrincipal(id){ for(const g in GRUPOS_SECOES){ if(GRUPOS_SECOES[g].includes(id)) return g; } return id; }
@@ -13500,13 +13525,13 @@ function renderFontes(){
 /* v94 P1: render por seção. Antes, cada clique refazia as 33 funções de desenho (tela inteira, inclusive abas ocultas).
    Agora só a aba visível é redesenhada; as demais ficam marcadas e são desenhadas quando abertas (showTab). */
 const SECTION_RENDERERS = {
-  painel: [renderPlanoPorque, renderStreak, renderNarrator, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
-  treino: [renderPlanoPorque, renderFormatoCard, renderWeekGrid, renderCargas, renderAnaliseTreino, renderVolume, renderHeatmap, renderBibliotecaExercicios],
+  painel: [renderPlanoPorque, renderStreak, renderNarrator, renderRankingHoje, renderLastWeekRecap, renderWeekDots, renderQuickStats, renderWeightChart, renderTodayCard, renderChallenges, renderResumoMes, renderRecordesPessoais, renderSemanaResumo],
+  treino: [renderRankingTreino, renderPlanoPorque, renderFormatoCard, renderWeekGrid, renderCargas, renderAnaliseTreino, renderVolume, renderHeatmap, renderBibliotecaExercicios],
   corpo: [renderAtalhoMedidas, renderComoMedir, renderComposicao, renderHabitos, renderEvolucaoChart, renderFotosProgresso, renderTabelaMedicoes],
   dieta: [renderDieta],
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
   perfil: [renderAttrs, renderPerfilSummary, renderAchievements],
-  config: [renderTemas, renderSkins, renderConfigExtras, renderRecupConfig],
+  config: [renderRankingConfig, renderTemas, renderSkins, renderConfigExtras, renderRecupConfig],
   sobre: [renderFontes, renderGlossario]
 };
 function renderSection(id){

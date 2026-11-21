@@ -24,6 +24,7 @@ TEMPO=900; roda auditoria-v3 node auditoria-v3.js http://localhost:8791; TEMPO=2
 roda redesign-r2 node redesign-r2.js http://localhost:8791
 roda troca-sem-repeticao node troca-sem-repeticao.js http://localhost:8791
 roda nivel-avancado node nivel-avancado.js http://localhost:8791
+roda ranking-amigos node ranking-amigos.js http://localhost:8791
 roda cardapio-e2e node cardapio-e2e.js http://localhost:8791
 roda cardapio-nos node cardapio-nos.js http://localhost:8791
 roda cardapio-sob-demanda node cardapio-sob-demanda.js http://localhost:8791

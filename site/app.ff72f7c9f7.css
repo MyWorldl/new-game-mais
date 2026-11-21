@@ -4491,3 +4491,31 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .hg-sw{ inline-size:14px; block-size:14px; }
 #evolucao-period.seg button{ white-space:nowrap; padding-inline:4px; font-size:var(--fs-xs,13px); }
 .qc-panel .cq-btn{ min-block-size:44px; min-inline-size:48px; border-radius:12px; font-weight:700; }
+
+/* 47. Ranking dos amigos (Hoje e Treino › Ranking): pódio com medalhas, "você" destacado, controle segmentado de métricas */
+.rk-lista{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.rk-item{ display:grid; grid-template-columns:40px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--line); border-radius:14px; background:var(--surface-2); min-block-size:48px; }
+.rk-item.rk-eu{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--surface-2)); }
+.rk-nome{ min-width:0; overflow-wrap:anywhere; font-weight:700; color:var(--ink); }
+.rk-nome small{ font-weight:600; color:var(--ink-soft); }
+.rk-val{ font:700 var(--fs-sm,14px) 'IBM Plex Mono',ui-monospace,monospace; color:var(--ink); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.rk-pos, .rk-med{ display:inline-grid; place-items:center; inline-size:32px; block-size:32px; border-radius:50%; font:700 var(--fs-sm,14px) 'Barlow Condensed',sans-serif; color:var(--ink-soft); border:1px solid var(--line-strong); }
+.rk-med{ color:#1a1300; border-color:transparent; }
+.rk-med1{ background:#f5c542; }
+.rk-med2{ background:#c9d1d9; }
+.rk-med3{ background:#d9965b; }
+.rk-rodape{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px; margin-block-start:12px; }
+.rk-voce-txt{ color:var(--ink-soft); font-size:var(--fs-sm,14px); }
+.rk-seg{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; padding:4px; border-radius:16px; background:var(--surface-2); border:1px solid var(--line); margin-block-end:12px; }
+.rk-seg button{ min-block-size:44px; border:0; border-radius:12px; background:transparent; color:var(--ink-soft); font-weight:700; font-size:var(--fs-xs,13px); padding-inline:4px; }
+.rk-seg button.active{ background:var(--accent); color:var(--on-accent,#0b1220); }
+.rk-pe{ margin-block-start:12px; }
+.rk-aviso{ margin-block:0 12px; }
+.rk-rodape .btn{ min-block-size:44px; }
+.rk-pe .link-btn, #rk-retry, #rk-voltar{ min-block-size:44px; }
+.rk-switch input[type="checkbox"]{ inline-size:56px !important; block-size:44px !important; border-radius:22px; }
+.rk-switch input[type="checkbox"]::after{ inset-block-start:5px; inset-inline-start:5px; inline-size:34px; block-size:34px; }
+.rk-switch input[type="checkbox"]:checked::after{ transform:translateX(12px); }
+.rk-switch input[type="checkbox"]:disabled{ opacity:.55; cursor:not-allowed; }
+/* o reset de toque (24 px, !important) vive na camada legacy; um !important de camada mais cedo só se vence dentro da mesma camada */
+@layer legacy{ @media (hover:none) and (pointer:coarse){ .rk-switch input[type="checkbox"]{ width:56px !important; height:44px !important; } } }

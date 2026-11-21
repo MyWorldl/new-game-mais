@@ -95,6 +95,9 @@ rep('<div class="card-head"><h2 id="missoes-t">Missões</h2><span class="hint" i
     '      <div class="seg chal-tabs" id="chal-tabs" role="group" aria-label="Período das missões">\n        <button type="button" data-scope="hoje" class="active" aria-pressed="true">Hoje</button>\n        <button type="button" data-scope="semana" aria-pressed="false">Esta semana</button>\n        <button type="button" data-scope="mes" aria-pressed="false">Este mês</button>\n      </div>\n'
     '      <div class="hoje-missoes" id="hoje-missoes"><ul class="hmi-lista" id="hmi-lista"></ul></div>\n      <div class="chal-card-grid" id="chal-grid" hidden></div>')
 rep('function renderNivel(){\n', hoje+'function renderNivel(){\n')
+# ===== Ranking entre cadastrados (tabela ranking no Supabase; card em Hoje, sub-aba Treino › Ranking, chave em Configurações) =====
+rkjs=open(base+'/ng-ranking.js',encoding='utf8').read()
+rep('function renderNivel(){\n', rkjs+'function renderNivel(){\n')
 rep('renderTodayCard, renderChallenges','renderTodayCard, renderHojeMetricas, renderHojeMissoes, renderChallenges')
 
 # ===== Fase 7 (v3) — Corpo: KPIs com mini-gráficos e radar de músculos da semana =====

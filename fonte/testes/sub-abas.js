@@ -16,7 +16,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
 
     // ---- Treino ----
     await ir('tab-treino');
-    t(L + 'Treino: barra de sub-abas com 3 itens (Plano, Progresso, Calculadoras)', await p.evaluate(() => { const n = document.getElementById('treino-subnav'); return !n.hidden && n.querySelectorAll('.subtab-btn').length === 3; }));
+    t(L + 'Treino: barra de sub-abas com 4 itens (Plano, Progresso, Calculadoras, Ranking)', await p.evaluate(() => { const n = document.getElementById('treino-subnav'); return !n.hidden && n.querySelectorAll('.subtab-btn').length === 4; }));
     t(L + 'Treino: abre em Plano (formato e rotina visíveis; análise oculta)', (await marcada('#subtab-treino-plano')) === 'true' && await vis('#formato-card') && await vis('#btn-edit-rotina') && !(await vis('#analise-treino-card')));
     await sub('#subtab-treino-progresso');
     t(L + 'Treino › Progresso: constância, cargas e análise aparecem; formato some', await vis('#constancia-title') && await vis('#analise-treino-card') && await vis('.carga-cat:not([hidden])') && !(await vis('#formato-card')));
