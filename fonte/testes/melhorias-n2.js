@@ -95,7 +95,10 @@ const vis = (p, s) => p.evaluate(s => { const e = document.querySelector(s); ret
     await c.close();
   }
   // ---- widget do exercício ----
-  for (const w of [320, 390, 1280]) {
+  // o seed só tem treinos de seg a sex: em sábado/domingo o cartão de hoje não tem séries anteriores (sem chips); a verificação vale nos dias úteis
+  const FIM_DE_SEMANA = [0, 6].includes(new Date().getDay());
+  if (FIM_DE_SEMANA) console.log('SKIP widget do exercício: fim de semana (seed sem treino de hoje)');
+  for (const w of (FIM_DE_SEMANA ? [] : [320, 390, 1280])) {
     const { c, p } = await abre(b, w, 'dark', w < 800);
     await p.evaluate(() => document.getElementById('tab-treino').click()); await p.waitForTimeout(1500);
     const r = await p.evaluate(() => {
