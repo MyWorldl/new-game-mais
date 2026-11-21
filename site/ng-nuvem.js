@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-45", data: "21/11/2026", titulo: "Editar rotina mais clara", itens: [
+      { t: "novo", x: "Em Editar rotina, o nome do treino do dia virou uma caixa de seleção: escolha entre os treinos dos modelos do app (já adaptados ao seu perfil), Descanso ou Personalizado… para digitar o seu próprio nome." },
+      { t: "melhoria", x: "Ao escolher um treino num dia que já tem exercícios, o app pergunta se você quer trocar pelos exercícios do treino, só renomear ou cancelar. Em dia vazio, os exercícios entram direto." },
+      { t: "melhoria", x: "Cartão do exercício redesenhado: número, nome com o botão de remover na mesma linha, séries/repetições/meta em bloco rotulado, músculos e dica técnica com títulos, e um resumo de exercícios e séries por dia." }
+    ] },
     { v: "ng-modular-44", data: "21/11/2026", titulo: "Ranking dos amigos", itens: [
       { t: "novo", x: "Ranking entre os cadastrados do NG+: XP e nível, sequência de dias e volume total em kg. Aparece em Hoje (top 3 e a sua posição) e em Treino › Ranking, com todas as posições." },
       { t: "novo", x: "Privacidade: só maiores de 18 anos entram; aparecem apenas apelido e esses 3 números (nunca peso, medidas, fotos, hábitos ou nome completo). Quem quiser sai em Configurações › Ranking, e o servidor apaga os números na hora." },
