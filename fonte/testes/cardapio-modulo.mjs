@@ -30,7 +30,7 @@ const R = (nome) => no('[data-r="' + nome + '"]');
 const B = (rot, v) => no('[data-cdp="' + rot + '"][data-v="' + v + '"]');
 const S = (rot) => no('[data-cdp-sel="' + rot + '"]');                                   // campos selecionáveis: jeito, rotina, nref
 const C = (v) => no('[data-cdp-chk="restr"][data-v="' + v + '"]');                       // caixas de marcar das restrições
-const muda = (sel, chk) => mudou({ target: { closest: (q) => (q === '[data-cdp-sel]' ? sel : chk) } });
+const muda = (sel, chk) => mudou({ target: { closest: (q) => (q === '[data-cdp-sel]' ? sel : q === '[data-cdp-chk]' ? chk : null) } });
 
 // ---------- ctx falso
 const chamadas = { salva: [], redesenha: 0, sons: [] };

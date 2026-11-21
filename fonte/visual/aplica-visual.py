@@ -126,4 +126,13 @@ rep('function renderNivel(){\n', dieta+'function renderNivel(){\n')
 rep('  renderMetaPeso(med, p, kcalAlvo, tdee);\n  renderCardapio(kcalAlvo, macros);\n}','  renderMetaPeso(med, p, kcalAlvo, tdee);\n  renderDietaAnel(kcalAlvo, macros);\n  renderCardapio(kcalAlvo, macros);\n}')
 rep('    renderCardapio(null, null);\n    return;\n  }\n\n  const tmb','    renderDietaAnel(null, null);\n    renderCardapio(null, null);\n    return;\n  }\n\n  const tmb')
 
+
+# ===== Configurações em grupos =====
+cfgjs=open(base+'/ng-config.js',encoding='utf8').read()
+rep('function renderNivel(){\n', cfgjs+'function renderNivel(){\n')
+
+# ===== Seletor próprio (lista do app no lugar da lista nativa) =====
+ngsel=open(base+'/ng-select.js',encoding='utf8').read()
+rep('function renderNivel(){\n', ngsel+'function renderNivel(){\n')
+
 open(sys.argv[2],'w',encoding='utf8').write(src); print("ok",len(src))

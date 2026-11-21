@@ -133,14 +133,112 @@
     return sessaoP;
   }
 
+  /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
+     t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
+  var NOVIDADES = [
+    { v: "ng-modular-40", data: "20/11/2026", titulo: "Redesenho do app e tela de entrada nova", itens: [
+      { t: "novo", x: "Tela de entrada nova, com Início e Atualizações (esta que você está vendo)." },
+      { t: "novo", x: "Lista de compras da semana com visual novo e exportação em PDF." },
+      { t: "melhoria", x: "Configurações em 5 grupos (Treino e rotina, Aparência, App e ajuda, Dados, Conta); \"Conta e sincronização\" ficou no fim." },
+      { t: "melhoria", x: "Cargas: o seletor de exercício agora segue o visual do app, e os dias da semana viraram abas." },
+      { t: "melhoria", x: "Análise do treino redesenhada, com resumo no topo e distribuição por grupo muscular." },
+      { t: "melhoria", x: "Cardápio da semana: botões, dias e macros (kcal, proteína, carbo e gordura) reorganizados." },
+      { t: "melhoria", x: "A Biblioteca de exercícios agora fica em Treino › Plano, e o Glossário em Perfil › Sobre." },
+      { t: "correcao", x: "Topo do app no celular sem espaço vazio acima; Calculadoras rápidas e Indicadores alinhados." }
+    ] },
+    { v: "ng-modular-37", data: "novembro de 2026", titulo: "Treino mais flexível e mais fichas", itens: [
+      { t: "novo", x: "Mais de 30 fichas de exercícios novas, com planos montados automaticamente." },
+      { t: "melhoria", x: "O Treino deixou de ficar preso a 3 dias por semana; o plano se ajusta aos dias que você escolhe." },
+      { t: "melhoria", x: "Formato da semana revisto: uma regra única para decidir o que é dia de treino." }
+    ] },
+    { v: "ng-modular-20", data: "16/11/2026", titulo: "Pedir acesso, espera no login e acertos", itens: [
+      { t: "novo", x: "\"Pedir acesso\": quem ainda não foi liberado envia o pedido direto pela tela de entrada." },
+      { t: "novo", x: "Barra de espera ao pedir outro código por e-mail." },
+      { t: "novo", x: "Foto de perfil." },
+      { t: "melhoria", x: "Cadastro pede o foco do treino, e \"Corpo todo\" aparece em destaque." },
+      { t: "correcao", x: "Menus de seleção no Safari e salto de rolagem em alguns toques." },
+      { t: "correcao", x: "\"Primeira Medida\" só acende com peso, cintura, quadril e pescoço medidos." }
+    ] },
+    { v: "ng-modular-10", data: "12/11/2026", titulo: "Login por inatividade e check-in diário", itens: [
+      { t: "novo", x: "\"Como você está hoje?\": sono, energia e dor articular na primeira abertura de cada dia de treino." },
+      { t: "novo", x: "Opção para pedir e-mail e código de novo depois de um tempo fora do app (Configurações › Conta)." },
+      { t: "melhoria", x: "Verificação de segurança do login com aviso claro quando precisa de um toque." }
+    ] }
+  ];
+  var ROTULO_NOV = { novo: "Novo", melhoria: "Melhoria", correcao: "Correção" };
+  function itensNov(n){
+    return '<ul class="ng-nov-itens">' + n.itens.map(function(i){
+      return '<li><span class="ng-nov-tag ng-nov-' + i.t + '">' + ROTULO_NOV[i.t] + '</span><span>' + esc(i.x) + '</span></li>';
+    }).join("") + '</ul>';
+  }
+  function htmlNovidades(){
+    var n0 = NOVIDADES[0], ant = NOVIDADES.slice(1);
+    return '<div class="ng-nov">' +
+      '<h2 class="ng-nov-h">Atualizações</h2>' +
+      '<p class="ng-nov-p">O que mudou no NG+: novidades, melhorias e correções.</p>' +
+      '<article class="ng-nov-card ng-nov-atual" aria-labelledby="ng-nov-t0">' +
+        '<div class="ng-nov-cab"><span class="ng-nov-badge">Mais recente</span><span class="ng-nov-meta">' + esc(n0.v.replace("ng-modular-", "Versão ")) + ' · ' + esc(n0.data) + '</span></div>' +
+        '<h3 id="ng-nov-t0">' + esc(n0.titulo) + '</h3>' + itensNov(n0) +
+      '</article>' +
+      (ant.length ? '<button type="button" class="ng-btn ghost ng-nov-mais" id="ng-nov-mais" aria-expanded="false" aria-controls="ng-nov-ant">Ver atualizações anteriores (' + ant.length + ')</button>' +
+        '<div class="ng-nov-ant" id="ng-nov-ant" hidden>' + ant.map(function(n, k){
+          return '<details class="ng-nov-card"><summary><span class="ng-nov-sv">' + esc(n.v.replace("ng-modular-", "Versão ")) + '</span><span class="ng-nov-st">' + esc(n.titulo) + '</span><span class="ng-nov-sd">' + esc(n.data) + '</span></summary>' + itensNov(n) + '</details>';
+        }).join("") + '</div>' : '') +
+      '<button type="button" class="ng-btn ng-nov-entrar" data-lc="inicio">Voltar para entrar</button>' +
+    '</div>';
+  }
+  function ligaLauncher(el){
+    var tabs = [].slice.call(el.querySelectorAll(".ng-lc-tab")), pn = { inicio: el.querySelector("#ng-pn-inicio"), novid: el.querySelector("#ng-pn-novid") };
+    function ir(k, foco){
+      tabs.forEach(function(b){ var on = b.getAttribute("data-lc") === k; b.setAttribute("aria-selected", on ? "true" : "false"); b.tabIndex = on ? 0 : -1; if (on && foco) b.focus(); });
+      pn.inicio.hidden = k !== "inicio"; pn.novid.hidden = k !== "novid";
+      var rolar = el.querySelector(".ng-lc-main"); try { el.scrollTop = 0; if (rolar) rolar.scrollTop = 0; } catch(e){}
+    }
+    el.addEventListener("click", function(ev){
+      var b = ev.target.closest && ev.target.closest("[data-lc]"); if (!b || !el.contains(b)) return;
+      ir(b.getAttribute("data-lc"), b.classList.contains("ng-lc-tab"));
+    });
+    el.querySelector(".ng-lc-tabs").addEventListener("keydown", function(ev){
+      var i = tabs.indexOf(document.activeElement); if (i < 0) return;
+      var j = ev.key === "ArrowRight" ? (i + 1) % tabs.length : ev.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : ev.key === "Home" ? 0 : ev.key === "End" ? tabs.length - 1 : -1;
+      if (j < 0) return; ev.preventDefault(); ir(tabs[j].getAttribute("data-lc"), true);
+    });
+    var mais = el.querySelector("#ng-nov-mais"), ant = el.querySelector("#ng-nov-ant");
+    if (mais) mais.addEventListener("click", function(){
+      var abre = ant.hidden; ant.hidden = !abre; mais.setAttribute("aria-expanded", abre ? "true" : "false");
+      mais.textContent = abre ? "Esconder atualizações anteriores" : "Ver atualizações anteriores (" + ant.children.length + ")";
+    });
+  }
+
   function pedirLogin(){
     return new Promise(function(resolve){
       var enviadoPara = null, espAtiva = false, tCool = null, concluido = false;
       quandoDom(function(){
         injetaCss(); travaApp(true);
         var el = document.createElement("div");
-        el.className = "ng-login"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "ng-login-t");
+        el.className = "ng-login ng-lc"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "ng-login-t");
         el.innerHTML =
+          '<div class="ng-lc-shell">' +
+            '<header class="ng-lc-top">' +
+              '<div class="ng-lc-brand"><span class="ng-lc-mark" aria-hidden="true">NG+</span><span class="ng-lc-nome">New Game+</span></div>' +
+              '<div class="ng-lc-tabs" role="tablist" aria-label="Seções da tela inicial">' +
+                '<button type="button" class="ng-lc-tab" role="tab" id="ng-tab-inicio" aria-controls="ng-pn-inicio" aria-selected="true" data-lc="inicio">Início</button>' +
+                '<button type="button" class="ng-lc-tab" role="tab" id="ng-tab-novid" aria-controls="ng-pn-novid" aria-selected="false" tabindex="-1" data-lc="novid">Atualizações<span class="ng-lc-ver">' + NOVIDADES[0].v.replace("ng-modular-", "v") + '</span></button>' +
+              '</div>' +
+            '</header>' +
+            '<div class="ng-lc-main">' +
+            '<section class="ng-lc-pn ng-lc-inicio" id="ng-pn-inicio" role="tabpanel" aria-labelledby="ng-tab-inicio">' +
+              '<div class="ng-lc-hero">' +
+                '<p class="ng-lc-kick">Treino · Dieta · Evolução</p>' +
+                '<p class="ng-lc-titulo">Comece o seu <em>New Game+</em></p>' +
+                '<p class="ng-lc-sub">Sua rotina de academia, seu cardápio e seu progresso num lugar só. Cada treino feito sobe a sua patente.</p>' +
+                '<ul class="ng-lc-feats">' +
+                  '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.5 6.5 3 10l4 4M17.5 17.5 21 14l-4-4M7 12h10"/></svg></span><span><b>Treino que se adapta</b><br>Casa, academia ou pouco equipamento.</span></li>' +
+                  '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 11h14l-1.2 8a2 2 0 0 1-2 1.7H8.2a2 2 0 0 1-2-1.7zM9 11V8a3 3 0 0 1 6 0v3"/></svg></span><span><b>Cardápio e lista de compras</b><br>Da semana inteira, com PDF.</span></li>' +
+                  '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></span><span><b>Progresso que motiva</b><br>Cargas, medidas, conquistas e patentes.</span></li>' +
+                '</ul>' +
+                '<button type="button" class="ng-lc-novo" data-lc="novid"><span class="ng-lc-novo-t">Novidade</span><span class="ng-lc-novo-x">' + esc(NOVIDADES[0].titulo) + '</span><span class="ng-lc-seta" aria-hidden="true">›</span></button>' +
+              '</div>' +
           '<div class="ng-login-box">' +
             '<div class="ng-login-mark" aria-hidden="true">NG+</div>' +
             '<h1 id="ng-login-t">Entrar no NG+</h1>' +
@@ -174,8 +272,13 @@
             '<p class="ng-login-m" id="ng-login-m" role="status" aria-live="polite"></p>' +
             '<p class="ng-peq ng-pedir-aviso" id="ng-pedir-aviso">Ainda não tem acesso? <button type="button" class="ng-link" id="ng-login-pedir">Pedir acesso</button></p>' +
             '<p class="ng-peq" style="font-size:13px">Ao entrar, você concorda com o uso dos seus dados descrito na <button type="button" class="ng-link" id="ng-login-pol">política de privacidade</button>.</p>' +
+          '</div>' +
+            '</section>' +
+            '<section class="ng-lc-pn ng-lc-nov" id="ng-pn-novid" role="tabpanel" aria-labelledby="ng-tab-novid" hidden>' + htmlNovidades() + '</section>' +
+            '</div>' +
           '</div>';
         document.body.appendChild(el);
+        ligaLauncher(el);
         var f = $("ng-login-f"), inE = $("ng-login-e"), inC = $("ng-login-c"), box = $("ng-login-cod"), ok = $("ng-login-ok"),
             reenv = $("ng-login-reenv"), outro = $("ng-login-outro"), m = $("ng-login-m"), p = $("ng-login-p");
         $("ng-login-pol").addEventListener("click", abrirPolitica);

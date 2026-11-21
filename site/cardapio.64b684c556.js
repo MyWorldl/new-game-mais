@@ -509,11 +509,11 @@ function buildDay(d, cfg) {
         if (it.role === "carb" || it.role === "fruit" || it.role === "fat" && (pass >= 1 || cfg.style === "lowc")) set.push(it);
       });
     });
-    var base = set.reduce(function(a, it) {
+    var base2 = set.reduce(function(a, it) {
       return a + FOODS[it.id].v[0] * it.g / 100;
     }, 0);
-    if (base < 1) break;
-    var f = Math.min(2.2, Math.max(0.25, 1 + diff / base));
+    if (base2 < 1) break;
+    var f = Math.min(2.2, Math.max(0.25, 1 + diff / base2));
     set.forEach(function(it) {
       var ng = it.g * f;
       if (it.id === "azeite") ng = Math.round(ng / 13) * 13;
@@ -544,6 +544,251 @@ function shopping(week) {
   });
 }
 
+// cardapio/pdf.js
+var W = [
+  278,
+  278,
+  355,
+  556,
+  556,
+  889,
+  667,
+  191,
+  333,
+  333,
+  389,
+  584,
+  278,
+  333,
+  278,
+  278,
+  556,
+  556,
+  556,
+  556,
+  556,
+  556,
+  556,
+  556,
+  556,
+  556,
+  278,
+  278,
+  584,
+  584,
+  584,
+  556,
+  1015,
+  667,
+  667,
+  722,
+  722,
+  667,
+  611,
+  778,
+  722,
+  278,
+  500,
+  667,
+  556,
+  833,
+  722,
+  778,
+  667,
+  778,
+  722,
+  667,
+  611,
+  722,
+  667,
+  944,
+  667,
+  667,
+  611,
+  278,
+  278,
+  278,
+  469,
+  556,
+  333,
+  556,
+  556,
+  500,
+  556,
+  556,
+  278,
+  556,
+  556,
+  222,
+  222,
+  500,
+  222,
+  833,
+  556,
+  556,
+  556,
+  556,
+  333,
+  500,
+  278,
+  556,
+  500,
+  722,
+  500,
+  500,
+  500,
+  334,
+  260,
+  334,
+  584
+];
+var base = (c) => c.normalize("NFD").replace(/[̀-ͯ]/g, "");
+function larguraTexto(s, tam, negrito) {
+  let w = 0;
+  for (const ch of String(s)) {
+    const b = base(ch), code = b.charCodeAt(0);
+    w += code >= 32 && code <= 126 ? W[code - 32] : ch === "—" ? 1e3 : ch === "–" ? 556 : 556;
+  }
+  return w / 1e3 * tam * (negrito ? 1.06 : 1);
+}
+var ESPECIAIS = { "≈": "~", "—": "", "–": "", "·": "·", "•": "", "’": "", "‘": "", "“": "", "”": "", "…": "", "×": "×", "º": "º", "ª": "ª", "→": "->", "↑": "^", "↓": "v" };
+function codifica(s) {
+  let out = "";
+  for (const ch of String(s).normalize("NFC")) {
+    const c = ch.charCodeAt(0);
+    let o = ESPECIAIS[ch];
+    if (o == null) o = c < 256 ? ch : "?";
+    out += o.replace(/[\\()]/g, (m) => "\\" + m);
+  }
+  return out;
+}
+var A4 = { w: 595.28, h: 841.89 };
+var M = 42;
+var num = (n) => (Math.round(n * 100) / 100).toString();
+function montaPdf(d) {
+  const paginas = [];
+  let ops = [], y = 0, pg = null;
+  const tx = (x, yy, s, tam, neg, cor) => ops.push("BT /" + (neg ? "F2" : "F1") + " " + tam + " Tf " + (cor || "0.1 0.12 0.16") + " rg " + num(x) + " " + num(yy) + " Td (" + codifica(s) + ") Tj ET");
+  const txDir = (xDir, yy, s, tam, neg, cor) => tx(xDir - larguraTexto(s, tam, neg), yy, s, tam, neg, cor);
+  const linha = (x1, y1, x2, y2, cor, esp, trac) => ops.push((trac ? "[" + trac + "] 0 d " : "") + num(esp || 0.5) + " w " + (cor || "0.85 G") + " " + num(x1) + " " + num(y1) + " m " + num(x2) + " " + num(y2) + " l S" + (trac ? " [] 0 d" : ""));
+  const novaPagina = (primeira) => {
+    if (pg) paginas.push(ops.join("\n"));
+    ops = [];
+    pg = { primeira };
+    if (primeira) {
+      ops.push("0.043 0.067 0.098 rg 0 " + num(A4.h - 96) + " " + num(A4.w) + " 96 re f");
+      ops.push("0.62 0.9 0.14 rg 0 " + num(A4.h - 99) + " " + num(A4.w) + " 3 re f");
+      tx(M, A4.h - 46, d.titulo, 21, true, "1 1 1");
+      if (d.subtitulo) tx(M, A4.h - 68, d.subtitulo, 10.5, false, "0.72 0.78 0.85");
+      y = A4.h - 96 - 30;
+    } else y = A4.h - M - 8;
+  };
+  const rodapeY = M - 8;
+  const cabe = (altura) => y - altura >= M + 14;
+  novaPagina(true);
+  const larguraUtil = A4.w - 2 * M;
+  (d.grupos || []).forEach((g) => {
+    if (!g.itens.length) return;
+    const cab = (cont) => {
+      if (!cabe(34)) novaPagina(false);
+      y -= 6;
+      tx(M, y, String(g.rotulo).toUpperCase() + (cont ? "  (continuação)" : ""), 9.5, true, "0.24 0.5 0.06");
+      txDir(A4.w - M, y, g.itens.length + (g.itens.length > 1 ? " itens" : " item"), 8.5, false, "0.5 0.54 0.6");
+      linha(M, y - 5, A4.w - M, y - 5, "0.62 0.9 0.14 RG", 1.1);
+      y -= 20;
+    };
+    cab(false);
+    g.itens.forEach((it) => {
+      const tam = 10.5, qLarg = larguraTexto(it.qtd, tam, true), nomeMax = larguraUtil - 22 - qLarg - 14;
+      const palavras = String(it.nome).split(/\s+/), linhas = [];
+      let atual = "";
+      palavras.forEach((p) => {
+        const t = atual ? atual + " " + p : p;
+        if (larguraTexto(t, tam) <= nomeMax || !atual) atual = t;
+        else {
+          linhas.push(atual);
+          atual = p;
+        }
+      });
+      if (atual) linhas.push(atual);
+      const altura = 7 + linhas.length * 13.5;
+      if (!cabe(altura)) {
+        novaPagina(false);
+        cab(true);
+      }
+      const topo = y;
+      const bx = M + 2, by = y - 9.5;
+      ops.push((it.feito ? "0.24 0.5 0.06 rg " : "1 1 1 rg ") + "0.45 0.5 0.56 RG 0.8 w " + num(bx) + " " + num(by) + " 9.5 9.5 re B");
+      if (it.feito) ops.push("1 1 1 RG 1.4 w " + num(bx + 2) + " " + num(by + 4.6) + " m " + num(bx + 4) + " " + num(by + 2.4) + " l " + num(bx + 7.6) + " " + num(by + 7.4) + " l S");
+      linhas.forEach((l, i) => tx(M + 22, y - 8.5 - i * 13.5, l, tam, false, it.feito ? "0.5 0.54 0.6" : "0.1 0.12 0.16"));
+      txDir(A4.w - M - 2, y - 8.5, it.qtd, tam, true, it.feito ? "0.5 0.54 0.6" : "0.1 0.12 0.16");
+      y -= altura;
+      linha(M + 22, y + 1.5, A4.w - M, y + 1.5, "0.9 G", 0.5, "1.5 2");
+      y -= 2;
+      void topo;
+    });
+    y -= 6;
+  });
+  const notas = (d.notas || []).filter(Boolean);
+  if (notas.length) {
+    if (!cabe(40)) novaPagina(false);
+    y -= 8;
+    notas.forEach((n) => {
+      const tam = 8.8, palavras = String(n).split(/\s+/), linhas = [];
+      let atual = "";
+      palavras.forEach((p) => {
+        const t = atual ? atual + " " + p : p;
+        if (larguraTexto(t, tam) <= larguraUtil) atual = t;
+        else {
+          linhas.push(atual);
+          atual = p;
+        }
+      });
+      if (atual) linhas.push(atual);
+      if (!cabe(linhas.length * 11.5 + 6)) novaPagina(false);
+      linhas.forEach((l) => {
+        tx(M, y - 8, l, tam, false, "0.38 0.42 0.48");
+        y -= 11.5;
+      });
+      y -= 4;
+    });
+  }
+  paginas.push(ops.join("\n"));
+  const total = paginas.length;
+  const conteudos = paginas.map((c, i) => {
+    const r = [];
+    r.push("0.88 G 0.5 w " + num(M) + " " + num(rodapeY + 14) + " m " + num(A4.w - M) + " " + num(rodapeY + 14) + " l S");
+    r.push("BT /F1 8 Tf 0.5 0.54 0.6 rg " + num(M) + " " + num(rodapeY) + " Td (" + codifica(d.rodape || "") + ") Tj ET");
+    const t = "Página " + (i + 1) + " de " + total;
+    r.push("BT /F1 8 Tf 0.5 0.54 0.6 rg " + num(A4.w - M - larguraTexto(t, 8)) + " " + num(rodapeY) + " Td (" + codifica(t) + ") Tj ET");
+    return c + "\n" + r.join("\n");
+  });
+  const objs = [];
+  objs.push("<< /Type /Catalog /Pages 2 0 R >>");
+  const kids = conteudos.map((_, i) => 5 + i * 2 + " 0 R").join(" ");
+  objs.push("<< /Type /Pages /Kids [" + kids + "] /Count " + total + " >>");
+  objs.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+  objs.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
+  conteudos.forEach((c, i) => {
+    objs.push("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + num(A4.w) + " " + num(A4.h) + "] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents " + (6 + i * 2) + " 0 R >>");
+    objs.push("<< /Length " + c.length + " >>\nstream\n" + c + "\nendstream");
+  });
+  const info = objs.length + 1;
+  objs.push("<< /Title (" + codifica(d.titulo) + ") /Subject (" + codifica(d.assunto || "") + ") /Producer (NG+) /Creator (NG+) >>");
+  let arq = "%PDF-1.4\n%âãÏÓ\n";
+  const pos = [];
+  objs.forEach((o, i) => {
+    pos.push(arq.length);
+    arq += i + 1 + " 0 obj\n" + o + "\nendobj\n";
+  });
+  const xref = arq.length;
+  arq += "xref\n0 " + (objs.length + 1) + "\n0000000000 65535 f \n" + pos.map((p) => String(p).padStart(10, "0") + " 00000 n \n").join("");
+  arq += "trailer\n<< /Size " + (objs.length + 1) + " /Root 1 0 R /Info " + info + " 0 R >>\nstartxref\n" + xref + "\n%%EOF\n";
+  const bytes = new Uint8Array(arq.length);
+  for (let i = 0; i < arq.length; i++) bytes[i] = arq.charCodeAt(i) & 255;
+  return bytes;
+}
+
 // cardapio/ui.js
 var CDP_JEITOS = [["omni", "Onívoro"], ["pesc", "Pescetariano"], ["veg", "Vegetariano"], ["vegan", "Vegano"], ["lowc", "Low carb"]];
 var CDP_ROTINAS = [["tradicional", "Dia tradicional"], ["marmita", "Marmita da semana"], ["corrido", "Dia corrido"], ["budget", "Orçamento enxuto"], ["fora", "Almoço fora"]];
@@ -566,6 +811,14 @@ var CDP_ICO = {
   ceia: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
   manha: '<circle cx="12" cy="14" r="4"/><path d="M12 5v2.5M5 9l1.8 1.8M19 9l-1.8 1.8M3 19h18"/>'
 };
+var svg24 = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + d + "</svg>";
+var ICO_TROCA = svg24('<path d="M7 7h11l-3-3M17 17H6l3 3"/>');
+var ICO_MEUS = svg24('<path d="M4 7h16l-1.6 11a2 2 0 0 1-2 1.7H7.6a2 2 0 0 1-2-1.7L4 7z"/><path d="M9 7a3 3 0 0 1 6 0"/>');
+var ICO_REFAZ = svg24('<path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/>');
+var ICO_PDF = svg24('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 14h5M10 17.5h5"/>');
+var ICO_COPIA = svg24('<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>');
+var ICO_SHARE = svg24('<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/>');
+var ICO_CHEV = svg24('<path d="m6 9 6 6 6-6"/>');
 var CDP_RELOGIO = '<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
 var cdpIcone = (slot) => '<span class="cdp-ic" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">' + (CDP_ICO[slot] || CDP_ICO.almoco) + "</svg></span>";
 var CDP_GRUPOS = [["Proteínas", ["prot"]], ["Carboidratos e leguminosas", ["carb", "leg"]], ["Frutas e vegetais", ["fruit", "veg"]], ["Gorduras", ["fat"]]];
@@ -604,11 +857,11 @@ function motorDe(e) {
 var nomeLimpo = (f) => f.n.replace(/\*$/, "");
 var rotuloTroca = (n) => n + " troca" + (n > 1 ? "s" : "") + " feita" + (n > 1 ? "s" : "");
 function montaVisao(e, h) {
-  const { num, escapeHtml, menorDeIdade } = h;
+  const { num: num2, escapeHtml, menorDeIdade } = h;
   const { kcalAlvo, macros: macros2, cfg, objetivo } = e, p = e.perfil || {};
   const cdpQtd = (id, g, compras) => {
     const f = FOODS[id], un = f.liq ? "ml" : "g";
-    let q = g >= 1e3 ? num(g / 1e3, 1) + (f.liq ? " L" : " kg") : num(g, 0) + " " + un;
+    let q = g >= 1e3 ? num2(g / 1e3, 1) + (f.liq ? " L" : " kg") : num2(g, 0) + " " + un;
     if (f.unit && !(compras && id === "azeite")) {
       const n = Math.max(1, Math.round(g / f.unit[0]));
       q = n + " " + (n > 1 ? f.unit[2] : f.unit[1]) + " (≈ " + q + ")";
@@ -626,8 +879,9 @@ function montaVisao(e, h) {
   const cur = semana[dia];
   const rK = cur.tot.kcal / cur.target.kcal, rP = cur.tot.P / cur.target.P;
   const kOk = Math.abs(rK - 1) <= 0.07, pOk = rP >= 0.9;
-  const chip = (lbl, val, meta, ok, un) => '<span class="cdp-tchip ' + (ok ? "ok" : "warn") + '"><b>' + lbl + "</b> " + num(val, 0) + un + (meta != null ? " <i>/ meta " + num(meta, 0) + "</i>" : "") + "</span>";
-  const total = chip("kcal", cur.tot.kcal, cur.target.kcal, kOk, "") + chip("Prot.", cur.tot.P, cur.target.P, pOk, " g") + chip("Carb.", cur.tot.C, null, true, " g") + chip("Gord.", cur.tot.F, null, true, " g");
+  const kcalDia = Math.max(1, cur.tot.kcal);
+  const chip = (lbl, val, meta, ok, un, ref) => '<span class="cdp-tchip ' + (ok ? "ok" : "warn") + '"><b>' + lbl + "</b><strong>" + num2(val, 0) + (un ? "<small>" + un + "</small>" : "") + "</strong><i>" + (meta != null ? "meta " + num2(meta, 0) + (un ? " " + un : "") : ref || "") + "</i></span>";
+  const total = chip("kcal", cur.tot.kcal, cur.target.kcal, kOk, "") + chip("Prot.", cur.tot.P, cur.target.P, pOk, "g") + chip("Carb.", cur.tot.C, null, true, "g", num2(cur.tot.C * 4 / kcalDia * 100, 0) + "% das kcal") + chip("Gord.", cur.tot.F, null, true, "g", num2(cur.tot.F * 9 / kcalDia * 100, 0) + "% das kcal");
   const media = semana.reduce((a, d) => ({ k: a.k + d.tot.kcal / 7, P: a.P + d.tot.P / 7 }), { k: 0, P: 0 });
   const diasBaixos = semana.filter((d) => d.tot.P / d.target.P < 0.9).length;
   const dicas = { fora: "No por quilo, comece pelas saladas e legumes, escolha uma proteína grelhada e complete com arroz e feijão.", marmita: "Este almoço e jantar se repetem nos dias do mesmo lote (cozinhe no domingo e na quinta)." };
@@ -640,14 +894,27 @@ function montaVisao(e, h) {
     const pct = cur.tot.kcal ? Math.round(ml.m.kcal / cur.tot.kcal * 100) : 0;
     const hr = horarioDe(ml.slot, motor);
     const hrHtml = hr ? '<span class="cdp-hr" title="Horário sugerido">' + CDP_RELOGIO + '<span class="sr-only">Horário sugerido: </span><time>' + hr + "</time></span>" : "";
-    return '<section class="cdp-meal" data-slot="' + ml.slot + '"><header class="cdp-mh"><h3>' + cdpIcone(ml.slot) + "<span>" + escapeHtml(ml.name) + "</span>" + hrHtml + '</h3><span class="cdp-mt">' + num(ml.m.kcal, 0) + " kcal · " + num(ml.m.P, 0) + ' g prot.</span></header><div class="cdp-share"><div class="cdp-share-bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div><span class="cdp-share-txt">' + pct + "% das calorias do dia</span></div>" + rows + dica + "</section>";
+    return '<section class="cdp-meal" data-slot="' + ml.slot + '"><header class="cdp-mh"><h3>' + cdpIcone(ml.slot) + "<span>" + escapeHtml(ml.name) + "</span>" + hrHtml + '</h3><span class="cdp-mt">' + num2(ml.m.kcal, 0) + " kcal · " + num2(ml.m.P, 0) + ' g prot.</span></header><div class="cdp-share"><div class="cdp-share-bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div><span class="cdp-share-txt">' + pct + "% das calorias do dia</span></div>" + rows + dica + "</section>";
   }).join("");
   const compra = shopping(semana);
-  const compraHtml = CDP_GRUPOS.map((gd) => {
-    const its = compra.filter((s) => gd[1].indexOf(FOODS[s.id].role) >= 0).sort((a, b) => b.g - a.g);
-    if (!its.length) return "";
-    return '<h4 class="cdp-gh">' + gd[0] + "</h4>" + its.map((s) => '<div class="cdp-it"><span class="cdp-n">' + cdpNome(FOODS[s.id]) + '</span><span class="cdp-q"><b>' + escapeHtml(cdpQtd(s.id, s.g, true)) + "</b></span></div>").join("");
-  }).join("");
+  const feitos = new Set(e.comprados || []);
+  const listaGrupos = CDP_GRUPOS.map((gd) => ({
+    rotulo: gd[0],
+    itens: compra.filter((s) => gd[1].indexOf(FOODS[s.id].role) >= 0).sort((a, b) => b.g - a.g).map((s) => ({
+      id: s.id,
+      nome: nomeLimpo(FOODS[s.id]) + (/\*$/.test(FOODS[s.id].n) ? "*" : ""),
+      html: cdpNome(FOODS[s.id]),
+      qtd: cdpQtd(s.id, s.g, true),
+      feito: feitos.has(s.id)
+    }))
+  })).filter((g) => g.itens.length);
+  const nFeitos = listaGrupos.reduce((a, g) => a + g.itens.filter((i) => i.feito).length, 0);
+  const pctFeitos = compra.length ? Math.round(nFeitos / compra.length * 100) : 0;
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  const compraHtml = listaGrupos.map(
+    (g) => '<h4 class="cdp-gh"><span>' + escapeHtml(g.rotulo) + "</span><small>" + g.itens.length + "</small></h4>" + g.itens.map((i) => '<label class="cdp-it cdp-buy' + (i.feito ? " feito" : "") + '"><input type="checkbox" class="cdp-buy-i" data-cdp-buy="' + i.id + '"' + (i.feito ? " checked" : "") + '><span class="cdp-buy-box" aria-hidden="true">' + CHECK + '</span><span class="cdp-n">' + i.html + '</span><span class="cdp-q"><b>' + escapeHtml(i.qtd) + "</b></span></label>").join("")
+  ).join("");
+  const resumoCompra = '<div class="cdp-buy-sum"><span class="cdp-buy-txt" data-buy-txt>' + nFeitos + " de " + compra.length + ' comprados</span><div class="cdp-buy-bar" aria-hidden="true"><i data-buy-bar style="width:' + pctFeitos + '%"></i></div></div>';
   const temRotulo = compra.some((s) => /\*$/.test(FOODS[s.id].n));
   const avisos = validaRestricoes(motor).avisos.slice();
   if (!kOk) avisos.push("Neste dia as calorias ficaram em " + Math.round(rK * 100) + "% da meta: as porções seguem um teto realista (ex.: até 250 g de arroz por refeição). Se quiser chegar mais perto, divida em mais refeições ou some um lanche.");
@@ -656,7 +923,7 @@ function montaVisao(e, h) {
   const nTrocas = (cfg.trocas || []).length;
   const ignoradas = (cfg.trocas || []).filter((t) => !podeTrocar(t.de, t.para, t.s, motor)).length;
   const menor = menorDeIdade(p.idade);
-  const subt = CDP_OBJ_TXT[objetivo] + " · " + num(kcalAlvo, 0) + " kcal/dia (média da semana) · " + num(macros2.proteina.g, 0) + " g de proteína";
+  const subt = CDP_OBJ_TXT[objetivo] + " · " + num2(kcalAlvo, 0) + " kcal/dia (média da semana) · " + num2(macros2.proteina.g, 0) + " g de proteína";
   return {
     sub: escapeHtml(subt) + ". O objetivo segue o que você escolheu acima.",
     rotdesc: escapeHtml(CDP_ROT_DESC[cfg.rotina](nRefeicoes(motor))),
@@ -664,10 +931,12 @@ function montaVisao(e, h) {
     trocasinfo: escapeHtml(nTrocas ? rotuloTroca(nTrocas) + "." : "Troque qualquer alimento por uma alternativa recomendada.") + (ignoradas ? " " + escapeHtml(ignoradas + (ignoradas > 1 ? " trocas guardadas não combinam" : " troca guardada não combina") + " com os filtros de agora e não " + (ignoradas > 1 ? "aparecem" : "aparece") + ".") : ""),
     meusinfo: escapeHtml(cfg.meus ? "Cardápio e lista de compras usam só os " + cfg.meus.filter((id) => alimentosDisponiveis(motor).indexOf(id) >= 0).length + " alimentos que você marcou em Meus alimentos." : "Meus alimentos: o app escolhe entre todos os alimentos que combinam com os seus filtros."),
     total,
+    lista: { grupos: listaGrupos, n: compra.length, temRotulo, cfg: { jeito: (CDP_JEITOS.find((j) => j[0] === cfg.jeito) || [])[1], rotina: (CDP_ROTINAS.find((r) => r[0] === cfg.rotina) || [])[1] }, meus: !!cfg.meus },
+    comprasn: compra.length + (compra.length === 1 ? " item" : " itens"),
     avisos: avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join(""),
     refeicoes,
-    compras: '<div class="cdp-note">Tudo o que aparece nos 7 dias do seu cardápio, somado: ' + compra.length + " alimento" + (compra.length > 1 ? "s" : "") + ".</div>" + compraHtml + (temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "") + '<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.' + (cfg.meus ? " Só aparecem alimentos de Meus alimentos." : " Para ver só o que você come, marque em Meus alimentos.") + "</div>",
-    rodape: '<div class="cdp-note">Média da semana: ' + num(media.k, 0) + " kcal e " + num(media.P, 0) + ' g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div><div class="cdp-note">Horários sugeridos como ponto de partida: 3 a 4 horas entre as refeições e o jantar com folga antes de dormir. Ajuste ao seu dia de trabalho e de treino.</div>' + (notaJeito ? '<div class="cdp-note">' + escapeHtml(notaJeito) + "</div>" : "") + (menor ? '<div class="cdp-note">Para menores de 18 anos o cardápio nunca usa déficit calórico e o ganho de massa é moderado.</div>' : "") + '<div class="cdp-note">Exemplo calculado a partir da sua meta, com porções de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde.</div>',
+    compras: '<div class="cdp-note">Tudo o que aparece nos 7 dias do seu cardápio, somado: ' + compra.length + " alimento" + (compra.length > 1 ? "s" : "") + ".</div>" + resumoCompra + compraHtml + (temRotulo ? '<div class="cdp-note">* valor típico de rótulo — confira o seu.</div>' : "") + '<div class="cdp-note">Quantidades de alimento já preparado, somando os 7 dias.' + (cfg.meus ? " Só aparecem alimentos de Meus alimentos." : " Para ver só o que você come, marque em Meus alimentos.") + "</div>",
+    rodape: '<div class="cdp-note">Média da semana: ' + num2(media.k, 0) + " kcal e " + num2(media.P, 0) + ' g de proteína por dia. Dias de treino levam ~6% mais calorias e os de descanso ~15% menos, então a média fecha a meta. A proteína fica em 0,25 g/kg (20–40 g) por refeição, como sugere a ISSN.</div><div class="cdp-note">Horários sugeridos como ponto de partida: 3 a 4 horas entre as refeições e o jantar com folga antes de dormir. Ajuste ao seu dia de trabalho e de treino.</div>' + (notaJeito ? '<div class="cdp-note">' + escapeHtml(notaJeito) + "</div>" : "") + (menor ? '<div class="cdp-note">Para menores de 18 anos o cardápio nunca usa déficit calórico e o ganho de massa é moderado.</div>' : "") + '<div class="cdp-note">Exemplo calculado a partir da sua meta, com porções de alimento já preparado e medidas caseiras aproximadas (≈). Não substitui orientação de nutricionista, sobretudo com condições de saúde.</div>',
     ligados: Object.assign(
       { jeito: cfg.jeito, rotina: cfg.rotina, dia: String(dia), nref: String(nRefeicoes(motor)), nrefFixo: cfg.rotina === "marmita" },
       Object.fromEntries(CDP_RESTR.map((i) => [i[0], !!cfg.restricoes[i[0]]]))
@@ -675,7 +944,7 @@ function montaVisao(e, h) {
   };
 }
 function montaPopup(e, h, sel) {
-  const { num, escapeHtml } = h;
+  const { num: num2, escapeHtml } = h;
   const { cfg } = e;
   const motor = motorDe(e);
   const dia = e.dia >= 0 && e.dia < 7 ? e.dia : 0;
@@ -685,7 +954,7 @@ function montaPopup(e, h, sel) {
   const item = refeicao.items.find((i) => sel && i.id === sel.itemId) || refeicao.items[0];
   const sinal = (v, un) => {
     const r = Math.round(v);
-    return (r === 0 ? "±" : r > 0 ? "+" : "−") + num(Math.abs(r), 0) + " " + un;
+    return (r === 0 ? "±" : r > 0 ? "+" : "−") + num2(Math.abs(r), 0) + " " + un;
   };
   const nomeHtml = (id) => {
     const f = FOODS[id];
@@ -694,7 +963,7 @@ function montaPopup(e, h, sel) {
   };
   const qtd = (id, g) => {
     const f = FOODS[id], un = f.liq ? "ml" : "g";
-    let q = num(g, 0) + " " + un;
+    let q = num2(g, 0) + " " + un;
     if (f.unit) {
       const n = Math.max(1, Math.round(g / f.unit[0]));
       q = n + " " + (n > 1 ? f.unit[2] : f.unit[1]) + " (≈ " + q + ")";
@@ -720,7 +989,7 @@ function montaPopup(e, h, sel) {
     const f = FOODS[id], avisos = [];
     if (cfg.rotina === "budget" && !f.cheap) avisos.push("fora do orçamento enxuto");
     if (cfg.rotina === "corrido" && !f.fast) avisos.push("preparo mais longo");
-    if (d2.tot.P / d2.target.P < 0.9) avisos.push("proteína do dia: " + num(d2.tot.P / d2.target.P * 100, 0) + "% da meta");
+    if (d2.tot.P / d2.target.P < 0.9) avisos.push("proteína do dia: " + num2(d2.tot.P / d2.target.P * 100, 0) + "% da meta");
     return { id, g: it2.g, dk: d2.tot.kcal - cur.tot.kcal, dp: d2.tot.P - cur.tot.P, avisos };
   }).filter(Boolean);
   const altHtml = alts.map((a) => {
@@ -729,7 +998,7 @@ function montaPopup(e, h, sel) {
   }).join("");
   const sugerido = item.troca ? '<div class="cdp-note">Sugestão original: <b>' + nomeHtml(item.orig) + '</b>. <button type="button" class="btn small" data-pop="voltar">Voltar ao sugerido</button></div>' : "";
   const nTodas = motor.trocas.length;
-  const total = ["kcal", "Prot."].map((l, i) => '<span class="cdp-tchip ' + ((i ? pOk : kOk) ? "ok" : "warn") + '"><b>' + l + "</b> " + num(i ? cur.tot.P : cur.tot.kcal, 0) + (i ? " g" : "") + " <i>/ meta " + num(i ? cur.target.P : cur.target.kcal, 0) + "</i></span>").join("");
+  const total = ["kcal", "Prot."].map((l, i) => '<span class="cdp-tchip ' + ((i ? pOk : kOk) ? "ok" : "warn") + '"><b>' + l + "</b><strong>" + num2(i ? cur.tot.P : cur.tot.kcal, 0) + (i ? "<small>g</small>" : "") + "</strong><i>meta " + num2(i ? cur.target.P : cur.target.kcal, 0) + (i ? " g" : "") + "</i></span>").join("");
   const escopoHtml = [["dia", "Só em " + DAYS[dia]], ["todos", "Todos os dias em que aparece"]].map((o) => '<button type="button" class="cdp-chip' + (escopo === o[0] ? " on" : "") + '" data-pop="escopo" data-v="' + o[0] + '" aria-pressed="' + (escopo === o[0]) + '">' + escapeHtml(o[1]) + "</button>").join("");
   return {
     sel: { slot: refeicao.slot, itemId: item.id, escopo },
@@ -761,7 +1030,7 @@ function montaPopupMeus(e, h) {
   };
 }
 function montaFormulario(e, h, draft) {
-  const { escapeHtml, num } = h;
+  const { escapeHtml, num: num2 } = h;
   const cfg = Object.assign({}, e.cfg, draft);
   const motor = motorDe(Object.assign({}, e, { cfg }));
   const disp = alimentosDisponiveis(motor);
@@ -785,7 +1054,7 @@ function montaFormulario(e, h, draft) {
     marcados: marcados.length,
     total: disp.length,
     avisos,
-    html: '<h2>Monte seu cardápio</h2><div class="sub">Conte como você come. O app monta 7 dias que fecham sua meta (' + num(e.kcalAlvo, 0) + " kcal e " + num(e.macros.proteina.g, 0) + ' g de proteína por dia) e soma tudo na lista de compras. Dá para mudar quando quiser.</div><div class="cdp-form"><label class="cdp-field"><span class="cdp-lbl">Jeito de comer</span><select class="cdp-sel" data-form="jeito">' + opt(CDP_JEITOS, cfg.jeito) + '</select></label><label class="cdp-field"><span class="cdp-lbl">Rotina</span><select class="cdp-sel" data-form="rotina">' + opt(CDP_ROTINAS, cfg.rotina) + '</select><span class="cdp-note">' + escapeHtml(CDP_ROT_DESC[cfg.rotina](nref)) + '</span></label><label class="cdp-field"><span class="cdp-lbl">Refeições por dia</span><select class="cdp-sel" data-form="nref"' + (fixo ? " disabled" : "") + ">" + opt(CDP_NREF.map((n) => [n, n + " refeições"]), nref) + "</select>" + (fixo ? '<span class="cdp-note">Na Marmita da semana são sempre 5 refeições (os lotes dependem disso).</span>' : "") + '</label><fieldset class="cdp-fs"><legend class="cdp-lbl">Restrições</legend><div class="cdp-chk-list">' + restr + '</div></fieldset><div class="cdp-field"><span class="cdp-lbl">Alimentos que eu como</span><div class="cdp-note" role="status" aria-live="polite" data-form-msg>' + marcados.length + " de " + disp.length + ' alimentos marcados. O cardápio e a lista de compras usam só os marcados.</div><div class="cdp-note"><button type="button" class="btn small" data-form="todos">Marcar todos</button> <button type="button" class="btn small" data-form="nenhum">Limpar</button></div>' + avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join("") + alimentos + '</div></div><div class="modal-actions"><button type="button" class="btn" data-form="cancelar">Agora não</button><button type="button" class="btn primary" data-form="salvar">Montar meu cardápio</button></div>'
+    html: '<h2>Monte seu cardápio</h2><div class="sub">Conte como você come. O app monta 7 dias que fecham sua meta (' + num2(e.kcalAlvo, 0) + " kcal e " + num2(e.macros.proteina.g, 0) + ' g de proteína por dia) e soma tudo na lista de compras. Dá para mudar quando quiser.</div><div class="cdp-form"><label class="cdp-field"><span class="cdp-lbl">Jeito de comer</span><select class="cdp-sel" data-form="jeito">' + opt(CDP_JEITOS, cfg.jeito) + '</select></label><label class="cdp-field"><span class="cdp-lbl">Rotina</span><select class="cdp-sel" data-form="rotina">' + opt(CDP_ROTINAS, cfg.rotina) + '</select><span class="cdp-note">' + escapeHtml(CDP_ROT_DESC[cfg.rotina](nref)) + '</span></label><label class="cdp-field"><span class="cdp-lbl">Refeições por dia</span><select class="cdp-sel" data-form="nref"' + (fixo ? " disabled" : "") + ">" + opt(CDP_NREF.map((n) => [n, n + " refeições"]), nref) + "</select>" + (fixo ? '<span class="cdp-note">Na Marmita da semana são sempre 5 refeições (os lotes dependem disso).</span>' : "") + '</label><fieldset class="cdp-fs"><legend class="cdp-lbl">Restrições</legend><div class="cdp-chk-list">' + restr + '</div></fieldset><div class="cdp-field"><span class="cdp-lbl">Alimentos que eu como</span><div class="cdp-note" role="status" aria-live="polite" data-form-msg>' + marcados.length + " de " + disp.length + ' alimentos marcados. O cardápio e a lista de compras usam só os marcados.</div><div class="cdp-note"><button type="button" class="btn small" data-form="todos">Marcar todos</button> <button type="button" class="btn small" data-form="nenhum">Limpar</button></div>' + avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join("") + alimentos + '</div></div><div class="modal-actions"><button type="button" class="btn" data-form="cancelar">Agora não</button><button type="button" class="btn primary" data-form="salvar">Montar meu cardápio</button></div>'
   };
 }
 function criaCardapio(ctx) {
@@ -802,11 +1071,17 @@ function criaCardapio(ctx) {
   }
   const regiao = (el, nome) => el.querySelector('[data-r="' + nome + '"]');
   const botao = (el, rot, v) => el.querySelector('[data-cdp="' + rot + '"][data-v="' + v + '"]');
-  const seletor = (rot, itens) => '<select class="cdp-sel" data-cdp-sel="' + rot + '">' + itens.map((i) => '<option value="' + i[0] + '">' + i[1] + "</option>").join("") + "</select>";
+  const seletor = (rot, itens, titulo) => '<select class="cdp-sel" data-ngselect aria-label="' + titulo + '" data-cdp-sel="' + rot + '">' + itens.map((i) => '<option value="' + i[0] + '">' + i[1] + "</option>").join("") + "</select>";
   function monta(el) {
-    const dias = DAYS.map((nome, i) => '<button type="button" class="cdp-day" data-cdp="dia" data-v="' + i + '" aria-pressed="false" aria-label="' + nome + (TRAIN[i] ? ", dia de treino" : ", dia de descanso") + '">' + nome + "<small>" + (TRAIN[i] ? "treino" : "descanso") + "</small></button>").join("");
-    el.innerHTML = '<p class="cdp-sub" data-r="sub"></p><div class="cdp-controls"><label class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>' + seletor("jeito", CDP_JEITOS) + '</label><label class="cdp-field"><span class="cdp-lbl">Rotina</span>' + seletor("rotina", CDP_ROTINAS) + '<span class="cdp-note" data-r="rotdesc"></span></label><label class="cdp-field"><span class="cdp-lbl">Refeições por dia</span>' + seletor("nref", CDP_NREF.map((n) => [String(n), n + " refeições"])) + '<span class="cdp-note" data-r="nrefinfo"></span></label><details class="cdp-field cdp-field-restr cdp-multi"><summary><span class="cdp-lbl">Restrições</span><span class="cdp-multi-val" data-r="restrinfo"></span></summary><div class="cdp-chk-list" role="group" aria-label="Restrições">' + CDP_RESTR.map((i) => '<label class="cdp-chk"><input type="checkbox" data-cdp-chk="restr" data-v="' + i[0] + '"><span>' + i[1] + "</span></label>").join("") + '</div></details><div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">Trocar alimentos</button><button type="button" class="btn cdp-edit-btn" data-cdp="meus" aria-haspopup="dialog">Meus alimentos</button><button type="button" class="btn cdp-edit-btn" data-cdp="montar" aria-haspopup="dialog">Refazer formulário</button><span class="cdp-note" data-r="trocasinfo"></span><span class="cdp-note" data-r="meusinfo"></span></div></div><div class="cdp-days" role="group" aria-label="Dia da semana">' + dias + '</div><div class="cdp-total" aria-label="Total do dia" data-r="total"></div><div data-r="avisos"></div><div class="cdp-meals" data-r="refeicoes"></div><details class="cdp-shop"><summary>Lista de compras da semana</summary><div data-r="compras"></div></details><div data-r="rodape"></div>';
+    const dias = DAYS.map((nome, i) => '<button type="button" class="cdp-day" data-cdp="dia" data-v="' + i + '" aria-pressed="false" aria-label="' + nome + (TRAIN[i] ? ", dia de treino" : ", dia de descanso") + '" data-treino="' + (TRAIN[i] ? "1" : "0") + '"><b>' + nome + "</b><small>" + (TRAIN[i] ? "treino" : "descanso") + "</small></button>").join("");
+    el.innerHTML = '<p class="cdp-sub" data-r="sub"></p><div class="cdp-controls"><label class="cdp-field"><span class="cdp-lbl">Jeito de comer</span>' + seletor("jeito", CDP_JEITOS, "Jeito de comer") + '</label><label class="cdp-field"><span class="cdp-lbl">Rotina</span>' + seletor("rotina", CDP_ROTINAS, "Rotina") + '<span class="cdp-note" data-r="rotdesc"></span></label><label class="cdp-field"><span class="cdp-lbl">Refeições por dia</span>' + seletor("nref", CDP_NREF.map((n) => [String(n), n + " refeições"]), "Refeições por dia") + '<span class="cdp-note" data-r="nrefinfo"></span></label><details class="cdp-field cdp-field-restr cdp-multi"><summary><span class="cdp-lbl">Restrições</span><span class="cdp-multi-val" data-r="restrinfo"></span></summary><div class="cdp-chk-list" role="group" aria-label="Restrições">' + CDP_RESTR.map((i) => '<label class="cdp-chk"><input type="checkbox" data-cdp-chk="restr" data-v="' + i[0] + '"><span>' + i[1] + "</span></label>").join("") + '</div></details><div class="cdp-edit"><button type="button" class="btn cdp-edit-btn" data-cdp="editar" aria-haspopup="dialog">' + ICO_TROCA + '<span>Trocar alimentos</span></button><button type="button" class="btn cdp-edit-btn" data-cdp="meus" aria-haspopup="dialog">' + ICO_MEUS + '<span>Meus alimentos</span></button><button type="button" class="btn cdp-edit-btn" data-cdp="montar" aria-haspopup="dialog">' + ICO_REFAZ + '<span>Refazer formulário</span></button><span class="cdp-note" data-r="trocasinfo"></span><span class="cdp-note" data-r="meusinfo"></span></div></div><div class="cdp-days" role="group" aria-label="Dia da semana">' + dias + '</div><div class="cdp-total" aria-label="Total do dia" data-r="total"></div><div data-r="avisos"></div><div class="cdp-meals" data-r="refeicoes"></div><details class="cdp-shop"><summary><span class="cdp-shop-ic">' + ICO_MEUS + '</span><span class="cdp-shop-t">Lista de compras da semana</span><span class="cdp-shop-n" data-r="comprasn"></span><span class="cdp-shop-chev">' + ICO_CHEV + '</span></summary><div class="cdp-shop-tools" role="group" aria-label="Exportar a lista"><button type="button" class="btn small primary" data-cdp="pdf">' + ICO_PDF + '<span>Exportar PDF</span></button><button type="button" class="btn small" data-cdp="compartilhar" hidden>' + ICO_SHARE + '<span>Compartilhar</span></button><button type="button" class="btn small" data-cdp="copiar">' + ICO_COPIA + '<span>Copiar</span></button><button type="button" class="btn small ghost" data-cdp="limpar-compras">Limpar marcações</button></div><div data-r="compras"></div></details><div data-r="rodape"></div>';
     for (const k in ultimo) delete ultimo[k];
+    try {
+      const t = new File([""], "t.pdf", { type: "application/pdf" });
+      const bs = el.querySelector('[data-cdp="compartilhar"]');
+      if (bs && navigator.canShare && navigator.canShare({ files: [t] })) bs.hidden = false;
+    } catch (e) {
+    }
     montado = true;
   }
   function troca(el, nome, html) {
@@ -823,7 +1098,10 @@ function criaCardapio(ctx) {
   };
   const defineSel = (el, rot, v) => {
     const x = el.querySelector('[data-cdp-sel="' + rot + '"]');
-    if (x && x.value !== String(v)) x.value = String(v);
+    if (x && x.value !== String(v)) {
+      x.value = String(v);
+      if (window.ngSelectSync) window.ngSelectSync(x);
+    }
   };
   let pediuForm = false;
   const vazioHtml = (kcalAlvo, macros2) => '<div class="cdp-vazio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false"><path d="M5 3v5a3 3 0 0 0 6 0V3M8 3v18"/><path d="M16 3c-2 2-2.5 5-2.5 8h2.5v10"/></svg><h3>Seu cardápio ainda não foi montado</h3><p>Conte como você come (jeito de comer, rotina, refeições por dia, restrições e os alimentos que você gosta). O app monta 7 dias que fecham sua meta de ' + ctx.num(kcalAlvo, 0) + " kcal e " + ctx.num(macros2.proteina.g, 0) + ' g de proteína por dia e soma tudo na lista de compras.</p><button type="button" class="btn primary" data-cdp="montar" aria-haspopup="dialog">Montar meu cardápio</button></div>';
@@ -833,6 +1111,106 @@ function criaCardapio(ctx) {
     if (b.classList.contains("on") !== ligado) b.classList.toggle("on", ligado);
     const val = String(ligado);
     if (b.getAttribute("aria-pressed") !== val) b.setAttribute("aria-pressed", val);
+  }
+  const CHAVE_COMPRAS = "ng_compras_ok";
+  let comprados = /* @__PURE__ */ new Set();
+  try {
+    const a = JSON.parse(localStorage.getItem(CHAVE_COMPRAS) || "[]");
+    if (Array.isArray(a)) comprados = new Set(a.filter((x) => typeof x === "string"));
+  } catch (e) {
+  }
+  const salvaComprados = () => {
+    try {
+      localStorage.setItem(CHAVE_COMPRAS, JSON.stringify([...comprados]));
+    } catch (e) {
+    }
+  };
+  let listaAtual = null;
+  const hojeBR = () => {
+    const d = /* @__PURE__ */ new Date();
+    return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+  };
+  const dadosPdf = () => {
+    if (!listaAtual) return null;
+    const L = listaAtual, d = hojeBR();
+    return {
+      titulo: "Lista de compras da semana",
+      subtitulo: [L.cfg.jeito, L.cfg.rotina, L.n + (L.n === 1 ? " alimento" : " alimentos"), d].filter(Boolean).join(" · "),
+      grupos: L.grupos.map((g) => ({ rotulo: g.rotulo, itens: g.itens.map((i) => ({ nome: i.nome, qtd: i.qtd, feito: comprados.has(i.id) })) })),
+      notas: [L.temRotulo ? "* valor típico de rótulo — confira o seu." : "", "Soma dos 7 dias do cardápio, em alimento já preparado" + (L.meus ? ", só com os alimentos de Meus alimentos" : "") + ". Exemplo calculado a partir da sua meta; não substitui orientação de nutricionista, sobretudo com condições de saúde."],
+      rodape: "Gerado pelo NG+ em " + d,
+      assunto: "Lista de compras da semana"
+    };
+  };
+  const textoLista = () => {
+    const d = dadosPdf();
+    if (!d) return "";
+    return d.titulo + " (" + d.subtitulo + ")\n\n" + d.grupos.map((g) => g.rotulo.toUpperCase() + "\n" + g.itens.map((i) => (i.feito ? "[x] " : "[ ] ") + i.nome + " — " + i.qtd).join("\n")).join("\n\n") + (listaAtual && listaAtual.temRotulo ? "\n\n* valor típico de rótulo — confira o seu." : "");
+  };
+  const arquivoPdf = () => {
+    const d = dadosPdf();
+    if (!d) return null;
+    const nome = "lista-de-compras-ng-" + (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) + ".pdf";
+    return { nome, blob: new Blob([montaPdf(d)], { type: "application/pdf" }) };
+  };
+  const aviso = (m) => {
+    if (typeof ctx.toast === "function") ctx.toast(m);
+  };
+  async function exportaPdf() {
+    const a = arquivoPdf();
+    if (!a) {
+      aviso("Monte o cardápio para gerar a lista.");
+      return;
+    }
+    const url = URL.createObjectURL(a.blob), l = document.createElement("a");
+    l.href = url;
+    l.download = a.nome;
+    document.body.appendChild(l);
+    l.click();
+    l.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4e3);
+    aviso("PDF da lista gerado.");
+  }
+  async function compartilhaPdf() {
+    const a = arquivoPdf();
+    if (!a) return;
+    const f = new File([a.blob], a.nome, { type: "application/pdf" });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [f] })) {
+        await navigator.share({ files: [f], title: "Lista de compras da semana" });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+    }
+    exportaPdf();
+  }
+  async function copiaLista() {
+    const t = textoLista();
+    if (!t) return;
+    try {
+      await navigator.clipboard.writeText(t);
+      aviso("Lista copiada.");
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.cssText = "position:fixed;opacity:0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        aviso("Lista copiada.");
+      } catch (_) {
+        aviso("Não consegui copiar agora.");
+      }
+      ta.remove();
+    }
+  }
+  function atualizaProgresso(el) {
+    const n = el.querySelectorAll("[data-cdp-buy]").length, ok = el.querySelectorAll("[data-cdp-buy]:checked").length;
+    const t = el.querySelector("[data-buy-txt]"), b = el.querySelector("[data-buy-bar]");
+    if (t) t.textContent = ok + " de " + n + " comprados";
+    if (b) b.style.width = (n ? Math.round(ok / n * 100) : 0) + "%";
   }
   function renderCardapio(kcalAlvo, macros2) {
     const el = document.getElementById("cardapio-body");
@@ -856,7 +1234,7 @@ function criaCardapio(ctx) {
       return;
     }
     if (!montado) monta(el);
-    const v = montaVisao({ kcalAlvo, macros: macros2, cfg, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: cdpDia }, h);
+    const v = montaVisao({ kcalAlvo, macros: macros2, cfg, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: cdpDia, comprados: [...comprados] }, h);
     troca(el, "sub", v.sub);
     troca(el, "rotdesc", v.rotdesc);
     troca(el, "nrefinfo", v.nrefinfo);
@@ -865,7 +1243,9 @@ function criaCardapio(ctx) {
     troca(el, "total", v.total);
     troca(el, "avisos", v.avisos);
     troca(el, "refeicoes", v.refeicoes);
+    troca(el, "comprasn", v.comprasn);
     troca(el, "compras", v.compras);
+    listaAtual = v.lista;
     troca(el, "rodape", v.rodape);
     defineSel(el, "jeito", v.ligados.jeito);
     defineSel(el, "rotina", v.ligados.rotina);
@@ -981,7 +1361,7 @@ function criaCardapio(ctx) {
         desenha(["auto", ""], "Voltou ao automático.");
         return;
       }
-      let aviso = "";
+      let aviso2 = "";
       if (act === "alimento") {
         marcados = marcados.indexOf(v) >= 0 ? marcados.filter((id) => id !== v) : marcados.concat([v]);
       } else if (act === "grupo-todos") {
@@ -992,8 +1372,8 @@ function criaCardapio(ctx) {
         marcados = marcados.filter((id) => FOODS[id].role !== v);
       }
       if (!marcados.length) {
-        aviso = "Mantenha pelo menos um alimento marcado.";
-        desenha([act, v || ""], aviso);
+        aviso2 = "Mantenha pelo menos um alimento marcado.";
+        desenha([act, v || ""], aviso2);
         return;
       }
       grava(marcados, disp);
@@ -1005,10 +1385,10 @@ function criaCardapio(ctx) {
   function abreFormulario() {
     if (typeof ctx.abreModal !== "function" || !cdpUltimo) return;
     const corpo = document.createElement("div");
-    const base = normalizaCfg(ctx.estado().settings);
-    const draft = { jeito: base.jeito, rotina: base.rotina, nref: base.nref, restricoes: Object.assign({}, base.restricoes), meus: base.meus };
-    const contexto = () => ({ kcalAlvo: cdpUltimo.k, macros: cdpUltimo.m, cfg: base, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: 0 });
-    const disponiveis = () => alimentosDisponiveis(motorDe(Object.assign({}, contexto(), { cfg: Object.assign({}, base, draft) })));
+    const base2 = normalizaCfg(ctx.estado().settings);
+    const draft = { jeito: base2.jeito, rotina: base2.rotina, nref: base2.nref, restricoes: Object.assign({}, base2.restricoes), meus: base2.meus };
+    const contexto = () => ({ kcalAlvo: cdpUltimo.k, macros: cdpUltimo.m, cfg: base2, perfil: ctx.estado().perfil, objetivo: ctx.objetivo(), dia: 0 });
+    const disponiveis = () => alimentosDisponiveis(motorDe(Object.assign({}, contexto(), { cfg: Object.assign({}, base2, draft) })));
     function desenha(foco, msg) {
       const y = corpo.scrollTop;
       const r = montaFormulario(contexto(), h, draft);
@@ -1050,7 +1430,7 @@ function criaCardapio(ctx) {
           desenha(["salvar", ""], "Mantenha pelo menos um alimento marcado.");
           return;
         }
-        const cfg = Object.assign({}, base, draft, { nref: draft.rotina === "marmita" ? null : draft.nref });
+        const cfg = Object.assign({}, base2, draft, { nref: draft.rotina === "marmita" ? null : draft.nref });
         cfg.meus = marcados2.length === disp2.length ? null : marcados2;
         cdpSalvar(cfg);
         ctx.tocaSom("tick");
@@ -1074,6 +1454,17 @@ function criaCardapio(ctx) {
     const el = document.getElementById("cardapio-body");
     if (!el) return;
     el.addEventListener("change", (ev) => {
+      const buy = ev.target.closest("[data-cdp-buy]");
+      if (buy) {
+        const id = buy.dataset.cdpBuy;
+        if (buy.checked) comprados.add(id);
+        else comprados.delete(id);
+        salvaComprados();
+        const row = buy.closest(".cdp-buy");
+        if (row) row.classList.toggle("feito", buy.checked);
+        atualizaProgresso(el);
+        return;
+      }
       const sel = ev.target.closest("[data-cdp-sel]"), chk = ev.target.closest("[data-cdp-chk]");
       if (!sel && !chk) return;
       const cfg = normalizaCfg(ctx.estado().settings);
@@ -1103,6 +1494,29 @@ function criaCardapio(ctx) {
       }
       if (b.dataset.cdp === "montar") {
         abreFormulario();
+        return;
+      }
+      if (b.dataset.cdp === "pdf") {
+        exportaPdf();
+        return;
+      }
+      if (b.dataset.cdp === "compartilhar") {
+        compartilhaPdf();
+        return;
+      }
+      if (b.dataset.cdp === "copiar") {
+        copiaLista();
+        return;
+      }
+      if (b.dataset.cdp === "limpar-compras") {
+        comprados.clear();
+        salvaComprados();
+        el.querySelectorAll("[data-cdp-buy]").forEach((c) => {
+          c.checked = false;
+          const r = c.closest(".cdp-buy");
+          if (r) r.classList.remove("feito");
+        });
+        atualizaProgresso(el);
         return;
       }
       const act = b.dataset.cdp, cfg = normalizaCfg(ctx.estado().settings);

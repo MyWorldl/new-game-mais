@@ -1,7 +1,7 @@
 /* NG+ — topo e menu lateral (referência Kinora): título da seção + saudação, avatar, card de sequência no menu e
    botão de recolher o menu. Só leitura dos dados que o app já calcula; a única preferência guardada é a do menu
    (recolhido/expandido), no navegador (localStorage, com try/catch). */
-const NAV_TITULOS = {painel:"Hoje", treino:"Treino", dieta:"Dieta", corpo:"Corpo", recomendacoes:"Dicas", perfil:"Perfil", glossario:"Glossário", config:"Configurações"};
+const NAV_TITULOS = {painel:"Hoje", treino:"Treino", dieta:"Dieta", corpo:"Corpo", recomendacoes:"Dicas", perfil:"Perfil", config:"Configurações"};
 function navTitulo(id){
   const el = document.getElementById("top-sec");
   if(el) el.textContent = NAV_TITULOS[id] || "NG+";

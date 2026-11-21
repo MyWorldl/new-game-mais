@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Best Friends Forever</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -159,15 +159,15 @@ button{font-family:inherit;}
 /* ---------- layout shell ---------- */
 .app{max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:18px;}
 .topbar{
-  position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
-  background:var(--bg); padding-block:6px 2px; margin:0 calc(-1 * var(--pr)) 0 calc(-1 * var(--pl)); padding-inline:var(--pl) var(--pr);
+  position:sticky; top:0; z-index:20;
+  background:var(--bg); padding-block:calc(env(safe-area-inset-top,0px) + 6px) 2px; margin:0 calc(-1 * var(--pr)) 0 calc(-1 * var(--pl)); padding-inline:var(--pl) var(--pr);
   display:flex; flex-direction:column; gap:var(--sp-3);
   transition:transform .25s ease;
 }
 /* em celular o cabeçalho some ao rolar pra baixo e volta ao rolar pra cima
    (classe .hide controlada por JS só em telas de toque) — devolve até 37% da
    altura da tela pro conteúdo */
-.topbar.hide{ transform:translateY(calc(-100% - env(safe-area-inset-top,0px) - 4px)); }
+.topbar.hide{ transform:translateY(calc(-100% - 4px)); }
 @media (prefers-reduced-motion: reduce){ .topbar{transition:none;} }
 .brand{display:flex; align-items:baseline; gap:10px;}
 .brand .mark{
@@ -2081,7 +2081,7 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
 /* I7 — barra de progresso de leitura (Glossário e Dicas); só onde há animation-timeline */
 #read-progress{display:none; position:fixed; inset:0 0 auto 0; block-size:3px; z-index:60; background:var(--accent); transform-origin:0 50%; transform:scaleX(0); pointer-events:none;}
 @supports (animation-timeline: scroll()){
-  html:has(#view-glossario:not([hidden])) #read-progress, html:has(#view-recomendacoes:not([hidden])) #read-progress{display:block;}
+  html:has(#view-sobre:not([hidden])) #read-progress, html:has(#view-recomendacoes:not([hidden])) #read-progress{display:block;}
   #read-progress{animation:read-grow linear both; animation-timeline:scroll(root block);}
   @keyframes read-grow{to{transform:scaleX(1);}}
 }
@@ -2795,7 +2795,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
     <nav class="subtabs-wrap" id="treino-subnav" data-subnav="treino" role="tablist" aria-label="Seções do Treino" hidden>
       <button class="tab-btn subtab-btn" type="button" id="subtab-treino-plano" aria-controls="view-treino" data-group="treino" data-sub="plano" role="tab" aria-selected="true">Plano</button>
       <button class="tab-btn subtab-btn" type="button" id="subtab-treino-progresso" aria-controls="view-treino" data-group="treino" data-sub="progresso" role="tab" aria-selected="false">Progresso</button>
-      <button class="tab-btn subtab-btn" type="button" id="subtab-treino-biblioteca" aria-controls="view-treino" data-group="treino" data-sub="biblioteca" role="tab" aria-selected="false">Biblioteca</button>
       <button class="tab-btn subtab-btn" type="button" id="subtab-treino-calculadoras" aria-controls="view-treino" data-group="treino" data-sub="calculadoras" role="tab" aria-selected="false">Calculadoras</button>
     </nav>
     <nav class="subtabs-wrap" id="dieta-subnav" data-subnav="dieta" role="tablist" aria-label="Seções da Dieta" hidden>
@@ -2805,7 +2804,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
     <nav class="subtabs-wrap" id="perfil-subnav" data-subnav="perfil" role="tablist" aria-label="Seções do Perfil" hidden>
       <button class="tab-btn subtab-btn" type="button" id="subtab-perfil" aria-controls="view-perfil" data-subtab="perfil" role="tab" aria-selected="true">Perfil</button>
       <button class="tab-btn subtab-btn" type="button" id="subtab-config" aria-controls="view-config" data-subtab="config" role="tab" aria-selected="false">Configurações</button>
-      <button class="tab-btn subtab-btn" type="button" id="subtab-glossario" aria-controls="view-glossario" data-subtab="glossario" role="tab" aria-selected="false">Glossário</button>
       <button class="tab-btn subtab-btn" type="button" id="subtab-sobre" aria-controls="view-sobre" data-subtab="sobre" role="tab" aria-selected="false">Sobre</button>
     </nav>
   </div>
@@ -3041,7 +3039,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       </div>
       <div class="carga-chart-wrap">
         <div class="carga-chart-head">
-          <select id="carga-chart-select" class="carga-chart-select" aria-label="Exercício do gráfico de cargas"></select>
+          <select id="carga-chart-select" class="carga-chart-select" data-ngselect aria-label="Exercício do gráfico de cargas"></select>
           <div class="carga-chart-stats" id="carga-chart-stats"></div>
         </div>
         <div class="seg period-seg" id="carga-period" role="group" aria-label="Período do gráfico de cargas">
@@ -3077,6 +3075,20 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <div class="foot-note u-mt4">Faixas gerais de referência (MEV–MRV) — ajuste conforme sua experiência e recuperação.</div>
     </div>
 
+    <div class="card" data-sub="plano" id="biblioteca-card">
+      <div class="card-head">
+        <h2>Biblioteca de exercícios</h2>
+        <span class="hint">todos os exercícios da sua rotina, com dicas e alternativas</span>
+      </div>
+      <div class="search-box">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
+        <input type="search" id="biblioteca-busca" placeholder="Buscar exercício, músculo ou dica…" aria-label="Buscar na Biblioteca de exercícios" aria-describedby="biblioteca-status" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+        <button type="button" class="search-clear" id="biblioteca-limpar" aria-label="Limpar busca da Biblioteca" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="search-status" id="biblioteca-status" role="status" aria-live="polite"></div>
+      <div id="biblioteca-body"></div>
+    </div>
+
     <div class="card" data-sub="plano">
       <div class="card-head">
         <h2>A ciência por trás da sua rotina</h2>
@@ -3105,20 +3117,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="card" data-sub="biblioteca">
-      <div class="card-head">
-        <h2>Biblioteca de exercícios</h2>
-        <span class="hint">todos os exercícios da sua rotina, com dicas e alternativas</span>
-      </div>
-      <div class="search-box">
-        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
-        <input type="search" id="biblioteca-busca" placeholder="Buscar exercício, músculo ou dica…" aria-label="Buscar na Biblioteca de exercícios" aria-describedby="biblioteca-status" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
-        <button type="button" class="search-clear" id="biblioteca-limpar" aria-label="Limpar busca da Biblioteca" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
-      </div>
-      <div class="search-status" id="biblioteca-status" role="status" aria-live="polite"></div>
-      <div id="biblioteca-body"></div>
     </div>
 
 
@@ -3433,24 +3431,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
     </div>
   </section>
 
-  <!-- ================= GLOSSÁRIO ================= -->
-  <section class="view" id="view-glossario" role="tabpanel" aria-labelledby="tab-glossario" tabindex="-1" hidden>
-    <div class="card">
-      <div class="card-head">
-        <h2>Glossário</h2>
-        <span class="hint">toque num termo pra ver a explicação</span>
-      </div>
-      <div class="search-box">
-        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
-        <input type="search" id="glossario-busca" placeholder="Buscar termo ou explicação…" aria-label="Buscar no Glossário" aria-describedby="glossario-status" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
-        <button type="button" class="search-clear" id="glossario-limpar" aria-label="Limpar busca do Glossário" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
-      </div>
-      <div class="search-status" id="glossario-status" role="status" aria-live="polite"></div>
-      <nav class="subtabs-wrap" id="glossario-subnav" role="tablist" aria-label="Categorias do Glossário"></nav>
-      <div id="glossario-body" class="u-mt12"></div>
-    </div>
-  </section>
-
   <!-- ================= CONFIG ================= -->
   <section class="view" id="view-config" role="tabpanel" aria-labelledby="tab-config" tabindex="-1" hidden>
     <div class="card">
@@ -3583,8 +3563,21 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       </div>
       <div class="data-actions u-mt8">
         <button class="btn" id="sobre-tour" type="button">Rever o tutorial</button>
-        <button class="btn" type="button" data-goto="glossario">Abrir o Glossário</button>
       </div>
+    </div>
+    <div class="card" id="glossario-card">
+      <div class="card-head">
+        <h2>Glossário</h2>
+        <span class="hint">toque num termo pra ver a explicação</span>
+      </div>
+      <div class="search-box">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
+        <input type="search" id="glossario-busca" placeholder="Buscar termo ou explicação…" aria-label="Buscar no Glossário" aria-describedby="glossario-status" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+        <button type="button" class="search-clear" id="glossario-limpar" aria-label="Limpar busca do Glossário" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="search-status" id="glossario-status" role="status" aria-live="polite"></div>
+      <nav class="subtabs-wrap" id="glossario-subnav" role="tablist" aria-label="Categorias do Glossário"></nav>
+      <div id="glossario-body" class="u-mt12"></div>
     </div>
     <div class="card" id="sobre-fontes">
       <div class="card-head">
@@ -3619,10 +3612,6 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
       <button class="tab-btn" id="tab-perfil" aria-controls="view-perfil" data-tab="perfil" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-6.5 7-6.5s7 2.9 7 6.5"/></svg>
         Perfil
-      </button>
-      <button class="tab-btn tab-extra" id="tab-glossario" aria-controls="view-glossario" data-tab="glossario" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.5c-1.5-1.3-3.5-2-6-2v13c2.5 0 4.5.7 6 2 1.5-1.3 3.5-2 6-2V4.5c-2.5 0-4.5.7-6 2Z"/><path d="M12 6.5v13"/></svg>
-        Glossário
       </button>
       <button class="tab-btn tab-extra" id="tab-config" aria-controls="view-config" data-tab="config" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
@@ -5446,12 +5435,12 @@ function applyLocalFallback(path, data){
 // principal só tem o botão "Corpo", e uma segunda barrinha (corpo-subnav)
 // aparece só quando esse grupo está ativo, pra escolher qual das 3 mostrar.
 // Grupos de sub-abas. Duas famílias:
-//  - GRUPOS_SECOES: cada sub-aba é uma <section class="view"> própria (Corpo/Dicas; Perfil/Configurações/Glossário/Sobre);
+//  - GRUPOS_SECOES: cada sub-aba é uma <section class="view"> própria (Corpo/Dicas; Perfil/Configurações/Sobre — o Glossário agora é um cartão de Sobre);
 //  - SUBS_INTERNAS: as sub-abas são faixas de cartões da MESMA seção (Treino e Dieta). Cada cartão marca a sua com data-sub
 //    (pode listar mais de uma, separadas por espaço); os demais ganham .sub-off (display:none).
 // showTab aceita "treino:progresso" para abrir direto numa sub-aba.
-const GRUPOS_SECOES = {corpo:["corpo","recomendacoes"], perfil:["perfil","config","glossario","sobre"]};
-const SUBS_INTERNAS = {treino:["plano","progresso","biblioteca","calculadoras"], dieta:["metas","cardapio"]};
+const GRUPOS_SECOES = {corpo:["corpo","recomendacoes"], perfil:["perfil","config","sobre"]};
+const SUBS_INTERNAS = {treino:["plano","progresso","calculadoras"], dieta:["metas","cardapio"]};
 const subAtual = {corpo:"corpo", perfil:"perfil", treino:"plano", dieta:"metas"};
 const dirtyViews = new Set();   // v94 P1: seções que precisam ser redesenhadas ao abrir
 function abaPrincipal(id){ for(const g in GRUPOS_SECOES){ if(GRUPOS_SECOES[g].includes(id)) return g; } return id; }
@@ -5465,6 +5454,8 @@ function aplicaSubInterna(g){
 }
 function showTab(name){
   name = String(name);
+  if(name === "glossario") name = "sobre";   // o Glossário virou um cartão dentro de Sobre (atalhos antigos continuam valendo)
+  if(name === "treino:biblioteca") name = "treino:plano";
   if(name.includes(":")){
     const par = name.split(":");
     if(SUBS_INTERNAS[par[0]] && SUBS_INTERNAS[par[0]].includes(par[1])) subAtual[par[0]] = par[1];
@@ -5507,7 +5498,15 @@ function setSub(g, sub){
   window.scrollTo(0, 0);
 }
 /* v85 (I1): troca de aba com View Transition — desliza na direção da aba (esq./dir.); sub-abas só esmaecem */
+function irAoGlossario(){
+  return showTabAnimated("sobre").then(()=>{
+    renderGlossario();
+    const c = document.getElementById("glossario-card");
+    if(c) c.scrollIntoView({block:"start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  });
+}
 function showTabAnimated(name){
+  if(String(name) === "glossario") return irAoGlossario();
   const curView = document.querySelector(".view:not([hidden])");
   const base = String(name).split(":")[0];
   const cur = curView ? curView.id.replace("view-","") : "";
@@ -5781,7 +5780,7 @@ function tipBtn(k){
     if(!go) return;
     glossarioCat = go.dataset.tipgo;
     pop.hidePopover();
-    showTabAnimated("glossario").then(()=> renderGlossario());
+    showTabAnimated("sobre").then(()=>{ renderGlossario(); const c = document.getElementById("glossario-card"); if(c) c.scrollIntoView({block:"start", behavior:"smooth"}); });
   });
 })();
 
@@ -5806,7 +5805,7 @@ function tipBtn(k){
     {t:"Ir para Dieta", k:"calorias macros cardapio refeicoes", h:"g d", run:irPara("dieta")},
     {t:"Ir para Dicas", k:"recomendacoes", h:"", run:irPara("recomendacoes")},
     {t:"Ir para Perfil", k:"nivel patente xp conquistas fotos", h:"g p", run:irPara("perfil")},
-    {t:"Ir para Glossário", k:"termos significado ajuda", h:"g l", run:irPara("glossario")},
+    {t:"Ir para Glossário", k:"termos significado ajuda", h:"g l", run:()=> irAoGlossario()},
     {t:"Ir para Configurações", k:"config backup exportar importar som", h:"g o", run:irPara("config")},
     {t:"Começar treino de hoje", k:"comecar treinar quest iniciar ao vivo", h:"", run:()=>{
       showTab("painel");
@@ -9332,6 +9331,10 @@ function renderAnaliseTreino(){
     let filtro = analiseFiltro;
     if(filtro !== "todos" && !(filtro && cont[filtro])) filtro = ORD_F.find(k=> cont[k]) || "todos";
     const vis = filtro === "todos" ? itens : itens.filter(i=> i.cls.estado === filtro);
+    const pctProg = Math.round((cont.progredindo||0)/Math.max(1, comDados)*100);
+    h += '<div class="an-hero"><div class="an-hero-n"><b>'+pctProg+'<small>%</small></b><span>dos exercícios com registro estão progredindo</span></div>'+
+      '<div class="an-dist" role="img" aria-label="Distribuição: '+ORD_F.filter(k=> cont[k]).map(k=> cont[k]+' '+ANALISE_ESTADO[k].t.replace(/^\S+\s/,"").toLowerCase()).join(", ")+'">'+
+      ORD_F.filter(k=> cont[k]).map(k=>'<i class="an-seg '+ANALISE_ESTADO[k].c+'" style="flex:'+cont[k]+'"></i>').join("")+'</div></div>';
     h += '<div class="an-sum" role="group" aria-label="Filtrar a análise por situação">'+
       ["estagnado","progredindo","estavel","sem-dados"].filter(k=> cont[k]).map(k=>'<button type="button" class="chip an-f '+ANALISE_ESTADO[k].c+'" data-anf="'+k+'" aria-pressed="'+(filtro === k)+'">'+ANALISE_ESTADO[k].t+' · '+cont[k]+'</button>').join("")+
       '<button type="button" class="chip an-f neutral" data-anf="todos" aria-pressed="'+(filtro === "todos")+'">Todos · '+itens.length+'</button></div>';
@@ -9340,7 +9343,7 @@ function renderAnaliseTreino(){
       const st = ANALISE_ESTADO[i.cls.estado];
       const tab = i.sess.length ? '<div class="an-tabw" tabindex="0" role="region" aria-label="Últimas sessões de '+escapeHtml(i.nome)+'"><table class="an-tab"><thead><tr><th scope="col">Data</th><th scope="col">Carga</th><th scope="col">Reps por série</th><th scope="col">RPE</th></tr></thead><tbody>'+
         i.sess.slice(-ANALISE_JANELA).reverse().map(x=>'<tr><td>'+escapeHtml(fmtDateBR(x.iso))+'</td><td>'+(x.peso != null ? fmtKg(x.peso)+' kg' : '—')+'</td><td>'+x.sets.join(" · ")+(x.unid==="s" ? " s" : "")+'</td><td>'+(x.rpe != null ? x.rpe : '—')+'</td></tr>').join("")+'</tbody></table></div>' : '';
-      return '<li><details class="an-ex"><summary><span class="an-name">'+escapeHtml(i.nome)+'</span><span class="chip '+st.c+'">'+st.t+'</span></summary>'+
+      return '<li><details class="an-ex st-'+st.c+'"><summary><span class="an-name">'+escapeHtml(i.nome)+'</span><span class="chip '+st.c+'">'+st.t+'</span><span class="an-chev" aria-hidden="true">'+ICON_CHEVRON+'</span></summary>'+
         '<div class="an-body"><p class="an-resumo">'+escapeHtml(i.resumo)+'</p>'+
         (i.tendencia ? '<p class="an-tend">'+escapeHtml(i.tendencia)+'</p>' : '')+
         (i.linhas.length ? '<ul class="an-linhas">'+i.linhas.map(l=>'<li>'+escapeHtml(l)+'</li>').join("")+'</ul>' : '')+tab+'</div></details></li>';
@@ -9352,8 +9355,8 @@ function renderAnaliseTreino(){
   const linhasVol = MUSCLE_ORDER.filter(m=> (plan[m]||0) > 0).map(m=>{
     const lm = MUSCLE_LANDMARKS[m], pl = plan[m], rl = real[m]||0, pct = Math.min(100, Math.round(rl / pl * 100));
     const nota = (lm.mev && ant[m] > 0 && ant[m] < lm.mev) ? ' <span class="an-nota">Semana passada: '+ant[m]+' séries, abaixo do mínimo ('+lm.mev+').</span>' : '';
-    return '<div class="an-vol"><div class="an-vol-top"><span>'+escapeHtml(lm.label)+'</span><span><b>'+rl+'</b> de '+pl+' séries</span></div>'+
-      '<div class="quest-track" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
+    return '<div class="an-vol"><div class="an-vol-top"><span class="an-vol-m">'+escapeHtml(lm.label)+'</span><span class="an-vol-n"><b>'+rl+'</b> de '+pl+' séries</span></div>'+
+      '<div class="quest-track an-track'+(pct>=100?' cheia':'')+'" aria-hidden="true"><div class="quest-fill" style="width:'+pct+'%;"></div></div>'+
       '<div class="an-vol-sub">Referência semanal: mínimo '+lm.mev+' · ideal '+lm.mav+' · teto '+lm.mrv+nota+'</div></div>';
   }).join("");
   if(linhasVol) h += '<h3 class="an-h3">Volume desta semana (realizado × planejado)</h3><div class="an-volwrap">'+linhasVol+'</div>';
@@ -10374,7 +10377,7 @@ function renderWeekGrid(){
 }
 
 let cargaChartExercise = null;
-const cargasAbertos = new Set();   // v80: dias (seg..dom) expandidos na lista de cargas
+let cargasDia = null;   // dia (seg..dom) exibido na lista de cargas; null = hoje (ou o 1º dia com exercícios)
 
 function allActiveExercises(){
   const list = [];
@@ -10435,6 +10438,11 @@ function updateCargaChartExercise(exList){
   cargaChartExercise = (withHist || exList[0]).nome;
 }
 
+function nomeDiaCarga(key){
+  const d = state.rotina[key], n = d && d.nome ? String(d.nome).trim() : "";
+  if(!n) return DAY_FULL[key];
+  return n.toLowerCase().startsWith(DAY_FULL[key].toLowerCase()) ? n : DAY_FULL[key]+" — "+n;   // evita "Segunda — Segunda A"
+}
 function populateCargaSelect(exList){
   const sel = document.getElementById("carga-chart-select");
   if(!sel) return;
@@ -10442,8 +10450,17 @@ function populateCargaSelect(exList){
     sel.innerHTML = '<option value="">Nenhum exercício ativo</option>';
     return;
   }
-  sel.innerHTML = exList.map(e=> '<option value="'+escapeHtml(e.nome)+'">'+escapeHtml(e.nome)+' ('+DAY_FULL[e.dia].slice(0,3)+')</option>').join("");
+  // agrupado pelo dia em que o exercício aparece primeiro; cada opção mostra a última carga como dica
+  const porDia = {};
+  exList.forEach(e=>{ (porDia[e.dia] = porDia[e.dia] || []).push(e); });
+  sel.innerHTML = DAYS.filter(k=> porDia[k]).map(k=>{
+    return '<optgroup label="'+escapeHtml(nomeDiaCarga(k))+'">'+porDia[k].map(e=>{
+      const h = getCargaHistory(e.nome);
+      return '<option value="'+escapeHtml(e.nome)+'"'+(h.length ? ' data-meta="'+escapeHtml(fmtKg(h[h.length-1].peso)+" kg")+'"' : '')+'>'+escapeHtml(e.nome)+'</option>';
+    }).join("")+'</optgroup>';
+  }).join("");
   if(cargaChartExercise) sel.value = cargaChartExercise;
+  if(window.ngSelectSync) ngSelectSync(sel);
 }
 
 let cargaPeriodo = (()=>{ try{ const v = localStorage.getItem("bff_carga_periodo"); return ["90","180","all"].includes(v) ? v : "all"; }catch(e){ return "all"; } })();
@@ -10545,7 +10562,7 @@ function renderCargaChart(){
 document.getElementById("carga-chart-select").addEventListener("change", (e)=>{
   cargaChartExercise = e.target.value || null;
   const it = allActiveExercises().find(x=> x.nome === cargaChartExercise);
-  if(it) cargasAbertos.add(it.dia);   // v80: ao escolher no seletor, abre o dia do exercício
+  if(it) cargasDia = it.dia;   // ao escolher no seletor, mostra o dia do exercício
   renderCargas();
 });
 
@@ -10557,9 +10574,11 @@ function renderCargas(){
   populateCargaSelect(exList);
   renderCargaChart();
 
-  const catsHtml = DAYS.map(key=>{
+  const diasComEx = DAYS.filter(k=> state.rotina[k] && state.rotina[k].ativo && (state.rotina[k].exercicios||[]).length);
+  const hojeKey = (()=>{ try{ return dayKeyFromISO(todayISO()); }catch(e){ return null; } })();
+  if(!cargasDia || !diasComEx.includes(cargasDia)) cargasDia = diasComEx.includes(hojeKey) ? hojeKey : diasComEx[0] || null;
+  const painelHtml = diasComEx.map(key=>{
     const day = state.rotina[key];
-    if(!day || !day.ativo || !(day.exercicios||[]).length) return "";
     const rows = day.exercicios.map(ex=>{
       const hist = getCargaHistory(ex.nome);
       const isSelected = ex.nome === cargaChartExercise;
@@ -10589,43 +10608,39 @@ function renderCargas(){
           '<div class="carga-stat"><b>'+fmtKg(pr)+' kg</b><span>Recorde · '+fmtDateBR(prH.iso)+'</span></div>'+
         '</div></div>'+barHtml+cargaMedalhasHtml(ex, lastH.iso)+'</div>';
     }).join("");
-    const aberto = cargasAbertos.has(key);
     const nEx = day.exercicios.length;
     const nReg = day.exercicios.filter(ex=> getCargaHistory(ex.nome).length).length;
-    return '<div class="carga-cat'+(aberto?' open':'')+'" data-dia="'+key+'">'+
-      '<button type="button" class="carga-cat-btn" data-cargadia="'+key+'" aria-expanded="'+aberto+'" aria-controls="carga-rows-'+key+'">'+
-        '<span class="carga-cat-txt"><span class="carga-cat-h">'+DAY_FULL[key]+' — '+escapeHtml(day.nome||"")+'</span>'+
-        '<span class="carga-cat-sub">'+nEx+' exercício'+(nEx===1?'':'s')+' · '+nReg+' com carga registrada</span></span>'+
-        '<span class="carga-cat-chev" aria-hidden="true">'+ICON_CHEVRON+'</span></button>'+
-      '<div class="carga-cat-rows" id="carga-rows-'+key+'"'+(aberto?'':' hidden')+'>'+rows+'</div></div>';
+    const aberto = key === cargasDia;
+    return '<div class="carga-cat" data-dia="'+key+'" id="carga-rows-'+key+'" role="tabpanel" aria-labelledby="carga-dia-'+key+'"'+(aberto?'':' hidden')+'>'+
+      '<div class="carga-cat-head"><span class="carga-cat-h">'+escapeHtml(nomeDiaCarga(key))+'</span>'+
+      '<span class="carga-cat-sub">'+nEx+' exercício'+(nEx===1?'':'s')+' · '+nReg+' com carga registrada</span></div>'+
+      '<div class="carga-rows">'+rows+'</div></div>';
   }).join("");
-  const diasAtivos = DAYS.filter(k=> state.rotina[k] && state.rotina[k].ativo && (state.rotina[k].exercicios||[]).length);
-  const todosAbertos = diasAtivos.length && diasAtivos.every(k=> cargasAbertos.has(k));
-  el.innerHTML = catsHtml
-    ? '<div class="carga-tools"><button type="button" class="btn small ghost" data-cargatudo="'+(todosAbertos?'fechar':'abrir')+'">'+(todosAbertos?'Recolher tudo':'Expandir tudo')+'</button></div>'+catsHtml
+  const chipsHtml = DAYS.map(key=>{
+    const day = state.rotina[key];
+    const tem = diasComEx.includes(key);
+    const nEx = tem ? day.exercicios.length : 0;
+    const nReg = tem ? day.exercicios.filter(ex=> getCargaHistory(ex.nome).length).length : 0;
+    const pct = nEx ? Math.round(nReg/nEx*100) : 0;
+    const sel = key === cargasDia;
+    return '<button type="button" class="carga-day'+(tem?'':' off')+(key===hojeKey?' hoje':'')+'" id="carga-dia-'+key+'" role="tab" data-cargadia="'+key+'" aria-selected="'+sel+'" aria-controls="carga-rows-'+key+'"'+(tem?'':' disabled')+
+      ' aria-label="'+DAY_FULL[key]+(tem ? ': '+nEx+' exercício'+(nEx===1?'':'s')+', '+nReg+' com carga registrada' : ': descanso')+(key===hojeKey?' (hoje)':'')+'">'+
+      '<b>'+DAY_FULL[key].slice(0,3)+'</b><small>'+(tem ? nReg+'/'+nEx : '—')+'</small><i aria-hidden="true"><u style="width:'+pct+'%"></u></i></button>';
+  }).join("");
+  el.innerHTML = painelHtml
+    ? '<div class="carga-days" role="tablist" aria-label="Dia da semana">'+chipsHtml+'</div>'+painelHtml
     : '<div class="hint">Nenhum exercício ativo na rotina ainda.</div>';
   el.querySelectorAll("[data-cargadia]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
-      const k = btn.dataset.cargadia;
-      const abre = !cargasAbertos.has(k);
-      if(abre) cargasAbertos.add(k); else cargasAbertos.delete(k);
-      const cat = btn.closest(".carga-cat");
-      cat.classList.toggle("open", abre);
-      btn.setAttribute("aria-expanded", String(abre));
-      cat.querySelector(".carga-cat-rows").hidden = !abre;
-      const tudo = el.querySelector("[data-cargatudo]");
-      if(tudo){
-        const todos = diasAtivos.every(d=> cargasAbertos.has(d));
-        tudo.dataset.cargatudo = todos ? "fechar" : "abrir";
-        tudo.textContent = todos ? "Recolher tudo" : "Expandir tudo";
-      }
+      cargasDia = btn.dataset.cargadia;
+      el.querySelectorAll("[data-cargadia]").forEach(b=> b.setAttribute("aria-selected", String(b === btn)));
+      el.querySelectorAll(".carga-cat").forEach(c=>{ const on = c.dataset.dia === cargasDia; c.hidden = !on; if(on){ c.classList.remove("entra"); void c.offsetWidth; c.classList.add("entra"); } });
     });
-  });
-  const tudoBtn = el.querySelector("[data-cargatudo]");
-  if(tudoBtn) tudoBtn.addEventListener("click", ()=>{
-    if(tudoBtn.dataset.cargatudo === "abrir") diasAtivos.forEach(k=> cargasAbertos.add(k)); else cargasAbertos.clear();
-    renderCargas();
-    const nb = el.querySelector("[data-cargatudo]"); if(nb) nb.focus();
+    btn.addEventListener("keydown", e=>{
+      if(e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const bs = [...el.querySelectorAll("[data-cargadia]:not(:disabled)")]; const i = bs.indexOf(btn); if(i < 0) return;
+      e.preventDefault(); const n = bs[(i + (e.key === "ArrowRight" ? 1 : -1) + bs.length) % bs.length]; n.focus(); n.click();
+    });
   });
   el.querySelectorAll(".carga-row[data-ex]").forEach(row=>{
     row.addEventListener("click", ()=>{
@@ -11596,6 +11611,7 @@ function renderCardapio(kcalAlvo, macros){
       redesenhaDieta: ()=> renderDieta(),
       tocaSom: (nome)=> playSound(nome),
       abreModal: (el)=> openModal(el), fechaModal: ()=> closeModal(),   // para os pop-ups "Trocar alimentos" e "Meus alimentos"
+      toast: (m)=> showToast(m),
       num, escapeHtml, menorDeIdade
     });
     if(cardapioMeta) CARDAPIO.render(cardapioMeta[0], cardapioMeta[1]);
@@ -11747,7 +11763,7 @@ const TOUR_PASSOS = [
   {aba:"dieta:cardapio", alvo:"#cardapio-card", t:"Cardápio da semana", x:"Ideias de refeições que batem com a sua meta, com lista de compras. Use Meus alimentos para marcar só o que você come (o cardápio e a lista de compras seguem a sua escolha) e Trocar alimentos para escolher outro alimento da mesma categoria; a porção se ajusta sozinha."},
   {aba:"corpo", alvo:{h2:"Nova medição"}, t:"Medidas e fotos", x:"Registre peso e medidas, de preferência sempre no mesmo horário, para ver a evolução nos gráficos. As fotos de progresso ficam só na sua conta."},
   {aba:"perfil", alvo:{h2:"Ficha de personagem"}, t:"Seu personagem", x:"Nível, XP e atributos sobem com a constância. As conquistas desbloqueiam quando você bate marcos."},
-  {aba:"perfil", alvo:"#perfil-subnav", t:"Mais do app", x:"As abas no topo do Perfil levam às Configurações, ao Glossário (termos explicados) e ao Sobre, com as fontes dos cálculos."},
+  {aba:"perfil", alvo:"#perfil-subnav", t:"Mais do app", x:"As abas no topo do Perfil levam às Configurações e ao Sobre, que reúne o Glossário (termos explicados) e as fontes dos cálculos."},
   {aba:"config", alvo:"#cfg-conta", t:"Seus dados", x:"Tudo é salvo primeiro no aparelho, por isso o app funciona sem internet, e vai para a nuvem quando houver conexão. Aqui você sincroniza, sai da conta e pode pedir o código de novo depois de um tempo fora do app."},
   {aba:"config", alvo:"#cfg-instalar", t:"Instalar no celular", x:"Instale na tela inicial para abrir em tela cheia e usar sem internet. No iPhone: Compartilhar → Adicionar à Tela de Início."},
   {aba:"painel", alvo:null, t:"Antes de começar", x:"O NG+ orienta, mas não substitui profissional de educação física, nutrição ou saúde. Sentiu dor forte? Não force: faça um dia leve e procure um profissional. Bom treino!"}
@@ -13391,8 +13407,7 @@ const SECTION_RENDERERS = {
   recomendacoes: [renderRecomendacoes, renderSuplementos, renderPeriodizacaoStatus],
   perfil: [renderAttrs, renderPerfilSummary, renderAchievements],
   config: [renderTemas, renderSkins, renderConfigExtras, renderRecupConfig],
-  glossario: [renderGlossario],
-  sobre: [renderFontes]
+  sobre: [renderFontes, renderGlossario]
 };
 function renderSection(id){
   dirtyViews.delete(id);
