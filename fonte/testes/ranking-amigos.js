@@ -86,6 +86,42 @@ async function instalaFalsa(p, xpEu) {
     const tg = await p.evaluate(() => [...document.querySelectorAll('#rk-seg button, #rk-atualizar')].map(e => Math.round(e.getBoundingClientRect().height)));
     t(L + 'Treino › Ranking: alvos de toque com 44 px ou mais', tg.every(h => h >= 44), tg.join());
     t(L + 'Treino › Ranking: sem rolagem lateral', await p.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 0);
+    // ---- redesenho: título "Ranking", resumo, pódio em degraus, barras, colunas e escada de patentes
+    await p.evaluate(() => document.querySelector('[data-rk="xp"]').click()); await p.waitForTimeout(250);
+    const rd = await p.evaluate(() => {
+      const h = id => (document.getElementById(id) || {}).textContent;
+      const pod = [...document.querySelectorAll('#rk-t-corpo .rk-pd')].map(e => ({ nome: e.querySelector('.rk-pd-nome').textContent.replace(/^\d+º lugar: /, '').trim(), h: Math.round(e.querySelector('.rk-pd-deg').getBoundingClientRect().height), x: Math.round(e.getBoundingClientRect().left) }));
+      const res = [...document.querySelectorAll('#rk-t-corpo .rk-res-c')].map(e => e.textContent.replace(/\s+/g, ' ').trim());
+      const barras = [...document.querySelectorAll('#rk-t-lista .rk-barra i')].map(e => Math.round(e.getBoundingClientRect().width / e.parentElement.getBoundingClientRect().width * 100));
+      const es = [...document.querySelectorAll('#rk-t-corpo .rk-es')];
+      const extra = document.querySelector('#rk-t-lista .rk-extra');
+      return { t1: h('rk-t-t'), t2: h('rk-h-t'), pod, res, barras, esN: es.length, esEu: (document.querySelector('.rk-es-eu') || {}).textContent, extraVis: !!extra && getComputedStyle(extra).display !== 'none', antigo: /dos amigos/i.test(document.getElementById('view-treino').innerText + document.getElementById('hoje-ranking').innerText) };
+    });
+    t(L + 'títulos viram "Ranking" (sem "dos amigos")', rd.t1 === 'Ranking' && rd.t2 === 'Ranking' && !rd.antigo, rd.t1 + '/' + rd.t2);
+    t(L + 'resumo: participantes, sua posição e sua patente', rd.res.length === 3 && /^Participantes5/.test(rd.res[0]) && /^Sua posição5ºde 5/.test(rd.res[1]) && /^Sua patenteAprendiz/.test(rd.res[2]), JSON.stringify(rd.res));
+    t(L + 'pódio: 2º, 1º, 3º com o 1º mais alto', rd.pod.length === 3 && rd.pod[1].nome === 'Caio' && rd.pod[0].nome === 'Ana' && rd.pod[1].h > rd.pod[0].h && rd.pod[0].h > rd.pod[2].h && rd.pod[0].x < rd.pod[1].x && rd.pod[1].x < rd.pod[2].x, JSON.stringify(rd.pod));
+    t(L + 'barras: líder com 100% e as demais proporcionais', rd.barras[0] === 100 && rd.barras.every((v, i) => i === 0 || v < 100) && rd.barras.length === 5, JSON.stringify(rd.barras));
+    t(L + 'colunas extras (sequência e volume) só em tela larga', rd.extraVis === (w >= 720), String(rd.extraVis));
+    t(L + 'escada: 10 patentes e marca "você está aqui" na minha', rd.esN === 10 && /Aprendiz/.test(rd.esEu) && /você está aqui/.test(rd.esEu), rd.esEu);
+    // empate: dois com 300 XP aparecem como 3º no pódio? (só 3 vagas: Caio, Ana e o primeiro dos empatados)
+    const eh = await p.evaluate(() => [...document.querySelectorAll('#rk-t-corpo .rk-pd-deg')].map(e => e.textContent));
+    t(L + 'pódio usa a posição real (com empate)', eh.join() === '2,1,3', eh.join());
+    await p.evaluate(() => document.querySelector('.rk-escada > summary').click()); await p.waitForTimeout(200);
+    await p.evaluate(() => document.querySelector('[data-rk="seq"]').click()); await p.waitForTimeout(250);
+    t(L + 'escada continua aberta ao trocar a métrica', await p.evaluate(() => document.querySelector('.rk-escada').open));
+    await p.evaluate(() => document.querySelector('[data-rk="xp"]').click()); await p.waitForTimeout(250);
+    const alvo = await p.evaluate(() => Math.round(document.querySelector('.rk-escada > summary').getBoundingClientRect().height));
+    t(L + 'escada: botão de abrir com 44 px ou mais', alvo >= 44, alvo);
+    if (axeSrc) {
+      for (const tema of ['padrao', 'azul', 'rosa', 'roxo']) {
+        await p.evaluate(k => { const b = document.querySelector('#theme-row [data-tema="' + k + '"]'); if (b) b.click(); }, tema); await p.waitForTimeout(250);
+        await p.evaluate(() => { document.getElementById('tab-treino').click(); document.getElementById('subtab-treino-ranking').click(); }); await p.waitForTimeout(250);
+        if (!(await p.evaluate(() => typeof axe !== 'undefined'))) await p.evaluate(axeSrc);
+        const v = await p.evaluate(async () => { const r = await axe.run(document.getElementById('treino-ranking'), { runOnly: ['color-contrast', 'list', 'listitem', 'aria-allowed-attr'] }); return r.violations.map(x => x.id + ':' + x.nodes.slice(0, 2).map(n => n.target.join(' ')).join(',')); });
+        t(L + 'axe no Ranking com o tema ' + tema, v.length === 0, v.join(' | '));
+      }
+      await p.evaluate(() => { const b = document.querySelector('#theme-row [data-tema="padrao"]'); if (b) b.click(); }); await p.waitForTimeout(200);
+    }
     if (axeSrc) {
       if (!(await p.evaluate(() => typeof axe !== 'undefined'))) await p.evaluate(axeSrc);
       const v = await p.evaluate(async () => { const r = await axe.run(document.getElementById('view-treino'), { runOnly: ['color-contrast', 'aria-allowed-attr', 'aria-valid-attr-value', 'label', 'button-name', 'list', 'listitem'] }); return r.violations.flatMap(x => x.nodes.map(n => x.id + ' ' + n.target.join(' '))); });

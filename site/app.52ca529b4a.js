@@ -3487,7 +3487,7 @@ const RK_METRICAS = [
   {k:"seq", rot:"Sequência",  col:"sequencia", sec:"xp"},
   {k:"vol", rot:"Volume (kg)",col:"volume_kg", sec:"xp"}
 ];
-let rkMetrica = "xp", rkCache = null, rkEu = null, rkErro = false, rkCarregando = false, rkTentou = 0, rkUltPub = 0, rkUltHash = "", rkSaidaOk = false;
+let rkEscadaAberta = false, rkMetrica = "xp", rkCache = null, rkEu = null, rkErro = false, rkCarregando = false, rkTentou = 0, rkUltPub = 0, rkUltHash = "", rkSaidaOk = false;
 function rkNuvem(){ const n = window.ngNuvem; return n && n.client ? n : null; }
 function rkIdade(){ const n = Number((state.perfil || {}).idade); return isFinite(n) && n > 0 ? Math.floor(n) : null; }
 function rkAdulto(){ const i = rkIdade(); return i != null && i >= 18; }
@@ -3576,12 +3576,55 @@ function rkPrecisaAtualizar(){
   if(!rkCache) return Date.now() - rkTentou > 60e3;
   return Date.now() - rkCache.em > 5 * 60e3 && Date.now() - rkTentou > 60e3;
 }
-function rkLinhaHtml(r, mk, eu){
+function rkPatente(r){ const t = NIVEL_TIERS[Math.max(0, Math.min(NIVEL_TIERS.length, Number(r.nivel) || 1) - 1)]; return t ? t.name : ""; }
+function rkMax(linhas, mk){ const m = RK_METRICAS.find(x=> x.k === mk) || RK_METRICAS[0]; return Math.max(1, ...linhas.map(r=> Number(r[m.col]) || 0)); }
+function rkPct(r, mk, max){ const m = RK_METRICAS.find(x=> x.k === mk) || RK_METRICAS[0]; return Math.max(2, Math.min(100, Math.round(((Number(r[m.col]) || 0) / max) * 100))); }
+/* linha da lista. Com `max`, ganha a barra proporcional ao líder e (em telas largas) as outras duas métricas em colunas. */
+function rkLinhaHtml(r, mk, eu, max){
   const voce = eu && r.user_id === eu;
   const medalha = r.pos <= 3 ? '<span class="rk-med rk-med'+r.pos+'" aria-hidden="true">'+r.pos+'</span>' : '<span class="rk-pos" aria-hidden="true">'+r.pos+'º</span>';
-  return '<li class="rk-item'+(voce ? ' rk-eu' : '')+'">'+medalha+
-    '<span class="rk-nome"><span class="sr-only">'+r.pos+'º lugar: </span>'+escapeHtml(r.apelido)+(voce ? ' <small>(você)</small>' : '')+'</span>'+
-    '<b class="rk-val">'+escapeHtml(rkValor(r, mk))+'</b></li>';
+  let extra = "", barra = "", pat = "";
+  if(max){
+    barra = '<span class="rk-barra" aria-hidden="true"><i style="inline-size:'+rkPct(r, mk, max)+'%"></i></span>';
+    pat = '<span class="rk-pat" style="--pat:var(--t'+(Math.max(1, Math.min(NIVEL_TIERS.length, Number(r.nivel) || 1)))+')">'+escapeHtml(rkPatente(r))+'</span>';
+    extra = '<span class="rk-extra" aria-hidden="true">'+RK_METRICAS.filter(m=> m.k !== mk).map(m=> '<span>'+escapeHtml(rkValor(r, m.k))+'</span>').join("")+'</span>';
+  }
+  return '<li class="rk-item'+(voce ? ' rk-eu' : '')+(max ? ' rk-comb' : '')+'">'+medalha+
+    '<span class="rk-nome"><span class="sr-only">'+r.pos+'º lugar: </span>'+escapeHtml(r.apelido)+(voce ? ' <small>(você)</small>' : '')+'</span>'+pat+extra+
+    '<b class="rk-val">'+escapeHtml(rkValor(r, mk))+'</b>'+barra+'</li>';
+}
+/* pódio em degraus: 2º, 1º, 3º. O 1º é o mais alto. */
+function rkPodioHtml(l, mk, eu){
+  const topo = l.slice(0, 3); if(!topo.length) return "";
+  const ordem = topo.length >= 3 ? [topo[1], topo[0], topo[2]] : topo.length === 2 ? [topo[1], topo[0]] : [topo[0]];
+  return '<ol class="rk-podio" aria-label="Pódio">'+ordem.map(r=>{
+    const voce = eu && r.user_id === eu;
+    return '<li class="rk-pd rk-pd'+Math.min(r.pos, 3)+(voce ? ' rk-eu' : '')+'">'+
+      '<span class="rk-pd-nome"><span class="sr-only">'+r.pos+'º lugar: </span>'+escapeHtml(r.apelido)+(voce ? ' <small>(você)</small>' : '')+'</span>'+
+      '<b class="rk-pd-val">'+escapeHtml(rkValor(r, mk))+'</b>'+
+      '<span class="rk-pd-deg" aria-hidden="true">'+r.pos+'</span></li>';
+  }).join("")+'</ol>';
+}
+function rkResumoHtml(l, meu){
+  const cel = (rot, val, extra)=> '<div class="rk-res-c"><span class="rk-res-r">'+rot+'</span><b class="rk-res-v">'+val+'</b>'+(extra ? '<small>'+extra+'</small>' : '')+'</div>';
+  return '<div class="rk-resumo">'+
+    cel("Participantes", String(l.length), l.length === 1 ? "pessoa no quadro" : "pessoas no quadro")+
+    cel("Sua posição", meu ? meu.pos+"º" : "—", meu ? "de "+l.length : "ainda sem números")+
+    cel("Sua patente", meu ? escapeHtml(rkPatente(meu)) : "—", meu ? "nível "+meu.nivel+" de "+NIVEL_TIERS.length : "")+
+  '</div>';
+}
+/* escada das 10 patentes: quantas pessoas estão em cada uma e onde você está */
+function rkEscadaHtml(l, meu){
+  const por = {}; l.forEach(r=>{ const n = Math.max(1, Math.min(NIVEL_TIERS.length, Number(r.nivel) || 1)); por[n] = (por[n] || 0) + 1; });
+  const meuN = meu ? Math.max(1, Math.min(NIVEL_TIERS.length, Number(meu.nivel) || 1)) : 0;
+  const linhas = NIVEL_TIERS.map((t, i)=>({n:i + 1, nome:t.name})).reverse().map(t=>{
+    const q = por[t.n] || 0, eh = t.n === meuN;
+    return '<li class="rk-es'+(eh ? ' rk-es-eu' : '')+(q ? '' : ' vazio')+'" style="--pat:var(--t'+t.n+')">'+
+      '<span class="rk-es-n" aria-hidden="true">'+t.n+'</span><span class="rk-es-nome">'+escapeHtml(t.nome)+'</span>'+
+      '<span class="rk-es-q">'+(q ? q+(q === 1 ? " pessoa" : " pessoas") : "ninguém ainda")+'</span>'+
+      (eh ? '<span class="rk-es-voce">você está aqui</span>' : '')+'</li>';
+  }).join("");
+  return '<details class="rk-escada"'+(rkEscadaAberta ? ' open' : '')+'><summary>Escada de patentes</summary><ol class="rk-es-lista">'+linhas+'</ol></details>';
 }
 function renderRankingHoje(semBusca){
   const box = document.getElementById("hoje-ranking"); if(!box) return;
@@ -3603,7 +3646,7 @@ function renderRankingTreino(semBusca){
   const msg = (txt, extra)=>{ box.innerHTML = '<p class="hint rk-aviso">'+txt+'</p>'+(extra || ""); if(sub) sub.textContent = ""; };
   if(!N){ msg("O ranking aparece quando você está com a conta conectada e com internet."); return; }
   if(idade == null){ msg("Para participar do ranking, informe sua idade no Perfil. Ele é só para maiores de 18 anos."); return; }
-  if(idade < 18){ msg("O ranking dos amigos é só para maiores de 18 anos. Seus dados não aparecem para ninguém."); return; }
+  if(idade < 18){ msg("O ranking é só para maiores de 18 anos. Seus dados não aparecem para ninguém."); return; }
   if(rkOculto()){
     msg("Você está fora do ranking: seu apelido e seus números não aparecem para ninguém, e você também não vê o quadro.",
       '<button type="button" class="btn primary" id="rk-voltar">Voltar a aparecer no ranking</button>');
@@ -3618,15 +3661,19 @@ function renderRankingTreino(semBusca){
   }
   const l = rkOrdena(rkCache.linhas, rkMetrica), eu = rkEu;
   if(sub) sub.textContent = l.length + (l.length === 1 ? " pessoa" : " pessoas");
-  const meu = l.find(r=> r.user_id === eu);
+  const meu = l.find(r=> r.user_id === eu), max = rkMax(l, rkMetrica);
   box.innerHTML =
+    rkResumoHtml(l, meu)+
     '<div class="seg rk-seg" id="rk-seg" role="group" aria-label="Ordenar por">'+
       RK_METRICAS.map(m=> '<button type="button" data-rk="'+m.k+'" aria-pressed="'+(m.k === rkMetrica)+'" class="'+(m.k === rkMetrica ? "active" : "")+'">'+m.rot+'</button>').join("")+
     '</div>'+
-    '<ol class="rk-lista" id="rk-t-lista">'+l.map(r=> rkLinhaHtml(r, rkMetrica, eu)).join("")+'</ol>'+
+    rkPodioHtml(l, rkMetrica, eu)+
+    '<ol class="rk-lista" id="rk-t-lista" aria-label="Todos os participantes">'+l.map(r=> rkLinhaHtml(r, rkMetrica, eu, max)).join("")+'</ol>'+
+    rkEscadaHtml(l, meu)+
     '<p class="hint rk-pe">'+(meu ? 'Você está em '+meu.pos+'º lugar. ' : 'Seus números ainda não chegaram ao quadro; abra a aba Hoje com internet. ')+
     'Atualizado '+rkQuando(rkCache.em)+'. <button type="button" class="link-btn" id="rk-atualizar">Atualizar agora</button></p>';
   box.querySelectorAll("[data-rk]").forEach(b=> b.addEventListener("click", ()=>{ rkMetrica = b.dataset.rk; renderRankingTreino(true); }));
+  const esc = box.querySelector(".rk-escada"); if(esc) esc.addEventListener("toggle", ()=>{ rkEscadaAberta = esc.open; });
   const a = document.getElementById("rk-atualizar"); if(a) a.addEventListener("click", ()=> rkAtualizar(true));
 }
 function renderRankingConfig(){
