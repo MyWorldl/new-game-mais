@@ -9,6 +9,9 @@ const SEM_FEITOS = (() => { const d = new Date().getDay(); const antes = d === 0
 // exercícios do dia na rotina do seed (seg 3, ter 2, qua–sex 1): o teste não pode depender do dia em que roda
 const N_HOJE = ({ 1: 3, 2: 2 })[new Date().getDay()] || 1;
 const SEM_APOS = Math.min(SEM_FEITOS + 1, 5) / 5;
+// o seed só tem rotina de seg a sex: em sábado/domingo o app usa a rotina padrão do dia e os números de "hoje" mudam
+const FIM_DE_SEMANA = [0, 6].includes(new Date().getDay());
+if (FIM_DE_SEMANA) { console.log('SKIP hoje-v3: o seed só tem rotina de seg a sex; este teste roda nos dias úteis'); process.exit(0); }
 const URL_ = (process.argv[2] || 'http://localhost:8791') + '/index.html';
 const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('aria-selected'), id);
 (async () => {

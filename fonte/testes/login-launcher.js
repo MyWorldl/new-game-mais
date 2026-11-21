@@ -23,7 +23,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     await p.click('#ng-tab-novid'); await p.waitForTimeout(450);
     t(L + 'aba Atualizações abre e Início some', await v('ng-pn-novid') && !(await v('ng-login-e')) && (await p.getAttribute('#ng-tab-novid', 'aria-selected')) === 'true');
     const atual = await p.textContent('.ng-nov-atual');
-    t(L + 'mostra a atualização mais recente (versão 40) com etiquetas', /Mais recente/.test(atual) && /Versão 40/.test(atual) && (await p.$$('.ng-nov-atual .ng-nov-tag')).length >= 3, atual.slice(0, 80));
+    t(L + 'mostra a atualização mais recente (versão mais nova) com etiquetas', /Mais recente/.test(atual) && /Versão 41/.test(atual) && (await p.$$('.ng-nov-atual .ng-nov-tag')).length >= 3, atual.slice(0, 80));
     t(L + 'atualizações anteriores começam recolhidas', !(await v('ng-nov-ant')) && (await p.getAttribute('#ng-nov-mais', 'aria-expanded')) === 'false' && /Ver atualizações anteriores \(\d+\)/.test(await p.textContent('#ng-nov-mais')));
     await p.click('#ng-nov-mais'); await p.waitForTimeout(250);
     const n = await p.evaluate(() => document.querySelectorAll('#ng-nov-ant details').length);
