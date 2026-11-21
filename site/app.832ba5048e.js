@@ -741,11 +741,20 @@ function montaPorque(o){
     sit.restricoes.forEach(k=> porque.push(c.restricoes[k].aviso));
   }
   const nv = o.nivel;
-  if(nv && nv.trocas && nv.trocas.length){
-    const ex = nv.trocas.slice(0, 3).map(t=> t.de+" → "+t.para).join("; ");
-    porque.push("Nível "+(exp === "avancado" ? "avançado" : "intermediário")+": "+nv.trocas.length+" exercício"+(nv.trocas.length>1?"s":"")+" do plano ficaram mais exigentes ("+ex+(nv.trocas.length>3?"; e outros":"")+"). Se algum pesar demais, a lista de variações do treino devolve a versão mais simples.");
-  } else if(nv && nv.motivo === "situacao"){
-    porque.push("Você marcou "+(exp === "avancado" ? "avançado" : "intermediário")+", mas a situação que você informou (60+, retorno após pausa ou restrição articular) pede exercícios mais conservadores; por isso o plano não ganhou versões mais exigentes.");
+  if(nv && nv.grupo){
+    const rot = exp === "avancado" ? "avançado" : "intermediário";
+    const COMPL = {
+      padrao:"",
+      casa:" Foram escolhidos só exercícios que dão para fazer com o equipamento que você tem.",
+      menor:" Só entram exercícios liberados para a sua idade, e as séries seguem em 8 a 12 repetições (sem carga perto do máximo).",
+      situacao:" Como você informou 60+, retorno após pausa ou restrição articular, a subida é gradual (no máximo 1 por dia) e não traz de volta o que a sua situação pede para evitar."
+    };
+    if(nv.trocas && nv.trocas.length){
+      const ex = nv.trocas.slice(0, 3).map(t=> t.de+" → "+t.para).join("; ");
+      porque.push("Nível "+rot+": "+nv.trocas.length+" exercício"+(nv.trocas.length>1?"s":"")+" do plano ficaram mais exigentes ("+ex+(nv.trocas.length>3?"; e outros":"")+")."+COMPL[nv.grupo]+" Se algum pesar demais, a lista de variações do treino devolve a versão mais simples.");
+    } else if(nv.grupo === "situacao"){
+      porque.push("Você marcou "+rot+", mas a situação que você informou (60+, retorno após pausa ou restrição articular) limita as progressões; neste plano nenhum exercício podia subir sem contrariar essa adaptação. Conforme a situação mudar, use \"Refazer minha rotina\".");
+    }
   }
   const fc = o.foco;
   if(fc && fc.nomes && fc.nomes.length && fc.aplicado)
@@ -755,39 +764,59 @@ function montaPorque(o){
     : "Objetivo manter e ficar ativo: o foco é criar o hábito. Treinou, está valendo. Ajuste as cargas aos poucos.");
   return porque;
 }
-/* Nível (v. ng-modular-42): quem se declara intermediário ou avançado recebe versões mais exigentes de alguns exercícios do plano inicial
-   (tabela em fonte/dados/planos.json › niveis). Só 18+, só na academia, e nunca junto de 60+, retorno após pausa ou restrição articular.
-   Troca no máximo N exercícios por dia, nunca cria exercício repetido no dia e respeita o filtro de idade/nível da base. Rascunho sem revisão profissional. */
+/* Nível no plano inicial: intermediário e avançado recebem versões mais exigentes (tabelas em planos.json › niveis). TODOS os grupos sobem de nível, cada um pela tabela que combina com a situação:
+   academia = intermediario/avancado; casa e pouco equipamento = casa (só fichas com esse local); menor de 18 = a mesma tabela, só com fichas liberadas para a idade e sem séries de carga máxima;
+   60+, retorno e restrição articular = situacao (progressões conservadoras, 1 por dia), sem reintroduzir nada que a situação troca ou evita. */
 function adaptarNivelNaRotina(rotina, o){
   const cfg = BASE_PLANOS && BASE_PLANOS.niveis;
-  const vazio = {rotina, trocas:[], motivo:null};
+  const vazio = {rotina, trocas:[], motivo:null, grupo:null};
   if(!cfg || (o.exp !== "intermediario" && o.exp !== "avancado")) return vazio;
-  if(o.menor) return {rotina, trocas:[], motivo:"menor"};
-  const sit = o.sit || {};
-  if(sit.idoso || sit.retorno || (sit.restricoes && sit.restricoes.length)) return {rotina, trocas:[], motivo:"situacao"};
-  if(o.local !== "academia") return {rotina, trocas:[], motivo:"local"};
-  const nivel = cfg[o.exp], base = cfg.intermediario;
-  if(!nivel || !base) return vazio;
+  const sit = o.sit || {}, restr = sit.restricoes || [];
+  const comSit = !!(sit.idoso || sit.retorno || restr.length);
+  const nivel = cfg[o.exp];
+  if(!nivel) return vazio;
+  const casa = o.local !== "academia";
+  let grupo, tabelas, maxPorDia;
+  const bloq = new Set();   // nomes que a situação troca ou evita: nunca entram como destino (nem como origem, para não desfazer a troca de segurança)
+  if(comSit && cfg.situacao){
+    grupo = "situacao"; tabelas = [cfg.situacao]; maxPorDia = cfg.situacao.maxPorDia || 1;
+    if(sit.idoso && BASE_PLANOS.idoso) Object.keys(BASE_PLANOS.idoso.trocas || {}).forEach(n=> bloq.add(n));
+    restr.forEach(k=>{ if(BASE_PLANOS.restricoes && BASE_PLANOS.restricoes[k]) Object.keys(BASE_PLANOS.restricoes[k].trocas || {}).forEach(n=> bloq.add(n)); });
+    const ev = cfg.situacao.evita || {};
+    (sit.idoso ? ["idoso"] : []).concat(restr).forEach(k=> (ev[k] || []).forEach(n=> bloq.add(n)));
+  } else if(casa && cfg.casa){
+    grupo = o.menor ? "menor" : "casa"; tabelas = [cfg.casa]; maxPorDia = nivel.maxPorDia || 2;
+  } else if(o.menor){
+    grupo = "menor"; tabelas = [cfg.intermediario]; maxPorDia = nivel.maxPorDia || 2;
+  } else {
+    grupo = "padrao"; tabelas = o.exp === "avancado" ? [cfg.avancado, cfg.intermediario] : [cfg.intermediario]; maxPorDia = nivel.maxPorDia || 2;
+  }
+  if(!tabelas.every(Boolean)) return vazio;
+  if(o.menor) maxPorDia = Math.min(maxPorDia, 2);
+  const cautela = grupo === "situacao" || grupo === "menor";   // sem séries perto da carga máxima: só mexe nas repetições quando a faixa é de 8 ou mais
+  const repsOk = r=> !cautela || !/^(5-8|6-10)$/.test(String(r));
   const out = JSON.parse(JSON.stringify(rotina)), trocas = [];
   DAYS.forEach(k=>{
     const d = out[k]; if(!d || !d.ativo || !d.exercicios) return;
     const nomes = new Set(d.exercicios.map(e=> e.nome));
     let feitas = 0;
     d.exercicios.forEach(ex=>{
-      if(feitas >= (nivel.maxPorDia || 2)) return;
-      const alvo = (o.exp === "avancado" && nivel.trocas && nivel.trocas[ex.nome]) || (base.trocas && base.trocas[ex.nome]);
-      if(!alvo || nomes.has(alvo) || !exercicioAdequadoAoPerfil(alvo, o.p)) return;
+      if(feitas >= maxPorDia || bloq.has(ex.nome)) return;
+      let alvo = null, tab = null;
+      for(const t of tabelas){ if(t.trocas && t.trocas[ex.nome]){ alvo = t.trocas[ex.nome]; tab = t; break; } }
+      if(!alvo || nomes.has(alvo) || bloq.has(alvo) || !exercicioAdequadoAoPerfil(alvo, o.p)) return;
       const f = fichaDoApp(alvo);
-      const reps = (nivel.reps && nivel.reps[alvo]) || (base.reps && base.reps[alvo]) || ex.reps;
+      if(f && Array.isArray(f.local) && f.local.length && f.local.indexOf(o.local) < 0) return;   // só o que dá para fazer com o equipamento do usuário
+      const novaReps = (tab.reps && tab.reps[alvo]) || null;
       trocas.push({de:ex.nome, para:alvo, dia:k});
       nomes.delete(ex.nome); nomes.add(alvo);
-      ex.nome = alvo; ex.reps = reps; delete ex.nota;
+      ex.nome = alvo; if(novaReps && repsOk(novaReps)) ex.reps = novaReps; delete ex.nota;
       if(f && f.musculos && f.musculos.length && f.musculos.every(m=> MUSCLE_LANDMARKS[m])) ex.musculos = f.musculos.slice();
       ex.metaReps = metaRepsDe(ex.series, ex.reps, ex.metaReps);
       feitas++;
     });
   });
-  return {rotina:out, trocas, motivo:null};
+  return {rotina:out, trocas, motivo:null, grupo};
 }
 const SPLIT_PERNAS = "A–F (Pernas e glúteos 3×)";
 function planoInicial(p){
@@ -827,7 +856,7 @@ function planoInicial(p){
   const foco = aplicarFoco(comSit, {p, exp, local, semSubir, proibidos, maxEx: tcfg.maxExercicios});
   const rotina = equilibrarVolumeInicial(comSit, exp, semSubir);
   const porque = montaPorque({exp, split, n, pedidos, local, menor, objetivo, sit, maxSes, rec:Math.min(EXP_SESSOES_REC[exp], maxSes), foco:{nomes:focoNomes(p), adicionados:foco.adicionados, aplicado:foco.musculos.length > 0}, nivel:nv});
-  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit, foco, nivel:nv.trocas};
+  return {rotina, split, sessoes:n, exp, local, porque, situacoes:sit, foco, nivel:nv.trocas, nivelGrupo:nv.grupo};
 }
 
 /* v98: a rotina inicial vem do perfil (experiência, dias, equipamento, objetivo e idade). Sem perfil: Full Body 3× (o que o app recomenda para iniciantes). */

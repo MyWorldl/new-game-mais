@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-43", data: "21/11/2026", titulo: "Todo mundo sobe de nível", itens: [
+      { t: "melhoria", x: "Quem treina em casa ou com pouco equipamento, menores de 18, 60+, retorno após pausa e restrição articular também passam a receber exercícios mais exigentes quando se declaram intermediário ou avançado, cada grupo com a progressão que combina com a situação." },
+      { t: "melhoria", x: "Para 60+, retorno e restrição articular a subida é gradual (1 exercício por dia) e nunca traz de volta o que a sua situação pede para evitar; menores só recebem exercícios liberados para a idade e sem séries de carga máxima." },
+      { t: "melhoria", x: "O texto \"Por que esse plano\" explica o que subiu de nível e por quê." }
+    ] },
     { v: "ng-modular-42", data: "21/11/2026", titulo: "Troca sem repetir exercício e plano por nível", itens: [
       { t: "correcao", x: "Ao trocar um exercício no treino, a lista de variações não oferece mais o que já está em outro exercício do mesmo dia (ex.: Cadeira abdutora no lugar do Hip thrust quando ela já estava no treino)." },
       { t: "melhoria", x: "Quem se declara intermediário ou avançado (18+, na academia) agora recebe versões mais exigentes de alguns exercícios no plano, como Barra fixa, Remada curvada, Supino com pausa e Hack squat." },
