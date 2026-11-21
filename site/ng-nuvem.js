@@ -136,6 +136,12 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-48", data: "21/11/2026", titulo: "Ranking redesenhado", itens: [
+      { t: "novo", x: "O “Ranking dos amigos” agora se chama só “Ranking”. No topo ficam o número de participantes, a sua posição e a sua patente." },
+      { t: "novo", x: "Pódio em degraus com os três primeiros, e uma lista com barra proporcional ao líder. Em telas largas aparecem também as outras duas métricas em colunas." },
+      { t: "novo", x: "Escada de patentes: as 10 patentes do app (Novato até Titã), quantas pessoas estão em cada uma e onde você está." },
+      { t: "melhoria", x: "Tudo continua opcional: você sai do ranking em Configurações, e menores de 18 anos seguem fora do quadro." }
+    ] },
     { v: "ng-modular-47", data: "21/11/2026", titulo: "Séries, unilaterais, análise e volume", itens: [
       { t: "novo", x: "Medalhas das séries: cada série tem uma medalha própria, da maior repetição para a menor (empate: vale a mais tarde). Ao lado vem +n ou −n comparando com a mesma série do último treino, para você se superar." },
       { t: "correcao", x: "Exercícios unilaterais (afundo, passada, búlgaro, rosca alternada…): a meta agora diz “por perna/lado/braço” e o total conta os dois lados. Registre as repetições de um lado; as de 12 por perna são 24 no total. Sua rotina atual foi ajustada automaticamente." },

@@ -1791,3 +1791,53 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .sw-feito{ background:var(--accent-fg,var(--accent)) !important; }
 .sw-plano{ background:color-mix(in srgb, var(--teal) 38%, var(--surface)) !important; }
 .volA-row.foco .volA-done{ box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 7%, var(--surface-2)); }
+
+/* 51. Ranking redesenhado: resumo, pódio em degraus (o elemento de destaque), lista com barra e escada de patentes */
+.rk-resumo{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-block-end:12px; }
+.rk-res-c{ display:flex; flex-direction:column; gap:2px; min-inline-size:0; padding:10px 12px; border:1px solid var(--line); border-radius:14px; background:var(--surface-2); }
+.rk-res-r{ font-size:var(--fs-xs,12px); color:var(--ink-soft); }
+.rk-res-v{ font:700 clamp(20px,5.4vw,26px)/1.1 'Barlow Condensed',sans-serif; color:var(--ink); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.rk-res-c small{ font-size:var(--fs-xs,12px); color:var(--muted); }
+.rk-podio{ list-style:none; margin:16px 0 14px; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; gap:6px; }
+.rk-podio:has(> :nth-child(2):last-child){ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.rk-podio:has(> :only-child){ grid-template-columns:minmax(0,220px); justify-content:center; }
+.rk-pd{ --med:var(--muted); display:grid; grid-template-rows:auto auto 1fr; justify-items:center; text-align:center; gap:2px; min-inline-size:0; }
+.rk-pd1{ --med:#f5c542; } .rk-pd2{ --med:#c9d1d9; } .rk-pd3{ --med:#d9965b; }
+.rk-pd-nome{ max-inline-size:100%; font:700 var(--fs-md,16px)/1.15 'Barlow Condensed',sans-serif; color:var(--ink); overflow-wrap:anywhere; padding-inline:2px; }
+.rk-pd-nome small{ font-weight:600; color:var(--ink-soft); }
+.rk-pd-val{ font:700 11px 'IBM Plex Mono',ui-monospace,monospace; color:var(--ink-soft); font-variant-numeric:tabular-nums; margin-block-end:6px; overflow-wrap:anywhere; }
+.rk-pd-deg{ inline-size:100%; display:grid; place-items:start center; padding-block-start:8px; border-radius:12px 12px 0 0; border:1px solid color-mix(in srgb, var(--med) 55%, var(--line)); border-block-end:0;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--med) 78%, var(--surface-2)), color-mix(in srgb, var(--med) 22%, var(--surface-2)));
+  font:800 30px/1 'Barlow Condensed',sans-serif; color:#1a1300; }
+.rk-pd1 .rk-pd-deg{ block-size:92px; } .rk-pd2 .rk-pd-deg{ block-size:68px; } .rk-pd3 .rk-pd-deg{ block-size:52px; }
+.rk-pd.rk-eu .rk-pd-deg{ outline:2px solid var(--accent); outline-offset:-2px; }
+.rk-lista{ margin-block-start:4px; }
+.rk-item.rk-comb{ grid-template-columns:40px minmax(0,1fr) auto; grid-template-areas:"pos nome val" "pos pat pat" ". barra barra"; row-gap:4px; }
+.rk-item.rk-comb > :is(.rk-pos,.rk-med){ grid-area:pos; align-self:start; }
+.rk-item.rk-comb > .rk-nome{ grid-area:nome; }
+.rk-item.rk-comb > .rk-val{ grid-area:val; }
+.rk-item.rk-comb > .rk-pat{ grid-area:pat; }
+.rk-item.rk-comb > .rk-barra{ grid-area:barra; }
+.rk-item.rk-comb > .rk-extra{ display:none; }
+.rk-pat{ display:inline-flex; align-items:center; gap:6px; justify-self:start; font-size:var(--fs-xs,12px); color:var(--ink-soft); }
+.rk-pat::before{ content:""; inline-size:9px; block-size:9px; border-radius:50%; background:var(--pat); box-shadow:0 0 0 2px color-mix(in srgb, var(--pat) 30%, transparent); }
+.rk-barra{ display:block; block-size:6px; border-radius:99px; background:var(--surface); box-shadow:inset 0 0 0 1px var(--line); overflow:hidden; }
+.rk-barra i{ display:block; block-size:100%; border-radius:99px; background:var(--accent); }
+.rk-item.rk-eu .rk-barra i{ background:var(--accent-fg,var(--accent)); }
+@media (min-width:720px){
+  .rk-item.rk-comb{ grid-template-columns:40px minmax(120px,1fr) minmax(0,1.4fr) 150px auto; grid-template-areas:"pos nome barra extra val" "pos pat barra extra val"; column-gap:14px; }
+  .rk-item.rk-comb > .rk-extra{ grid-area:extra; display:grid; gap:2px; font:600 var(--fs-xs,12px) 'IBM Plex Mono',ui-monospace,monospace; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .rk-item.rk-comb > .rk-barra{ align-self:center; grid-row:1 / span 2; }
+  .rk-podio{ max-inline-size:560px; margin-inline:auto; gap:10px; }
+  .rk-pd1 .rk-pd-deg{ block-size:110px; } .rk-pd2 .rk-pd-deg{ block-size:80px; } .rk-pd3 .rk-pd-deg{ block-size:60px; }
+}
+.rk-escada{ margin-block-start:14px; border:1px solid var(--line); border-radius:14px; background:var(--surface-2); }
+.rk-escada > summary{ display:flex; align-items:center; min-block-size:44px; padding-inline:14px; font-weight:700; color:var(--ink); cursor:pointer; }
+.rk-es-lista{ list-style:none; margin:0; padding:0 12px 10px; display:grid; gap:4px; }
+.rk-es{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; align-items:center; gap:4px 10px; padding:6px 8px; border-radius:10px; border-inline-start:4px solid var(--pat); }
+.rk-es.vazio .rk-es-nome, .rk-es.vazio .rk-es-n{ color:var(--ink-soft); font-weight:600; }
+.rk-es-n{ font:800 16px 'Barlow Condensed',sans-serif; color:var(--ink); text-align:center; }
+.rk-es-nome{ font-weight:700; color:var(--ink); min-inline-size:0; overflow-wrap:anywhere; }
+.rk-es-q{ font-size:var(--fs-xs,12px); color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+.rk-es-eu{ background:color-mix(in srgb, var(--accent) 12%, var(--surface-2)); box-shadow:inset 0 0 0 1px var(--accent); }
+.rk-es-voce{ grid-column:2 / -1; justify-self:start; font-size:var(--fs-xs,12px); font-weight:700; color:var(--accent-fg,var(--accent)); }
