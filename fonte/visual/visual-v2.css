@@ -1841,3 +1841,9 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .rk-es-q{ font-size:var(--fs-xs,12px); color:var(--ink-soft); font-variant-numeric:tabular-nums; }
 .rk-es-eu{ background:color-mix(in srgb, var(--accent) 12%, var(--surface-2)); box-shadow:inset 0 0 0 1px var(--accent); }
 .rk-es-voce{ grid-column:2 / -1; justify-self:start; font-size:var(--fs-xs,12px); font-weight:700; color:var(--accent-fg,var(--accent)); }
+
+/* 52 — Toque sem "pulo" nos controles de uso frequente.
+   Botões, abas, chips e a barra inferior voltam ao repouso com ease-out, sem overshoot (a cada toque o controle "passava" do tamanho
+   e voltava). O spring (--ease-spring) continua só no que comemora ou entra em cena (patente, baú, folhas, amostras de tema). */
+:is(.btn, .tab-btn, .biblio-ex-chip, .metric-tab, .seg button, .qc-swap, .cdp-chip, .chip-btn, .carga-row, .bottomnav .more-btn){ transition-timing-function:var(--ease); }
+:is(.btn, .bottomnav .tab-btn, .bottomnav .more-btn) svg{ transition-timing-function:var(--ease); }

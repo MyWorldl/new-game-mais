@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-49", data: "21/11/2026", titulo: "Toques mais firmes", itens: [
+      { t: "melhoria", x: "Botões, abas, chips e a barra de baixo agora voltam ao repouso de forma suave depois do toque, sem o “pulinho” que passava do tamanho e voltava. O efeito de salto continua só nas comemorações, como subir de patente e abrir o baú." },
+      { t: "melhoria", x: "O visual segue o mesmo: mudou apenas a curva do movimento, em todas as abas e nas folhas de registro do treino." },
+      { t: "melhoria", x: "Com “reduzir movimento” ligado no aparelho, esses controles continuam sem animação nenhuma." }
+    ] },
     { v: "ng-modular-48", data: "21/11/2026", titulo: "Ranking redesenhado", itens: [
       { t: "novo", x: "O “Ranking dos amigos” agora se chama só “Ranking”. No topo ficam o número de participantes, a sua posição e a sua patente." },
       { t: "novo", x: "Pódio em degraus com os três primeiros, e uma lista com barra proporcional ao líder. Em telas largas aparecem também as outras duas métricas em colunas." },
