@@ -56,6 +56,23 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
     t(L + 'escolha sobrevive ao recarregar', !/Iogurte/.test(await lista()) && Array.isArray((await salvo()).meus));
 
+    // favoritos: estrela só nos alimentos marcados; grava em settings.cardapio.favoritos e sobrevive ao recarregar
+    await p.click('[data-cdp="meus"]'); await p.waitForTimeout(300);
+    const estrela = p.locator('[data-meus="fav"][data-v="salmao"]');
+    t(L + 'estrela de favorito aparece nos alimentos marcados, desligada de início', await estrela.count() === 1 && await estrela.getAttribute('aria-pressed') === 'false' && /Favorito: Salmão/.test(await estrela.getAttribute('aria-label')));
+    const eb = await estrela.boundingBox();
+    t(L + 'estrela tem alvo de toque adequado (≥ 24 px; 44 px no toque)', eb && eb.width >= 24 && eb.height >= 24, JSON.stringify(eb));
+    await estrela.click(); await p.waitForTimeout(250);
+    t(L + 'tocar na estrela liga o favorito e grava', await p.locator('[data-meus="fav"][data-v="salmao"]').getAttribute('aria-pressed') === 'true' && ((await salvo()).favoritos || []).includes('salmao'));
+    t(L + 'tocar na estrela não desmarca o alimento', await p.locator('[data-meus="alimento"][data-v="salmao"]').getAttribute('aria-pressed') === 'true');
+    t(L + 'anuncia o favorito no aviso do pop-up', /Favorito: Salmão/.test(await p.locator('[data-meus-msg]').innerText()));
+    await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
+    await p.click('[data-cdp="meus"]'); await p.waitForTimeout(300);
+    t(L + 'favorito sobrevive ao recarregar', ((await salvo()).favoritos || []).includes('salmao') && await p.locator('[data-meus="fav"][data-v="salmao"]').getAttribute('aria-pressed') === 'true');
+    await p.locator('[data-meus="fav"][data-v="salmao"]').click(); await p.waitForTimeout(200);
+    t(L + 'tocar de novo tira o favorito', !((await salvo()).favoritos || []).includes('salmao'));
+    await p.click('[data-meus="fechar"]'); await p.waitForTimeout(300);
+
     // não deixa desmarcar tudo
     await p.click('[data-cdp="meus"]'); await p.waitForTimeout(300);
     for (const g of ['prot', 'carb', 'leg', 'fruit', 'veg', 'fat']) { await p.click('[data-meus="grupo-nenhum"][data-v="' + g + '"]'); await p.waitForTimeout(80); }

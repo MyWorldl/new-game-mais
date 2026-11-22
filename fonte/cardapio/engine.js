@@ -162,13 +162,43 @@ function alimentosDisponiveis(cfg) {
   for (var id in FOODS) if (allowed(id, c)) out.push(id);
   return out;
 }
+/* Retira um alimento de "Meus alimentos" (atalho "Não quero mais este" do pop-up de troca). Devolve {ok, meus} ou {ok:false, motivo}.
+   Recusa quando sobraria menos de 2 alimentos da mesma categoria (o cardápio ficaria repetitivo) ou nenhuma proteína concentrada. */
+function retiraAlimento(cfg, id) {
+  var f = FOODS[id];
+  if (!f) return { ok: false, motivo: 'desconhecido' };
+  var disp = alimentosDisponiveis(cfg);
+  var marcados = cfg.meus ? disp.filter(function (i) { return cfg.meus.indexOf(i) >= 0; }) : disp.slice();
+  if (marcados.indexOf(id) < 0) return { ok: false, motivo: 'ja_fora' };
+  var restantes = marcados.filter(function (i) { return i !== id; });
+  if (restantes.filter(function (i) { return FOODS[i].role === f.role; }).length < 2) return { ok: false, motivo: 'categoria', role: f.role };
+  if (validaRestricoes(Object.assign({}, cfg, { meus: restantes })).semProteina) return { ok: false, motivo: 'proteina', role: f.role };
+  return { ok: true, meus: restantes };
+}
+
+/* ---------- FAVORITOS ----------
+   cfg.favs = [ids]. A estrela SÓ muda a ordem: o favorito vem primeiro na lista de onde o motor escolhe (e na lista de alternativas da troca).
+   Roda depois de allowed(), então favorito nunca vence restrição (vegano, sem lactose, menor de idade, Meus alimentos). Não muda a frequência nem tira variedade. */
+function normalizaFavs(lista) {
+  if (!Array.isArray(lista)) return [];
+  var out = [];
+  lista.forEach(function (id) { if (typeof id === 'string' && FOODS[id] && out.indexOf(id) < 0) out.push(id); });
+  return out;
+}
+function ordFav(lista, cfg) {
+  var f = cfg && cfg.favs;
+  if (!f || !f.length) return lista;
+  var a = [], b = [];
+  lista.forEach(function (id) { (f.indexOf(id) >= 0 ? a : b).push(id); });
+  return a.concat(b);
+}
 function qty(id, g) {
   var u = FOODS[id].unit;
   if (u) return Math.max(u[0], Math.round(g / u[0]) * u[0]);
   return Math.max(5, Math.round(g / 5) * 5);
 }
 function prefList(slot, cfg) {
-  return PREF[slot].filter(function (id) { return allowed(id, cfg); });
+  return ordFav(PREF[slot].filter(function (id) { return allowed(id, cfg); }), cfg);
 }
 function rolePool(role, cfg, slot) {
   var out = [];
@@ -185,7 +215,7 @@ function rolePool(role, cfg, slot) {
   }
   if (role === 'fruit' && cfg.style === 'lowc') out = out.filter(function (id) { return ['banana', 'manga', 'uva'].indexOf(id) < 0; });
   if (role === 'veg' && cfg.style === 'lowc') out = out.filter(function (id) { return ['beterraba', 'abobora'].indexOf(id) < 0; });
-  return out;
+  return ordFav(out, cfg);
 }
 function boosters(cfg, slot, used) {
   var main = slot === 'almoco' || slot === 'jantar';
@@ -332,7 +362,7 @@ function alternativasIds(role, slot, cfg) {
   } else {
     out = rolePool(role, c, slot);
   }
-  return out;
+  return ordFav(out, cfg);
 }
 function podeTrocar(de, para, slot, cfg) {
   var a = FOODS[de], b = FOODS[para];
@@ -470,4 +500,4 @@ function fmtQty(it) {
   }
   return it.g + (f.liq ? ' ml' : ' g');
 }
-export { normalizaMeus, alimentosDisponiveis, FOODS, OBJ, STYLE, ROUT, SLOT, DAYS, TRAIN, MEALS_N, HORARIOS, nRefeicoes, mealsOf, horarioDe, validaRestricoes, targets, dayTargets, buildDay, shopping, fmtQty, allowed, alternativasIds, podeTrocar, normalizaTrocas, desfazCadeia, registraTroca };
+export { normalizaMeus, retiraAlimento, normalizaFavs, alimentosDisponiveis, FOODS, OBJ, STYLE, ROUT, SLOT, DAYS, TRAIN, MEALS_N, HORARIOS, nRefeicoes, mealsOf, horarioDe, validaRestricoes, targets, dayTargets, buildDay, shopping, fmtQty, allowed, alternativasIds, podeTrocar, normalizaTrocas, desfazCadeia, registraTroca };
