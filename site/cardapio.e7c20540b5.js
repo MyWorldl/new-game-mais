@@ -158,15 +158,49 @@ function alimentosDisponiveis(cfg) {
   for (var id in FOODS) if (allowed(id, c)) out.push(id);
   return out;
 }
+function retiraAlimento(cfg, id) {
+  var f = FOODS[id];
+  if (!f) return { ok: false, motivo: "desconhecido" };
+  var disp = alimentosDisponiveis(cfg);
+  var marcados = cfg.meus ? disp.filter(function(i) {
+    return cfg.meus.indexOf(i) >= 0;
+  }) : disp.slice();
+  if (marcados.indexOf(id) < 0) return { ok: false, motivo: "ja_fora" };
+  var restantes = marcados.filter(function(i) {
+    return i !== id;
+  });
+  if (restantes.filter(function(i) {
+    return FOODS[i].role === f.role;
+  }).length < 2) return { ok: false, motivo: "categoria", role: f.role };
+  if (validaRestricoes(Object.assign({}, cfg, { meus: restantes })).semProteina) return { ok: false, motivo: "proteina", role: f.role };
+  return { ok: true, meus: restantes };
+}
+function normalizaFavs(lista) {
+  if (!Array.isArray(lista)) return [];
+  var out = [];
+  lista.forEach(function(id) {
+    if (typeof id === "string" && FOODS[id] && out.indexOf(id) < 0) out.push(id);
+  });
+  return out;
+}
+function ordFav(lista, cfg) {
+  var f = cfg && cfg.favs;
+  if (!f || !f.length) return lista;
+  var a = [], b = [];
+  lista.forEach(function(id) {
+    (f.indexOf(id) >= 0 ? a : b).push(id);
+  });
+  return a.concat(b);
+}
 function qty(id, g) {
   var u = FOODS[id].unit;
   if (u) return Math.max(u[0], Math.round(g / u[0]) * u[0]);
   return Math.max(5, Math.round(g / 5) * 5);
 }
 function prefList(slot, cfg) {
-  return PREF[slot].filter(function(id) {
+  return ordFav(PREF[slot].filter(function(id) {
     return allowed(id, cfg);
-  });
+  }), cfg);
 }
 function rolePool(role, cfg, slot) {
   var out = [];
@@ -199,7 +233,7 @@ function rolePool(role, cfg, slot) {
   if (role === "veg" && cfg.style === "lowc") out = out.filter(function(id2) {
     return ["beterraba", "abobora"].indexOf(id2) < 0;
   });
-  return out;
+  return ordFav(out, cfg);
 }
 function boosters(cfg, slot, used) {
   var main = slot === "almoco" || slot === "jantar";
@@ -368,7 +402,7 @@ function alternativasIds(role, slot, cfg) {
   } else {
     out = rolePool(role, c, slot);
   }
-  return out;
+  return ordFav(out, cfg);
 }
 function podeTrocar(de, para, slot, cfg) {
   var a = FOODS[de], b = FOODS[para];
@@ -835,8 +869,10 @@ function normalizaCfg(settings) {
     nref: CDP_NREF.indexOf(Number(c.nref)) >= 0 ? Number(c.nref) : null,
     // null = padrão da rotina
     trocas: normalizaTrocas(c.trocas),
-    meus: normalizaMeus(c.meus)
+    meus: normalizaMeus(c.meus),
     // null = automático (todos os alimentos); lista = só os que a pessoa marcou
+    favs: normalizaFavs(c.favoritos)
+    // estrela em Meus alimentos: só muda a ordem em que o motor escolhe (ver engine.js, FAVORITOS)
   };
 }
 function motorDe(e) {
@@ -851,6 +887,7 @@ function motorDe(e) {
     nref: cfg.nref,
     trocas: cfg.trocas || [],
     meus: cfg.meus || null,
+    favs: cfg.favs || [],
     ...Object.fromEntries(CDP_RESTR.map((i) => [CDP_RESTR_MOTOR[i[0]], !!(cfg.restricoes && cfg.restricoes[i[0]])]))
   };
 }
@@ -1002,7 +1039,7 @@ function montaPopup(e, h, sel) {
   const escopoHtml = [["dia", "Só em " + DAYS[dia]], ["todos", "Todos os dias em que aparece"]].map((o) => '<button type="button" class="cdp-chip' + (escopo === o[0] ? " on" : "") + '" data-pop="escopo" data-v="' + o[0] + '" aria-pressed="' + (escopo === o[0]) + '">' + escapeHtml(o[1]) + "</button>").join("");
   return {
     sel: { slot: refeicao.slot, itemId: item.id, escopo },
-    html: '<h2>Trocar alimentos</h2><div class="sub">' + escapeHtml(DAYS[dia]) + " (" + (cur.train ? "dia de treino" : "dia de descanso") + '). Escolha a refeição, toque no alimento e depois na alternativa. A porção se ajusta para manter sua meta.</div><div class="cdp-total" aria-label="Total do dia">' + total + '</div><div class="cdp-pop-sec"><span class="cdp-lbl">1. Refeição</span><div class="cdp-chips" role="group" aria-label="Refeição">' + chipsRef + '</div></div><div class="cdp-pop-sec"><span class="cdp-lbl">2. Alimento que quer trocar</span><div class="cdp-pop-list" role="group" aria-label="Alimentos da refeição">' + itens + "</div>" + sugerido + '</div><div class="cdp-pop-sec"><span class="cdp-lbl">3. Trocar por</span><div class="cdp-pop-list" role="group" aria-label="Alternativas para ' + escapeHtml(nomeLimpo(FOODS[item.id])) + '">' + (altHtml || '<div class="cdp-note">Não há outra alternativa para este alimento com os seus filtros.</div>') + '</div></div><div class="cdp-pop-sec"><span class="cdp-lbl">Vale para</span><div class="cdp-chips" role="group" aria-label="Alcance da troca">' + escopoHtml + '</div></div><div class="cdp-note cdp-pop-msg" role="status" aria-live="polite" data-pop-msg></div><div class="modal-actions">' + (nTodas ? '<button type="button" class="btn" data-pop="restaurar">Restaurar todas (' + nTodas + ")</button>" : "") + '<button type="button" class="btn primary" data-pop="fechar">Pronto</button></div>'
+    html: '<h2>Trocar alimentos</h2><div class="sub">' + escapeHtml(DAYS[dia]) + " (" + (cur.train ? "dia de treino" : "dia de descanso") + '). Escolha a refeição, toque no alimento e depois na alternativa. A porção se ajusta para manter sua meta.</div><div class="cdp-total" aria-label="Total do dia">' + total + '</div><div class="cdp-pop-sec"><span class="cdp-lbl">1. Refeição</span><div class="cdp-chips" role="group" aria-label="Refeição">' + chipsRef + '</div></div><div class="cdp-pop-sec"><span class="cdp-lbl">2. Alimento que quer trocar</span><div class="cdp-pop-list" role="group" aria-label="Alimentos da refeição">' + itens + "</div>" + sugerido + '</div><div class="cdp-pop-sec"><span class="cdp-lbl">3. Trocar por</span><div class="cdp-pop-list" role="group" aria-label="Alternativas para ' + escapeHtml(nomeLimpo(FOODS[item.id])) + '">' + (altHtml || '<div class="cdp-note">Não há outra alternativa para este alimento com os seus filtros.</div>') + '</div></div><div class="cdp-pop-sec"><span class="cdp-lbl">Vale para</span><div class="cdp-chips" role="group" aria-label="Alcance da troca">' + escopoHtml + '</div></div><div class="cdp-pop-sec"><span class="cdp-lbl">Não quer mais?</span><div class="cdp-note"><button type="button" class="btn small" data-pop="naoquero" data-v="' + item.id + '">Não quero mais este</button> Tira <b>' + nomeHtml(item.id) + '</b> do cardápio, das trocas e da lista de compras. Para voltar, marque o alimento em Meus alimentos.</div></div><div class="cdp-note cdp-pop-msg" role="status" aria-live="polite" data-pop-msg></div><div class="modal-actions">' + (nTodas ? '<button type="button" class="btn" data-pop="restaurar">Restaurar todas (' + nTodas + ")</button>" : "") + '<button type="button" class="btn primary" data-pop="fechar">Pronto</button></div>'
   };
 }
 var CDP_GRUPOS_MEUS = [["Proteínas", "prot"], ["Carboidratos", "carb"], ["Leguminosas", "leg"], ["Frutas", "fruit"], ["Vegetais", "veg"], ["Gorduras", "fat"]];
@@ -1016,9 +1053,13 @@ function montaPopupMeus(e, h) {
     const ids = disp.filter((id) => FOODS[id].role === g[1]);
     if (!ids.length) return "";
     const n = ids.filter((id) => marcados.indexOf(id) >= 0).length;
+    const favs = e.cfg.favs || [];
     const chips = ids.map((id) => {
       const on = marcados.indexOf(id) >= 0;
-      return '<button type="button" class="cdp-chip' + (on ? " on" : "") + '" data-meus="alimento" data-v="' + id + '" aria-pressed="' + on + '">' + nomeHtml(id) + "</button>";
+      const chip = '<button type="button" class="cdp-chip' + (on ? " on" : "") + '" data-meus="alimento" data-v="' + id + '" aria-pressed="' + on + '">' + nomeHtml(id) + "</button>";
+      if (!on) return chip;
+      const fav = favs.indexOf(id) >= 0;
+      return '<span class="cdp-chipfav">' + chip + '<button type="button" class="cdp-star' + (fav ? " on" : "") + '" data-meus="fav" data-v="' + id + '" aria-pressed="' + fav + '" aria-label="Favorito: ' + nomeHtml(id) + '"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z"/></svg></button></span>';
     }).join("");
     return '<div class="cdp-pop-sec"><span class="cdp-lbl">' + g[0] + " <small>(" + n + " de " + ids.length + ')</small></span><div class="cdp-chips" role="group" aria-label="' + g[0] + '">' + chips + '</div><div class="cdp-note"><button type="button" class="btn small" data-meus="grupo-todos" data-v="' + g[1] + '">Marcar todos</button> <button type="button" class="btn small" data-meus="grupo-nenhum" data-v="' + g[1] + '">Limpar</button></div></div>';
   }).join("");
@@ -1026,7 +1067,7 @@ function montaPopupMeus(e, h) {
   return {
     marcados: marcados.length,
     total: disp.length,
-    html: '<h2>Meus alimentos</h2><div class="sub">Marque só o que você come. O cardápio e a lista de compras usam apenas esses alimentos; o que ficar desmarcado não aparece. Os filtros de jeito de comer e restrições continuam valendo.</div><div class="cdp-note" role="status" aria-live="polite" data-meus-msg>' + marcados.length + " de " + disp.length + " alimentos marcados.</div>" + avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join("") + grupos + '<div class="modal-actions"><button type="button" class="btn" data-meus="auto">Voltar ao automático</button><button type="button" class="btn primary" data-meus="fechar">Pronto</button></div>'
+    html: '<h2>Meus alimentos</h2><div class="sub">Marque só o que você come. O cardápio e a lista de compras usam apenas esses alimentos; o que ficar desmarcado não aparece. Os filtros de jeito de comer e restrições continuam valendo. A estrela marca favoritos: eles aparecem primeiro na ordem do cardápio e das trocas, sem tirar a variedade.</div><div class="cdp-note" role="status" aria-live="polite" data-meus-msg>' + marcados.length + " de " + disp.length + " alimentos marcados.</div>" + avisos.map((a) => '<div class="cdp-note cdp-warn">' + escapeHtml(a) + "</div>").join("") + grupos + '<div class="modal-actions"><button type="button" class="btn" data-meus="auto">Voltar ao automático</button><button type="button" class="btn primary" data-meus="fechar">Pronto</button></div>'
   };
 }
 function montaFormulario(e, h, draft) {
@@ -1067,7 +1108,7 @@ function criaCardapio(ctx) {
   let montado = false;
   const ultimo = {};
   function cdpSalvar(cfg) {
-    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, { cardapio: { configurado: true, jeito: cfg.jeito, rotina: cfg.rotina, nref: cfg.nref || null, restricoes: Object.assign({}, cfg.restricoes), trocas: cfg.trocas || [], meus: cfg.meus || null } }));
+    ctx.salvaSettings(Object.assign({}, ctx.estado().settings, { cardapio: { configurado: true, jeito: cfg.jeito, rotina: cfg.rotina, nref: cfg.nref || null, restricoes: Object.assign({}, cfg.restricoes), trocas: cfg.trocas || [], meus: cfg.meus || null, favoritos: cfg.favs || [] } }));
   }
   const regiao = (el, nome) => el.querySelector('[data-r="' + nome + '"]');
   const botao = (el, rot, v) => el.querySelector('[data-cdp="' + rot + '"][data-v="' + v + '"]');
@@ -1317,6 +1358,25 @@ function criaCardapio(ctx) {
         grava([]);
         sel.itemId = null;
         desenha(["refeicao", sel.slot], "Todas as trocas foram desfeitas.");
+      } else if (act === "naoquero") {
+        const de = sel.itemId, motor = motorDe(contexto());
+        const r = retiraAlimento(motor, de);
+        if (!r.ok) {
+          const plural = { prot: "proteínas", carb: "carboidratos", leg: "leguminosas", fruit: "frutas", veg: "vegetais", fat: "gorduras" }[r.role] || "alimentos";
+          const msg = r.motivo === "categoria" ? "Não dá para tirar " + nome(de) + ": sobraria menos de 2 opções de " + plural + " e o cardápio ficaria repetitivo. Marque mais opções em Meus alimentos antes." : r.motivo === "proteina" ? "Sem " + nome(de) + " não sobraria nenhuma proteína concentrada. Marque outra proteína em Meus alimentos antes." : "Este alimento já está fora de Meus alimentos.";
+          desenha(["naoquero", de], msg);
+          return;
+        }
+        const antes = buildDay(cdpDia, motor).meals.find((m) => m.slot === sel.slot), papel = (FOODS[de] || {}).role;
+        const idsAntes = antes ? antes.items.map((i) => i.id) : [];
+        cfg.meus = r.meus;
+        cfg.trocas = cfg.trocas.filter((t) => t.de !== de && t.para !== de);
+        cdpSalvar(cfg);
+        ctx.redesenhaDieta();
+        const depois = buildDay(cdpDia, motorDe(contexto())).meals.find((m) => m.slot === sel.slot);
+        const novo = depois && (depois.items.find((i) => i.role === papel && idsAntes.indexOf(i.id) < 0) || depois.items.find((i) => i.role === papel));
+        sel.itemId = novo ? novo.id : null;
+        desenha(novo ? ["alimento", novo.id] : null, "Tirei " + nome(de) + " de Meus alimentos." + (novo ? " Agora aparece " + nome(novo.id) + "." : ""));
       }
     });
     ctx.abreModal(corpo);
@@ -1359,6 +1419,15 @@ function criaCardapio(ctx) {
       if (act === "auto") {
         grava(disp, disp);
         desenha(["auto", ""], "Voltou ao automático.");
+        return;
+      }
+      if (act === "fav") {
+        const jaFav = (cfg.favs || []).indexOf(v) >= 0;
+        cfg.favs = jaFav ? cfg.favs.filter((id) => id !== v) : (cfg.favs || []).concat([v]);
+        cdpSalvar(cfg);
+        ctx.redesenhaDieta();
+        const f = FOODS[v];
+        desenha(["fav", v], f ? (jaFav ? "Tirei dos favoritos: " : "Favorito: ") + nomeLimpo(f) + "." : "");
         return;
       }
       let aviso2 = "";

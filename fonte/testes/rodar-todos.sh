@@ -36,6 +36,7 @@ roda cardapio-sim node cardapio-sim.mjs
 roda cardapio-modulo node cardapio-modulo.mjs
 roda cardapio-trocas-motor node cardapio-trocas.mjs
 roda cardapio-meus-motor node cardapio-meus.mjs
+roda cardapio-favoritos-motor node cardapio-favoritos.mjs
 roda movimento-toque node movimento-toque.js http://localhost:8791
 roda modal-tema node modal-tema.js http://localhost:8791
 roda cardapio-meus node cardapio-meus.js http://localhost:8791

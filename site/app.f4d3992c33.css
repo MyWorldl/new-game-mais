@@ -4648,3 +4648,15 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
    overscroll-behavior contém a rolagem do próprio pop-up; o travamento do html cobre o pop-up curto, que não rola e passaria o gesto direto para a página. */
 .modal, .cmdk-list{ overscroll-behavior:contain; }
 html:has(.modal-backdrop){ overflow:hidden; scrollbar-gutter:stable; }
+
+/* 57 — Cardápio · Meus alimentos: estrela de favorito ao lado do alimento marcado (só reordena; ver engine.js, FAVORITOS).
+   Alvo de toque de 44 px no toque; o efeito de hover fica dentro de @media (hover:hover) (regra 54). */
+.cdp-chipfav{ display:inline-flex; align-items:center; gap:2px; }
+.cdp-star{ display:inline-flex; align-items:center; justify-content:center; inline-size:36px; block-size:36px; padding:0; border:0; border-radius:var(--r-pill); background:transparent; color:var(--ink-soft); cursor:pointer; transition:color var(--dur-2) var(--ease), background-color var(--dur-2) var(--ease); }
+.cdp-star svg{ inline-size:20px; block-size:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linejoin:round; }
+.cdp-star.on{ color:var(--accent-fg,var(--accent)); }
+.cdp-star.on svg{ fill:currentColor; }
+.cdp-star:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+@media (pointer:coarse){ .cdp-star{ inline-size:44px; block-size:44px; } }
+@media (hover:hover){ .cdp-star:hover{ background:var(--accent-soft); color:var(--accent-fg,var(--accent)); } }
+@media (prefers-reduced-motion:reduce){ .cdp-star{ transition:none; } }

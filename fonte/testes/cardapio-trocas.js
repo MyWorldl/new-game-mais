@@ -143,6 +143,44 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
       await p.click('[data-pop="fechar"]'); await p.waitForTimeout(200);
     }
 
+    // atalho "Não quero mais este": tira o alimento de Meus alimentos e mostra o que entrou no lugar
+    {
+      await p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); const s = d.exists ? d.data() : {}; s.cardapio = { jeito: 'omni', rotina: 'marmita', restricoes: { lactose: false, gluten: false }, trocas: [], meus: null }; await db.doc('config/settings').set(s); });
+      await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
+      await p.click('[data-cdp="editar"]'); await p.waitForTimeout(300);
+      await p.click('[data-pop="refeicao"][data-v="almoco"]'); await p.waitForTimeout(150);
+      const pr = await p.evaluate(() => { const r = [...document.querySelectorAll('[data-pop="alimento"]')].find(b => /frango|acém|patinho|sardinha|abadejo|pintado|merluza|salmão|lombo|sobrecoxa|corvina|atum/i.test(b.innerText)); return r ? { id: r.dataset.v, nome: r.querySelector('.cdp-n').innerText.replace(/trocado/, '').replace('*', '').trim() } : null; });
+      await p.click('[data-pop="alimento"][data-v="' + pr.id + '"]'); await p.waitForTimeout(150);
+      const nq = p.locator('[data-pop="naoquero"]');
+      t(L + 'pop-up oferece "Não quero mais este" para o alimento escolhido', await nq.count() === 1 && /Não quero mais este/.test(await nq.innerText()) && await nq.getAttribute('data-v') === pr.id);
+      const nb = await nq.boundingBox();
+      t(L + 'botão do atalho tem alvo de toque adequado', nb && nb.height >= 24 && nb.width >= 24, JSON.stringify(nb));
+      await nq.click(); await p.waitForTimeout(450);
+      sv = await salvo(p);
+      t(L + 'grava Meus alimentos sem o alimento e sem trocas que o citam', sv && Array.isArray(sv.meus) && !sv.meus.includes(pr.id) && sv.meus.length > 20, JSON.stringify(sv && sv.meus && sv.meus.length));
+      const msgAt = await p.locator('[data-pop-msg]').innerText();
+      t(L + 'avisa o que saiu e o que entrou no lugar (aria-live)', /^Tirei .+ de Meus alimentos\. Agora aparece .+\.$/.test(msgAt) && msgAt.indexOf('Tirei ' + pr.nome) === 0, msgAt);
+      t(L + 'o alimento tirado não aparece mais no pop-up', await p.locator('[data-pop="alimento"][data-v="' + pr.id + '"]').count() === 0 && await p.locator('[data-pop="para"][data-v="' + pr.id + '"]').count() === 0);
+      await p.click('[data-pop="fechar"]'); await p.waitForTimeout(250);
+      let aindaAparece = false;
+      for (let d = 0; d < 7; d++) { await p.click('.cdp-day[data-v="' + d + '"]'); await p.waitForTimeout(100); if ((await p.locator('[data-r="refeicoes"]').innerText()).indexOf(pr.nome) >= 0) aindaAparece = true; }
+      t(L + 'cardápio dos 7 dias sem o alimento tirado (' + pr.nome + ')', !aindaAparece);
+      await p.evaluate(() => { document.querySelector('.cdp-shop').open = true; });
+      t(L + 'lista de compras sem o alimento tirado', (await p.locator('[data-r="compras"]').innerText()).indexOf(pr.nome) < 0);
+      // recusa: com só 2 proteínas marcadas, tirar uma deixaria 1 e o cardápio repetitivo
+      await p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); const s = d.exists ? d.data() : {}; s.cardapio = { jeito: 'omni', rotina: 'marmita', restricoes: { lactose: false, gluten: false }, trocas: [], meus: ['frango', 'patinho', 'arroz', 'batataD', 'feijaoC', 'feijaoP', 'banana', 'maca', 'brocolis', 'tomate', 'azeite', 'amendoim'] }; await db.doc('config/settings').set(s); });
+      await p.reload(); await p.waitForTimeout(1800); await abreCardapio(p);
+      await p.click('[data-cdp="editar"]'); await p.waitForTimeout(300);
+      await p.click('[data-pop="refeicao"][data-v="almoco"]'); await p.waitForTimeout(150);
+      const pr2 = await p.evaluate(() => { const r = [...document.querySelectorAll('[data-pop="alimento"]')].find(b => /frango|patinho/i.test(b.innerText)); return r ? r.dataset.v : null; });
+      await p.click('[data-pop="alimento"][data-v="' + pr2 + '"]'); await p.waitForTimeout(150);
+      await p.click('[data-pop="naoquero"]'); await p.waitForTimeout(400);
+      sv = await salvo(p);
+      t(L + 'recusa quando sobraria menos de 2 da categoria: explica em texto e não grava', /Não dá para tirar .+ menos de 2 opções de proteínas/.test(await p.locator('[data-pop-msg]').innerText()) && sv.meus.length === 12 && sv.meus.includes(pr2), await p.locator('[data-pop-msg]').innerText());
+      t(L + 'depois da recusa o foco volta ao botão e o alimento segue na lista', await p.evaluate(() => document.activeElement && document.activeElement.dataset.pop) === 'naoquero' && await p.locator('[data-pop="alimento"][data-v="' + pr2 + '"]').count() === 1);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    }
+
     // restrição: com troca por carne salva, virar vegano ignora a troca
     if (w === 390) {
       await p.evaluate(async () => { const db = await window.claude.use('db'); const d = await db.doc('config/settings').get(); const s = d.exists ? d.data() : {}; s.cardapio = { jeito: 'omni', rotina: 'marmita', restricoes: { lactose: false, gluten: false }, trocas: [{ d: -1, s: 'almoco', de: 'frango', para: 'patinho' }, { d: 0, s: 'cafe', de: 'ovo', para: 'tofu' }] }; await db.doc('config/settings').set(s); });

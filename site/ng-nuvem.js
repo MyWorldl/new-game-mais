@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-52", data: "22/11/2026", titulo: "Cardápio: \"Não quero mais este\" e alimentos favoritos", itens: [
+      { t: "novo", x: "Na janela de trocar alimentos há o botão \"Não quero mais este\": ele tira o alimento do cardápio, das trocas e da lista de compras e já mostra o que entrou no lugar. Se sobrar menos de 2 opções naquela categoria, o app explica em texto e não tira." },
+      { t: "novo", x: "Em Meus alimentos, cada alimento marcado ganhou uma estrela. Os favoritos passam a vir primeiro na ordem do cardápio e das trocas, sem tirar a variedade e sem passar por cima de restrições (vegano, sem lactose, menor de idade)." },
+      { t: "melhoria", x: "As suas escolhas de favoritos entram no backup e na sincronização junto com o resto das configurações do cardápio." }
+    ] },
     { v: "ng-modular-51", data: "22/11/2026", titulo: "Pop-ups que não mexem na página e barra de status na cor do tema", itens: [
       { t: "correcao", x: "Ao rolar até o fim de uma janela (Editar perfil, Editar rotina e outras), o gesto seguia para a página que fica atrás e ela andava sozinha. Agora a página fica parada enquanto a janela está aberta e volta ao mesmo ponto quando você fecha." },
       { t: "melhoria", x: "A barra de status do celular agora muda junto com o tema. Antes ficava sempre azul-escura, e nos temas pastel claros (rosa, roxo e azul) aparecia uma faixa escura em cima de uma tela clara." },
