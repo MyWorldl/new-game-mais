@@ -65,7 +65,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     t(L + 'semana: 7 dias com nome de 3 letras', dots.length === 7 && dots.every(d => d.length === 3), dots.join(','));
     t(L + 'semana: cartão do próximo treino', await p.evaluate(() => { const e = document.getElementById('wk-next'); return !e.hidden && /Treino de hoje|Próximo treino/i.test(e.innerText); }));
     t(L + 'semana: intervalo da semana e contador da meta', await p.evaluate(() => /\d\d\/\d\d – \d\d\/\d\d/.test(document.getElementById('wk-range').textContent) && /^\d+\/\d+$/.test(document.getElementById('wg-count').textContent)));
-    t(L + 'semana: barras de progresso coerentes com os rótulos', await p.evaluate(() => { const m = document.getElementById('week-label').textContent.match(/(\d+) de (\d+)/); const w = parseFloat(document.getElementById('wk-bar-w').style.width); return m && Math.abs(w - Math.round(m[1] / m[2] * 100)) <= 1; }));
+    t(L + 'semana: barras de progresso coerentes com os rótulos', await p.evaluate(() => { const m = document.getElementById('week-label').textContent.match(/(\d+) de (\d+)/); const w = Math.round(parseFloat(document.getElementById('wk-bar-w').style.getPropertyValue('--p')) * 100); return m && Math.abs(w - Math.round(m[1] / m[2] * 100)) <= 1; }));
     t(L + 'semana: sem rolagem horizontal', await p.evaluate(() => { const e = document.querySelector('.week-progress'); return e.scrollWidth <= e.clientWidth + 1; }));
     t(L + 'sem erros de página', p.errs.length === 0, p.errs.join(' | '));
     // ---- acessibilidade nos 7 temas ----

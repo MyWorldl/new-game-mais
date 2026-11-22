@@ -3414,7 +3414,7 @@ function renderHojeMetricas(){
       '<span class="hm-sub">'+escapeHtml(m.sub)+'</span>'+
       (m.barra != null ? '<span class="hm-bar" aria-hidden="true"><i data-w="'+m.barra+'"></i></span>' : '')+
     '</button>').join("");
-  tr.querySelectorAll(".hm-bar i").forEach(i=>{ i.style.width = i.dataset.w+"%"; });
+  tr.querySelectorAll(".hm-bar i").forEach(i=>{ i.style.setProperty("--p", i.dataset.w/100); });
   if(dots) dots.innerHTML = ms.map((m, i)=> '<span class="hm-dot'+(i === 0 ? ' on' : '')+'"></span>').join("");
 }
 function hojeMissoes(){
@@ -4449,7 +4449,7 @@ function renderNivel(){
     setTxt("nivel-tier-name", info.tierName);
     setTxt("nivel-shield-num", n);
     setTxt("nivel-tier-sub", sub);
-    document.getElementById("nivel-xp-fill").style.width = pct+"%";
+    document.getElementById("nivel-xp-fill").style.setProperty("--p", pct/100);
     animateNumberEl(document.getElementById("nivel-xp-frac"), info.xpInTier, {suffix:" XP"});
     setTxt("nivel-xp-remain", remain);
     animateNumberEl(document.getElementById("nivel-xp-total"), info.xp);
@@ -4483,7 +4483,7 @@ function renderNivel(){
     setTxt("nivel-mini-num", n);
     setTxt("nivel-mini-name", info.tierName);
     setTxt("nivel-mini-xp", info.isMax ? num(info.xp)+" XP" : num(info.xpInTier)+" / "+num(info.tierNeed)+" XP");
-    document.getElementById("nivel-mini-fill").style.width = pct+"%";
+    document.getElementById("nivel-mini-fill").style.setProperty("--p", pct/100);
     setTxt("nivel-mini-sub", info.isMax ? "Patente máxima" : !info.proximaTier ? "Faltam "+num(Math.max(0, info.tierNeed - info.xpInTier))+" XP para concluir a patente "+info.tierName : info.treinosParaProxima+" treino"+(info.treinosParaProxima===1?"":"s")+" para "+info.proximaTier);
   }
 }
@@ -5543,8 +5543,8 @@ function showCelebration(opts){
     extraDelay = 700;
     const fillEl = card.querySelector("#boss-meter-fill");
     // dois rAF encadeados garantem que o navegador já pintou width:0% antes de
-    // animar pra 100% — senão a transição de width não dispara.
-    requestAnimationFrame(()=> requestAnimationFrame(()=>{ if(fillEl) fillEl.style.width = "100%"; }));
+    // animar pra 100% — senão a transição não dispara.
+    requestAnimationFrame(()=> requestAnimationFrame(()=>{ if(fillEl) fillEl.style.setProperty("--p", 1); }));
     setTimeout(()=>{
       const meterEl = card.querySelector("#boss-meter"); if(meterEl) meterEl.remove();
       const iconEl = card.querySelector("#celeb-icon"); if(iconEl) iconEl.classList.add("boss-pop");
@@ -5859,7 +5859,7 @@ function renderStreak(){
   const milestonePct = Math.min(100, Math.round((streak/next)*100));
   document.getElementById("streak-milestone-label").textContent = "Próxima meta: "+next+" dias";
   document.getElementById("streak-milestone-frac").textContent = streak+"/"+next;
-  document.getElementById("streak-milestone-fill").style.width = milestonePct+"%";
+  document.getElementById("streak-milestone-fill").style.setProperty("--p", milestonePct/100);
 
   // recorde, total e congelamentos disponíveis
   animateNumberEl(document.getElementById("streak-best"), Math.max(engine.best, streak));
@@ -5944,8 +5944,8 @@ function renderWeekDots(){
   // anéis concêntricos: semana (externo) e mês (interno)
   setRing("ring-week", 88, pct);
   setRing("ring-month", 64, mpct);
-  const bw = document.getElementById("wk-bar-w"); if(bw) bw.style.width = pct+"%";
-  const bm = document.getElementById("wk-bar-m"); if(bm) bm.style.width = mpct+"%";
+  const bw = document.getElementById("wk-bar-w"); if(bw) bw.style.setProperty("--p", pct/100);
+  const bm = document.getElementById("wk-bar-m"); if(bm) bm.style.setProperty("--p", mpct/100);
   const rg = document.getElementById("wk-range"); if(rg) rg.textContent = fmtDateBR(days[0])+" – "+fmtDateBR(days[6]);
   renderProximoTreino();
 
@@ -8159,7 +8159,8 @@ function renderWeekTrail(){
   const n = DAYS.length;
   // a trilha preenche toda a largura disponível do card (nunca fica "encolhida" num canto);
   // só usa uma largura mínima de design (e passa a rolar horizontalmente) em telas bem estreitas
-  const availableW = outerWrap ? outerWrap.clientWidth : TRAIL_MIN_W;
+  const owCs = outerWrap ? getComputedStyle(outerWrap) : null;
+  const availableW = outerWrap ? outerWrap.clientWidth - parseFloat(owCs.paddingLeft) - parseFloat(owCs.paddingRight) : TRAIL_MIN_W;
   const trailW = Math.max(TRAIL_MIN_W, availableW);
   wrap.style.width = trailW+"px";
   // em telas estreitas (320–375px) os 7 círculos encolhem em vez de empurrar o
@@ -9974,7 +9975,7 @@ function renderDieta(){
 /* Carregamento sob demanda: o cardápio é um módulo ES separado (cardapio.<hash>.js, gerado pelo esbuild em fonte/build.sh).
    Só é baixado e executado na primeira vez que a aba Dieta o desenha; o app não paga esse custo na abertura. O build troca
    o nome do arquivo na constante CARDAPIO_URL pelo nome com hash (fonte/externaliza.py) e o service worker guarda o arquivo na instalação (funciona offline). */
-const CARDAPIO_URL = "./cardapio.64b684c556.js";
+const CARDAPIO_URL = "./cardapio.4b50354f1a.js";
 let CARDAPIO = null, cardapioPromessa = null, cardapioMeta = null, cardapioFalhas = 0;
 function renderCardapio(kcalAlvo, macros){
   cardapioMeta = [kcalAlvo, macros];                       // sempre a meta mais recente (a Dieta pode redesenhar durante o carregamento)
@@ -10978,7 +10979,7 @@ async function aplicarImportacao(d){
       await Promise.all(jobs.slice(i, i+8).map(([path,data])=> saveDoc(path, data)));
       feitos = Math.min(jobs.length, i+8);
       prog.textContent = feitos+" de "+jobs.length;
-      bar.style.width = Math.round(feitos/jobs.length*100)+"%";
+      bar.style.setProperty("--p", feitos/jobs.length);
     }
   }
   pn.innerHTML = '<h3>Backup importado</h3><div class="hint">'+jobs.length+' registro(s) mesclados aos seus dados.</div><div class="import-actions"><button class="btn small" type="button" id="import-cancel">Fechar</button></div>';

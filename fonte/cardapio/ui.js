@@ -139,7 +139,7 @@ export function montaVisao(e, h){
     '<h4 class="cdp-gh"><span>'+escapeHtml(g.rotulo)+'</span><small>'+g.itens.length+'</small></h4>'+
     g.itens.map(i=> '<label class="cdp-it cdp-buy'+(i.feito ? ' feito' : '')+'"><input type="checkbox" class="cdp-buy-i" data-cdp-buy="'+i.id+'"'+(i.feito ? ' checked' : '')+'><span class="cdp-buy-box" aria-hidden="true">'+CHECK+'</span><span class="cdp-n">'+i.html+'</span><span class="cdp-q"><b>'+escapeHtml(i.qtd)+'</b></span></label>').join("")
   ).join("");
-  const resumoCompra = '<div class="cdp-buy-sum"><span class="cdp-buy-txt" data-buy-txt>'+nFeitos+' de '+compra.length+' comprados</span><div class="cdp-buy-bar" aria-hidden="true"><i data-buy-bar style="width:'+pctFeitos+'%"></i></div></div>';
+  const resumoCompra = '<div class="cdp-buy-sum"><span class="cdp-buy-txt" data-buy-txt>'+nFeitos+' de '+compra.length+' comprados</span><div class="cdp-buy-bar" aria-hidden="true"><i data-buy-bar style="--p:'+(pctFeitos/100)+'"></i></div></div>';
   const temRotulo = compra.some(s=> /\*$/.test(CDPE.FOODS[s.id].n));
 
   // avisos (texto sempre orientado ao que fazer, sem culpar a pessoa nem o app)
@@ -438,7 +438,7 @@ export function criaCardapio(ctx){
     const n = el.querySelectorAll("[data-cdp-buy]").length, ok = el.querySelectorAll("[data-cdp-buy]:checked").length;
     const t = el.querySelector("[data-buy-txt]"), b = el.querySelector("[data-buy-bar]");
     if(t) t.textContent = ok+" de "+n+" comprados";
-    if(b) b.style.width = (n ? Math.round(ok/n*100) : 0)+"%";
+    if(b) b.style.setProperty("--p", n ? Math.round(ok/n*100)/100 : 0);
   }
 
   function renderCardapio(kcalAlvo, macros){
