@@ -17,6 +17,7 @@ const alvos = [
   ['app.css', acha(/^app\.[0-9a-f]+\.css$/)],
   ['dados.js', acha(/^dados\.[0-9a-f]+\.js$/)],
   ['cardapio.js', acha(/^cardapio\.[0-9a-f]+\.js$/)],
+  ['mapa.js', acha(/^mapa\.[0-9a-f]+\.js$/)],
 ];
 let falhas = 0, avisos = 0;
 const linhas = [];

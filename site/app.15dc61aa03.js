@@ -1267,6 +1267,27 @@ function renderVolume(){
       '<div class="li"><span class="sw sw-zona"></span><span>Faixa recomendada <small>MEV–MRV, o trilho mais claro</small></span></div>'+
     '</div>';
   renderVolumeAdjust();
+  montarMapaVolume(totals, feitoSem, focoSet);
+}
+
+/* Mapa corporal do volume (ilha React + TypeScript em fonte/mapa, carregada sob demanda como o cardápio).
+   O app só entrega os números já calculados; se o módulo falhar, o mapa some e as barras continuam. */
+const MAPA_URL = "./mapa.99f7e5e180.js";
+let mapaVolumeMod = null, mapaVolumeFalhou = false, mapaVolumeSig = "";
+function montarMapaVolume(totals, feitoSem, focoSet){
+  const host = document.getElementById("volume-mapa");
+  if(!host || mapaVolumeFalhou) return;
+  const sexo = state.perfil && sexoValido(state.perfil.sexo) ? state.perfil.sexo : "N";
+  const dados = {perfil:sexo, musculos:MUSCLE_ORDER.map(m=>({
+    id:m, nome:MUSCLE_LANDMARKS[m].label, categoria:MUSCLE_CATEGORY[m],
+    planejado:totals[m]||0, feito:feitoSem[m]||0, mev:MUSCLE_LANDMARKS[m].mev, mrv:MUSCLE_LANDMARKS[m].mrv,
+    foco:focoSet.has(m), alvo:focoAlvo(m)}))};
+  const sig = JSON.stringify(dados);
+  if(sig === mapaVolumeSig && host.childElementCount) return;
+  mapaVolumeSig = sig;
+  (mapaVolumeMod || (mapaVolumeMod = import(MAPA_URL)))
+    .then(mod=> mod.atualizar(host, dados))
+    .catch(()=>{ mapaVolumeFalhou = true; mapaVolumeMod = null; host.hidden = true; });
 }
 
 /* ============================================================
