@@ -1868,3 +1868,8 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 
 /* 55 — "Agora não" do aviso "ficou sem treino": alvo de toque de 44 px (tinha 35 px; o auditoria-v3 pegou num domingo, quando o aviso aparece). */
 .perdido-card .hp-act .link-btn{ display:inline-flex; align-items:center; min-block-size:44px; padding-inline:var(--sp-2); }
+
+/* 56 — Pop-up (.modal) não deixa a página de trás rolar. Medido: ao chegar ao fim do conteúdo do pop-up, o gesto seguia para a página (scrollY foi de 0 a 3600 atrás do pop-up de Editar perfil).
+   overscroll-behavior contém a rolagem do próprio pop-up; o travamento do html cobre o pop-up curto, que não rola e passaria o gesto direto para a página. */
+.modal, .cmdk-list{ overscroll-behavior:contain; }
+html:has(.modal-backdrop){ overflow:hidden; scrollbar-gutter:stable; }

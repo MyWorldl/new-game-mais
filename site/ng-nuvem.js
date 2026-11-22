@@ -136,6 +136,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-51", data: "22/11/2026", titulo: "Pop-ups que não mexem na página e barra de status na cor do tema", itens: [
+      { t: "correcao", x: "Ao rolar até o fim de uma janela (Editar perfil, Editar rotina e outras), o gesto seguia para a página que fica atrás e ela andava sozinha. Agora a página fica parada enquanto a janela está aberta e volta ao mesmo ponto quando você fecha." },
+      { t: "melhoria", x: "A barra de status do celular agora muda junto com o tema. Antes ficava sempre azul-escura, e nos temas pastel claros (rosa, roxo e azul) aparecia uma faixa escura em cima de uma tela clara." },
+      { t: "melhoria", x: "A busca de comandos (atalho no teclado) também não passa a rolagem para a página atrás quando a lista chega ao fim." }
+    ] },
     { v: "ng-modular-50", data: "22/11/2026", titulo: "Movimento mais leve, foco na trilha e toque sem realce preso", itens: [
       { t: "correcao", x: "Na trilha da semana, o anel que aparece ao navegar pelo teclado ficava cortado na lateral do Domingo. Agora ele aparece inteiro em qualquer largura de tela, e a trilha não rola mais alguns pixels para o lado sem você perceber." },
       { t: "melhoria", x: "O pulso de “sequência em risco” e a chama da sequência dão duas voltas e param. O aviso continua escrito no card, e o aparelho gasta menos bateria. Com “reduzir movimento” ligado, nada disso anima." },

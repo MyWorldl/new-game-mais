@@ -4626,6 +4626,25 @@ function applyGameMode(){
   root.setAttribute("data-tema", t);
   root.setAttribute("data-modo", temaModo());
 }
+/* Cor da barra do navegador (meta theme-color): acompanha o fundo do tema ativo.
+   Antes ficava fixa em #0b1220, e nos temas pastel claros a barra de status ficava escura sobre uma página rosa, roxa ou azul clara. */
+function syncThemeColor(){
+  if(!document.body) return;
+  const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(getComputedStyle(document.body).backgroundColor || "");
+  if(!m || (m[4] !== undefined && Number(m[4]) === 0)) return;
+  const hex = "#"+[m[1], m[2], m[3]].map(v=>Number(v).toString(16).padStart(2, "0")).join("");
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if(!meta){ meta = document.createElement("meta"); meta.name = "theme-color"; document.head.appendChild(meta); }
+  if(meta.content !== hex) meta.content = hex;
+}
+(function observaTemaParaBarra(){
+  if(!("MutationObserver" in window)) return;
+  let quadro = 0;
+  const agenda = ()=>{ if(!quadro) quadro = requestAnimationFrame(()=>{ quadro = 0; syncThemeColor(); }); };
+  new MutationObserver(agenda).observe(document.documentElement, {attributes:true, attributeFilter:["data-tema","data-modo","data-game","data-paleta","data-theme"]});
+  if(window.matchMedia) try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", agenda); }catch(_){}
+  agenda();
+})();
 /* ============================================================
    FICHA DE PERSONAGEM — "atributos" de RPG derivados de dados reais
    que o app já calcula (nunca números inventados): consistência (%
