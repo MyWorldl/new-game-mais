@@ -1,9 +1,10 @@
-<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>Best Friends Forever</title>
 <meta name="description" content="Painel interativo de treino, evolução corporal e dieta">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+</head><body>
 
 <style>
 /* v90 D1: ordem das camadas — quem vem depois vence, independentemente da especificidade.
@@ -5391,6 +5392,7 @@ async function initStore(){
       if(fx){ state.perfil = fx; try{ if(state.db) Promise.resolve(state.db.doc("config/perfil").set(fx)).catch(e=>ngReporta(e,"perfil:gravar")); }catch(e){ ngReporta(e,"perfil:gravar"); } } }
     ajustarRotinaExemplo();
     perfilRecebido = true;
+    try{ if(window.ngMedicao) window.ngMedicao(state.perfil && state.perfil.idade); }catch(e){}   // medição agregada só para maiores de 18 (ng-nuvem.js)
     render(); marca("perfil");
     if(!carregando) setTimeout(verificaOnboarding, 350);   // resposta tardia (depois dos 6 s do esqueleto)
   }, ()=> falha("perfil")));

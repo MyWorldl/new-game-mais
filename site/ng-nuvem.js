@@ -23,6 +23,29 @@
   var BUCKET = "fotos-progresso";
   var TS_KEY = "0x4AAAAAAF9sIQ9t2NQabaoT";   // chave PÚBLICA do Cloudflare Turnstile (a secreta fica só no painel do Supabase)
 
+  /* ---------------- Medição de desempenho (Cloudflare Web Analytics) ---------------- */
+  // Token do site criado em Cloudflare > Web Analytics (não é segredo: aparece no HTML de qualquer site que usa o serviço).
+  // Vazio = medição desligada, e a política de privacidade não a menciona.
+  var CF_WA_TOKEN = "a9f6c88966114dbfa50647ed20cd7e45";
+  var HOST_PRODUCAO = "new-game-mais.sombrasplays.workers.dev";
+  var medicaoIniciada = false;
+  function medicaoPermitida(idade, host, token, dnt, gpc){
+    if (!token || host !== HOST_PRODUCAO) return false;                // só em produção e só com token
+    var n = Number(idade); if (!isFinite(n) || n < 18) return false;   // menor de 18 anos e idade desconhecida: nunca mede
+    if (dnt === "1" || dnt === "yes" || gpc === true) return false;    // respeita "Não rastrear" e Global Privacy Control
+    return true;
+  }
+  window.ngMedicaoPode = medicaoPermitida;   // função pura, usada nos testes
+  window.ngMedicao = function(idade){        // o app chama quando o perfil chega
+    if (medicaoIniciada) return;
+    if (!medicaoPermitida(idade, location.hostname, CF_WA_TOKEN, navigator.doNotTrack, navigator.globalPrivacyControl)) return;
+    medicaoIniciada = true;
+    var s = document.createElement("script");
+    s.type = "module"; s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    s.setAttribute("data-cf-beacon", JSON.stringify({ token: CF_WA_TOKEN }));
+    document.head.appendChild(s);
+  };
+
   // chave de teste: só em localhost, para a bateria automática do app (não existe em produção)
   try { if (location.hostname === "localhost" && localStorage.getItem("ng_dev_semnuvem") === "1") return; } catch(e){}
 
@@ -136,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-53", data: "22/11/2026", titulo: "Medição de desempenho sem identificar você e ajuste de título da página", itens: [
+      { t: "novo", x: "O app passou a medir, de forma agregada, quanto tempo as telas levam para carregar (Cloudflare Web Analytics). Isso só vale para quem tem 18 anos ou mais e só no site publicado; menores de idade e quem não informou a idade não são medidos." },
+      { t: "melhoria", x: "Se o seu navegador envia \"Não rastrear\" (DNT) ou o sinal Global Privacy Control, a medição fica desligada. A política de privacidade agora explica essa medição, o que ela não faz (não identifica você nem serve a publicidade) e como desligá-la." },
+      { t: "correcao", x: "O título e a descrição da página estavam fora do lugar certo do HTML (dentro do corpo). Agora ficam no cabeçalho, como os navegadores e as ferramentas de qualidade esperam." }
+    ] },
     { v: "ng-modular-52", data: "22/11/2026", titulo: "Cardápio: \"Não quero mais este\" e alimentos favoritos", itens: [
       { t: "novo", x: "Na janela de trocar alimentos há o botão \"Não quero mais este\": ele tira o alimento do cardápio, das trocas e da lista de compras e já mostra o que entrou no lugar. Se sobrar menos de 2 opções naquela categoria, o app explica em texto e não tira." },
       { t: "novo", x: "Em Meus alimentos, cada alimento marcado ganhou uma estrela. Os favoritos passam a vir primeiro na ordem do cardápio e das trocas, sem tirar a variedade e sem passar por cima de restrições (vegano, sem lactose, menor de idade)." },
@@ -780,7 +808,7 @@
   var CONTATO_PRIVACIDADE = "sombrasplays@gmail.com";   // responsável pelo app: troque aqui se quiser outro contato
   function politicaHtml(){
     return '<h2>Política de privacidade do NG+</h2>' +
-      '<p class="ng-peq">Atualizada em 6 de novembro de 2026. Escrita em linguagem simples, com base na Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018).</p>' +
+      '<p class="ng-peq">Atualizada em ' + (CF_WA_TOKEN ? '22 de novembro de 2026' : '6 de novembro de 2026') + '. Escrita em linguagem simples, com base na Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018).</p>' +
       '<h3>Quem cuida dos seus dados</h3><p>O NG+ é um projeto pessoal mantido por Gabriel, que é o responsável (controlador) pelos dados do app. Contato para qualquer pedido sobre seus dados: <b>' + esc(CONTATO_PRIVACIDADE) + '</b>.</p>' +
       '<h3>Quais dados ficam no app</h3><ul>' +
         '<li>Seu e-mail, usado só para entrar na conta.</li>' +
@@ -796,6 +824,7 @@
         '<li>No seu aparelho (para o app funcionar sem internet).</li>' +
         '<li>Na nuvem da Supabase (banco de dados e login), em servidores no Brasil (São Paulo). Cada conta só enxerga os próprios dados e as fotos ficam em área privada.</li>' +
         '<li>A hospedagem do site é da Cloudflare, e o e-mail com o código de login é enviado pelo Gmail (Google). Essas empresas atuam como operadoras: só executam o serviço.</li>' +
+        (CF_WA_TOKEN ? '<li><b>Medição de desempenho:</b> a Cloudflare mede, de forma agregada, o tempo de carregamento do app e a quantidade de acessos (Cloudflare Web Analytics). Só vale para maiores de 18 anos, não é usada para identificar você nem para publicidade, não inclui o que você registra no app e fica desligada se o seu navegador envia o sinal "Não rastrear" (Do Not Track) ou o Global Privacy Control.</li>' : '') +
         '<li>Os lembretes passam pelo serviço de notificações do seu navegador (Google no Chrome e no Android, Apple no iPhone, Mozilla no Firefox), que só entrega a mensagem ao aparelho. O conteúdo do aviso viaja criptografado.</li>' +
         '<li>As fontes de letra do app ficam dentro do próprio app: nenhum pedido ao Google ou a outros sites é feito para carregá-las.</li></ul>' +
       '<h3>Resumo do treinador por IA (opcional)</h3>' +
