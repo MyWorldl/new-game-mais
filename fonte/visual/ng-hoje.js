@@ -67,7 +67,7 @@ function renderHojeMetricas(){
       '<span class="hm-sub">'+escapeHtml(m.sub)+'</span>'+
       (m.barra != null ? '<span class="hm-bar" aria-hidden="true"><i data-w="'+m.barra+'"></i></span>' : '')+
     '</button>').join("");
-  tr.querySelectorAll(".hm-bar i").forEach(i=>{ i.style.width = i.dataset.w+"%"; });
+  tr.querySelectorAll(".hm-bar i").forEach(i=>{ i.style.setProperty("--p", i.dataset.w/100); });
   if(dots) dots.innerHTML = ms.map((m, i)=> '<span class="hm-dot'+(i === 0 ? ' on' : '')+'"></span>').join("");
 }
 function hojeMissoes(){

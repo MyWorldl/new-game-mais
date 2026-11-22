@@ -9,7 +9,7 @@
 .ng-lc-nome{font-weight:700;font-size:17px;letter-spacing:.01em;white-space:nowrap}
 .ng-lc-tabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line-strong,#3a4658);border-radius:999px;background:color-mix(in srgb,var(--surface-2,#141c2b) 80%,transparent)}
 .ng-lc-tab{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--ink-soft,#b6c0cf);font:inherit;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background-color .2s,color .2s}
-.ng-lc-tab:hover{color:var(--ink,#eef2f7)}
+@media (hover:hover){ .ng-lc-tab:hover{color:var(--ink,#eef2f7)} }
 .ng-lc-tab[aria-selected=true]{background:var(--accent,#a3e635);color:var(--accent-ink,#10200a)}
 .ng-lc-tab:focus-visible{outline:3px solid var(--focus,#7dd3fc);outline-offset:2px}
 .ng-lc-ver{padding:2px 7px;border-radius:99px;font-size:11px;letter-spacing:.02em;text-transform:none;background:color-mix(in srgb,var(--accent,#a3e635) 22%,transparent);color:var(--ink,#eef2f7)}
@@ -29,7 +29,7 @@
 .ng-lc-fi{flex:none;display:grid;place-items:center;inline-size:40px;block-size:40px;border-radius:12px;background:color-mix(in srgb,var(--accent,#a3e635) 16%,transparent);color:var(--accent-fg,var(--accent,#a3e635))}
 .ng-lc-fi svg{inline-size:22px;block-size:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ng-lc-novo{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 14px;border:1px solid color-mix(in srgb,var(--accent,#a3e635) 45%,transparent);border-radius:14px;background:color-mix(in srgb,var(--accent,#a3e635) 8%,transparent);color:var(--ink,#eef2f7);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s,background-color .2s}
-.ng-lc-novo:hover{border-color:var(--accent,#a3e635);background:color-mix(in srgb,var(--accent,#a3e635) 14%,transparent)}
+@media (hover:hover){ .ng-lc-novo:hover{border-color:var(--accent,#a3e635);background:color-mix(in srgb,var(--accent,#a3e635) 14%,transparent)} }
 .ng-lc-novo:focus-visible{outline:3px solid var(--focus,#7dd3fc);outline-offset:2px}
 .ng-lc-novo-t{flex:none;padding:3px 9px;border-radius:99px;background:var(--accent,#a3e635);color:var(--accent-ink,#10200a);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 .ng-lc-novo-x{flex:1;min-width:0;font-size:14px;font-weight:600}

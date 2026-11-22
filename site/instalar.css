@@ -23,7 +23,7 @@ h2{margin:0 0 8px;font:700 24px/1.1 "Barlow Condensed","Arial Narrow",sans-serif
 .card p{margin:0 0 10px;color:var(--ink2)}
 .card p:last-child{margin-bottom:0}
 .btn{appearance:none;font:600 16px/1 "Work Sans",system-ui,sans-serif;min-height:48px;padding:0 20px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-.btn:hover{border-color:var(--acc)}
+@media (hover:hover){ .btn:hover{border-color:var(--acc)} }
 .btn.primary{background:var(--acc-bg);border-color:var(--acc-bg);color:var(--acc-ink);font-weight:700}
 .btn.ghost{background:transparent}
 .btn:focus-visible,.seg button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}

@@ -136,6 +136,18 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-50", data: "22/11/2026", titulo: "Movimento mais leve, foco na trilha e toque sem realce preso", itens: [
+      { t: "correcao", x: "Na trilha da semana, o anel que aparece ao navegar pelo teclado ficava cortado na lateral do Domingo. Agora ele aparece inteiro em qualquer largura de tela, e a trilha não rola mais alguns pixels para o lado sem você perceber." },
+      { t: "melhoria", x: "O pulso de “sequência em risco” e a chama da sequência dão duas voltas e param. O aviso continua escrito no card, e o aparelho gasta menos bateria. Com “reduzir movimento” ligado, nada disso anima." },
+      { t: "melhoria", x: "As barras de progresso (XP do nível, marco da sequência, semana e mês, hábitos, compras do cardápio e importação) agora animam de forma mais leve. A ponta da barra ficou reta em vez de arredondada; o resto do visual é o mesmo." },
+      { t: "correcao", x: "No celular, o botão, a aba ou o cartão que você tocou ficava “aceso” ou levantado até o próximo toque. Agora o realce de passar o mouse só vale onde existe mouse; no toque, o controle volta ao normal assim que você solta. No computador nada muda." },
+      { t: "correcao", x: "O botão “Agora não” do aviso “ficou sem treino” era pequeno demais para o dedo (35 px de altura). Agora tem a área de toque de 44 px, como os outros botões." }
+    ] },
+    { v: "ng-modular-49", data: "21/11/2026", titulo: "Toques mais firmes", itens: [
+      { t: "melhoria", x: "Botões, abas, chips e a barra de baixo agora voltam ao repouso de forma suave depois do toque, sem o “pulinho” que passava do tamanho e voltava. O efeito de salto continua só nas comemorações, como subir de patente e abrir o baú." },
+      { t: "melhoria", x: "O visual segue o mesmo: mudou apenas a curva do movimento, em todas as abas e nas folhas de registro do treino." },
+      { t: "melhoria", x: "Com “reduzir movimento” ligado no aparelho, esses controles continuam sem animação nenhuma." }
+    ] },
     { v: "ng-modular-48", data: "21/11/2026", titulo: "Ranking redesenhado", itens: [
       { t: "novo", x: "O “Ranking dos amigos” agora se chama só “Ranking”. No topo ficam o número de participantes, a sua posição e a sua patente." },
       { t: "novo", x: "Pódio em degraus com os três primeiros, e uma lista com barra proporcional ao líder. Em telas largas aparecem também as outras duas métricas em colunas." },

@@ -71,7 +71,7 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
         pequenos, sw: document.documentElement.scrollWidth - innerWidth
       };
     });
-    t(L + 'folha de registro abre', !!qc);
+    if (!qc && new Date().getDay() === 0) console.log('SKIP ' + L + 'folha de registro: domingo sem treino no seed'); else t(L + 'folha de registro abre', !!qc);
     if (qc) {
       t(L + 'folha: descanso com seletor do app, botão "Iniciar descanso" e interruptor automático', qc.descansoApp && /Iniciar descanso/.test(qc.botao || '') && qc.interruptor && qc.rotuloAuto, JSON.stringify(qc));
       t(L + 'folha: alvos de toque ≥ 40px e sem rolagem lateral', qc.pequenos.length === 0 && qc.sw <= 0, JSON.stringify(qc.pequenos));

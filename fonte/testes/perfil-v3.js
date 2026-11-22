@@ -23,7 +23,7 @@ const novo = async (b, w, { perfil = true, reduce = false } = {}) => {
     const { c, p } = await abre(b, w, 'dark'); await irPerfil(p);
     const r = await p.evaluate(() => {
       const wrap = document.getElementById('perfil-avatar-wrap'), top = document.getElementById('top-avatar');
-      const fill = document.getElementById('nivel-xp-fill').style.width;
+      const fill = Math.round(parseFloat(document.getElementById('nivel-xp-fill').style.getPropertyValue('--p')) * 100) + '%';
       const li = [...document.querySelectorAll('#marcos-list li')];
       const bi = [...document.querySelectorAll('#achievements-grid .badge-item')];
       const sec = [...document.querySelectorAll('#achievements-grid .vit-sec')].map(s => ({ h: s.querySelector('.vit-h').textContent.replace(/\s+/g, ' ').trim(), n: s.querySelectorAll('.badge-item').length, lockedAll: [...s.querySelectorAll('.badge-item')].every(x => x.classList.contains('locked')), unlockedAll: [...s.querySelectorAll('.badge-item')].every(x => !x.classList.contains('locked')) }));

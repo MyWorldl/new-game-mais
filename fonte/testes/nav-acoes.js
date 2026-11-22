@@ -67,7 +67,8 @@ const sel = async (p, id) => p.evaluate(i => document.getElementById(i).getAttri
       await fab.click(); await p.waitForTimeout(300);
       await p.locator('#nav-acoes .na-item').nth(0).click(); await p.waitForTimeout(1200);
       const ao = await p.evaluate(() => { const m = document.getElementById('modal-root'); return !!(m && m.children.length && m.matches(':popover-open')); });
-      t(L + 'Continuar treino: abre o treino ao vivo, como o botão grande do Hoje', ao);
+      const DOMINGO = new Date().getDay() === 0; // o seed só tem rotina de seg a sex: no domingo não há treino em aberto
+      if (DOMINGO) console.log('SKIP ' + L + 'Continuar treino: domingo sem treino no seed'); else t(L + 'Continuar treino: abre o treino ao vivo, como o botão grande do Hoje', ao);
       await p.keyboard.press('Escape'); await p.waitForTimeout(400);
       await p.evaluate(() => { const m = document.getElementById('modal-root'); if (m) { try { m.hidePopover(); } catch (e) {} m.textContent = ''; } });
       // ação: marcar feito (usa o mesmo botão do Hoje) e depois fica desligada
@@ -75,13 +76,15 @@ const sel = async (p, id) => p.evaluate(i => document.getElementById(i).getAttri
       const antes = await p.evaluate(() => !document.getElementById('btn-quick-checkin').hidden);
       await fab.click(); await p.waitForTimeout(300);
       const dis0 = await p.locator('#nav-acoes .na-item').nth(3).getAttribute('aria-disabled');
-      t(L + 'Marcar como feito: habilitado quando há treino em aberto', antes && dis0 === null, 'antes=' + antes + ' dis=' + dis0);
+      if (DOMINGO) console.log('SKIP ' + L + 'Marcar como feito: domingo sem treino no seed'); else t(L + 'Marcar como feito: habilitado quando há treino em aberto', antes && dis0 === null, 'antes=' + antes + ' dis=' + dis0);
+      if (!DOMINGO) { // sem treino em aberto o item fica desabilitado e o clique esperaria para sempre
       await p.locator('#nav-acoes .na-item').nth(3).click(); await p.waitForTimeout(1500);
       await p.evaluate(() => document.querySelectorAll('.modal-backdrop, dialog[open]').forEach(x => { try { x.close ? x.close() : x.remove(); } catch (e) { x.remove(); } }));
       await p.evaluate(() => document.getElementById('tab-painel').click()); await p.waitForTimeout(900);
       t(L + 'Marcar como feito: registra o treino de hoje (o Hoje passa a mostrar "Treino concluído")', /conclu[ií]do/i.test(await p.locator('#today-primary-label').innerText()), await p.locator('#today-primary-label').innerText());
       await fab.click(); await p.waitForTimeout(300);
       t(L + 'Marcar como feito: depois de registrado fica desligado (aria-disabled) com explicação em texto', (await p.locator('#nav-acoes .na-item').nth(3).getAttribute('aria-disabled')) === 'true' && /Já registrado hoje/.test(await p.locator('#nav-acoes .na-item').nth(3).innerText()));
+      }
       await p.keyboard.press('Escape');
     }
     t(L + 'sem erro de console', p.errs.length === 0, p.errs.join(' | '));
