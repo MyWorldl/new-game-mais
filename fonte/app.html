@@ -753,6 +753,43 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--focus); outline-
 .volA-fill.crit{background:var(--crit);}
 .volA-val{font-size:var(--fs-xs); font-weight:700; text-align:right; font-family:'IBM Plex Mono',monospace;}
 
+/* mapa corporal do volume semanal (ilha React em fonte/mapa; o app carrega sob demanda) */
+.vmap{margin-bottom:var(--sp-4);}
+.vmap-t{font-size:var(--fs-xs); font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:0 0 var(--sp-2);}
+.vmap-figs{display:flex; justify-content:center; gap:var(--sp-4);}
+.vmap-fig{margin:0; flex:0 1 150px; text-align:center;}
+.vmap-fig figcaption{font-size:var(--fs-xs); color:var(--muted);}
+.vmap-svg{width:100%; height:auto; display:block;}
+.vmap-corpo path{fill:var(--surface-2); stroke:var(--line-strong); stroke-width:1.2;}
+.vmap-m{--c:var(--muted); cursor:pointer;}
+.vmap-m.ok{--c:var(--teal);}
+.vmap-m.warn{--c:var(--warn);}
+.vmap-m.crit{--c:var(--crit);}
+.vmap-m .base{fill:var(--c); fill-opacity:.2; stroke:var(--c); stroke-width:1;}
+.vmap-m.vazio .base{fill-opacity:.04; stroke-opacity:.5; stroke-dasharray:3 3;}
+.vmap-m .top{fill:var(--c); stroke:none;}
+.vmap-m.foco .base{stroke-width:2; stroke-dasharray:5 3;}
+.vmap-m.sel .base{stroke-width:2.5; fill-opacity:.35;}
+@media (prefers-reduced-motion:no-preference){ .vmap-m .top, .vmap-m .base{transition:fill-opacity .35s var(--ease);} }
+.vmap-detalhe{min-height:3em; font-size:var(--fs-sm); margin:var(--sp-3) 0 var(--sp-2);}
+.vmap-lista{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-1) var(--sp-3);}
+.vmap-item{display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:8px; align-items:center; width:100%; min-height:44px; padding:6px 10px; border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface); color:var(--ink); font:inherit; font-size:var(--fs-sm); text-align:left; cursor:pointer;}
+.vmap-item.sel{border-color:var(--accent); background:var(--accent-soft);}
+.vmap-item:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.vmap-dot{width:10px; height:10px; border-radius:50%; grid-row:1 / span 2; background:var(--muted); opacity:.5;}
+.vmap-item.ok .vmap-dot{background:var(--teal); opacity:1;}
+.vmap-item.warn .vmap-dot{background:var(--warn); opacity:1;}
+.vmap-item.crit .vmap-dot{background:var(--crit); opacity:1;}
+.vmap-nome{min-width:0; font-weight:600; overflow-wrap:anywhere; line-height:1.2;}
+.vmap-foco{margin-left:6px; font-size:var(--fs-xs); font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.04em;}
+.vmap-num{grid-column:2; font-size:var(--fs-xs); font-family:'IBM Plex Mono',monospace; color:var(--ink-soft);}
+.vmap-leg{font-size:var(--fs-xs); color:var(--muted); margin:var(--sp-2) 0 0;}
+.vmap-gsap .vmap-m .top, .vmap-gsap .vmap-m .base{transition:none;}
+.vmap-barra{grid-column:1 / -1; display:block; height:4px; margin-top:6px; border-radius:2px; background:var(--line); overflow:hidden;}
+.vmap-barra-i{display:block; height:100%; width:100%; transform-origin:left center; background:var(--c-barra,var(--accent));}
+.vmap-item.ok{--c-barra:var(--teal);} .vmap-item.warn{--c-barra:var(--warn);} .vmap-item.crit{--c-barra:var(--crit);}
+@media (max-width:360px){ .vmap-lista{grid-template-columns:minmax(0,1fr);} }
+
 /* editor */
 .ex-row{display:grid; grid-template-columns:1fr 46px 62px 56px 28px; gap:6px; align-items:center;}
 .ex-row input{padding:6px var(--sp-2); font-size:var(--fs-sm);}
@@ -3083,6 +3120,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         <h2>Volume semanal por grupo muscular</h2>
         <span class="hint">Planejado na rotina × feito nesta semana</span>
       </div>
+      <div id="volume-mapa"></div>
       <div id="volume-body"></div>
       <div id="volume-adjust" hidden></div>
       <div class="foot-note u-mt4">Faixas gerais de referência (MEV–MRV) — ajuste conforme sua experiência e recuperação.</div>
@@ -4956,6 +4994,27 @@ function renderVolume(){
       '<div class="li"><span class="sw sw-zona"></span><span>Faixa recomendada <small>MEV–MRV, o trilho mais claro</small></span></div>'+
     '</div>';
   renderVolumeAdjust();
+  montarMapaVolume(totals, feitoSem, focoSet);
+}
+
+/* Mapa corporal do volume (ilha React + TypeScript em fonte/mapa, carregada sob demanda como o cardápio).
+   O app só entrega os números já calculados; se o módulo falhar, o mapa some e as barras continuam. */
+const MAPA_URL = "./mapa.js";
+let mapaVolumeMod = null, mapaVolumeFalhou = false, mapaVolumeSig = "";
+function montarMapaVolume(totals, feitoSem, focoSet){
+  const host = document.getElementById("volume-mapa");
+  if(!host || mapaVolumeFalhou) return;
+  const sexo = state.perfil && sexoValido(state.perfil.sexo) ? state.perfil.sexo : "N";
+  const dados = {perfil:sexo, musculos:MUSCLE_ORDER.map(m=>({
+    id:m, nome:MUSCLE_LANDMARKS[m].label, categoria:MUSCLE_CATEGORY[m],
+    planejado:totals[m]||0, feito:feitoSem[m]||0, mev:MUSCLE_LANDMARKS[m].mev, mrv:MUSCLE_LANDMARKS[m].mrv,
+    foco:focoSet.has(m), alvo:focoAlvo(m)}))};
+  const sig = JSON.stringify(dados);
+  if(sig === mapaVolumeSig && host.childElementCount) return;
+  mapaVolumeSig = sig;
+  (mapaVolumeMod || (mapaVolumeMod = import(MAPA_URL)))
+    .then(mod=> mod.atualizar(host, dados))
+    .catch(()=>{ mapaVolumeFalhou = true; mapaVolumeMod = null; host.hidden = true; });
 }
 
 /* ============================================================

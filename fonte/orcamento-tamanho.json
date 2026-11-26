@@ -4,6 +4,7 @@
   "app.css": { "gzipKB": 90, "brutoKB": 400 },
   "dados.js": { "gzipKB": 60, "brutoKB": 400 },
   "cardapio.js": { "gzipKB": 40, "brutoKB": 150 },
+  "mapa.js": { "gzipKB": 155, "brutoKB": 450 },
   "avisoPercentual": 90,
   "dadosNoApp": { "_nota": "Tabela de conteúdo (const X = [..] ou {..}) dentro de fonte/app.html. Acima do aviso, mover para fonte/dados/*.json.", "avisoKB": 12, "falhaKB": 25 },
   "carregarSobDemandaAcimaBrutoKB": 800
