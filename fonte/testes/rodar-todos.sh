@@ -1,6 +1,8 @@
 #!/bin/sh
 # Roda a bateria de testes contra o site/ servido COM os cabeçalhos de produção (_headers, inclusive a CSP).
 # Pré-requisitos: node 22+, `npm i playwright` (NODE_PATH) e chromium instalado. Uso: sh fonte/testes/rodar-todos.sh
+# Fatias (CI em paralelo): FATIA=2/4 sh fonte/testes/rodar-todos.sh roda só os testes da fatia 2 (ver fatias.txt).
+# Sem FATIA roda tudo. Teste novo: acrescente a linha em fatias.txt (sem ela, roda na fatia 1 e avisa).
 set -u
 cd "$(dirname "$0")"
 export SP="${SP:-$(mktemp -d)}"
@@ -11,8 +13,20 @@ python3 servidor-com-headers.py 8792 ../../site & S2=$!
 trap 'kill $S1 $S2 2>/dev/null' EXIT
 sleep 1
 falhas=0
+FATIA="${FATIA:-}"
+quer() {   # este teste é da fatia atual?
+  [ -z "$FATIA" ] && return 0
+  qual="${FATIA%/*}"
+  linha=$(grep -E "^[0-9]+ $1\$" fatias.txt | head -1)
+  if [ -z "$linha" ]; then
+    [ "$qual" = 1 ] && echo "::warning::teste '$1' sem fatia em fatias.txt; rodando na fatia 1" && return 0
+    return 1
+  fi
+  [ "${linha%% *}" = "$qual" ]
+}
 roda() {   # nome, comando...
   nome="$1"; shift
+  quer "$nome" || return 0
   saida=$(timeout "${TEMPO:-280}" "$@" 2>&1); rc=$?
   echo "=== $nome (rc=$rc)"; echo "$saida" | tail -2
   if [ $rc -ne 0 ] || echo "$saida" | grep -q '^FAIL'; then falhas=$((falhas+1)); echo "!!! $nome FALHOU"; echo "$saida" | grep '^FAIL' | head -5; fi
