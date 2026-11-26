@@ -44,7 +44,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
   // registro: avanço mostra "por perna", dica, e o total do ranking conta os dois lados
   await p.evaluate(async () => {
     const db = await window.claude.use('db'); const iso = window.__ngTest.todayISO(); const k = window.__ngTest.state().rotina && ['dom','seg','ter','qua','qui','sex','sab'][new Date(iso + 'T12:00:00').getDay()];
-    await db.doc('rotina/' + k).set({ nome: 'Pernas', ativo: true, exercicios: [{ nome: 'Avanço (afundo) com halteres', series: 2, reps: '10-12', metaReps: 22, musculos: ['quadriceps'] }, { nome: 'Supino reto', series: 2, reps: '8-12', metaReps: 20, musculos: ['peito'] }] });
+    await db.doc('checkins/' + iso).delete().catch(() => {}); /* a semente cria treino hoje (exceto domingo): sem isso o avanço já aparece concluído e some a linha de registro */ await db.doc('rotina/' + k).set({ nome: 'Pernas', ativo: true, exercicios: [{ nome: 'Avanço (afundo) com halteres', series: 2, reps: '10-12', metaReps: 22, musculos: ['quadriceps'] }, { nome: 'Supino reto', series: 2, reps: '8-12', metaReps: 20, musculos: ['peito'] }] });
   });
   await p.reload(); await p.waitForTimeout(1800);
   await p.evaluate(() => document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()));
