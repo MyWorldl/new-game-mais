@@ -159,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-54", data: "26/11/2026", titulo: "Mapa corporal no Volume semanal", itens: [
+      { t: "novo", x: "Em Treino > Progresso, o Volume semanal ganhou um mapa do corpo (frente e costas) que mostra, por músculo, quantas séries você planejou e quantas já fez nesta semana. Verde é dentro da faixa ideal, âmbar abaixo do mínimo e vermelho acima do máximo; a cor fica mais forte conforme você avança." },
+      { t: "novo", x: "A silhueta é masculina ou feminina conforme o seu perfil e neutra quando o gênero não foi informado. Tocar em um músculo, no desenho ou na lista ao lado, mostra os números dele. As barras de volume continuam como antes." },
+      { t: "melhoria", x: "O mapa entra com uma animação suave, os números sobem até o valor e há uma barra de progresso em cada músculo. Se o seu aparelho está com movimento reduzido, tudo aparece direto, sem animar." }
+    ] },
     { v: "ng-modular-53", data: "22/11/2026", titulo: "Medição de desempenho sem identificar você e ajuste de título da página", itens: [
       { t: "novo", x: "O app passou a medir, de forma agregada, quanto tempo as telas levam para carregar (Cloudflare Web Analytics). Isso só vale para quem tem 18 anos ou mais e só no site publicado; menores de idade e quem não informou a idade não são medidos." },
       { t: "melhoria", x: "Se o seu navegador envia \"Não rastrear\" (DNT) ou o sinal Global Privacy Control, a medição fica desligada. A política de privacidade agora explica essa medição, o que ela não faz (não identifica você nem serve a publicidade) e como desligá-la." },

@@ -7,9 +7,12 @@ cd "$(dirname "$0")"
 mkdir -p .build
 # empacota o cardápio (engine.js + ui.js) em UM módulo ES, carregado sob demanda pelo app com import(); sem minificar (legível, como o app.js)
 ../node_modules/.bin/esbuild cardapio/ui.js --bundle --format=esm --target=es2020 --charset=utf8 --log-level=warning --outfile=.build/cardapio.js
+# ilha React + TypeScript do mapa corporal (módulo ES sob demanda, minificado; React empacotado, sem CDN)
+../node_modules/.bin/tsc -p mapa/tsconfig.json
+../node_modules/.bin/esbuild mapa/entrada.tsx --bundle --format=esm --target=es2020 --charset=utf8 --minify --jsx=automatic --define:process.env.NODE_ENV='"production"' --log-level=warning --outfile=.build/mapa.js
 python3 gera-dados.py .build/dados.json
 python3 visual/aplica-visual.py app.html /tmp/app-v2.html
 python3 aplica-standalone.py /tmp/app-v2.html ../site/index.html
-python3 externaliza.py ../site .build/cardapio.js .build/dados.json
+python3 externaliza.py ../site .build/cardapio.js .build/mapa.js .build/dados.json
 # orçamento de tamanho (segundos): falha o build se app.js/css/dados passarem do limite, avisa quando chegar a 90% (fonte/orcamento-tamanho.json)
 node tamanho.mjs ../site
