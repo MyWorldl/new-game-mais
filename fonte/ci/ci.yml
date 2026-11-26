@@ -14,15 +14,16 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  testes:
+  # Rápido (~2 min): o site/ gerado está em dia com o fonte/ e a VERSAO mudou.
+  site-em-dia:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
 
@@ -49,6 +50,21 @@ jobs:
             fi
           fi
 
+  # A bateria roda em 4 fatias em paralelo (fonte/testes/fatias.txt), cada uma com o site/ servido com os cabeçalhos de produção (inclusive a CSP).
+  testes-fatia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        fatia: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
       - name: Instala Playwright e o Chromium
         run: |
           mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
@@ -57,8 +73,20 @@ jobs:
           npx playwright install --with-deps chromium
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
 
-      - name: Testes (site servido com os cabeçalhos de produção, inclusive a CSP)
-        run: sh fonte/testes/rodar-todos.sh
+      - name: Testes da fatia ${{ matrix.fatia }} de 4
+        run: FATIA=${{ matrix.fatia }}/4 sh fonte/testes/rodar-todos.sh
+
+  # Mantém o nome "testes" (é o que a proteção da main e o verifica-deploy esperam): só passa se tudo acima passou.
+  testes:
+    if: always()
+    needs: [site-em-dia, testes-fatia]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Tudo passou?
+        run: |
+          echo "site-em-dia: ${{ needs.site-em-dia.result }} · testes-fatia: ${{ needs.testes-fatia.result }}"
+          [ "${{ needs.site-em-dia.result }}" = success ] && [ "${{ needs.testes-fatia.result }}" = success ] || { echo "::error::alguma etapa falhou ou foi cancelada"; exit 1; }
 
   verifica-deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -66,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Espera o site publicado mostrar a VERSAO deste commit
         run: |
