@@ -159,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-55", data: "26/11/2026", titulo: "Tela de entrada mais rápida", itens: [
+      { t: "melhoria", x: "A tela de entrada agora aparece sem esperar o app inteiro carregar. Em teste com rede e celular lentos, o botão de entrar apareceu em cerca de 2 segundos, em vez de cerca de 3,5." },
+      { t: "melhoria", x: "Os arquivos grandes do app passaram a carregar depois do essencial da entrada, para não disputarem a conexão com ela. O conteúdo e o funcionamento do app não mudam." },
+      { t: "correcao", x: "Atrás da tela de entrada o app deixava de ficar parado e se rearrumava (a página \"pulava\" de lugar) enquanto terminava de carregar. Agora ele fica oculto até você entrar, e a entrada aparece direto, sem o efeito de surgir aos poucos." }
+    ] },
     { v: "ng-modular-54", data: "26/11/2026", titulo: "Mapa corporal no Volume semanal", itens: [
       { t: "novo", x: "Em Treino > Progresso, o Volume semanal ganhou um mapa do corpo (frente e costas) que mostra, por músculo, quantas séries você planejou e quantas já fez nesta semana. Verde é dentro da faixa ideal, âmbar abaixo do mínimo e vermelho acima do máximo; a cor fica mais forte conforme você avança." },
       { t: "novo", x: "A silhueta é masculina ou feminina conforme o seu perfil e neutra quando o gênero não foi informado. Tocar em um músculo, no desenho ou na lista ao lado, mostra os números dele. As barras de volume continuam como antes." },
@@ -313,7 +318,7 @@
     return new Promise(function(resolve){
       var enviadoPara = null, espAtiva = false, tCool = null, concluido = false;
       quandoDom(function(){
-        injetaCss(); travaApp(true);
+        injetaCss(); travaApp(true); document.documentElement.classList.add("ng-entrando");   // o app fica oculto atrás da tela de entrada: o que ele desenha ali não conta como deslocamento de layout
         var el = document.createElement("div");
         el.className = "ng-login ng-lc"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "ng-login-t");
         el.innerHTML =
@@ -532,7 +537,7 @@
 
         function finaliza(s){
           if (concluido) return; concluido = true; clearInterval(tCool);
-          try { el.remove(); } catch(e){} travaApp(false);
+          try { el.remove(); } catch(e){} travaApp(false); document.documentElement.classList.remove("ng-entrando");
           resolve({uid: s.user.id, email: s.user.email || enviadoPara || ""});
         }
         async function enviar(){
@@ -1246,6 +1251,10 @@
     client: client, sessao: sessao, preparar: preparar, mudou: mudou, estado: estado, sincronizar: function(){ return sincronizar().then(flush); },
     abrirPolitica: abrirPolitica, versao: "B2"
   };
+  /* Começa a conferir a sessão (e, se não houver, mostra a tela de entrada) já aqui, sem esperar o app.js baixar e rodar.
+     Antes, a tela de entrada só aparecia depois do app.js (o maior arquivo) porque era o app quem pedia a sessão pela primeira vez.
+     sessao() guarda a promessa: quando o app pedir de novo, recebe a mesma resposta. */
+  sessao().catch(function(){});
 })();
 
 /* ---------------- Instalar no celular (card "Instalar no celular" em Configurações) ----------------
