@@ -61,5 +61,8 @@ roda cardapio-compras node cardapio-compras.js http://localhost:8791
 roda cardapio-pdf node cardapio-pdf.js http://localhost:8791
 roda unit-lembretes node --experimental-strip-types unit-lembretes.mjs
 roda unit-treinador node --experimental-strip-types unit-treinador.mjs
+roda backend-pedir-acesso node --experimental-strip-types --import ./backend/registra.mjs backend/pedir-acesso.mjs
+roda backend-gerir-acesso node --experimental-strip-types --import ./backend/registra.mjs backend/gerir-acesso.mjs
+roda backend-delete-account node --experimental-strip-types --import ./backend/registra.mjs backend/delete-account.mjs
 echo "------ testes com falha: $falhas"
 exit $falhas
