@@ -1705,6 +1705,7 @@ async function initStore(){
       if(fx){ state.perfil = fx; try{ if(state.db) Promise.resolve(state.db.doc("config/perfil").set(fx)).catch(e=>ngReporta(e,"perfil:gravar")); }catch(e){ ngReporta(e,"perfil:gravar"); } } }
     ajustarRotinaExemplo();
     perfilRecebido = true;
+    try{ if(window.ngMedicao) window.ngMedicao(state.perfil && state.perfil.idade); }catch(e){}   // medição agregada só para maiores de 18 (ng-nuvem.js)
     render(); marca("perfil");
     if(!carregando) setTimeout(verificaOnboarding, 350);   // resposta tardia (depois dos 6 s do esqueleto)
   }, ()=> falha("perfil")));
