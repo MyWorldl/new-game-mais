@@ -1,5 +1,14 @@
 [
   {
+    "v": "ng-modular-64", "data": "27/11/2026",
+    "titulo": "Página de apresentação com as cores do app",
+    "itens": [
+      { "t": "melhoria", "x": "A página \"Conhecer o NG+\" agora usa as mesmas cores do app, verde-limão e preto, no lugar do violeta e do âmbar. A animação do \"+\" também ficou em tons de limão." },
+      { "t": "novo", "x": "Mais organização: o que o NG+ faz aparece em quatro cartões, \"Como começar\" mostra o caminho em três passos e há uma chamada final para entrar ou instalar no celular." },
+      { "t": "melhoria", "x": "Cada parte da página ganhou uma linha de separação e o mesmo espaço em volta, o texto de apoio ficou mais firme para ler e tudo está alinhado na mesma margem, no celular e no computador." }
+    ]
+  },
+  {
     "v": "ng-modular-63", "data": "27/11/2026",
     "titulo": "Tela de entrada abre mais rápido",
     "itens": [

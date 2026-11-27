@@ -1,4 +1,4 @@
-/* NG+ · constelação da página de apresentação: triângulos vazados em cores vivas formando um "+" (o plus do New Game+), mais partículas soltas ao redor.
+/* NG+ · constelação da página de apresentação: triângulos vazados em tons de verde-limão formando um "+" (o plus do New Game+), mais partículas soltas ao redor.
    Só decoração (o canvas é aria-hidden). Regras: começa depois da página carregar (o texto é o que importa para o LCP); para quando a aba fica
    escondida ou o desenho sai da tela; no celular usa menos partículas; com movimento reduzido desenha UM quadro parado. Sem biblioteca, sem rede. */
 (function () {
@@ -9,7 +9,7 @@
   if (!ctx) return;
 
   var reduz = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  var CORES = ['#8052ff', '#ffb829', '#1fb596', '#d65cff', '#4f8cff'];
+  var CORES = ['#a3e635', '#bef264', '#84cc16', '#d9f99d', '#92a095'];   // limão do app em quatro tons + um cinza
   var parts = [], W = 0, H = 0, dpr = 1, raf = 0, ultimo = 0, visivel = true, iniciou = false;
 
   function semente(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
