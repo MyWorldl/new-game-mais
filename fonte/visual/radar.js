@@ -46,21 +46,27 @@ function radarAxes(){
   const sched30 = activeDaysInRange(recorte ? cad : ini30, today);
   const janela = recorte ? "desde o seu cadastro" : "em 30 dias";
   const done30 = sched30.filter(iso=> state.checkins[iso]?.concluido).length;
+  // Vitalidade (14 dias) e Foco (4 semanas) também só cobram o que já existia para a conta: dias/semanas antes do cadastro ficam de fora
+  const diasConta = Math.max(1, Math.round((new Date(today+"T12:00:00") - new Date(cad+"T12:00:00"))/864e5) + 1);
+  const habJan = Math.min(14, diasConta);
   let habDias = 0;
-  for(let i=0;i<14;i++){ if(habDe(addDaysISO(today, -i))) habDias++; }
+  for(let i=0;i<habJan;i++){ if(habDe(addDaysISO(today, -i))) habDias++; }
   const medIsos = Object.keys(state.medicoes||{});
-  let medSem = 0;
+  let medSem = 0, semJan = 0;
   for(let w=0; w<4; w++){
     const a = addDaysISO(today, -(7*w+6)), b = addDaysISO(today, -7*w);
+    if(b < cad) continue;   // semana inteira antes do cadastro
+    semJan++;
     if(medIsos.some(iso=> iso>=a && iso<=b)) medSem++;
   }
+  semJan = Math.max(1, semJan);
   const pct = (a,b)=> b>0 ? Math.round(Math.min(1, a/b)*100) : 0;
   return [
     {k:"Força", ab:"FOR", v:f.forca, sub: f.nComHist ? "carga atual em "+f.forca+"% do seu pico (média de "+f.nComHist+" exercício"+(f.nComHist===1?"":"s")+")" : "registre cargas em 2 ou mais treinos"},
     {k:"Resistência", ab:"RES", v:pct(f.sFeito, f.sPrev), sub: f.sPrev ? f.sFeito+" de "+f.sPrev+" séries previstas "+janela : "sem treinos agendados ainda"},
     {k:"Disciplina", ab:"DIS", v:pct(done30, sched30.length), sub: sched30.length ? done30+" de "+sched30.length+" treinos "+janela : "sem treinos agendados ainda"},
-    {k:"Vitalidade", ab:"VIT", v:pct(habDias, 14), sub: habDias+" de 14 dias com hábitos registrados"},
-    {k:"Foco", ab:"FOC", v:pct(medSem, 4), sub: medSem+" de 4 semanas com medição"}
+    {k:"Vitalidade", ab:"VIT", v:pct(habDias, habJan), sub: habDias+" de "+habJan+" dia"+(habJan===1?"":"s")+" com hábitos registrados"+(habJan<14 ? " desde o seu cadastro" : "")},
+    {k:"Foco", ab:"FOC", v:pct(medSem, semJan), sub: medSem+" de "+semJan+" semana"+(semJan===1?"":"s")+" com medição"+(semJan<4 ? " desde o seu cadastro" : "")}
   ];
 }
 let rdJaAnimou = false;

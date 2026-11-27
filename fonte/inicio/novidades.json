@@ -1,5 +1,12 @@
 [
   {
+    "v": "ng-modular-68", "data": "27/11/2026",
+    "titulo": "Vitalidade e Foco também contam desde o seu cadastro",
+    "itens": [
+      { "t": "correcao", "x": "Perfil: Vitalidade (hábitos) e Foco (medições) deixaram de cobrar dias e semanas anteriores ao seu cadastro. Uma conta de 5 dias agora mostra \"de 5 dias\" e \"de 1 semana\", em vez de 14 dias e 4 semanas cheios." }
+    ]
+  },
+  {
     "v": "ng-modular-67", "data": "27/11/2026",
     "titulo": "Entrada com aviso claro, Perfil justo com conta nova e telas que abrem no topo",
     "itens": [
