@@ -58,6 +58,7 @@
 3 treino-f1
 3 treino-f2
 3 troca-sem-repeticao
+3 cardapio-grao-motor
 4 alinhamentos
 4 analise-categorias
 4 base-guias

@@ -46,6 +46,8 @@ var FOODS = {
   mozarela: { n: "Queijo muçarela", v: [330, 22.6, 3, 25.2], role: "prot", veg: true, cheap: false, fast: true, lact: true, unit: [25, "fatia", "fatias"] },
   iogurteD: { n: "Iogurte natural desnatado", v: [41, 3.8, 5.8, 0.3], role: "prot", veg: true, cheap: true, fast: true, lact: true, unit: [170, "pote", "potes"] },
   fradinho: { n: "Feijão-fradinho", v: [78, 5.1, 13.5, 0.6], role: "leg", veg: true, vegan: true, cheap: true, fast: true },
+  grao: { n: "Grão-de-bico cozido", v: [118, 8.5, 20.3, 2.1], role: "leg", veg: true, vegan: true, cheap: false, fast: false },
+  // TBCA 159T (cozido): 118 kcal / 8,46 / 20,3 / 2,13 por 100 g
   paoI: { n: "Pão de forma integral", v: [253, 9.4, 49.9, 3.7], role: "carb", veg: true, vegan: true, cheap: true, fast: true, gluten: true, unit: [25, "fatia", "fatias"] },
   abacaxi: { n: "Abacaxi", v: [48, 0.9, 12.3, 0.1], role: "fruit", veg: true, vegan: true, cheap: true, fast: true },
   melancia: { n: "Melancia", v: [33, 0.9, 8.1, 0], role: "fruit", veg: true, vegan: true, cheap: true, fast: true },
@@ -205,6 +207,9 @@ function prefList(slot, cfg) {
 function rolePool(role, cfg, slot) {
   var out = [];
   for (var id in FOODS) if (FOODS[id].role === role && allowed(id, cfg)) out.push(id);
+  if (role === "leg" && cfg.rout === "tradicional") out = out.filter(function(id2) {
+    return id2 !== "grao";
+  });
   if (role === "carb") {
     if (slot === "cafe" || slot === "lanche" || slot === "manha") out = out.filter(function(id2) {
       return ["pao", "paoI", "aveia", "cuscuz", "batataD"].indexOf(id2) >= 0;

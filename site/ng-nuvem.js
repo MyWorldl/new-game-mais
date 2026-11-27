@@ -159,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-56", data: "26/11/2026", titulo: "Cardápio: grão-de-bico cozido", itens: [
+      { t: "novo", x: "O grão-de-bico cozido entrou na lista de alimentos do cardápio, como opção de leguminosa no almoço e para trocar pelo feijão. Valores por 100 g: 118 kcal, 8,5 g de proteína, 20,3 g de carboidrato e 2,1 g de gordura (Tabela Brasileira de Composição de Alimentos, TBCA/USP)." },
+      { t: "melhoria", x: "No \"Dia tradicional\" o cardápio continua com feijão ou lentilha; o grão-de-bico só é sugerido nas outras rotinas. Você ainda pode escolher a troca por conta própria." },
+      { t: "melhoria", x: "Tilápia e macarrão cozido seguem de fora: não consegui conferir os valores nas tabelas brasileiras, e o app só usa o que foi verificado." }
+    ] },
     { v: "ng-modular-55", data: "26/11/2026", titulo: "Tela de entrada mais rápida", itens: [
       { t: "melhoria", x: "A tela de entrada agora aparece sem esperar o app inteiro carregar. Em teste com rede e celular lentos, o botão de entrar apareceu em cerca de 2 segundos, em vez de cerca de 3,5." },
       { t: "melhoria", x: "Os arquivos grandes do app passaram a carregar depois do essencial da entrada, para não disputarem a conexão com ela. O conteúdo e o funcionamento do app não mudam." },
