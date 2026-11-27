@@ -27,12 +27,17 @@ const lerRadar = p => p.evaluate(() => [...document.querySelectorAll('#attrs-rad
     const { c, p } = await conta(b, 4); const L = await lerRadar(p);
     const res = L.find(x => /Resistência/.test(x)) || '', dis = L.find(x => /Disciplina/.test(x)) || '';
     t('conta nova: Resistência e Disciplina dizem "desde o seu cadastro"', /séries previstas desde o seu cadastro/.test(res) && /treinos desde o seu cadastro/.test(dis), res + ' | ' + dis);
+    const vit = L.find(x => /Vitalidade/.test(x)) || '', foc = L.find(x => /Foco/.test(x)) || '';
+    t('conta nova: Vitalidade conta só os dias de conta (5), não 14', /de 5 dias com hábitos registrados desde o seu cadastro/.test(vit), vit);
+    t('conta nova: Foco conta só a semana que existe (1), não 4', /de 1 semana com medição desde o seu cadastro/.test(foc), foc);
     const m = dis.match(/de (\d+) treinos/);
     t('conta nova: o total de treinos previstos cabe nos dias de conta (no máximo 5), não ~30', !!m && Number(m[1]) <= 5, dis);
     t('conta nova: sem erros de JS', p.errs.length === 0, p.errs.join('|')); await c.close(); }
   { // conta antiga (90 dias): mantém a janela de 30 dias
     const { c, p } = await conta(b, 90); const L = await lerRadar(p);
     const dis = L.find(x => /Disciplina/.test(x)) || '', res = L.find(x => /Resistência/.test(x)) || '';
+    const vit2 = L.find(x => /Vitalidade/.test(x)) || '', foc2 = L.find(x => /Foco/.test(x)) || '';
+    t('conta antiga: Vitalidade segue em 14 dias e Foco em 4 semanas, sem "desde o seu cadastro"', /de 14 dias com hábitos registrados$/.test(vit2) && /de 4 semanas com medição$/.test(foc2), vit2 + ' | ' + foc2);
     t('conta antiga: continua "em 30 dias" com 30 dias de treinos previstos', /séries previstas em 30 dias/.test(res) && /treinos em 30 dias/.test(dis) && Number((dis.match(/de (\d+) treinos/) || [])[1]) >= 28, res + ' | ' + dis);
     await c.close(); }
   { // troca de aba abre no topo
