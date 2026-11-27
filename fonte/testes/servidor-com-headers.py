@@ -16,7 +16,25 @@ for linha in open(os.path.join(raiz, '_headers'), encoding='utf-8'):
     elif ':' in linha and atual is not None:
         k, v = linha.strip().split(':', 1); atual[k.strip()] = v.strip()
 
+# A Cloudflare (html_handling "auto-trailing-slash" em wrangler.jsonc) manda /pagina.html para /pagina com 307 e serve /pagina a partir de pagina.html.
+# Imitamos isso só para inicio.html: foi o que escondeu, num teste local, o defeito do service worker (cópia guardada "redirecionada" recusada offline).
+# Não aplicado a instalar.html e index.html para não mudar o endereço que outros testes esperam.
+REDIRECIONA = {'/inicio.html': '/inicio'}
+
 class H(http.server.SimpleHTTPRequestHandler):
+    def _redireciona(self):
+        caminho, _, consulta = self.path.partition('?')
+        if caminho in REDIRECIONA:
+            self.send_response(307); self.send_header('Location', REDIRECIONA[caminho] + ('?' + consulta if consulta else '')); self.send_header('Content-Length', '0'); self.end_headers(); return True
+        return False
+    def do_GET(self):
+        if not self._redireciona(): super().do_GET()
+    def do_HEAD(self):
+        if not self._redireciona(): super().do_HEAD()
+    def translate_path(self, path):
+        caminho, _, consulta = path.partition('?')
+        if caminho == '/inicio': path = '/inicio.html' + ('?' + consulta if consulta else '')
+        return super().translate_path(path)
     def end_headers(self):
         caminho = self.path.split('?')[0]
         for rx, hs in regras:

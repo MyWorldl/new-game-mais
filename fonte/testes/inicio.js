@@ -133,11 +133,15 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
   t('desligar movimento reduzido na hora volta a animar', (await p.getAttribute('#constelacao', 'data-pronto')) === 'animando' && r3.soma !== r4.soma);
   await c.close();
 
-  // 8b) funciona sem internet: com o service worker ativo, a página abre offline a partir do cache
-  { const c2 = await b.newContext({ viewport: { width: 390, height: 844 } }); const q = await c2.newPage();
+  // 8b) funciona sem internet. A hospedagem manda /inicio.html para /inicio (307); a cópia guardada vem "redirecionada" e o navegador a recusa
+  //     numa navegação, a menos que o service worker a copie para uma resposta nova (defeito real visto em produção na versão 57).
+  for (const visitada of [false, true]) {
+    const c2 = await b.newContext({ viewport: { width: 390, height: 844 } }); const q = await c2.newPage();
     await q.goto(BASE + '/index.html'); await q.evaluate(async () => { const r = await navigator.serviceWorker.ready; return !!r.active; }); await q.waitForTimeout(2500);
+    if (visitada) { await q.goto(URL_); await q.waitForTimeout(800); t('online: /inicio.html redireciona para /inicio e abre', /\/inicio$/.test(q.url()) && /New Game\+/.test(await q.innerText('h1')), q.url()); }
     await c2.setOffline(true); let off = false, tit = ''; try { await q.goto(URL_, { timeout: 8000 }); tit = await q.innerText('h1'); off = /New Game\+/.test(tit); } catch (e) { tit = String(e.message).slice(0, 120); }
-    t('sem internet: inicio.html abre a partir do cache do service worker', off, tit); await c2.close(); }
+    t('sem internet' + (visitada ? ' (já visitada)' : ' (nunca visitada)') + ': inicio.html abre a partir do cache do service worker', off, tit); await c2.close();
+  }
 
   // 9) pré-cache do service worker e orçamento de tamanho
   const sw = fs.readFileSync(path.join(SITE, 'sw.js'), 'utf8');
