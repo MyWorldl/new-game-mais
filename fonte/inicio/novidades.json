@@ -1,5 +1,13 @@
 [
   {
+    "v": "ng-modular-69", "data": "27/11/2026",
+    "titulo": "Voltar do e-mail sem perder o código e carga antes de registrar a série",
+    "itens": [
+      { "t": "correcao", "x": "Entrada: se o celular recarregar o app enquanto você abre o e-mail para copiar o código, a tela do código volta pronta, com o seu e-mail já preenchido, em vez de pedir tudo de novo. O pedido fica salvo por até 50 minutos (o código vale 1 hora)." },
+      { "t": "melhoria", "x": "Pop-up do exercício: carga e esforço (RPE) agora ficam antes do botão \"Registrar série\", para registrar cada série já com a carga certa." }
+    ]
+  },
+  {
     "v": "ng-modular-68", "data": "27/11/2026",
     "titulo": "Vitalidade e Foco também contam desde o seu cadastro",
     "itens": [

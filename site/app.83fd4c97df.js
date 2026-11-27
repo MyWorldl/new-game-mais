@@ -8080,11 +8080,12 @@ function renderLiveWorkout(body){
     (alt.length ? '<div class="qc-alt lw-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : altSemLivreHtml(ex, alt, 'lw-alt'))+
     permBtnHtml(i, ex)+
     '<div class="lw-video-row"><a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer">'+ICON_PLAY+'<span>Ver vídeo de execução</span></a></div>'+
-    '<div class="lw-progress">'+serieLogHtml(i, ex, checkin, 'lw')+'</div>'+
+    /* carga e RPE vêm antes das séries: dá para registrar a série já com a carga certa (a ordem do painel do cartão) */
     '<div class="quest-carga-row"><label>Carga</label><input type="number" step="0.5" min="0" class="quest-carga-input" id="lw-carga-input" value="'+cargaAtual+'" placeholder="kg"><span class="quest-carga-hint">'+cargaHint+'</span></div>'+
     cargaQuickHtml(i, ex.nome, cargaAtual, histAntes.length ? histAntes[histAntes.length-1].peso : null)+
     (sug ? '<div class="quest-sugestao">'+ic('bulb')+' Sugestão: '+fmtKg(sug.sugerido)+' kg — '+escapeHtml(sug.texto)+'</div>' : '')+
     '<div class="quest-rpe-row"><label>RPE</label>'+tipBtn("rpe")+'<div class="seg quest-rpe-seg" id="lw-rpe-seg">'+rpeValoresManuais().map(v=>'<button type="button" data-rpeval="'+v+'" class="'+(rpeAtual===v?'active':'')+'">'+v+'</button>').join("")+'</div><span class="quest-rpe-hint">'+(rpeAtual?RPE_HINTS[rpeAtual]:"")+'</span></div>'+
+    '<div class="lw-progress">'+serieLogHtml(i, ex, checkin, 'lw')+'</div>'+
     restTimerCellHtml(i, ex.nome)+
     '<div class="lw-nav">'+
       '<button class="btn" type="button" data-lwprev '+(i<=0?'disabled':'')+'>← Anterior</button>'+
