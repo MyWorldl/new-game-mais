@@ -1272,7 +1272,7 @@ function renderVolume(){
 
 /* Mapa corporal do volume (ilha React + TypeScript em fonte/mapa, carregada sob demanda como o cardápio).
    O app só entrega os números já calculados; se o módulo falhar, o mapa some e as barras continuam. */
-const MAPA_URL = "./mapa.e92af4409e.js";
+const MAPA_URL = "./mapa.65a43bc213.js";
 let mapaVolumeMod = null, mapaVolumeFalhou = false, mapaVolumeSig = "";
 function montarMapaVolume(totals, feitoSem, focoSet){
   const host = document.getElementById("volume-mapa");

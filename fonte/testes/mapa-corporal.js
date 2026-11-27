@@ -40,7 +40,20 @@ const vaiProgresso = async p => { await p.evaluate(() => document.getElementById
     t(L + 'o módulo é baixado ao abrir Treino > Progresso', p.reqs.some(u => /\/mapa\.[0-9a-f]+\.js/.test(u)));
     t(L + 'duas figuras (frente e costas) e 10 músculos na lista', await p.locator('.vmap-fig').count() === 2 && await p.locator('.vmap-item').count() === 10);
     ds[sexo || 'N'] = await p.evaluate(() => [...document.querySelectorAll('.vmap-corpo')].map(g => g.querySelector('#x') ? '' : [...g.querySelectorAll('path')].map(x => x.getAttribute('d')).join('|')).join('||'));
-    const v = await p.evaluate(() => ({ tronco: document.querySelector('.vmap-corpo path:nth-child(3)').getAttribute('d') }));
+    // pelve: o tronco desce sobre o topo das coxas (sem vão nem "tampa" solta) e glúteos/coxas ficam dentro do contorno do corpo
+    const geo = await p.evaluate(() => [...document.querySelectorAll('.vmap-svg')].map(svg => {
+      const corpo = [...svg.querySelectorAll('.vmap-corpo path')];
+      const dentro = (x, y) => corpo.some(c => c.isPointInFill(new DOMPoint(x, y)));
+      const pelve = [[100, 262], [94, 262], [106, 262], [80, 250], [120, 250], [90, 270], [110, 270]].map(([x, y]) => dentro(x, y));
+      const fora = [...svg.querySelectorAll('.vmap-m .base')].map(m => {
+        const n = 60, tot = m.getTotalLength(); let f = 0;
+        for (let i = 0; i < n; i++) { const q = m.getPointAtLength(tot * i / n); if (q.y > 200 && q.y < 320 && !dentro(q.x, q.y) && !corpo.some(c => c.isPointInStroke(new DOMPoint(q.x, q.y)))) f++; }
+        return f;
+      });
+      return { pelve, fora };
+    }));
+    t(L + 'pelve contínua: pontos do quadril e da virilha dentro do corpo, nas duas vistas', geo.every(g => g.pelve.every(Boolean)), JSON.stringify(geo.map(g => g.pelve)));
+    t(L + 'glúteos, coxas e panturrilhas não passam do contorno do corpo', geo.every(g => g.fora.every(n => n <= 1)), JSON.stringify(geo.map(g => g.fora)));
     t(L + 'figuras com a mesma quantidade de regiões dos dois lados (frente 11 ou 12, costas 11 ou 12)', await p.locator('.vmap-m').count() >= 20);
     // estados: peito 12/13 dentro da faixa; ombros abaixo do mínimo
     const peito = p.locator('.vmap-item', { hasText: 'Peito' });

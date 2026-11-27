@@ -159,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-61", data: "27/11/2026", titulo: "Mapa corporal sem vão na pelve", itens: [
+      { t: "correcao", x: "No mapa corporal, o topo das coxas aparecia como duas \"tampas\" soltas sobre o tronco, com um vão na pelve. Agora o quadril e a virilha formam uma linha contínua, nas silhuetas masculina, feminina e neutra." },
+      { t: "correcao", x: "Os glúteos (vista de costas) passavam um pouco do contorno do corpo na cintura; agora ficam dentro dele. O mesmo ajuste vale para o topo da coxa." },
+      { t: "melhoria", x: "Um teste automático novo confere a pelve e garante que glúteos, coxas e panturrilhas não saiam do contorno do corpo." }
+    ] },
     { v: "ng-modular-60", data: "27/11/2026", titulo: "Cardápio mais simples ao trocar de dia", itens: [
       { t: "melhoria", x: "Ao tocar nos dias da semana, em uma restrição ou na lista de compras, o cardápio agora só troca o que mudou. O truque antigo que prendia a altura do cartão e conferia a rolagem depois de cada toque saiu: não é mais preciso." },
       { t: "melhoria", x: "Os testes do Safari (WebKit) passaram a tocar nos dias, nas restrições e no fim da página, para garantir que a tela não pule nem fique com espaço em branco sobrando." },
