@@ -1,5 +1,14 @@
 [
   {
+    "v": "ng-modular-65", "data": "27/11/2026",
+    "titulo": "Tela de entrada mais limpa e fácil de ler",
+    "itens": [
+      { "t": "melhoria", "x": "A caixa de verificação \"Confirme que é humano\" não fica mais no meio do formulário: quando a verificação passa sozinha, ela nem aparece. Só surge se o NG+ precisar que você toque nela." },
+      { "t": "melhoria", "x": "O verde-limão ficou só onde importa (o título e o botão de entrar). A faixa de novidade, os ícones e os rótulos ganharam tons neutros, e o topo não tem mais a faixa que cortava o fundo." },
+      { "t": "melhoria", "x": "O campo de e-mail mostra um exemplo, \"Pedir acesso\" virou um botão ao lado de entrar, o texto sobre a política de privacidade ficou com linhas juntas e o título do cartão usa a mesma letra do resto da página." }
+    ]
+  },
+  {
     "v": "ng-modular-64", "data": "27/11/2026",
     "titulo": "Página de apresentação com as cores do app",
     "itens": [

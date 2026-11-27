@@ -87,6 +87,16 @@
      O widget entrega um "crachá" (token) de uso único, que seguimos para o Supabase junto com o pedido do e-mail.
      Se o porteiro não carregar (bloqueador de anúncios, rede restrita), ainda tentamos enviar: o Supabase decide. */
   var tsPromessa = null;
+  /* O porteiro discreto: appearance "interaction-only" esconde o quadro quando a verificação passa sozinha (quase sempre) e só mostra
+     a caixa quando a pessoa precisa tocar. Doc: developers.cloudflare.com/turnstile/get-started/client-side-rendering/widget-configurations/ */
+  function temaTs(){   // tema do widget segue o fundo real da tela de entrada (o app tem vários temas), e não só o do sistema
+    try {
+      var n = getComputedStyle(document.querySelector(".ng-login")).backgroundColor.match(/\d+(\.\d+)?/g);
+      if (n && n.length >= 3) return (0.2126 * n[0] + 0.7152 * n[1] + 0.0722 * n[2]) / 255 < 0.5 ? "dark" : "light";
+    } catch(e){}
+    return "auto";
+  }
+  function tsVisivel(id, on){ var e = $(id); if (e) e.classList.toggle("ng-ts-vis", !!on); }
   function carregaTurnstile(){
     if (tsPromessa) return tsPromessa;
     tsPromessa = new Promise(function(resolve){
@@ -167,7 +177,7 @@
      GERADO por fonte/inicio/gera-inicio.mjs (rodado pelo build.sh) a partir de fonte/inicio/novidades.json: não edite este trecho.
      Para publicar uma versão nova, acrescente um item NO TOPO de novidades.json (t: novo | melhoria | correcao) e rode fonte/build.sh.
      A lista completa fica só em inicio.html: o app baixa apenas esta linha. */
-  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-64", titulo: "Página de apresentação com as cores do app" }/*FIM*/ ];
+  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-65", titulo: "Tela de entrada mais limpa e fácil de ler" }/*FIM*/ ];
   /* A lista completa de atualizações agora mora na página de apresentação (inicio.html), gerada a partir de NOVIDADES por fonte/inicio/gera-inicio.mjs. */
 
   function pedirLogin(){
@@ -181,7 +191,7 @@
           '<div class="ng-lc-shell">' +
             '<header class="ng-lc-top">' +
               '<div class="ng-lc-brand"><span class="ng-lc-mark" aria-hidden="true">NG+</span><span class="ng-lc-nome">New Game+</span></div>' +
-              '<a class="ng-lc-conhecer" href="inicio.html">Conhecer o NG+<span class="ng-lc-ver">' + NOVIDADES[0].v.replace("ng-modular-", "v") + '</span></a>' +
+              '<a class="ng-lc-conhecer" href="inicio.html">Conhecer o NG+</a>' +
             '</header>' +
             '<div class="ng-lc-main">' +
             '<section class="ng-lc-pn ng-lc-inicio" id="ng-pn-inicio">' +
@@ -190,7 +200,7 @@
                 '<p class="ng-lc-titulo">Comece o seu <em>New Game+</em></p>' +
                 '<p class="ng-lc-sub">Sua rotina de academia, seu cardápio e seu progresso num lugar só. Cada treino feito sobe a sua patente.</p>' +
                 '<ul class="ng-lc-feats">' +
-                  '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.5 6.5 3 10l4 4M17.5 17.5 21 14l-4-4M7 12h10"/></svg></span><span><b>Treino que se adapta</b><br>Casa, academia ou pouco equipamento.</span></li>' +
+                  '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg></span><span><b>Treino que se adapta</b><br>Casa, academia ou pouco equipamento.</span></li>' +
                   '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 11h14l-1.2 8a2 2 0 0 1-2 1.7H8.2a2 2 0 0 1-2-1.7zM9 11V8a3 3 0 0 1 6 0v3"/></svg></span><span><b>Cardápio e lista de compras</b><br>Da semana inteira, com PDF.</span></li>' +
                   '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></span><span><b>Progresso que motiva</b><br>Cargas, medidas, conquistas e patentes.</span></li>' +
                 '</ul>' +
@@ -201,8 +211,8 @@
             '<h1 id="ng-login-t">Entrar no NG+</h1>' +
             '<p id="ng-login-p">Digite o e-mail liberado para você. Vamos enviar um link e um código de acesso — não precisa de senha.</p>' +
             '<form id="ng-login-f" novalidate>' +
-              '<div><label for="ng-login-e">E-mail</label><input id="ng-login-e" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required></div>' +
-              '<div id="ng-login-ts"></div>' +
+              '<div><label for="ng-login-e">E-mail</label><input id="ng-login-e" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" required></div>' +
+              '<div id="ng-login-ts" class="ng-ts"></div>' +
               '<div id="ng-login-cod" hidden><label for="ng-login-c">Código do e-mail</label><input id="ng-login-c" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]*" aria-describedby="ng-login-m"></div>' +
               '<button class="ng-btn" type="submit" id="ng-login-ok">Enviar link e código</button>' +
               '<button class="ng-btn ghost" type="button" id="ng-login-reenv" hidden>Reenviar e-mail</button>' +
@@ -211,7 +221,7 @@
             '</form>' +
             '<form id="ng-pedir-f" novalidate hidden>' +
               '<div><label for="ng-ped-n">Seu nome</label><input id="ng-ped-n" type="text" autocomplete="name" maxlength="80" required></div>' +
-              '<div><label for="ng-ped-e">E-mail</label><input id="ng-ped-e" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required></div>' +
+              '<div><label for="ng-ped-e">E-mail</label><input id="ng-ped-e" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" required></div>' +
               '<div><label for="ng-ped-d">Data de nascimento</label><input id="ng-ped-d" type="date" autocomplete="bday" min="1900-01-01" required></div>' +
               '<div id="ng-ped-resp" hidden>' +
                 '<p class="ng-peq">Você tem menos de 18 anos. Precisamos do e-mail de um responsável.</p>' +
@@ -219,7 +229,7 @@
                 '<label class="ng-chk"><input type="checkbox" id="ng-ped-ar"><span>Meu responsável sabe e concorda que eu use o NG+.</span></label>' +
               '</div>' +
               '<div class="ng-isca" aria-hidden="true"><label for="ng-ped-site">Deixe em branco</label><input id="ng-ped-site" type="text" tabindex="-1" autocomplete="off"></div>' +
-              '<div id="ng-ped-ts"></div>' +
+              '<div id="ng-ped-ts" class="ng-ts"></div>' +
               '<label class="ng-chk"><input type="checkbox" id="ng-ped-a"><span>Li e concordo com o uso dos meus dados descrito na política de privacidade.</span></label>' +
               '<button type="button" class="ng-link" id="ng-ped-pol">Ler a política de privacidade</button>' +
               '<button class="ng-btn" type="submit" id="ng-ped-ok">Pedir acesso</button>' +
@@ -227,8 +237,8 @@
             '</form>' +
             '<div id="ng-ped-fim" hidden><button class="ng-btn" type="button" id="ng-ped-fim-voltar">Voltar para entrar</button></div>' +
             '<p class="ng-login-m" id="ng-login-m" role="status" aria-live="polite"></p>' +
-            '<p class="ng-peq ng-pedir-aviso" id="ng-pedir-aviso">Ainda não tem acesso? <button type="button" class="ng-link" id="ng-login-pedir">Pedir acesso</button></p>' +
-            '<p class="ng-peq" style="font-size:13px">Ao entrar, você concorda com o uso dos seus dados descrito na <button type="button" class="ng-link" id="ng-login-pol">política de privacidade</button>.</p>' +
+            '<div class="ng-pedir-aviso" id="ng-pedir-aviso"><p>Ainda não tem acesso?</p><button type="button" class="ng-btn ghost" id="ng-login-pedir">Pedir acesso</button></div>' +
+            '<p class="ng-legal">Ao entrar, você concorda com o uso dos seus dados descrito na <button type="button" class="ng-link in" id="ng-login-pol">política de privacidade</button>.</p>' +
           '</div>' +
             '</section>' +
             '</div>' +
@@ -250,16 +260,16 @@
           if (!T) { tsFalhou = true; return; }
           try {
             tsId = T.render("#ng-login-ts", {
-              sitekey: TS_KEY, theme: "auto", size: "flexible", language: "pt-br",
-              "before-interactive-callback": function(){ tsPedeToque = true; if (!enviadoPara) msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
-              callback: function(t){ tsToken = t; tsPedeToque = false; if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
-              "expired-callback": function(){ tsToken = null; try { T.reset(tsId); } catch(e){} },
+              sitekey: TS_KEY, theme: temaTs(), size: "flexible", appearance: "interaction-only", language: "pt-br",
+              "before-interactive-callback": function(){ tsPedeToque = true; tsVisivel("ng-login-ts", true); if (!enviadoPara) msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
+              callback: function(t){ tsToken = t; tsPedeToque = false; tsVisivel("ng-login-ts", false); if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
+              "expired-callback": function(){ tsToken = null; tsVisivel("ng-login-ts", false); try { T.reset(tsId); } catch(e){} },
               "error-callback": function(){ tsToken = null; tsFalhou = true; return true; }
             });
           } catch(e){ tsFalhou = true; }
         });
         function tsNovo(){   // o crachá vale uma vez só: pede outro para a próxima tentativa
-          tsToken = null; tsPedeToque = false;
+          tsToken = null; tsPedeToque = false; tsVisivel("ng-login-ts", false);
           try { if (window.turnstile && tsId !== null) { tsFalhou = false; window.turnstile.reset(tsId); } } catch(e){}
         }
         /* ---- Espera entre pedidos de código. Analogia: a senha do caixa: a barra mostra quanto falta e o botão só libera quando ela
@@ -314,16 +324,16 @@
             if (!T) { pedTsFalhou = true; return; }
             try {
               pedTsId = T.render("#ng-ped-ts", {
-                sitekey: TS_KEY, theme: "auto", size: "flexible", language: "pt-br",
-                "before-interactive-callback": function(){ pedTsToque = true; msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
-                callback: function(t){ pedTsToken = t; pedTsToque = false; if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
-                "expired-callback": function(){ pedTsToken = null; try { T.reset(pedTsId); } catch(e){} },
+                sitekey: TS_KEY, theme: temaTs(), size: "flexible", appearance: "interaction-only", language: "pt-br",
+                "before-interactive-callback": function(){ pedTsToque = true; tsVisivel("ng-ped-ts", true); msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
+                callback: function(t){ pedTsToken = t; pedTsToque = false; tsVisivel("ng-ped-ts", false); if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
+                "expired-callback": function(){ pedTsToken = null; tsVisivel("ng-ped-ts", false); try { T.reset(pedTsId); } catch(e){} },
                 "error-callback": function(){ pedTsToken = null; pedTsFalhou = true; return true; }
               });
             } catch(e){ pedTsFalhou = true; }
           });
         }
-        function pedTsNovo(){ pedTsToken = null; pedTsToque = false; try { if (window.turnstile && pedTsId !== null) { pedTsFalhou = false; window.turnstile.reset(pedTsId); } } catch(e){} }
+        function pedTsNovo(){ pedTsToken = null; pedTsToque = false; tsVisivel("ng-ped-ts", false); try { if (window.turnstile && pedTsId !== null) { pedTsFalhou = false; window.turnstile.reset(pedTsId); } } catch(e){} }
         function pedAtualizaMenor(){
           var id = idadeDeData(pedD.value); var menor = id !== null && id < 18;
           pedResp.hidden = !menor;
