@@ -32,7 +32,11 @@ const n0 = NOV[0];
 const atual = '<article class="nov-atual" aria-labelledby="nov-t0">'
   + '<p class="nov-meta"><span class="nov-selo">Mais recente</span> ' + versao(n0.v) + ' · ' + esc(n0.data) + '</p>'
   + '<h3 id="nov-t0">' + esc(n0.titulo) + '</h3>' + itens(n0) + '</article>';
-const anteriores = NOV.slice(1).map((n) => '<details class="nov-ant"><summary><span class="nov-sv">' + versao(n.v) + '</span><span class="nov-st">' + esc(n.titulo) + '</span><span class="nov-sd">' + esc(n.data) + '</span></summary>' + itens(n) + '</details>').join('\n');
+const detalhe = (n) => '<details class="nov-ant"><summary><span class="nov-sv">' + versao(n.v) + '</span><span class="nov-st">' + esc(n.titulo) + '</span><span class="nov-sd">' + esc(n.data) + '</span></summary>' + itens(n) + '</details>';
+// as 5 mais recentes ficam à vista; o resto fica atrás de um "Ver as outras N versões" (um <details> nativo, sem JavaScript)
+const VISIVEIS = 5, ant = NOV.slice(1);
+let anteriores = ant.slice(0, VISIVEIS).map(detalhe).join('\n');
+if (ant.length > VISIVEIS) anteriores += '\n<details class="nov-todas"><summary>Ver as outras ' + (ant.length - VISIVEIS) + ' versões</summary>\n' + ant.slice(VISIVEIS).map(detalhe).join('\n') + '\n</details>';
 const link = '<a class="novo-link" href="#atualizacoes"><span class="novo-t">Novidade</span><span class="novo-x">' + esc(n0.titulo) + '</span><span class="novo-seta" aria-hidden="true">›</span></a>';
 
 let html = fs.readFileSync(path.join(aqui, 'inicio.template.html'), 'utf8');

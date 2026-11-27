@@ -177,7 +177,7 @@
      GERADO por fonte/inicio/gera-inicio.mjs (rodado pelo build.sh) a partir de fonte/inicio/novidades.json: não edite este trecho.
      Para publicar uma versão nova, acrescente um item NO TOPO de novidades.json (t: novo | melhoria | correcao) e rode fonte/build.sh.
      A lista completa fica só em inicio.html: o app baixa apenas esta linha. */
-  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-65", titulo: "Tela de entrada mais limpa e fácil de ler" }/*FIM*/ ];
+  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-66", titulo: "Novo ícone e página de apresentação mais enxuta" }/*FIM*/ ];
   /* A lista completa de atualizações agora mora na página de apresentação (inicio.html), gerada a partir de NOVIDADES por fonte/inicio/gera-inicio.mjs. */
 
   function pedirLogin(){
@@ -190,7 +190,7 @@
         el.innerHTML =
           '<div class="ng-lc-shell">' +
             '<header class="ng-lc-top">' +
-              '<div class="ng-lc-brand"><span class="ng-lc-mark" aria-hidden="true">NG+</span><span class="ng-lc-nome">New Game+</span></div>' +
+              '<div class="ng-lc-brand"><svg class="ng-lc-mark" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M12 3 21 20H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span class="ng-lc-nome">NG+</span></div>' +
               '<a class="ng-lc-conhecer" href="inicio.html">Conhecer o NG+</a>' +
             '</header>' +
             '<div class="ng-lc-main">' +
@@ -395,6 +395,7 @@
           pedEnviando = false; pedOk.disabled = false;
         }
         fPed.addEventListener("submit", function(ev){ ev.preventDefault(); pedirAcesso(); });
+        if (location.hash === "#pedir-acesso") { try { history.replaceState(null, "", location.pathname + location.search); } catch(e){} vista("pedir"); }   // vindo do botão "Pedir acesso" da página de apresentação
 
         function finaliza(s){
           if (concluido) return; concluido = true; clearInterval(tCool);
