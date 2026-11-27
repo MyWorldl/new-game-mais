@@ -47,3 +47,5 @@
 
 .ng-lc .ng-login-m:empty{min-height:0}
 html.ng-entrando .app{visibility:hidden}
+/* sem sessão guardada (ng-cedo.js): o app nem é montado atrás da tela de entrada; a classe sai em liberaApp() (ng-nuvem.js) */
+html.ng-sem-sessao .app{display:none}

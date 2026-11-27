@@ -1,5 +1,14 @@
 [
   {
+    "v": "ng-modular-63", "data": "27/11/2026",
+    "titulo": "Tela de entrada abre mais rápido",
+    "itens": [
+      { "t": "melhoria", "x": "Quando você ainda não entrou neste aparelho, o NG+ deixou de montar o app escondido atrás da tela de entrada e de baixar as fontes dele. No teste de celular com rede lenta, a tela de entrada ficou pronta em cerca de 2,9 s, contra 4,9 s antes." },
+      { "t": "melhoria", "x": "Quem já tem conta entrada neste aparelho não nota diferença: o app abre como sempre. Se alguma coisa travar no carregamento, o app aparece em até 8 segundos, nunca fica tela em branco." },
+      { "t": "melhoria", "x": "Um teste automático novo cobre os casos: sem conta, com conta guardada, voltando do link do e-mail, script bloqueado e entrada concluída." }
+    ]
+  },
+  {
     "v": "ng-modular-62", "data": "27/11/2026",
     "titulo": "Tela de entrada mais leve",
     "itens": [
