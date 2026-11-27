@@ -88,8 +88,8 @@ rep('  if(flushing || k === "loading") b.dataset.busy = "1"; else delete b.datas
     '  if(flushing || k === "loading" || k === "syncing") b.dataset.busy = "1"; else delete b.dataset.busy;')
 rep('.sync-pill[data-state="pending"]{--sync-c:var(--warn);}',
     '.sync-pill[data-state="pending"], .sync-pill[data-state="syncing"]{--sync-c:var(--warn);}\n.sync-pill[data-state="erro"]{--sync-c:var(--crit);}')
-rep('    if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }',
-    '    if(window.ngNuvem && (k === "pending" || k === "erro" || k === "offline")){ window.ngNuvem.sincronizar(); showToast(k === "offline" ? syncTextos(k, n).full : "Tentando sincronizar agora…"); }\n    else if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }')
+rep('    if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…", {perto:"pilula"}); }',
+    '    if(window.ngNuvem && (k === "pending" || k === "erro" || k === "offline")){ window.ngNuvem.sincronizar(); showToast(k === "offline" ? syncTextos(k, n).full : "Tentando sincronizar agora…", {perto:"pilula"}); }\n    else if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…", {perto:"pilula"}); }')
 rep('window.addEventListener("offline", updateSyncPill);\n',
     'window.addEventListener("offline", updateSyncPill);\nwindow.addEventListener("ng-sync", ()=>{ try{ updateSyncPill(); }catch(e){} });   // B1\n')
 rep('  _carregTimer = setTimeout(()=>{   // v98 F7: passou de 6 s sem resposta — diz o que está acontecendo em vez de mostrar tela "vazia" calada\n    if(!carregando) return;',

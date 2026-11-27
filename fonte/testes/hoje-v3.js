@@ -28,19 +28,19 @@ const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('
     t(L + 'anel duplo: descrição em texto para leitor de tela (hoje e semana)', an.role === 'img' && new RegExp('hoje: ' + N_HOJE + ' de ' + N_HOJE + ' exercícios', 'i').test(an.aria) && new RegExp('semana: ' + SEM_FEITOS + ' de 5 treinos', 'i').test(an.aria), an.aria);
     // ---- carrossel ----
     const cards = p.locator('#hm-trilho .hm-card');
-    t(L + 'carrossel: 4 cartões (Sequência, Treinos da semana, Peso atual, Hábitos de hoje)', (await cards.count()) === 4 && JSON.stringify((await cards.locator('.eyebrow').allInnerTexts()).map(s => s.trim().toLowerCase())) === JSON.stringify(['sequência', 'treinos da semana', 'peso atual', 'hábitos de hoje']), (await cards.locator('.eyebrow').allInnerTexts()).join('|'));
+    t(L + 'carrossel: 2 cartões (Treinos da semana, Hábitos de hoje); sequência e peso não se repetem aqui', (await cards.count()) === 2 && JSON.stringify((await cards.locator('.eyebrow').allInnerTexts()).map(s => s.trim().toLowerCase())) === JSON.stringify(['treinos da semana', 'hábitos de hoje']), (await cards.locator('.eyebrow').allInnerTexts()).join('|'));
     const txt = (await cards.allInnerTexts()).map(s => s.replace(/\s+/g, ' '));
-    t(L + 'carrossel: valores reais (sequência, treinos da semana, 74,5 kg, 3/3)', /\d{2} dias/.test(txt[0]) && new RegExp(SEM_FEITOS + '/5').test(txt[1]) && /74,5/.test(txt[2]) && /3\/3/.test(txt[3]), JSON.stringify(txt));
-    t(L + 'carrossel: cada cartão descreve nome, valor e detalhe para leitor de tela', await cards.evaluateAll(es => es.every(e => /^\d de 4: /.test(e.getAttribute('aria-label')))));
+    t(L + 'carrossel: valores reais (treinos da semana, hábitos 3/3)', new RegExp(SEM_FEITOS + '/5').test(txt[0]) && /3\/3/.test(txt[1]), JSON.stringify(txt));
+    t(L + 'carrossel: cada cartão descreve nome, valor e detalhe para leitor de tela', await cards.evaluateAll(es => es.every(e => /^\d de 2: /.test(e.getAttribute('aria-label')))));
     const g = await p.evaluate(() => { const tr = document.getElementById('hm-trilho'), cs = [...tr.querySelectorAll('.hm-card')], s = getComputedStyle(tr); return { sw: tr.scrollWidth, cw: tr.clientWidth, snap: s.scrollSnapType, disp: s.display, dots: getComputedStyle(document.getElementById('hm-dots')).display, h: cs.map(e => Math.round(e.getBoundingClientRect().height)), page: document.documentElement.scrollWidth <= innerWidth + 1 }; });
     if (w < 768) {
       t(L + 'carrossel (celular): rola de lado com encaixe e sem estourar a página', g.sw > g.cw && /x/.test(g.snap) && g.page, JSON.stringify(g));
-      t(L + 'carrossel (celular): 4 pontos, o 1º marcado', (await p.locator('#hm-dots .hm-dot').count()) === 4 && (await p.locator('#hm-dots .hm-dot.on').count()) === 1 && await p.evaluate(() => document.querySelector('#hm-dots .hm-dot').classList.contains('on')));
+      t(L + 'carrossel (celular): 2 pontos, o 1º marcado', (await p.locator('#hm-dots .hm-dot').count()) === 2 && (await p.locator('#hm-dots .hm-dot.on').count()) === 1 && await p.evaluate(() => document.querySelector('#hm-dots .hm-dot').classList.contains('on')));
       await p.evaluate(() => { const tr = document.getElementById('hm-trilho'); tr.scrollTo({ left: tr.scrollWidth, behavior: 'instant' }); }); await p.waitForTimeout(500);
-      t(L + 'carrossel (celular): ao chegar ao fim o último ponto fica marcado', await p.evaluate(() => { const d = [...document.querySelectorAll('#hm-dots .hm-dot')]; return d[3].classList.contains('on') && !d[0].classList.contains('on'); }));
+      t(L + 'carrossel (celular): ao chegar ao fim o último ponto fica marcado', await p.evaluate(() => { const d = [...document.querySelectorAll('#hm-dots .hm-dot')]; return d[1].classList.contains('on') && !d[0].classList.contains('on'); }));
       await p.evaluate(() => { document.getElementById('hm-trilho').scrollTo({ left: 0, behavior: 'instant' }); });
     } else {
-      t(L + 'carrossel (desktop): vira grade de 4 colunas, sem pontos e sem rolagem lateral', g.disp === 'grid' && g.sw <= g.cw + 1 && g.dots === 'none', JSON.stringify(g));
+      t(L + 'carrossel (desktop): vira grade de 2 colunas, sem pontos e sem rolagem lateral', g.disp === 'grid' && g.sw <= g.cw + 1 && g.dots === 'none', JSON.stringify(g));
     }
     t(L + 'carrossel: cartões com alvo de toque ≥ 44 px', g.h.every(h => h >= 44), JSON.stringify(g.h));
     // ---- missões ----
@@ -52,9 +52,6 @@ const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('
     t(L + 'missões: sem rolagem lateral', await p.evaluate(() => { const e = document.getElementById('hoje-missoes'); return e.scrollWidth <= e.clientWidth + 1; }));
     if (w === 390) {
       // cartões e missões acionam o que o app já tem
-      await p.locator('#hm-trilho [data-hm="peso"]').click(); await p.waitForTimeout(1200);
-      t(L + 'cartão Peso: abre Corpo e foca o campo de peso', (await sel(p, 'tab-corpo')) === 'true' && await p.evaluate(() => document.activeElement && document.activeElement.id === 'm-peso'));
-      await p.evaluate(() => document.getElementById('tab-painel').click()); await p.waitForTimeout(700);
       await p.locator('#hm-trilho [data-hm="hab"]').evaluate(e => e.click()); await p.waitForTimeout(1200);
       t(L + 'cartão Hábitos: abre Corpo e foca o campo de sono', (await sel(p, 'tab-corpo')) === 'true' && await p.evaluate(() => document.activeElement && document.activeElement.id === 'h-sono'));
       await p.evaluate(() => document.getElementById('tab-painel').click()); await p.waitForTimeout(700);
@@ -69,7 +66,7 @@ const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('
       await p.evaluate(() => document.getElementById('tab-painel').click()); await p.waitForTimeout(700);
       await p.evaluate(() => document.getElementById('btn-quick-checkin').click()); await p.waitForTimeout(1500);
       await p.evaluate(() => document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()));
-      t(L + 'depois de concluir: missões mostram "3 de 3 feitas" e a semana soma mais um treino (limitado à meta)', /3 de 3 feitas/.test(await p.locator('#hmi-count').innerText()) && (m => !!m && +m[1] >= Math.min(SEM_FEITOS + 1, 5))((await p.locator('#hm-trilho .hm-card').nth(1).innerText()).replace(/\s+/g, '').match(/(\d+)\/5/)), await p.locator('#hmi-count').innerText());
+      t(L + 'depois de concluir: missões mostram "3 de 3 feitas" e a semana soma mais um treino (limitado à meta)', /3 de 3 feitas/.test(await p.locator('#hmi-count').innerText()) && (m => !!m && +m[1] >= Math.min(SEM_FEITOS + 1, 5))((await p.locator('#hm-trilho .hm-card').nth(0).innerText()).replace(/\s+/g, '').match(/(\d+)\/5/)), await p.locator('#hmi-count').innerText());
       t(L + 'depois de concluir: anel de dentro sobe um treino (limitado à meta)', await p.evaluate(esp => { const i = document.getElementById('today-ring-semana'), c = +i.getAttribute('stroke-dasharray'); return Math.abs((1 - (+i.getAttribute('stroke-dashoffset')) / c) - esp) < 0.02; }, SEM_APOS));
     }
     t(L + 'sem erro de console', p.errs.length === 0, p.errs.join(' | '));
@@ -83,7 +80,7 @@ const sel = (p, id) => p.evaluate(i => document.getElementById(i).getAttribute('
     await p.goto(URL_); await p.waitForTimeout(1800);
     await p.evaluate(() => document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()));
     await p.evaluate(() => document.getElementById('tab-painel').click()); await p.waitForTimeout(800);
-    t('sem cadastro: carrossel com 4 cartões e missão "Fazer o seu cadastro"', (await p.locator('#hm-trilho .hm-card').count()) === 4 && /cadastro/i.test(await p.locator('#hoje-missoes').innerText()), await p.locator('#hoje-missoes').innerText());
+    t('sem cadastro: carrossel com 2 cartões e missão "Fazer o seu cadastro"', (await p.locator('#hm-trilho .hm-card').count()) === 2 && /cadastro/i.test(await p.locator('#hoje-missoes').innerText()), await p.locator('#hoje-missoes').innerText());
     t('sem cadastro: sem erro de console', errs.length === 0, errs.join(' | '));
     await c.close();
   }

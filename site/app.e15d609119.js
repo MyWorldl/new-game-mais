@@ -1829,7 +1829,7 @@ async function flushPending(){
   if(!failed) lastSaveAt = Date.now();
   updateSyncPill();
   if(failed){ flushAttempt++; scheduleFlush(false); }
-  else { flushAttempt = 0; if(paths.length) showToast("Tudo salvo. As alterações pendentes foram enviadas."); }
+  else { flushAttempt = 0; if(paths.length) showToast("Tudo salvo. As alterações pendentes foram enviadas.", {perto:"pilula"}); }
 }
 window.addEventListener("online", ()=>{ updateSyncPill(); scheduleFlush(true); });
 window.addEventListener("offline", updateSyncPill);
@@ -1883,9 +1883,9 @@ function updateSyncPill(){
   if(!b) return;
   b.addEventListener("click", ()=>{
     const {k, n} = syncEstado();
-    if(window.ngNuvem && (k === "pending" || k === "erro" || k === "offline")){ window.ngNuvem.sincronizar(); showToast(k === "offline" ? syncTextos(k, n).full : "Tentando sincronizar agora…"); }
-    else if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }
-    else showToast(syncTextos(k, n).full);
+    if(window.ngNuvem && (k === "pending" || k === "erro" || k === "offline")){ window.ngNuvem.sincronizar(); showToast(k === "offline" ? syncTextos(k, n).full : "Tentando sincronizar agora…", {perto:"pilula"}); }
+    else if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…", {perto:"pilula"}); }
+    else showToast(syncTextos(k, n).full, {perto:"pilula"});
   });
   updateSyncPill();
 })();
@@ -1903,7 +1903,7 @@ async function saveDoc(path, data){
   }catch(e){
     queueWrite(path, "set", data);
     applyLocalFallback(path, data);   // a tela já mostra o que você acabou de registrar
-    showToast("Conexão instável. Guardei sua alteração e tento salvar de novo sozinho.");
+    showToast("Conexão instável. Guardei sua alteração e tento salvar de novo sozinho.", {perto:"pilula"});
   }
 }
 async function deleteDocRemote(path){
@@ -2139,6 +2139,11 @@ function showToast(msg, opts){
   clearTimeout(showToast._t);
   if(showToast._expire){ const f = showToast._expire; showToast._expire = null; try{ f(); }catch(e){} }
   const act = opts && opts.action;
+  // PR D: avisos do estado de salvamento aparecem logo abaixo da pílula "Salvo", não no rodapé
+  let pil = opts && opts.perto === "pilula" ? document.getElementById("sync-pill") : null;
+  if(pil){ const r0 = pil.getBoundingClientRect(); if(!(r0.width > 0 && r0.top >= 0 && r0.bottom <= window.innerHeight)) pil = null; }   // pílula fora da tela (ex.: rolou a página): volta ao rodapé
+  t.classList.toggle("toast-pilula", !!pil);
+  if(pil){ const r = pil.getBoundingClientRect(); t.style.setProperty("--pt-top", Math.round(r.bottom + 8)+"px"); t.style.setProperty("--pt-right", Math.max(8, Math.round(window.innerWidth - r.right))+"px"); }
   if(!act){
     t.textContent = msg;
     t.classList.remove("has-action");
@@ -3404,29 +3409,14 @@ function hojeHabitosHoje(){
 }
 function hojeMetricas(){
   const hoje = todayISO(), out = [];
-  // 1) sequência
-  const eng = computeStreakEngine();
-  out.push({id:"seq", rot:"Sequência", valor:String(eng.streak), unid: eng.streak === 1 ? "dia" : "dias",
-    sub:"Recorde: "+eng.best+(eng.best === 1 ? " dia" : " dias"), ic:SS_FLAME, barra:null});
-  // 2) treinos da semana (meta)
+  // PR D: sequência e peso saíram do carrossel (a sequência tem o cartão grande e a lateral; o peso tem o tile do Painel)
+  // 1) treinos da semana (meta)
   const s = statsSemana(mondayOfISO(hoje)), alvo = s.meta || s.cap;
   out.push({id:"sem", rot:"Treinos da semana", valor: alvo ? s.feitos+"/"+alvo : "—", unid: alvo ? "da meta" : "",
     sub: !alvo ? "Sem treinos agendados" : s.ok ? "Meta da semana batida" : "Falta"+(alvo-s.feitos === 1 ? "" : "m")+" "+(alvo-s.feitos)+" para a meta",
     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5 3 10l4 4M17.5 17.5 21 14l-4-4M14 4l6 6M4 14l6 6M8.5 15.5l7-7"/></svg>',
     barra: alvo ? Math.min(100, Math.round(s.feitos / alvo * 100)) : 0});
-  // 3) peso
-  const med = latestMedicao(), ms = sortedMedicoes().filter(m=> m.pesoKg != null);
-  let subP = "Registre seu peso", valP = "—";
-  if(med && med.pesoKg != null){
-    valP = num(med.pesoKg, 1);
-    const ant = ms.length >= 2 ? ms[ms.length-2] : null, d = ms.length >= 2 ? hojeDiasDesde(ms[ms.length-1].iso) : hojeDiasDesde(med.iso);
-    const quando = d === 0 ? "hoje" : d === 1 ? "ontem" : "há "+d+" dias";
-    if(ant){ const dl = ms[ms.length-1].pesoKg - ant.pesoKg; subP = (Math.abs(dl) < 0.05 ? "Estável" : (dl > 0 ? "+" : "−")+num(Math.abs(dl), 1)+" kg")+" desde a anterior · "+quando; }
-    else subP = "Medido "+quando;
-  }
-  out.push({id:"peso", rot:"Peso atual", valor:valP, unid: valP === "—" ? "" : "kg", sub:subP,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9a4 4 0 0 1 8 0M12 9l2-2"/></svg>', barra:null});
-  // 4) hábitos de hoje
+  // 2) hábitos de hoje
   const hb = hojeHabitosHoje();
   out.push({id:"hab", rot:"Hábitos de hoje", valor:hb.length+"/3", unid:"registros", sub: hb.length ? hb.join(" · ") : "Nada registrado hoje (opcional)",
     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>', barra: Math.round(hb.length/3*100)});
@@ -4875,7 +4865,7 @@ function renderNarrator(){
   } else if(streak > 0){
     msg = "Você está em "+streak+" dia"+(streak===1?"":"s")+" seguido"+(streak===1?"":"s")+". Bora manter o ritmo até completar 1 semana.";
   } else {
-    msg = "Conclua a quest de hoje pra começar sua sequência. Eu tô aqui torcendo por você.";
+    msg = "Conclua a quest de hoje pra dar o primeiro passo. Eu tô aqui torcendo por você.";
   }
 
   card.hidden = false;
@@ -5895,6 +5885,7 @@ function renderStreak(){
   { const mini = document.getElementById("nivel-mini"), n = document.getElementById("nivel-mini-streak-n"), sm = document.querySelector("#nivel-mini-streak small");   // v98 F4: faixa compacta do topo
     if(n) n.textContent = streak;
     if(sm) sm.textContent = atRisk ? "em risco" : (streak === 1 ? "dia" : "dias");
+    { const chip = document.getElementById("nivel-mini-streak"); if(chip) chip.hidden = !atRisk; }   // PR D: a sequência já tem o cartão grande e a lateral; aqui só o aviso de risco
     if(mini){ mini.classList.toggle("at-risk", atRisk); mini.setAttribute("aria-label", "Ver sua patente no Perfil. Sequência de "+streak+" dia"+(streak===1?"":"s")+(atRisk?", em risco hoje":"")); } }
 
   if(atRisk){
@@ -9460,7 +9451,7 @@ function openPerfilEditor(){
       '<div class="foto-edit" id="p-foto-box"><div class="perfil-avatar foto-edit-prev" id="p-foto-prev" aria-hidden="true"></div>'+
         '<div class="foto-edit-txt"><b>Foto de perfil <span class="skins-hint">— opcional</span></b>'+
           '<span class="field-hint">Aparece no seu perfil e no topo do app. A foto é reduzida no seu aparelho e guardada só na sua conta.</span>'+
-          '<div class="foto-edit-acoes"><button type="button" class="btn small" id="p-foto-escolher">Escolher foto</button><button type="button" class="btn small ghost" id="p-foto-remover" hidden>Remover</button></div>'+
+          '<div class="foto-edit-acoes"><button type="button" class="btn small" id="p-foto-escolher">Escolher foto</button><button type="button" class="btn small ghost foto-remover" id="p-foto-remover" hidden>Remover foto</button></div>'+
           '<input type="file" id="p-foto-arq" accept="image/*" hidden>'+
           '<div class="foco-msg" id="p-foto-msg" role="status" aria-live="polite"></div></div></div>'+
       '<label>Nome completo<input type="text" id="p-nome"></label>'+

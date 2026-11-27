@@ -2378,6 +2378,9 @@ html[data-loading="1"] :is(.card, .nivel-mini, .hero, .narrator-card, .callout, 
 /* C4: folha inferior de registro (celular) */
 :is(#modal-root, #celebration-root)[popover]{position:fixed; top:0; left:0; right:auto; bottom:auto; width:0; height:0; margin:0; padding:0; border:0; overflow:visible; background:transparent;}
 .toast[popover]{top:auto; right:auto; margin:0; height:auto; overflow:visible;}   /* anula o estilo padrão de popover: mantém a posição do aviso */
+/* PR D: aviso do estado de salvamento ancorado logo abaixo da pílula "Salvo" (posição medida em showToast) */
+.toast.toast-pilula[popover]{top:var(--pt-top,64px); right:var(--pt-right,12px); bottom:auto; left:auto; transform:translateY(-6px); max-width:min(86vw,340px); border-radius:14px; text-align:start;}
+.toast.toast-pilula[popover].show{transform:translateY(0);}
 .qc-sheet-head, .qc-grip{display:none;}
 @media (max-width:767px){
   .qc-sheet{
@@ -2605,7 +2608,9 @@ button, a, summary, [role="button"], label, select{touch-action:manipulation;}
 .foto-edit{display:flex; gap:var(--sp-3); align-items:center; padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2);}
 .foto-edit-prev{inline-size:72px; block-size:72px; border-radius:50%; font-size:var(--fs-xl,1.5rem); overflow:hidden;}
 .foto-edit-txt{display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; flex:1 1 auto;}
-.foto-edit-acoes{display:flex; gap:var(--sp-2); flex-wrap:wrap; margin-top:var(--sp-1);}
+.foto-edit-acoes{display:flex; gap:var(--sp-2); flex-wrap:wrap; margin-top:var(--sp-1); align-items:center;}
+.foto-edit-acoes .foto-remover{border-color:transparent; background:transparent; color:var(--ink-soft); font-weight:500; text-decoration:underline; text-underline-offset:3px;}
+@media (hover:hover){ .foto-edit-acoes .foto-remover:hover{color:var(--ink);} }
 .foco-sep{flex:1 1 100%; font-size:var(--fs-xs); color:var(--muted); margin:2px 0 -2px;}
 .foco-msg{font-size:var(--fs-xs); color:var(--warn); min-height:1.2em; margin-top:var(--sp-1);}
 .foco-box{display:flex; gap:10px; flex-direction:column; margin-bottom:14px; padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2); font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.5;}
@@ -2705,6 +2710,7 @@ button, a, summary, [role="button"], label, select{touch-action:manipulation;}
 .nivel-mini .nivel-xp-track{height:5px;}
 .nivel-mini-sub{display:none;}
 .nivel-mini-streak{display:inline-flex; align-items:center; gap:var(--sp-1); flex:none; color:var(--ink); font-weight:700; font-variant-numeric:tabular-nums;}
+.nivel-mini-streak[hidden]{display:none;}
 .nivel-mini-streak svg{width:16px; height:16px; color:var(--warn);}
 .nivel-mini-streak small{font-size:var(--fs-2xs); font-weight:600; color:var(--ink-soft);}
 .nivel-mini.at-risk{border-color:var(--risk-text, var(--warn));}
@@ -3740,7 +3746,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .today-hero.is-done .today-ring-fill2{ stroke:var(--s-blue); }
 .today-ring b{ font-size:var(--fs-sm); }
 
-/* carrossel de métricas (celular): desliza de lado e encaixa; a partir de 768 px vira uma grade de 4 colunas */
+/* carrossel de métricas (celular): desliza de lado e encaixa; a partir de 768 px vira uma grade (2 cartões, lado a lado) */
 .hoje-metricas{ display:flex; flex-direction:column; gap:10px; min-inline-size:0; }
 .hm-trilho{
   display:flex; gap:10px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory;
@@ -3771,7 +3777,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .hm-dot{ inline-size:8px; block-size:8px; border-radius:50%; background:var(--line-strong); transition:transform var(--dur-base) var(--ease-out), background-color var(--dur-base); }
 .hm-dot.on{ background:var(--accent-fg,var(--accent)); transform:scale(1.35); }
 @media (min-width:768px){
-  .hm-trilho{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); overflow:visible; scroll-snap-type:none; padding:0; margin:0; }
+  .hm-trilho{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); overflow:visible; scroll-snap-type:none; padding:0; margin:0; }
   .hm-card{ flex:none; }
   .hm-dots{ display:none; }
 }
