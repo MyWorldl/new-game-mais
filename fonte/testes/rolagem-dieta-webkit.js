@@ -40,6 +40,38 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
         t(`[${nome} ${w}px] rotina "${rot}" com a página rolada ${y0}px: não pula`, Math.abs(y1 - y0) <= 3, y0 + ' -> ' + y1 + ' (altura ' + h0 + ' -> ' + h1 + ')');
       }
     }
+    // passo 3b: sem a rede de segurança (minHeight + rAF), tocar nos dias da semana, ligar restrições e abrir a lista de compras não pode mexer na rolagem
+    for (const dia of [3, 6, 1, 0]) {
+      const el = p.locator('[data-cdp="dia"][data-v="' + dia + '"]').first();
+      await el.evaluate((e) => { window.scrollTo(0, Math.max(0, e.getBoundingClientRect().top + scrollY - 140)); }); await p.waitForTimeout(250);
+      const y0 = await p.evaluate(() => Math.round(scrollY)), h0 = await p.evaluate(() => document.documentElement.scrollHeight);
+      await el.evaluate((e) => e.click()); await p.waitForTimeout(700);
+      const y1 = await p.evaluate(() => Math.round(scrollY)), h1 = await p.evaluate(() => document.documentElement.scrollHeight);
+      t(`[${nome} ${w}px] tocar no dia ${dia} com a página rolada ${y0}px: não pula`, Math.abs(y1 - y0) <= 3, y0 + ' -> ' + y1 + ' (altura ' + h0 + ' -> ' + h1 + ')');
+      t(`[${nome} ${w}px] tocar no dia ${dia}: o card não fica com altura mínima presa`, await p.evaluate(() => document.getElementById('cardapio-body').style.minHeight === ''));
+    }
+    // pior caso: página rolada até o fim. Dias com menos refeições deixam a página mais curta e o navegador só "prende" a rolagem no novo fim
+    // (comportamento natural, sem rede de segurança); o que não pode acontecer é a rolagem cair além disso (card esvaziado e reenchido) — só no WebKit,
+    // porque o Chromium acompanha o fim quando a página cresce (rolagem ancorada) e isso é inofensivo.
+    if (nome === 'webkit') for (const dia of [1, 2, 3, 5, 6, 2]) {
+      const el = p.locator('[data-cdp="dia"][data-v="' + dia + '"]').first();
+      await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await p.waitForTimeout(500);
+      const y0 = await p.evaluate(() => Math.round(scrollY));
+      await el.evaluate((e) => e.click()); await p.waitForTimeout(700);
+      const [y1, max1] = await p.evaluate(() => [Math.round(scrollY), document.documentElement.scrollHeight - innerHeight]);
+      t(`[${nome} ${w}px] tocar no dia ${dia} com a página no fim (${y0}px): só acompanha o novo fim`, Math.abs(y1 - Math.min(y0, max1)) <= 3, y0 + ' -> ' + y1 + ' (fim possível ' + max1 + ')');
+    }
+    {
+      await p.evaluate(() => { const d = document.querySelector('details.cdp-multi'); if (d) d.open = true; });
+      const el = p.locator('[data-cdp-chk="restr"][data-v="lactose"]').first();
+      if (await el.count()) {
+        await el.evaluate((e) => { window.scrollTo(0, Math.max(0, e.getBoundingClientRect().top + scrollY - 140)); }); await p.waitForTimeout(250);
+        const y0 = await p.evaluate(() => Math.round(scrollY));
+        await el.evaluate((e) => e.click()); await p.waitForTimeout(700);
+        const y1 = await p.evaluate(() => Math.round(scrollY));
+        t(`[${nome} ${w}px] marcar restrição com a página rolada ${y0}px: não pula`, Math.abs(y1 - y0) <= 3, y0 + ' -> ' + y1);
+      }
+    }
     for (const jeito of ['vegan', 'omni']) {
       const el = p.locator('[data-cdp-sel="jeito"]').first();
       await el.evaluate((e) => { window.scrollTo(0, Math.max(0, e.getBoundingClientRect().top + scrollY - 140)); }); await p.waitForTimeout(250);
