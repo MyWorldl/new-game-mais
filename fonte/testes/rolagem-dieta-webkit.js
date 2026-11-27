@@ -19,7 +19,13 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await p.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); document.getElementById('tab-dieta').click(); }); await p.waitForTimeout(700);
     await p.evaluate(() => document.getElementById('subtab-dieta-cardapio').click()); await p.waitForTimeout(1200);
     { const f = p.locator('[data-form="salvar"]'); if (await f.count()) { await f.evaluate(e => e.click()); await p.waitForTimeout(900); } }
-    await p.waitForSelector('[data-cdp-sel="rotina"]', { timeout: 25000 }); await p.waitForTimeout(500);   // com a máquina carregada (CI em fatias) o cardápio demora a montar
+    try { await p.waitForSelector('[data-cdp-sel="rotina"]', { timeout: 25000 }); }
+    catch (e) {   // diagnóstico para o CI: mostra o que a página tinha em vez de só "Timeout"
+      console.log('FAIL [' + nome + ' ' + w + 'px] o cardápio não apareceu em 25 s. erros: ' + p.errs.join(' | ').slice(0, 300));
+      console.log('   texto da tela: ' + (await p.evaluate(() => (document.getElementById('cardapio-card') || document.body).innerText.replace(/\s+/g, ' ').slice(0, 240))));
+      process.exit(1);
+    }
+    await p.waitForTimeout(500);   // com a máquina carregada (CI em fatias) o cardápio demora a montar
     for (const rot of ['corrido', 'marmita', 'budget', 'fora', 'tradicional']) {
       for (const dy of [0, 400, 900]) {
         await p.evaluate(() => document.querySelector('#cardapio-card').scrollIntoView({ block: 'start' }));
