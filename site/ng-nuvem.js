@@ -63,7 +63,7 @@
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
   function igual(a, b){ try { return JSON.stringify(a) === JSON.stringify(b); } catch(e){ return false; } }
   function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
-  var K_ESPERA = "ng_otp_espera", ESPERA_SEG = 60;   // o Supabase só manda outro e-mail ao mesmo endereço depois de 60 s
+  var K_ESPERA = "ng_otp_espera", ESPERA_SEG = 60, K_ENVIO = "ng_otp_envio", VALE_ENVIO_MIN = 50;   // K_ENVIO: "código enviado para este e-mail" salvo no aparelho (o código do Supabase vale 1 h)   // o Supabase só manda outro e-mail ao mesmo endereço depois de 60 s
   function esperaDoErro(e){   // segundos que o servidor pediu para esperar (0 se o erro não for de limite)
     var m = String((e && (e.message || e.error_description)) || ""), st = e && (e.status || e.code);
     if (!(st === 429 || /rate limit|security purposes|too many/i.test(m))) return 0;
@@ -177,7 +177,7 @@
      GERADO por fonte/inicio/gera-inicio.mjs (rodado pelo build.sh) a partir de fonte/inicio/novidades.json: não edite este trecho.
      Para publicar uma versão nova, acrescente um item NO TOPO de novidades.json (t: novo | melhoria | correcao) e rode fonte/build.sh.
      A lista completa fica só em inicio.html: o app baixa apenas esta linha. */
-  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-68", titulo: "Vitalidade e Foco também contam desde o seu cadastro" }/*FIM*/ ];
+  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-69", titulo: "Voltar do e-mail sem perder o código e carga antes de registrar a série" }/*FIM*/ ];
   /* A lista completa de atualizações agora mora na página de apresentação (inicio.html), gerada a partir de NOVIDADES por fonte/inicio/gera-inicio.mjs. */
 
   function pedirLogin(){
@@ -400,9 +400,25 @@
         if (location.hash === "#pedir-acesso") { try { history.replaceState(null, "", location.pathname + location.search); } catch(e){} vista("pedir"); }   // vindo do botão "Pedir acesso" da página de apresentação
 
         function finaliza(s){
-          if (concluido) return; concluido = true; clearInterval(tCool);
+          if (concluido) return; concluido = true; clearInterval(tCool); envioLimpa();
           try { el.remove(); } catch(e){} travaApp(false); document.documentElement.classList.remove("ng-entrando");
           resolve({uid: s.user.id, email: s.user.email || enviadoPara || ""});
+        }
+        /* ---- Voltar do e-mail sem perder o lugar. Analogia: marcador de página: o celular costuma descarregar o app enquanto você
+           abre o e-mail para copiar o código; ao voltar, a tela recarrega. O "enviado para" fica salvo no aparelho (1 h, a validade do
+           código) e a tela do código volta pronta, sem pedir o e-mail de novo. ---- */
+        function envioSalva(e){ try { localStorage.setItem(K_ENVIO, JSON.stringify({e: e, t: Date.now()})); } catch(x){} }
+        function envioLimpa(){ try { localStorage.removeItem(K_ENVIO); } catch(x){} }
+        function envioLer(){
+          try { var o = JSON.parse(localStorage.getItem(K_ENVIO) || "null");
+            if (o && typeof o.e === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(o.e) && Date.now() - o.t < VALE_ENVIO_MIN * 60000 && o.t <= Date.now() + 60000) return o.e;
+          } catch(x){}
+          envioLimpa(); return null;
+        }
+        function aguardaCodigo(e){
+          enviadoPara = e; inE.value = e;
+          inE.readOnly = true; box.hidden = false; reenv.hidden = false; outro.hidden = false; ok.textContent = "Entrar com o código"; pedirAviso.hidden = true;
+          p.textContent = "Enviamos um e-mail para " + e + ". Toque no link que veio nele ou digite aqui o código de números.";
         }
         async function enviar(){
           var e = inE.value.trim().toLowerCase();
@@ -421,9 +437,7 @@
             var r = await client.auth.signInWithOtp({email: e, options: opts});
             tsNovo();
             if (r.error) throw r.error;
-            enviadoPara = e; espIniciar(e, ESPERA_SEG);
-            inE.readOnly = true; box.hidden = false; reenv.hidden = false; outro.hidden = false; ok.textContent = "Entrar com o código"; pedirAviso.hidden = true;
-            p.textContent = "Enviamos um e-mail para " + e + ". Toque no link que veio nele ou digite aqui o código de números.";
+            envioSalva(e); aguardaCodigo(e); espIniciar(e, ESPERA_SEG);
             msg("E-mail enviado. Confira também a caixa de spam."); inC.focus();
           } catch(err){
             tsNovo(); var sg = esperaDoErro(err);
@@ -447,14 +461,17 @@
         });
         reenv.addEventListener("click", function(){ if (!espAtiva) enviar(); });
         outro.addEventListener("click", function(){
-          enviadoPara = null; inE.readOnly = false; inE.value = ""; inC.value = ""; box.hidden = true; reenv.hidden = true; outro.hidden = true;
+          envioLimpa(); enviadoPara = null; inE.readOnly = false; inE.value = ""; inC.value = ""; box.hidden = true; reenv.hidden = true; outro.hidden = true;
           ok.textContent = "Enviar link e código"; espAtualiza(); msg(""); p.textContent = "Digite o e-mail liberado para você. Vamos enviar um link e um código de acesso — não precisa de senha."; pedirAviso.hidden = false; inE.focus();
         });
         // login pelo link do e-mail (mesmo navegador) ou por outra aba
         client.auth.onAuthStateChange(function(ev, s){ if (s && (ev === "SIGNED_IN" || ev === "INITIAL_SESSION")) finaliza(s); });
         client.auth.getSession().then(function(r){ if (r && r.data && r.data.session) finaliza(r.data.session); }).catch(function(){});
+        var retomar = (motivo === null && fPed.hidden) ? envioLer() : null;   // não retoma por cima do formulário "Pedir acesso"
+        if (retomar) { aguardaCodigo(retomar); msg("Continue de onde parou: digite o código que chegou no seu e-mail."); }
+        else if (motivo !== null) envioLimpa();
         inE.addEventListener("input", espAtualiza); espAtualiza();
-        inE.focus();
+        if (retomar) inC.focus(); else inE.focus();
       });
     });
   }
