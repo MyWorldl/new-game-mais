@@ -2010,7 +2010,8 @@ function showTabAnimated(name){
   if(!cur) { showTab(name); return Promise.resolve(); }
   const a = TAB_ORDER.indexOf(abaPrincipal(cur)), b = TAB_ORDER.indexOf(abaPrincipal(base));
   const dir = (a === b || a < 0 || b < 0) ? null : (b > a ? "fwd" : "back");
-  return withTransition(()=> showTab(name), {nav:true, dir});
+  // trocar de tela abre no topo (como num app nativo); tocar na aba em que já está não mexe na rolagem
+  return withTransition(()=>{ showTab(name); if(cur !== base) window.scrollTo(0, 0); }, {nav:true, dir});
 }
 document.querySelectorAll(".tab-btn:not(.subtab-btn)").forEach(b=>{
   b.addEventListener("click", ()=> showTabAnimated(b.dataset.tab));
@@ -4696,6 +4697,8 @@ function getCinturaEvolucao(){
 /* ---- NG+ visual v4 · Ficha de personagem: atributos de RPG calculados só de dados reais (nenhum dado novo é salvo) ---- */
 function fichaDados(){
   const hoje = todayISO(), ini30 = addDaysISO(hoje, -29);
+  // dias de treino previstos só contam a partir do cadastro: conta nova não é cobrada por dias em que o app nem existia pra ela
+  const iniAg = (()=>{ const c = getTrackingStartISO(); return c > ini30 ? c : ini30; })();
   const porEx = {};
   Object.keys(state.checkins||{}).sort().forEach(iso=>{
     const c = state.checkins[iso]; if(!c || !c.cargas) return;
@@ -4714,7 +4717,7 @@ function fichaDados(){
   const top = exs.slice().sort((a,b)=> b.pr - a.pr || (a.nome < b.nome ? -1 : 1));
   // séries: feitas x previstas (treinos agendados dos últimos 30 dias, com a rotina atual) e séries de ouro
   let sPrev = 0, sFeito = 0, ouros = 0, exSess = 0;
-  activeDaysInRange(ini30, hoje).filter(iso=> iso < hoje || state.checkins[iso]).forEach(iso=>{
+  activeDaysInRange(iniAg, hoje).filter(iso=> iso < hoje || state.checkins[iso]).forEach(iso=>{
     const c = state.checkins[iso];
     const dia = state.rotina[(c && c.dia) || dayKeyFromISO(iso)];
     ((dia && dia.exercicios) || []).forEach((ex,i)=>{
@@ -4735,7 +4738,9 @@ function fichaDados(){
 }
 function radarAxes(){
   const today = todayISO(), f = fichaDados();
-  const sched30 = activeDaysInRange(addDaysISO(today, -29), today);
+  const ini30 = addDaysISO(today, -29), cad = getTrackingStartISO(), recorte = cad > ini30;   // recorte: conta com menos de 30 dias
+  const sched30 = activeDaysInRange(recorte ? cad : ini30, today);
+  const janela = recorte ? "desde o seu cadastro" : "em 30 dias";
   const done30 = sched30.filter(iso=> state.checkins[iso]?.concluido).length;
   let habDias = 0;
   for(let i=0;i<14;i++){ if(habDe(addDaysISO(today, -i))) habDias++; }
@@ -4748,8 +4753,8 @@ function radarAxes(){
   const pct = (a,b)=> b>0 ? Math.round(Math.min(1, a/b)*100) : 0;
   return [
     {k:"Força", ab:"FOR", v:f.forca, sub: f.nComHist ? "carga atual em "+f.forca+"% do seu pico (média de "+f.nComHist+" exercício"+(f.nComHist===1?"":"s")+")" : "registre cargas em 2 ou mais treinos"},
-    {k:"Resistência", ab:"RES", v:pct(f.sFeito, f.sPrev), sub: f.sPrev ? f.sFeito+" de "+f.sPrev+" séries previstas em 30 dias" : "sem treinos agendados ainda"},
-    {k:"Disciplina", ab:"DIS", v:pct(done30, sched30.length), sub: sched30.length ? done30+" de "+sched30.length+" treinos em 30 dias" : "sem treinos agendados ainda"},
+    {k:"Resistência", ab:"RES", v:pct(f.sFeito, f.sPrev), sub: f.sPrev ? f.sFeito+" de "+f.sPrev+" séries previstas "+janela : "sem treinos agendados ainda"},
+    {k:"Disciplina", ab:"DIS", v:pct(done30, sched30.length), sub: sched30.length ? done30+" de "+sched30.length+" treinos "+janela : "sem treinos agendados ainda"},
     {k:"Vitalidade", ab:"VIT", v:pct(habDias, 14), sub: habDias+" de 14 dias com hábitos registrados"},
     {k:"Foco", ab:"FOC", v:pct(medSem, 4), sub: medSem+" de 4 semanas com medição"}
   ];

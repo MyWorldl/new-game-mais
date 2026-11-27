@@ -1,5 +1,15 @@
 [
   {
+    "v": "ng-modular-67", "data": "27/11/2026",
+    "titulo": "Entrada com aviso claro, Perfil justo com conta nova e telas que abrem no topo",
+    "itens": [
+      { "t": "correcao", "x": "Tela de entrada e \"Pedir acesso\": quando a verificação de segurança falha, o aviso agora diz o que aconteceu e o que fazer, e o quadro de tentar de novo aparece. O aviso some sozinho quando a verificação passa." },
+      { "t": "correcao", "x": "Perfil: os atributos e a ficha deixaram de punir contas novas. A meta de séries e de treinos passa a contar só a partir do dia do seu cadastro, em vez de 30 dias cheios." },
+      { "t": "correcao", "x": "Ao trocar de aba pela barra de baixo, a tela nova abre no topo em vez de herdar a rolagem da aba anterior." },
+      { "t": "melhoria", "x": "Os botões de esforço (RPE) ganharam um tamanho mínimo, mais fáceis de acertar com o mouse." }
+    ]
+  },
+  {
     "v": "ng-modular-66", "data": "27/11/2026",
     "titulo": "Novo ícone e página de apresentação mais enxuta",
     "itens": [

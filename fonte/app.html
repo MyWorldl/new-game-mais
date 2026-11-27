@@ -1026,6 +1026,7 @@ svg.chart .cx-capture{touch-action:pan-y; cursor:crosshair;}
 .quest-rpe-row{display:flex; align-items:center; gap:7px; margin-top:var(--sp-1); flex-wrap:wrap;}
 .quest-rpe-row label{font-size:var(--fs-3xs); color:var(--muted); text-transform:uppercase; letter-spacing:.03em; flex:none;}
 .quest-rpe-seg button{padding:var(--sp-1) var(--sp-2); font-size:var(--fs-xs);}
+.quest-rpe-seg button{min-width:28px; min-height:28px;}   /* piso de 24px do WCAG 2.2 (2.5.8) no mouse; em telas de toque valem os 40px mais abaixo */
 .quest-rpe-hint{font-size:var(--fs-2xs); color:var(--muted);}
 .quest-sugestao{font-size:var(--fs-2xs); color:var(--accent-fg,var(--accent)); margin-top:2px;}
 
@@ -5728,7 +5729,8 @@ function showTabAnimated(name){
   if(!cur) { showTab(name); return Promise.resolve(); }
   const a = TAB_ORDER.indexOf(abaPrincipal(cur)), b = TAB_ORDER.indexOf(abaPrincipal(base));
   const dir = (a === b || a < 0 || b < 0) ? null : (b > a ? "fwd" : "back");
-  return withTransition(()=> showTab(name), {nav:true, dir});
+  // trocar de tela abre no topo (como num app nativo); tocar na aba em que já está não mexe na rolagem
+  return withTransition(()=>{ showTab(name); if(cur !== base) window.scrollTo(0, 0); }, {nav:true, dir});
 }
 document.querySelectorAll(".tab-btn:not(.subtab-btn)").forEach(b=>{
   b.addEventListener("click", ()=> showTabAnimated(b.dataset.tab));
