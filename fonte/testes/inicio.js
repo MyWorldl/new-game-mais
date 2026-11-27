@@ -8,10 +8,9 @@ const SITE = path.resolve(__dirname, '../../site');
 const axeSrc = process.env.SP ? fs.readFileSync(process.env.SP + '/axe/node_modules/axe-core/axe.min.js', 'utf8') : null;
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 260) : '')); };
 
-// a mesma lista que a tela de entrada do app usa (a página é gerada a partir dela)
+// a lista completa (fonte única: fonte/inicio/novidades.json); o app só carrega a versão mais recente, gravada em ng-nuvem.js pelo gerador
+const NOV = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'inicio', 'novidades.json'), 'utf8'));
 const nuvem = fs.readFileSync(path.join(SITE, 'ng-nuvem.js'), 'utf8');
-const ini = nuvem.indexOf('var NOVIDADES = ['); const fim = nuvem.indexOf('\n  ];', ini);
-const NOV = new Function('return ' + nuvem.slice(ini + 'var NOVIDADES = '.length, fim + 4))();
 
 async function abre(b, { w = 390, h = 844, reduz = false, dpr = 1 } = {}) {
   const c = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, reducedMotion: reduz ? 'reduce' : 'no-preference' });
@@ -145,10 +144,18 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
 
   // 9) pré-cache do service worker e orçamento de tamanho
   const sw = fs.readFileSync(path.join(SITE, 'sw.js'), 'utf8');
+  // fonte única das novidades: a linha da tela de entrada (ng-nuvem.js) é a versão mais recente do JSON e o app não baixa a lista inteira
+  const marca = (nuvem.match(/\/\*NOV\*\/([\s\S]*?)\/\*FIM\*\//) || [])[1] || '';
+  const noApp = new Function('return ' + marca)();
+  t('ng-nuvem.js tem só a versão mais recente (v e título iguais ao topo de novidades.json)', noApp.v === NOV[0].v && noApp.titulo === NOV[0].titulo, marca.slice(0, 120));
+  t('ng-nuvem.js não carrega a lista completa (nenhum "itens:" nem versão antiga)', !/itens\s*:/.test(nuvem) && !nuvem.includes(NOV[NOV.length - 1].titulo));
+  const versaoSw = (fs.readFileSync(path.join(SITE, 'sw.js'), 'utf8').match(/VERSAO = "([^"]+)"/) || [])[1];
+  t('versão mais recente das novidades = VERSAO do sw.js (publicar versão sem novidade, ou o contrário, é erro)', NOV[0].v === versaoSw, NOV[0].v + ' x ' + versaoSw);
+  t('novidades.json: versões sem repetição e tipos válidos', new Set(NOV.map((n) => n.v)).size === NOV.length && NOV.every((n) => n.itens.every((i) => ['novo', 'melhoria', 'correcao'].includes(i.t) && i.x)));
   t('sw.js guarda inicio.html, inicio.css e inicio.js para funcionar sem internet', ['./inicio.html', './inicio.css', './inicio.js'].every((f) => sw.includes('"' + f + '"')));
   const kb = (f) => fs.statSync(path.join(SITE, f)).size / 1024;
   t('peso: html < 45 KB, css < 12 KB, js < 6 KB (sem comprimir)', kb('inicio.html') < 45 && kb('inicio.css') < 12 && kb('inicio.js') < 6, [kb('inicio.html'), kb('inicio.css'), kb('inicio.js')].map((x) => x.toFixed(1)).join(' / '));
-  t('HTML gerado está em dia com ng-nuvem.js (rodar fonte/build.sh não muda nada)', html.includes('>' + NOV[0].titulo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '<'));
+  t('HTML gerado está em dia com novidades.json (rodar fonte/build.sh não muda nada)', html.includes('>' + NOV[0].titulo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '<'));
 
   await b.close(); console.log(`\n${ok} ok / ${bad} falhas`); process.exit(bad ? 1 : 0);
 })();
