@@ -62,7 +62,7 @@ const vis = (p, s) => p.evaluate(s => { const e = document.querySelector(s); ret
     const msg = await p.evaluate(() => document.getElementById('ins-copiado').textContent);
     t('copiar link dá retorno ao usuário', /copiado|Selecionei/.test(msg), msg);
     const url = await p.evaluate(() => document.getElementById('ins-url').value);
-    t('endereço do link termina em /instalar.html', /\/instalar\.html$/.test(url), url);
+    t('endereço do link é o da página de instalação (a hospedagem tira o .html: /instalar)', /\/instalar(\.html)?$/.test(url), url);
     t('sem erro de console (interações)', p.errs.length === 0, p.errs.join(' | '));
     await c.close();
   }
@@ -124,6 +124,14 @@ const vis = (p, s) => p.evaluate(s => { const e = document.querySelector(s); ret
     }
     t(w + ': sem erro de console', p.errs.length === 0, p.errs.join(' | '));
     await c.close();
+  }
+  // sem internet: a hospedagem manda /instalar.html para /instalar (307); a cópia guardada vem "redirecionada" e o service worker a entrega numa resposta nova
+  for (const visitada of [false, true]) {
+    const c2 = await b.newContext({ viewport: { width: 390, height: 844 } }); const q = await c2.newPage();
+    await q.goto(BASE + '/index.html'); await q.evaluate(async () => { const r = await navigator.serviceWorker.ready; return !!r.active; }); await q.waitForTimeout(2500);
+    if (visitada) { await q.goto(BASE + '/instalar.html'); await q.waitForTimeout(800); t('online: /instalar.html redireciona para /instalar e abre', /\/instalar$/.test(q.url()) && (await q.locator('#ins-url').count()) === 1, q.url()); }
+    await c2.setOffline(true); let off = false, info = ''; try { await q.goto(BASE + '/instalar.html', { timeout: 8000 }); off = (await q.locator('#ins-url').count()) === 1; info = q.url(); } catch (e) { info = String(e.message).slice(0, 120); }
+    t('sem internet' + (visitada ? ' (já visitada)' : ' (nunca visitada)') + ': instalar.html abre a partir do cache do service worker', off, info); await c2.close();
   }
   await b.close();
   console.log(`\n${ok} ok, ${bad} falhas`); process.exit(bad ? 1 : 0);
