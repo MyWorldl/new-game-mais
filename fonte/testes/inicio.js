@@ -46,8 +46,8 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
   // 2) botões e links levam para onde dizem
   const hrefs = await p.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => [a.getAttribute('href'), a.textContent.trim().replace(/\s+/g, ' ')]));
   const entrar = hrefs.filter((h) => /^Entrar/.test(h[1]));
-  t('"Entrar" (topo, destaque e rodapé) leva ao app em "./"', entrar.length === 3 && entrar.every((h) => h[0] === './'), JSON.stringify(entrar));
-  t('âncoras internas existem (#recursos, #atualizacoes, #conteudo)', ['recursos', 'atualizacoes', 'conteudo'].every((id) => hrefs.some((h) => h[0] === '#' + id) && p.locator('#' + id).count()));
+  t('"Entrar" (topo, destaque, chamada final e rodapé) leva ao app em "./"', entrar.length === 4 && entrar.every((h) => h[0] === './'), JSON.stringify(entrar));
+  t('âncoras internas existem (#recursos, #como-comecar, #atualizacoes, #conteudo)', ['recursos', 'como-comecar', 'atualizacoes', 'conteudo'].every((id) => hrefs.some((h) => h[0] === '#' + id) && p.locator('#' + id).count()));
   const dest = [...new Set(hrefs.map((h) => h[0]).filter((h) => !h.startsWith('#')))];
   const resp = {}; for (const h of dest) { const u = new URL(h, URL_).href; const r = await c.request.get(u); resp[h] = r.status(); }
   t('todo destino de link responde 200 (app, instalar.html, inicio.html)', Object.values(resp).every((s) => s === 200), JSON.stringify(resp));
@@ -70,7 +70,7 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
   t('itens da versão atual = itens de NOVIDADES[0]', atu.itensAtual === NOV[0].itens.length, atu.itensAtual + ' x ' + NOV[0].itens.length);
   t('versões anteriores: um <details> por versão (NOVIDADES.length − 1) e contagem no cabeçalho', atu.ant === NOV.length - 1 && atu.cab.includes('(' + (NOV.length - 1) + ')'), atu.ant + ' / ' + NOV.length + ' / ' + atu.cab);
   t('todo item tem rótulo (Novo/Melhoria/Correção) e texto; total de itens confere', atu.semTag === 0 && atu.total === NOV.reduce((s, n) => s + n.itens.length, 0), atu.semTag + ' sem tag; ' + atu.total);
-  t('textos de NOVIDADES entram escapados (nenhum "<" solto no HTML gerado)', !/<(?!\/?(?:a|article|button|canvas|details|div|footer|h[1-3]|head|header|html|body|li|link|main|meta|nav|p|script|section|span|summary|svg|path|title|ul|!)\b)/i.test(html.replace(/<!doctype html>/i, '')));
+  t('textos de NOVIDADES entram escapados (nenhum "<" solto no HTML gerado)', !/<(?!\/?(?:a|article|button|canvas|details|div|footer|h[1-3]|head|header|html|body|li|link|main|meta|nav|ol|p|script|section|span|summary|svg|path|title|ul|!)\b)/i.test(html.replace(/<!doctype html>/i, '')));
   const aberto = await p.evaluate(() => document.querySelectorAll('details.nov-ant[open]').length);
   await p.click('details.nov-ant summary'); await p.waitForTimeout(100);
   t('resumo abre/fecha o <details> por toque (começam todos fechados)', aberto === 0 && (await p.evaluate(() => document.querySelectorAll('details.nov-ant[open]').length)) === 1);
@@ -90,7 +90,35 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
   // 5) tipografia calculada
   const ty = await p.evaluate(() => { const g = (s) => getComputedStyle(document.querySelector(s)); return { h1w: g('h1').fontWeight, h1ls: parseFloat(g('h1').letterSpacing), h1fs: parseFloat(g('h1').fontSize), lede: g('.lede').fontWeight, ledeFs: parseFloat(g('.lede').fontSize), acento: g('.acento').color, ws: g('.acento').whiteSpace }; });
   t('celular: título peso 400, corpo peso 300, corpo 18 px', ty.h1w === '400' && ty.lede === '300' && ty.ledeFs === 18, JSON.stringify(ty));
-  t('título com espaçamento negativo (−0,04 em) e "New Game+" em âmbar sem quebra', Math.abs(ty.h1ls / ty.h1fs + 0.04) < 0.002 && ty.acento === 'rgb(255, 184, 41)' && ty.ws === 'nowrap', JSON.stringify(ty));
+  t('título com espaçamento negativo (−0,04 em) e "New Game+" em verde-limão sem quebra', Math.abs(ty.h1ls / ty.h1fs + 0.04) < 0.002 && ty.acento === 'rgb(163, 230, 53)' && ty.ws === 'nowrap', JSON.stringify(ty));
+
+  // 5b) paleta e estrutura: verde-limão + preto do app, nada de violeta/âmbar/verde-água, seções separadas e alinhadas
+  const css = fs.readFileSync(path.join(SITE, 'inicio.css'), 'utf8'), js = fs.readFileSync(path.join(SITE, 'inicio.js'), 'utf8');
+  const antigas = ['#8052ff', '#6a3fe0', '#ffb829', '#15846e', '#1fb596', '#d65cff', '#4f8cff'].filter((c) => (css + js + html).toLowerCase().includes(c));
+  t('paleta: sem as cores antigas (violeta, âmbar, verde-água, rosa, azul) em CSS, JS e HTML', antigas.length === 0, antigas.join(','));
+  t('paleta: o limão é o do app (#a3e635) e o fundo é o grafite do app (#06080a)', /--lime:\s*#a3e635/i.test(css) && /--void:\s*#06080a/i.test(css));
+  const lum = (rgb) => { const [r, g, b] = rgb.match(/\d+/g).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const razao = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const cores = await p.evaluate(() => { const g = (s, k) => getComputedStyle(document.querySelector(s))[k]; return { btnBg: g('.btn', 'backgroundColor'), btnFg: g('.btn', 'color'), kick: g('.hero .kick', 'color'), fundo: g('body', 'backgroundColor'), corpo: g('.cartao .corpo', 'color'), cartao: g('.cartao', 'backgroundColor') }; });
+  t('o botão principal é limão com texto escuro (contraste ≥ 7:1)', cores.btnBg === 'rgb(163, 230, 53)' && razao(cores.btnBg, cores.btnFg) >= 7, JSON.stringify(cores) + ' ' + razao(cores.btnBg, cores.btnFg).toFixed(1));
+  t('rótulos em limão sobre o fundo (contraste ≥ 7:1) e texto de apoio nos cartões ≥ 7:1', razao(cores.kick, cores.fundo) >= 7 && razao(cores.corpo, cores.cartao) >= 7, razao(cores.kick, cores.fundo).toFixed(1) + ' / ' + razao(cores.corpo, cores.cartao).toFixed(1));
+  const est = await p.evaluate(() => {
+    const secs = [...document.querySelectorAll('main section.sec')];
+    return {
+      n: secs.length, ids: secs.map((s) => s.id || s.className),
+      h2: secs.every((s) => s.querySelector('h2')),
+      linhas: secs.every((s) => parseFloat(getComputedStyle(s).borderTopWidth) === 1),
+      folga: secs.every((s) => parseFloat(getComputedStyle(s).paddingTop) >= 56 && parseFloat(getComputedStyle(s).paddingBottom) >= 56),
+      cartoes: document.querySelectorAll('.cartoes > .cartao').length, passos: document.querySelectorAll('ol.passos > li.passo').length,
+      cartaoH3: [...document.querySelectorAll('.cartao')].every((c) => c.querySelector('h3') && c.querySelector('.corpo')),
+      todosH: document.querySelectorAll('h1').length === 1 && [...document.querySelectorAll('h3')].every((h) => h.closest('section')),
+      marcadores: getComputedStyle(document.querySelector('ol.passos')).listStyleType, padE: getComputedStyle(document.querySelector('ol.passos')).paddingLeft,
+    };
+  });
+  t('estrutura: 4 seções separadas (recursos, como começar, chamada, atualizações), cada uma com h2, linha de topo e folga ≥ 56 px', est.n === 4 && est.h2 && est.linhas && est.folga, JSON.stringify(est));
+  t('4 cartões de recursos (rótulo, título h3 e texto) e 3 passos numerados, sem marcadores soltos da lista', est.cartoes === 4 && est.passos === 3 && est.cartaoH3 && est.todosH && est.marcadores === 'none' && est.padE === '0px', JSON.stringify(est));
+  const caixas = await p.evaluate(() => [...document.querySelectorAll('.cartao, .passo, .nov-atual, .chamada-caixa')].map((e) => { const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.right)]; }));
+  t('estrutura (celular): cartões, passos e chamada ocupam a mesma coluna, alinhados à mesma margem', new Set(caixas.map((c) => c[0])).size === 1 && new Set(caixas.map((c) => c[1])).size === 1, JSON.stringify(caixas.slice(0, 4)));
 
   // 6) constelação (o Tab acima pode ter rolado a página: volta ao topo para ela estar à vista)
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(600);
@@ -98,6 +126,8 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
   t('canvas decorativo: aria-hidden, com tamanho e marcado como "animando"', cv.aria === 'true' && cv.w > 200 && cv.h > 200 && cv.pronto === 'animando', JSON.stringify(cv));
   const a1 = await pixels(p); await p.waitForTimeout(700); const a2 = await pixels(p);
   t('constelação desenhou formas (pixels não vazios)', a1.n > 1500, a1.n + ' pixels com cor');
+  const matiz = await p.evaluate(() => { const cv = document.getElementById('constelacao'); const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; let n = 0, ruim = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 40) { n++; if (!(d[i + 1] >= d[i] && d[i + 1] >= d[i + 2])) ruim++; } return { n, ruim }; });
+  t('constelação só em tons de limão/cinza-esverdeado (nenhum pixel com violeta, rosa, azul ou âmbar)', matiz.n > 500 && matiz.ruim / matiz.n < 0.02, JSON.stringify(matiz));
   t('constelação anima (quadros diferentes ao longo do tempo)', a1.soma !== a2.soma, a1.soma + ' -> ' + a2.soma);
   await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await p.waitForTimeout(500);
   const b1 = await pixels(p); await p.waitForTimeout(600); const b2 = await pixels(p);
@@ -111,9 +141,9 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
 
   // 7) computador
   ({ c, p } = await abre(b, { w: 1280, h: 800 }));
-  const ty2 = await p.evaluate(() => { const g = (s) => getComputedStyle(document.querySelector(s)); return { lede: g('.lede').fontWeight, h1fs: parseFloat(g('h1').fontSize), cols: g('.hero').gridTemplateColumns.split(' ').length, rec: g('.recursos').gridTemplateColumns.split(' ').length, atu: g('.atualizacoes').gridTemplateColumns.split(' ').length, menu: g('.menu').display }; });
-  t('computador: corpo em peso 200 (assinatura do design) e título grande', ty2.lede === '200' && ty2.h1fs >= 80, JSON.stringify(ty2));
-  t('computador: destaque em 2 colunas, recursos em 2, atualizações em 2, menu visível', ty2.cols === 2 && ty2.rec === 2 && ty2.atu === 2 && ty2.menu === 'flex', JSON.stringify(ty2));
+  const ty2 = await p.evaluate(() => { const g = (s) => getComputedStyle(document.querySelector(s)); return { lede: g('.lede').fontWeight, h1fs: parseFloat(g('h1').fontSize), cols: g('.hero').gridTemplateColumns.split(' ').length, rec: g('.cartoes').gridTemplateColumns.split(' ').length, pas: g('.passos').gridTemplateColumns.split(' ').length, atu: g('.atualizacoes').gridTemplateColumns.split(' ').length, menu: g('.menu').display }; });
+  t('computador: corpo em peso 300 e título grande', ty2.lede === '300' && ty2.h1fs >= 80, JSON.stringify(ty2));
+  t('computador: destaque em 2 colunas, 4 cartões de recursos, 3 passos, atualizações em 2, menu visível', ty2.cols === 2 && ty2.rec === 4 && ty2.pas === 3 && ty2.atu === 2 && ty2.menu === 'flex', JSON.stringify(ty2));
   const h1b = await p.evaluate(() => document.querySelector('h1').getClientRects().length && Math.round(document.querySelector('h1').getBoundingClientRect().height / parseFloat(getComputedStyle(document.querySelector('h1')).lineHeight)));
   t('computador: título em no máximo 3 linhas', h1b <= 3, h1b + ' linhas');
   const cvd = await pixels(p); t('computador: constelação com mais partículas (mais pixels que no celular)', cvd.n > 3000, cvd.n);
@@ -154,7 +184,7 @@ const pixels = (p) => p.evaluate(() => { const cv = document.getElementById('con
   t('novidades.json: versões sem repetição e tipos válidos', new Set(NOV.map((n) => n.v)).size === NOV.length && NOV.every((n) => n.itens.every((i) => ['novo', 'melhoria', 'correcao'].includes(i.t) && i.x)));
   t('sw.js guarda inicio.html, inicio.css e inicio.js para funcionar sem internet', ['./inicio.html', './inicio.css', './inicio.js'].every((f) => sw.includes('"' + f + '"')));
   const kb = (f) => fs.statSync(path.join(SITE, f)).size / 1024;
-  t('peso: html < 45 KB, css < 12 KB, js < 6 KB (sem comprimir)', kb('inicio.html') < 45 && kb('inicio.css') < 12 && kb('inicio.js') < 6, [kb('inicio.html'), kb('inicio.css'), kb('inicio.js')].map((x) => x.toFixed(1)).join(' / '));
+  t('peso: html < 45 KB, css < 16 KB, js < 6 KB (sem comprimir)', kb('inicio.html') < 45 && kb('inicio.css') < 16 && kb('inicio.js') < 6, [kb('inicio.html'), kb('inicio.css'), kb('inicio.js')].map((x) => x.toFixed(1)).join(' / '));
   t('HTML gerado está em dia com novidades.json (rodar fonte/build.sh não muda nada)', html.includes('>' + NOV[0].titulo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '<'));
 
   await b.close(); console.log(`\n${ok} ok / ${bad} falhas`); process.exit(bad ? 1 : 0);
