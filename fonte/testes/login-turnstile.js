@@ -50,6 +50,21 @@ async function abre(b, modo, otpResp) {
     await p.fill('#ng-login-e', 'teste@example.com'); await p.waitForTimeout(600); await p.click('#ng-login-ok'); await p.waitForTimeout(900);
     const m = await p.textContent('#ng-login-m');
     t('captcha recusado pelo Supabase mostra mensagem clara', /verificação de segurança/.test(m), m); await c.close(); }
+  { // falha do widget (error-callback): aviso claro em vermelho, quadro aberto para tentar de novo, e some quando o token chega
+    const { c, p } = await abre(b, 'ok');
+    await p.waitForFunction(() => window.__renders === 1, null, { timeout: 5000 }); await p.waitForTimeout(400);
+    await p.evaluate(() => window.__opts['error-callback']()); await p.waitForTimeout(150);
+    const f = await p.evaluate(() => { const m = document.getElementById('ng-login-m'), e = document.getElementById('ng-login-ts'); return { txt: m.textContent, cls: m.className, h: Math.round(e.getBoundingClientRect().height), vis: getComputedStyle(e).visibility }; });
+    t('widget falhou: aviso explica o que aconteceu e o que fazer, em vermelho', /verificação de segurança falhou/.test(f.txt) && /tentar de novo/.test(f.txt) && /err/.test(f.cls), JSON.stringify(f));
+    t('widget falhou: o quadro de tentar de novo abre (altura e visível)', f.h >= 60 && f.vis === 'visible', JSON.stringify(f));
+    await p.evaluate(() => window.__opts.callback('TOKEN-NOVO')); await p.waitForTimeout(200);
+    const g = await p.evaluate(() => { const m = document.getElementById('ng-login-m'), e = document.getElementById('ng-login-ts'); return { txt: m.textContent, h: Math.round(e.getBoundingClientRect().height) }; });
+    t('depois de passar a verificação, o aviso de falha some e o quadro fecha', g.txt === '' && g.h === 0, JSON.stringify(g));
+    await p.click('#ng-login-pedir'); await p.waitForFunction(() => window.__renders === 2, null, { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(300);
+    await p.evaluate(() => window.__opts['error-callback']()); await p.waitForTimeout(150);
+    const h = await p.evaluate(() => { const m = document.getElementById('ng-login-m'); return { txt: m.textContent, cls: m.className }; });
+    t('"Pedir acesso": a falha do widget mostra o mesmo aviso em vermelho', /verificação de segurança falhou/.test(h.txt) && /err/.test(h.cls), JSON.stringify(h));
+    t('sem erros de JS na falha do widget', p.errs.length === 0, p.errs.join('|')); await c.close(); }
   { // o widget pede um toque (desafio interativo): a mensagem manda marcar a caixa e nada é enviado até o token chegar
     const c = await b.newContext({ viewport: { width: 400, height: 800 } }); const p = await c.newPage(); p.otp = [];
     await p.route('**/challenges.cloudflare.com/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: "window.turnstile={render:function(s,o){window.__o=o;var d=document.createElement('div');d.style.cssText='height:65px';document.querySelector(s).appendChild(d);setTimeout(function(){o['before-interactive-callback']()},100);return 'w1'},reset:function(){}};" }));

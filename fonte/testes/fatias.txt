@@ -54,6 +54,7 @@
 3 melhorias-n1
 3 nivel-avancado
 3 perfil-v3
+3 conta-nova-topo
 3 scroll-dieta
 1 rolagem-dieta-webkit
 3 sub-abas

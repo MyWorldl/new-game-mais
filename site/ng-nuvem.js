@@ -177,7 +177,7 @@
      GERADO por fonte/inicio/gera-inicio.mjs (rodado pelo build.sh) a partir de fonte/inicio/novidades.json: não edite este trecho.
      Para publicar uma versão nova, acrescente um item NO TOPO de novidades.json (t: novo | melhoria | correcao) e rode fonte/build.sh.
      A lista completa fica só em inicio.html: o app baixa apenas esta linha. */
-  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-66", titulo: "Novo ícone e página de apresentação mais enxuta" }/*FIM*/ ];
+  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-67", titulo: "Entrada com aviso claro, Perfil justo com conta nova e telas que abrem no topo" }/*FIM*/ ];
   /* A lista completa de atualizações agora mora na página de apresentação (inicio.html), gerada a partir de NOVIDADES por fonte/inicio/gera-inicio.mjs. */
 
   function pedirLogin(){
@@ -256,15 +256,17 @@
         function trava(b){ ocupado = b; ok.disabled = b || (!enviadoPara && espAtiva); reenv.disabled = b || espAtiva; }
         var tsId = null, tsToken = null, tsFalhou = false, tsPedeToque = false;
         var AVISO_CAIXA = "Marque a caixa \u201cConfirme que é humano\u201d acima e toque em enviar de novo.";
+        var AVISO_FALHA = "A verificação de segurança falhou. Use o botão de tentar de novo no quadro acima. Se continuar falhando, abra o NG+ em outro navegador.";
+        function avisoTsAntigo(){ return m.textContent.indexOf("Marque a caixa") === 0 || m.textContent.indexOf("A verificação de segurança falhou") === 0; }
         carregaTurnstile().then(function(T){
           if (!T) { tsFalhou = true; return; }
           try {
             tsId = T.render("#ng-login-ts", {
               sitekey: TS_KEY, theme: temaTs(), size: "flexible", appearance: "interaction-only", language: "pt-br",
               "before-interactive-callback": function(){ tsPedeToque = true; tsVisivel("ng-login-ts", true); if (!enviadoPara) msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
-              callback: function(t){ tsToken = t; tsPedeToque = false; tsVisivel("ng-login-ts", false); if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
+              callback: function(t){ tsToken = t; tsFalhou = false; tsPedeToque = false; tsVisivel("ng-login-ts", false); if (avisoTsAntigo()) msg(""); },
               "expired-callback": function(){ tsToken = null; tsVisivel("ng-login-ts", false); try { T.reset(tsId); } catch(e){} },
-              "error-callback": function(){ tsToken = null; tsFalhou = true; return true; }
+              "error-callback": function(){ tsToken = null; tsFalhou = true; tsPedeToque = false; tsVisivel("ng-login-ts", true); if (!enviadoPara && !$("ng-login-f").hidden) msg(AVISO_FALHA, true); return true; }
             });
           } catch(e){ tsFalhou = true; }
         });
@@ -326,9 +328,9 @@
               pedTsId = T.render("#ng-ped-ts", {
                 sitekey: TS_KEY, theme: temaTs(), size: "flexible", appearance: "interaction-only", language: "pt-br",
                 "before-interactive-callback": function(){ pedTsToque = true; tsVisivel("ng-ped-ts", true); msg("Marque a caixa \u201cConfirme que é humano\u201d para continuar."); },
-                callback: function(t){ pedTsToken = t; pedTsToque = false; tsVisivel("ng-ped-ts", false); if (m.textContent.indexOf("Marque a caixa") === 0) msg(""); },
+                callback: function(t){ pedTsToken = t; pedTsFalhou = false; pedTsToque = false; tsVisivel("ng-ped-ts", false); if (avisoTsAntigo()) msg(""); },
                 "expired-callback": function(){ pedTsToken = null; tsVisivel("ng-ped-ts", false); try { T.reset(pedTsId); } catch(e){} },
-                "error-callback": function(){ pedTsToken = null; pedTsFalhou = true; return true; }
+                "error-callback": function(){ pedTsToken = null; pedTsFalhou = true; pedTsToque = false; tsVisivel("ng-ped-ts", true); if (!fPed.hidden) msg(AVISO_FALHA, true); return true; }
               });
             } catch(e){ pedTsFalhou = true; }
           });
