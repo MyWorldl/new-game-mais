@@ -159,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-60", data: "27/11/2026", titulo: "Cardápio mais simples ao trocar de dia", itens: [
+      { t: "melhoria", x: "Ao tocar nos dias da semana, em uma restrição ou na lista de compras, o cardápio agora só troca o que mudou. O truque antigo que prendia a altura do cartão e conferia a rolagem depois de cada toque saiu: não é mais preciso." },
+      { t: "melhoria", x: "Os testes do Safari (WebKit) passaram a tocar nos dias, nas restrições e no fim da página, para garantir que a tela não pule nem fique com espaço em branco sobrando." },
+      { t: "melhoria", x: "Quando você está no fim da página e escolhe um dia com menos refeições, a página encolhe junto, como em qualquer site. Antes ela ficava com espaço sobrando até você rolar." }
+    ] },
     { v: "ng-modular-59", data: "27/11/2026", titulo: "Cardápio sem pulos no Safari", itens: [
       { t: "correcao", x: "No iPhone e no Safari, trocar a rotina (por exemplo \"Dia corrido\"), o jeito de comer ou uma restrição no cardápio fazia a página voltar para o topo. Agora ela fica onde você estava." },
       { t: "melhoria", x: "Um teste automático novo roda a Dieta no motor do Safari (WebKit) com cinco rotinas, dois jeitos de comer e duas larguras de tela, para esse tipo de salto não voltar." }

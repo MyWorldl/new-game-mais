@@ -101,7 +101,7 @@ clique({ target: { closest: () => ({ dataset: { cdp: 'dia', v: '2' } }) } });
 t('clique em dia: não grava', chamadas.salva.length === antesSalva);
 t('clique em dia: refeições trocadas, subtítulo intacto', R('refeicoes').sets === refSets + 1 && R('sub').sets === subSets);
 t('clique em dia: botão ligado muda sem remontar', B('dia', '2').cls.has('on') && !B('dia', '0').cls.has('on') && el.montagens === m1);
-t('clique em dia segura a altura do card (rede de segurança)', el.style.minHeight === '321px');
+t('clique em dia não prende altura no card (a rede de segurança saiu no passo 3b)', !el.style.minHeight);
 
 // 7. mudar o campo "jeito de comer": salva o settings inteiro, redesenha e toca som
 muda({ dataset: { cdpSel: 'jeito' }, value: 'vegan' }, null);

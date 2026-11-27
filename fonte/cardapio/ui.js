@@ -701,12 +701,7 @@ export function criaCardapio(ctx){
       if(b.dataset.cdp === "copiar"){ copiaLista(); return; }
       if(b.dataset.cdp === "limpar-compras"){ comprados.clear(); salvaComprados(); el.querySelectorAll("[data-cdp-buy]").forEach(c=>{ c.checked = false; const r = c.closest(".cdp-buy"); if(r) r.classList.remove("feito"); }); atualizaProgresso(el); return; }
       const act = b.dataset.cdp, cfg = normalizaCfg(ctx.estado().settings);
-      // Rede de segurança (herdada): como os nós agora são preservados, estes remendos não deveriam ter efeito.
-      // Ficam até a validação em Safari/iOS real (Safari não ancora a rolagem); depois serão removidos.
-      const yAntes = window.scrollY;
-      el.style.minHeight = el.offsetHeight+"px";
-      const soltaAltura = ()=>{ el.style.minHeight = ""; ["wheel","touchmove","keydown"].forEach(ev=> removeEventListener(ev, soltaAltura, true)); };
-      ["wheel","touchmove","keydown"].forEach(ev=> addEventListener(ev, soltaAltura, {passive:true, capture:true, once:true}));
+      // (A rede de segurança de rolagem — minHeight do card + checagem no quadro seguinte — saiu no passo 3b: os nós são preservados e, no WebKit, a rolagem não muda; ver testes/rolagem-dieta-webkit.js)
       if(act === "dia"){
         cdpDia = Number(b.dataset.v) || 0;
         if(cdpUltimo) renderCardapio(cdpUltimo.k, cdpUltimo.m);
@@ -721,7 +716,6 @@ export function criaCardapio(ctx){
         ctx.redesenhaDieta();
       }
       ctx.tocaSom("tick");
-      requestAnimationFrame(()=>{ if(Math.abs(window.scrollY - yAntes) > 2) (window.ngScrollRestaura || window.scrollTo.bind(window))(0, yAntes); });
     });
   }
   setupCardapio();

@@ -1594,13 +1594,6 @@ function criaCardapio(ctx) {
         return;
       }
       const act = b.dataset.cdp, cfg = normalizaCfg(ctx.estado().settings);
-      const yAntes = window.scrollY;
-      el.style.minHeight = el.offsetHeight + "px";
-      const soltaAltura = () => {
-        el.style.minHeight = "";
-        ["wheel", "touchmove", "keydown"].forEach((ev2) => removeEventListener(ev2, soltaAltura, true));
-      };
-      ["wheel", "touchmove", "keydown"].forEach((ev2) => addEventListener(ev2, soltaAltura, { passive: true, capture: true, once: true }));
       if (act === "dia") {
         cdpDia = Number(b.dataset.v) || 0;
         if (cdpUltimo) renderCardapio(cdpUltimo.k, cdpUltimo.m);
@@ -1622,9 +1615,6 @@ function criaCardapio(ctx) {
         ctx.redesenhaDieta();
       }
       ctx.tocaSom("tick");
-      requestAnimationFrame(() => {
-        if (Math.abs(window.scrollY - yAntes) > 2) (window.ngScrollRestaura || window.scrollTo.bind(window))(0, yAntes);
-      });
     });
   }
   setupCardapio();
