@@ -18,6 +18,8 @@ const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(
     await p.reload(); await p.waitForTimeout(1800);
     await p.evaluate(() => { document.querySelectorAll('.modal-backdrop').forEach(x => x.remove()); document.getElementById('tab-dieta').click(); }); await p.waitForTimeout(700);
     await p.evaluate(() => document.getElementById('subtab-dieta-cardapio').click()); await p.waitForTimeout(1200);
+    // o formulário "Conte como você come" pode demorar a montar (no WebKit do CI demorou): espera ele OU o cardápio já pronto, em vez de olhar uma vez só
+    await p.waitForSelector('[data-form="salvar"], [data-cdp-sel="rotina"]', { timeout: 25000 }).catch(() => { });
     { const f = p.locator('[data-form="salvar"]'); if (await f.count()) { await f.evaluate(e => e.click()); await p.waitForTimeout(900); } }
     try { await p.waitForSelector('[data-cdp-sel="rotina"]', { timeout: 25000 }); }
     catch (e) {   // diagnóstico para o CI: mostra o que a página tinha em vez de só "Timeout"
