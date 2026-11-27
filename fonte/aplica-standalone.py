@@ -28,7 +28,7 @@ rep('function fotoSrc(f){ return f.assetId ? ("/_blob/"+f.assetId) : (f.localUrl
 rep('  if(!state.db) return {k:"local", n};\n  if(navigator.onLine === false) return {k:"offline", n};',
     '  if(!state.db) return {k:"local", n};\n  if(window.ngNuvem){ const e = window.ngNuvem.estado(); return {k:e.k, n:e.n||0}; }   // B1: estado real da sincronização com a conta\n  if(window.bffRuntime) return {k:"saved", n:0};   // A1: gravação local no aparelho, não depende de internet\n  if(navigator.onLine === false) return {k:"offline", n};')
 rep('full:"Tudo salvo"+(hora ? " — última gravação às "+hora : "")+"."}',
-    'full:"Tudo salvo"+(window.bffRuntime ? " neste aparelho" : "")+(hora ? " — última gravação às "+hora : "")+"."}')
+    'full:"Tudo salvo"+(window.ngNuvem ? " e sincronizado com a sua conta" : (window.bffRuntime ? " neste aparelho" : ""))+(hora ? " — última gravação às "+hora : "")+"."}')   # PR B (P2.8): com conta, o texto não diz só "neste aparelho"
 
 # 4) aviso quando o armazenamento do navegador não está disponível
 rep('showToast("Você está no modo local: o que registrar vale só até fechar o app.");',

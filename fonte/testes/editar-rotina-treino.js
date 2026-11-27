@@ -29,6 +29,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     t(L + 'seletor lista treinos dos modelos + Descanso + Personalizado', base.opcoes >= 12 && base.temDescanso && base.temPers && base.grupos.length >= 4, JSON.stringify(base.grupos) + ' ' + base.opcoes);
 
     // abrir a caixa de verdade (clique no botão) e conferir a lista
+    await p.locator('#re-tabs .re-tab[data-dia="ter"]').click();   // PR B: um dia por vez (abas)
     await p.locator('.re-day').nth(1).locator('.ngs-btn').scrollIntoViewIfNeeded(); await p.locator('.re-day').nth(1).locator('.ngs-btn').click();
     await p.waitForTimeout(500);
     const lista = await p.evaluate(() => { const op = document.querySelector('.ngs-layer .ngs-op.ativo') || document.querySelector('.ngs-layer [role="option"]'); const o = op && op.getBoundingClientRect(); const topo = o && document.elementFromPoint(o.left + o.width / 2, o.top + Math.min(o.height / 2, 10)); return { painel: !!op, itens: document.querySelectorAll('.ngs-layer [role="option"]').length, visivel: !!(topo && topo.closest('.ngs-layer')) }; });
@@ -83,6 +84,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     t(L + 'Personalizado mostra o campo de nome, mantém exercícios e a caixa reflete o nome', pe.visivel && pe.n === alvo2.n && pe.atual.includes('Meu treino X'), JSON.stringify(pe));
 
     // ---- cartão do exercício
+    await p.locator('#re-tabs .re-tab[data-dia="seg"]').click(); await p.waitForTimeout(200);
     const card = await p.evaluate(w => {
       const e = document.querySelector('.re-day[data-key="seg"] .ex-entry'); const r = e.getBoundingClientRect();
       const nome = e.querySelector('.ex-nome').getBoundingClientRect(), rm = e.querySelector('.ex-remove').getBoundingClientRect();
