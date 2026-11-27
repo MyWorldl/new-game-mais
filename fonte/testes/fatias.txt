@@ -80,3 +80,6 @@
 4 unit-treinador
 4 volume-feito
 4 mapa-corporal
+2 backend-pedir-acesso
+2 backend-gerir-acesso
+2 backend-delete-account
