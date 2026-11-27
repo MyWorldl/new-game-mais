@@ -1,5 +1,5 @@
 /* NG+ · página de apresentação (antes do login). Linguagem visual: a MESMA do app — preto/grafite com verde-limão (#a3e635, o --accent do tema padrão)
-   como única cor de destaque, texto claro em cinza-esverdeado, cartões com borda fina para separar as ideias, títulos grandes em peso 400.
+   como única cor de destaque, texto claro em cinza-esverdeado, cartões com borda fina para separar as ideias, títulos em peso 600 (o limão só nos botões, no destaque do título e em hover).
    Estrutura: topo · destaque · recursos (cartões) · como começar (3 passos) · chamada · atualizações · rodapé, cada seção com linha e espaço próprios.
    Fonte: Work Sans (a mesma já hospedada para o app; variável 100–900). */
 @font-face { font-family: 'Work Sans'; font-style: normal; font-weight: 100 900; font-display: swap; src: url(fonts/work-sans-latin-wght-normal.woff2) format('woff2'); }
@@ -26,7 +26,7 @@
   --sp-6: 6px; --sp-12: 12px; --sp-18: 18px; --sp-24: 24px; --sp-30: 30px; --sp-36: 36px; --sp-48: 48px; --sp-60: 60px;
   --largura: 1280px;
   --margem: clamp(20px, 5vw, 60px);
-  --entre-secoes: clamp(56px, 9vw, 104px);
+  --entre-secoes: clamp(40px, 4.4vw, 56px);
   --raio: 24px;
   --raio-cartao: 20px;
 }
@@ -64,6 +64,7 @@ a { color: inherit; }
 .btn:hover { background: var(--lime-hover); }
 .btn:active { transform: scale(.98); }
 .btn-sm { min-height: 44px; padding: 10px 22px; }
+.topo .btn-sm { margin-left: auto; }
 .fantasma { display: inline-flex; align-items: center; min-height: 48px; padding: 0 var(--sp-6); font: 600 14px/1.2 var(--fonte); letter-spacing: .025em; text-transform: uppercase; color: var(--bone); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
 .fantasma:hover { color: var(--lime); }
 
@@ -71,14 +72,14 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); }
 
 /* destaque */
 .hero { display: grid; gap: var(--sp-36); padding: var(--sp-36) 0 var(--entre-secoes); align-items: center; }
-.kick { font-size: 14px; font-weight: 600; letter-spacing: .035em; text-transform: uppercase; line-height: 1.2; color: var(--lime); }
-h1 { font-size: var(--t-display); line-height: 1.1; font-weight: 400; letter-spacing: -.04em; margin: var(--sp-18) 0 var(--sp-24); overflow-wrap: break-word; text-wrap: balance; }
+.kick { font-size: 14px; font-weight: 600; letter-spacing: .035em; text-transform: uppercase; line-height: 1.2; color: var(--mist); }
+h1 { font-size: var(--t-display); line-height: 1.08; font-weight: 600; letter-spacing: -.035em; margin: var(--sp-18) 0 var(--sp-24); overflow-wrap: break-word; text-wrap: balance; }
 .acento { color: var(--lime); white-space: nowrap; }   /* "New Game+" nunca se parte */
 .lede { max-width: 30em; color: var(--mist); }
 .acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-18) var(--sp-24); margin-top: var(--sp-30); }
 .nota { margin-top: var(--sp-18); max-width: 34em; font-size: 15px; color: var(--mist); }
 .novo-link { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-6) var(--sp-12); margin-top: var(--sp-30); min-height: 44px; padding: var(--sp-12) 0; color: var(--bone); text-decoration: none; }
-.novo-t { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--lime); }
+.novo-t { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--mist); }
 .novo-x { font-size: 16px; font-weight: 400; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; text-decoration-color: var(--ash); }
 .novo-link:hover .novo-x { text-decoration-color: var(--lime); }
 .novo-seta { color: var(--ash); }
@@ -93,39 +94,42 @@ h1 { font-size: var(--t-display); line-height: 1.1; font-weight: 400; letter-spa
 /* seções: cada uma abre com uma linha fina e um cabeçalho igual (rótulo + título) */
 .sec { border-top: 1px solid var(--line-strong); padding: var(--entre-secoes) 0; }
 .sec-cab { margin-bottom: var(--sp-48); max-width: 36em; }
-.sec-cab h2, .chamada h2 { font-size: var(--t-h2); line-height: 1.12; font-weight: 400; letter-spacing: -.035em; margin-top: var(--sp-12); text-wrap: balance; }
+.sec-cab h2, .chamada h2 { font-size: var(--t-h2); line-height: 1.12; font-weight: 600; letter-spacing: -.03em; margin-top: var(--sp-12); text-wrap: balance; }
 .corpo { color: var(--mist); max-width: 32em; }
 .link { color: var(--bone); text-underline-offset: 4px; text-decoration-thickness: 1px; }
 .link:hover { color: var(--lime); }
 
 /* recursos: cartões iguais numa grade */
 .cartoes, .passos { display: grid; gap: var(--sp-18); }
-.cartao, .passo { position: relative; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--raio-cartao); padding: var(--sp-30); transition: border-color .15s, background-color .15s; }
+.cartao, .passo { position: relative; display: flex; flex-direction: column; align-items: flex-start; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--raio-cartao); padding: var(--sp-30); transition: border-color .15s, background-color .15s; }
 .cartao:hover { border-color: var(--lime); background: var(--surface-2); }
-.cartao-n { position: absolute; top: var(--sp-30); right: var(--sp-30); font-size: 14px; font-weight: 600; letter-spacing: .05em; color: var(--ash); }
-.cartao h3, .passo h3 { font-size: var(--t-h3); line-height: 1.2; font-weight: 400; letter-spacing: -.02em; margin: var(--sp-12) 0 var(--sp-12); }
-.cartao .kick { padding-right: var(--sp-48); }
+.cartao-ic { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: var(--sp-18); border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--mist); transition: color .15s; }
+.cartao-ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cartao:hover .cartao-ic { color: var(--lime); }
+.cartao h3, .passo h3 { font-size: var(--t-h3); line-height: 1.2; font-weight: 600; letter-spacing: -.015em; margin: var(--sp-12) 0 var(--sp-12); }
 @media (min-width: 640px) { .cartoes { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 1100px) { .cartoes { grid-template-columns: repeat(4, 1fr); } }
 
 /* como começar: três passos numerados */
-.passo-n { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--lime); color: var(--lime-ink); font-size: 18px; font-weight: 600; }
+.passo-n { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--bone); font-size: 18px; font-weight: 600; }
+.passo-btn { margin-top: auto; }
+.passo .corpo { margin-bottom: var(--sp-24); }
 .passo h3 { margin-top: var(--sp-18); }
 @media (min-width: 760px) { .passos { grid-template-columns: repeat(3, 1fr); } }
 
 /* chamada final */
-.chamada-caixa { text-align: center; padding: clamp(36px, 7vw, 72px) var(--sp-24); border: 1px solid var(--line-strong); border-radius: calc(var(--raio-cartao) * 1.4); background: radial-gradient(560px 260px at 50% 0, rgba(163, 230, 53, .12), transparent 75%) no-repeat, var(--surface); }
+.chamada-caixa { text-align: center; padding: clamp(36px, 7vw, 72px) var(--sp-24); border: 1px solid var(--line-strong); border-radius: calc(var(--raio-cartao) * 1.4); background: radial-gradient(520px 200px at 50% 0, rgba(132, 204, 22, .08), transparent 72%) no-repeat, var(--surface); }
 .chamada-caixa .corpo { margin: var(--sp-18) auto 0; }
 .chamada-caixa .acoes { justify-content: center; }
 
 /* atualizações */
 .atualizacoes { display: grid; gap: var(--sp-36) var(--sp-60); }
-.atu-cab h2 { font-size: var(--t-h2); line-height: 1.12; font-weight: 400; letter-spacing: -.035em; margin: var(--sp-12) 0 var(--sp-18); text-wrap: balance; }
+.atu-cab h2 { font-size: var(--t-h2); line-height: 1.12; font-weight: 600; letter-spacing: -.03em; margin: var(--sp-12) 0 var(--sp-18); text-wrap: balance; }
 @media (min-width: 900px) { .atualizacoes { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); } .atu-cab { position: sticky; top: var(--sp-30); align-self: start; } }
 .nov-meta { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; line-height: 1.4; color: var(--ash); }
-.nov-selo { color: var(--lime); margin-right: var(--sp-6); }
+.nov-selo { color: var(--bone); margin-right: var(--sp-6); }
 .nov-atual { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--raio-cartao); padding: var(--sp-30); }
-.nov-atual h3 { font-size: 24px; line-height: 1.25; font-weight: 400; letter-spacing: -.02em; margin: var(--sp-12) 0 var(--sp-18); }
+.nov-atual h3 { font-size: 24px; line-height: 1.25; font-weight: 600; letter-spacing: -.015em; margin: var(--sp-12) 0 var(--sp-18); }
 .nov-itens { display: grid; gap: var(--sp-18); }
 .nov-itens li { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: var(--sp-12); align-items: baseline; }
 .nov-tag { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; line-height: 1.5; }
@@ -134,11 +138,16 @@ h1 { font-size: var(--t-display); line-height: 1.1; font-weight: 400; letter-spa
 .nov-anteriores { margin-top: var(--sp-48); }
 .nov-h-ant { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ash); margin-bottom: var(--sp-12); }
 .nov-ant { border-bottom: 1px solid var(--line); }
+.nov-todas > summary { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: var(--sp-12) 0; cursor: pointer; list-style: none; font: 600 14px/1.2 var(--fonte); letter-spacing: .025em; text-transform: uppercase; color: var(--bone); border-bottom: 1px solid var(--line-strong); }
+.nov-todas > summary::-webkit-details-marker { display: none; }
+.nov-todas > summary::after { content: '+'; color: var(--ash); font-weight: 400; font-size: 18px; }
+.nov-todas[open] > summary::after { content: '–'; }
+.nov-todas > summary:hover { color: var(--lime); }
 .nov-ant summary { display: grid; grid-template-columns: 6em minmax(0, 1fr) auto; gap: var(--sp-12); align-items: baseline; min-height: 48px; padding: var(--sp-12) 0; cursor: pointer; list-style: none; }
 .nov-ant summary::-webkit-details-marker { display: none; }
 .nov-ant summary::after { content: '+'; grid-column: 3; grid-row: 1; justify-self: end; color: var(--ash); font-weight: 400; }
 .nov-ant[open] summary::after { content: '–'; }
-.nov-sv { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--lime); }
+.nov-sv { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ash); }
 .nov-st { color: var(--bone); font-weight: 400; font-size: 17px; }
 .nov-sd { display: none; }
 .nov-ant .nov-itens { padding: var(--sp-6) 0 var(--sp-24) calc(6em + var(--sp-12)); }
@@ -153,9 +162,19 @@ h1 { font-size: var(--t-display); line-height: 1.1; font-weight: 400; letter-spa
 /* rodapé */
 .rodape { width: calc(100% - 2 * var(--margem)); max-width: calc(var(--largura) - 2 * var(--margem)); margin: 0 auto; padding: var(--sp-36) 0 calc(var(--sp-60) + env(safe-area-inset-bottom)); border-top: 1px solid var(--line-strong); display: flex; flex-wrap: wrap; gap: var(--sp-18) var(--sp-36); align-items: center; justify-content: space-between; color: var(--ash); font-size: 14px; }
 .rodape-nome { font-weight: 600; letter-spacing: .02em; }
-.rodape-links { display: flex; gap: var(--sp-24); }
+.rodape-links { display: flex; flex-wrap: wrap; gap: 0 var(--sp-24); }
 .rodape-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--mist); text-underline-offset: 4px; }
 .rodape-links a:hover { color: var(--bone); }
+
+/* página de texto corrido (política de privacidade): coluna estreita, títulos e listas legíveis */
+.doc { max-width: 46em; padding-top: var(--sp-36); padding-bottom: var(--sp-60); font-weight: 400; }
+.doc h1 { font-size: clamp(32px, 5vw, 48px); margin: 0 0 var(--sp-12); }
+.doc .peq { font-size: 15px; color: var(--ash); margin-bottom: var(--sp-24); }
+.doc h2 { font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -.01em; margin: var(--sp-36) 0 var(--sp-12); }
+.doc p, .doc li { color: var(--mist); font-size: 17px; line-height: 1.65; }
+.doc p { margin-bottom: var(--sp-12); }
+.doc ul { list-style: disc; padding-left: 1.25em; margin-bottom: var(--sp-12); display: grid; gap: var(--sp-6); }
+.doc b { color: var(--bone); font-weight: 600; }
 
 /* movimento reduzido: nada de transições (o desenho da constelação também fica parado, ver inicio.js) */
 @media (prefers-reduced-motion: reduce) {

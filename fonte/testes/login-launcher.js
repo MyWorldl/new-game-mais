@@ -41,11 +41,13 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
         h1f: cs('.ng-lc h1').fontFamily, hf: cs('.ng-lc-titulo').fontFamily, h1w: cs('.ng-lc h1').fontWeight,
         heroTop: Math.round(r('.ng-lc-hero').top), boxTop: Math.round(r('.ng-login-box').top),
         kickBg: getComputedStyle(document.querySelector('.ng-login-box')).backgroundColor, lblColor: cs('.ng-lc label').color,
-        mark: cs('.ng-lc-mark').backgroundColor, btn: cs('#ng-login-ok').backgroundColor, em: cs('.ng-lc-titulo em').color
+        mark: cs('.ng-lc-mark').color, btn: cs('#ng-login-ok').backgroundColor, em: cs('.ng-lc-titulo em').color
       };
     });
     t(L + 'limão só onde importa: eyebrow, borda da faixa Novidade, seta e ícones não usam a cor de destaque', [m.kick, m.novoB, m.seta, m.fi].every((c) => c !== m.acc), JSON.stringify([m.kick, m.novoB, m.seta, m.fi, m.acc]));
-    t(L + 'o destaque forte continua no logo, no "New Game+" do título e no botão de entrar', m.mark === m.acc && m.btn === m.acc, JSON.stringify([m.mark, m.btn, m.acc]));
+    t(L + 'o destaque forte continua no logo, no "New Game+" do título e no botão de entrar', m.mark === m.acc && m.btn === m.acc && m.em === m.acc, JSON.stringify([m.mark, m.btn, m.em, m.acc]));
+    const marca = await p.evaluate(() => { const s = document.querySelector('.ng-lc-brand svg.ng-lc-mark'); return { d: s && s.querySelector('path').getAttribute('d'), aria: s && s.getAttribute('aria-hidden'), nome: (document.querySelector('.ng-lc-nome') || {}).textContent, quadrado: document.querySelector('span.ng-lc-mark') !== null }; });
+    t(L + 'marca única: triângulo (o mesmo caminho da página de apresentação e do ícone do app) + "NG+", sem o quadrado antigo', marca.d === 'M12 3 21 20H3z' && marca.aria === 'true' && marca.nome === 'NG+' && !marca.quadrado, JSON.stringify(marca));
     t(L + 'cabeçalho sem faixa sólida: não gruda, fundo transparente e sem sombra de preenchimento', m.top.pos !== 'sticky' && /rgba\(0, 0, 0, 0\)|transparent/.test(m.top.bg) && m.top.sh === 'none', JSON.stringify(m.top));
     t(L + '"Pedir acesso" é um botão secundário (contorno) de largura total, com 44 px de altura', m.pedTag === 'BUTTON' && /ghost/.test(m.pedCls) && m.pedH >= 44 && Math.abs(m.pedW - m.boxW) <= 2, JSON.stringify([m.pedTag, m.pedCls, m.pedH, m.pedW, m.boxW]));
     t(L + 'texto da política: link dentro da frase e entrelinha firme (no máximo 3 linhas de 13 px × 1,6)', /^inline/.test(m.polDisp) && m.polH <= 24 && m.legH <= Math.ceil(m.legFs * 1.6 * 3) + 2, JSON.stringify([m.polDisp, m.polH, m.legH, m.legFs]));

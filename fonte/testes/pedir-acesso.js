@@ -11,7 +11,7 @@ const STUB = `window.turnstile={render:function(sel,o){window.__renders=(window.
 const J = (o, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(o) });
 const anos = n => { const d = new Date(); d.setFullYear(d.getFullYear() - n); d.setDate(d.getDate() - 2); return d.toISOString().slice(0, 10); };
 
-async function abre(b, resposta, w = 400) {
+async function abre(b, resposta, w = 400, hash = '') {
   const c = await b.newContext({ viewport: { width: w, height: 860 } });
   const p = await c.newPage(); p.csp = []; p.errs = []; p.pedidos = [];
   p.on('console', m => { if (/Content.Security.Policy/i.test(m.text())) p.csp.push(m.text()); });
@@ -25,7 +25,7 @@ async function abre(b, resposta, w = 400) {
     }
     return r.fulfill(J({}));
   });
-  await p.goto(URL_); await p.waitForSelector('#ng-login-e', { timeout: 8000 });
+  await p.goto(URL_ + hash); await p.waitForSelector('#ng-login-e', { timeout: 8000, state: hash === '#pedir-acesso' ? 'attached' : 'visible' }); await p.waitForTimeout(hash ? 300 : 0);
   return { c, p };
 }
 async function preenche(p, o = {}) {
@@ -131,6 +131,18 @@ const visivel = (p, s) => p.isVisible(s);
     await c.close(); }
 
   // acessibilidade
+  { // vindo do botão "Pedir acesso" da página de apresentação (index.html#pedir-acesso): abre direto o formulário de pedido
+    const { c, p } = await abre(b, null, 400, '#pedir-acesso');
+    t('link direto #pedir-acesso abre o formulário de pedido (e esconde o de entrar)', (await visivel(p, '#ng-pedir-f')) && !(await visivel(p, '#ng-login-f')));
+    t('link direto: título "Pedir acesso ao NG+", foco no nome e o #pedir-acesso some do endereço', /Pedir acesso ao NG\+/.test(await p.textContent('#ng-login-t')) && (await p.evaluate(() => document.activeElement.id)) === 'ng-ped-n' && (await p.evaluate(() => location.hash)) === '', await p.evaluate(() => document.activeElement.id + ' ' + location.hash));
+    await p.click('#ng-ped-voltar');
+    t('link direto: "Voltar para entrar" funciona', (await visivel(p, '#ng-login-f')) && !(await visivel(p, '#ng-pedir-f')));
+    await c.close();
+    const o = await abre(b, null, 400, '#outra-coisa');
+    t('outro #fragmento não abre o pedido (continua na tela de entrada)', (await visivel(o.p, '#ng-login-f')) && !(await visivel(o.p, '#ng-pedir-f')));
+    await o.c.close();
+  }
+
   if (axeSrc) for (const w of [320, 390, 1280]) {
     const { c, p } = await abre(b, null, w); await p.click('#ng-login-pedir'); await p.fill('#ng-ped-d', anos(15)); await p.waitForTimeout(250);
     await p.evaluate(axeSrc);
