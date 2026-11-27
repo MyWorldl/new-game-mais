@@ -37,6 +37,7 @@
 2 semana-casa
 2 treino-f3
 3 atualizacao-sw
+3 login-rapido
 3 banner-instalar
 3 cardapio-compras
 3 cardapio-e2e

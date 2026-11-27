@@ -53,8 +53,9 @@ if dados_json:
     bruto = open(dados_json[0], encoding='utf-8').read().replace('<', '\\u003c')
     cod_dados = 'window.NG_DADOS=%s;\n' % bruto
     nome_dados = 'dados.%s.js' % hashlib.sha256(cod_dados.encode('utf-8')).hexdigest()[:10]
-tag_dados = ('<script src="%s"></script>\n' % nome_dados) if nome_dados else ''
-html = html[:m.start()] + tag_dados + '<script src="%s"></script>' % nome_js + html[m.end():]
+# defer: dados e app baixam com prioridade baixa e rodam depois do HTML pronto, na mesma ordem; assim não disputam banda com o que monta a tela de entrada (vendor-supabase, ng-nuvem, bff-runtime)
+tag_dados = ('<script defer src="%s"></script>\n' % nome_dados) if nome_dados else ''
+html = html[:m.start()] + tag_dados + '<script defer src="%s"></script>' % nome_js + html[m.end():]
 
 # 3) grava e apaga as versões antigas
 manter = {nome_css, nome_js} | {n for _, n, _ in nomes_modulos} | ({nome_dados} if nome_dados else set())
