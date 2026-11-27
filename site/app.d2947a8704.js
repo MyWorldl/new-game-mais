@@ -10030,7 +10030,7 @@ function renderCardapio(kcalAlvo, macros){
       estado: ()=> state,
       objetivo: ()=> objetivoAtual,
       salvaSettings: (next)=>{ state.settings = next; saveDoc("config/settings", state.settings); },
-      redesenhaDieta: ()=> renderDieta(),
+      redesenhaDieta: ()=> preservandoRolagem(()=> renderDieta()),   // trocar rotina/jeito/restrição redesenha a Dieta; no Safari (sem ancoragem de rolagem) a página pulava para o topo
       tocaSom: (nome)=> playSound(nome),
       abreModal: (el)=> openModal(el), fechaModal: ()=> closeModal(),   // para os pop-ups "Trocar alimentos" e "Meus alimentos"
       toast: (m)=> showToast(m),

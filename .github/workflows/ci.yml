@@ -65,12 +65,12 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Instala Playwright e o Chromium
+      - name: Instala Playwright, o Chromium e o WebKit (Safari)
         run: |
           mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
           npm init -y >/dev/null
           npm install playwright@1.63.0 --no-audit --no-fund
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium webkit
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
 
       - name: Testes da fatia ${{ matrix.fatia }} de 4
