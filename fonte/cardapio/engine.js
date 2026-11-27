@@ -1,5 +1,5 @@
 // Motor de cardápio NG+ (semana completa). Módulo ES, FONTE ÚNICA do motor: o esbuild o empacota junto com ui.js (fonte/build.sh) e o fonte/testes/cardapio-sim.js o testa direto por import. Sem dependência do app nem do navegador. Valores por 100 g de alimento preparado: [kcal, P, C, G]
-// TACO (NEPA/UNICAMP) conforme tabelatacoonline.com.br; itens com * = valor típico de rótulo.
+// TACO (NEPA/UNICAMP) conforme tabelatacoonline.com.br; grão-de-bico cozido: TBCA (USP) código 159T; itens com * = valor típico de rótulo.
 var TVP_CHEAP = false; // preço de referência ainda não confirmado
 var FOODS = {
   frango:   { n: 'Frango grelhado',        v: [159, 32, 0, 2.5],      role: 'prot', veg: false, cheap: true,  fast: true },
@@ -47,6 +47,7 @@ var FOODS = {
   mozarela: { n: 'Queijo muçarela',         v: [330, 22.6, 3.0, 25.2], role: 'prot', veg: true,  cheap: false, fast: true,  lact: true, unit: [25, 'fatia', 'fatias'] },
   iogurteD: { n: 'Iogurte natural desnatado', v: [41, 3.8, 5.8, 0.3],  role: 'prot', veg: true,  cheap: true,  fast: true,  lact: true, unit: [170, 'pote', 'potes'] },
   fradinho: { n: 'Feijão-fradinho',         v: [78, 5.1, 13.5, 0.6],   role: 'leg',  veg: true,  vegan: true, cheap: true,  fast: true },
+  grao:     { n: 'Grão-de-bico cozido',     v: [118, 8.5, 20.3, 2.1],  role: 'leg',  veg: true,  vegan: true, cheap: false, fast: false },   // TBCA 159T (cozido): 118 kcal / 8,46 / 20,3 / 2,13 por 100 g
   paoI:     { n: 'Pão de forma integral',   v: [253, 9.4, 49.9, 3.7],  role: 'carb', veg: true,  vegan: true, cheap: true,  fast: true, gluten: true, unit: [25, 'fatia', 'fatias'] },
   abacaxi:  { n: 'Abacaxi',                 v: [48, 0.9, 12.3, 0.1],   role: 'fruit', veg: true, vegan: true, cheap: true,  fast: true },
   melancia: { n: 'Melancia',                v: [33, 0.9, 8.1, 0],      role: 'fruit', veg: true, vegan: true, cheap: true,  fast: true },
@@ -203,6 +204,7 @@ function prefList(slot, cfg) {
 function rolePool(role, cfg, slot) {
   var out = [];
   for (var id in FOODS) if (FOODS[id].role === role && allowed(id, cfg)) out.push(id);
+  if (role === 'leg' && cfg.rout === 'tradicional') out = out.filter(function (id) { return id !== 'grao'; });   // dia tradicional: feijão (ou lentilha), não grão-de-bico
   if (role === 'carb') {
     if (slot === 'cafe' || slot === 'lanche' || slot === 'manha') out = out.filter(function (id) { return ['pao', 'paoI', 'aveia', 'cuscuz', 'batataD'].indexOf(id) >= 0; });
     else if (cfg.rout === 'tradicional') out = out.filter(function (id) { return ['arroz', 'arrozI', 'mandioca', 'batata', 'batataD'].indexOf(id) >= 0; });   // prato tradicional: arroz, mandioca ou batata
