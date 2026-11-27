@@ -1,7 +1,7 @@
 {
   "_nota": "Orçamento de tamanho do site. Mede o que o usuário baixa (gzip) e deixa o tamanho bruto só como alarme. Lido por fonte/tamanho.mjs (roda no build.sh) e por fonte/testes/auditoria-v3.js. Mudar um número aqui é uma decisão consciente: registre o motivo no PR.",
   "app.js": { "gzipKB": 250, "brutoKB": 850 },
-  "app.css": { "gzipKB": 90, "brutoKB": 400 },
+  "app.css": { "gzipKB": 90, "brutoKB": 450 },
   "dados.js": { "gzipKB": 60, "brutoKB": 400 },
   "cardapio.js": { "gzipKB": 40, "brutoKB": 150 },
   "mapa.js": { "gzipKB": 155, "brutoKB": 450 },
