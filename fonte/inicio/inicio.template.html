@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NG+ · New Game+ — treino, dieta e evolução num lugar só</title>
+<meta name="description" content="NG+ (New Game+): sua rotina de academia, seu cardápio e seu progresso num lugar só. Cada treino feito sobe a sua patente.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/work-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="inicio.css">
+<script defer src="inicio.js"></script>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="topo">
+  <a class="marca" href="./inicio.html" aria-label="NG+ New Game+, início">
+    <svg class="marca-ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 3 21 20H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    <span class="marca-nome">NG+</span>
+  </a>
+  <nav class="menu" aria-label="Seções da página">
+    <a href="#recursos">Recursos</a>
+    <a href="#atualizacoes">Atualizações</a>
+  </nav>
+  <a class="btn btn-sm" href="./">Entrar</a>
+</header>
+
+<main id="conteudo">
+  <section class="hero" aria-labelledby="h-hero">
+    <div class="hero-txt">
+      <p class="kick">Treino · Dieta · Evolução</p>
+      <h1 id="h-hero">Comece o seu <span class="acento">New Game+</span></h1>
+      <p class="lede">Sua rotina de academia, seu cardápio e seu progresso num lugar só. Cada treino feito sobe a sua patente.</p>
+      <div class="acoes">
+        <a class="btn" href="./">Entrar no NG+</a>
+        <a class="fantasma" href="#recursos">Ver o que ele faz</a>
+      </div>
+      <p class="nota">O NG+ é por convite. Na tela de entrada, toque em “Pedir acesso” se ainda não tem.</p>
+      <!--NOVIDADE_LINK-->
+    </div>
+    <canvas id="constelacao" class="constelacao" aria-hidden="true"></canvas>
+  </section>
+
+  <section class="recursos" id="recursos" aria-labelledby="h-recursos">
+    <h2 id="h-recursos" class="so-leitor">O que o NG+ faz</h2>
+    <div class="recurso">
+      <p class="kick">01 · Treino</p>
+      <h3>Treino que se adapta</h3>
+      <p class="corpo">Casa, academia ou pouco equipamento.</p>
+    </div>
+    <div class="recurso">
+      <p class="kick">02 · Dieta</p>
+      <h3>Cardápio e lista de compras</h3>
+      <p class="corpo">Da semana inteira, com PDF.</p>
+    </div>
+    <div class="recurso">
+      <p class="kick">03 · Evolução</p>
+      <h3>Progresso que motiva</h3>
+      <p class="corpo">Cargas, medidas, conquistas e patentes.</p>
+    </div>
+    <div class="recurso">
+      <p class="kick">04 · Celular</p>
+      <h3>Vira app na tela inicial</h3>
+      <p class="corpo">Abre em tela cheia e continua funcionando sem internet. <a class="link" href="instalar.html">Como instalar</a></p>
+    </div>
+  </section>
+
+  <section class="atualizacoes" id="atualizacoes" aria-labelledby="h-atualizacoes">
+    <div class="atu-cab">
+      <p class="kick">Atualizações</p>
+      <h2 id="h-atualizacoes">O que mudou no NG+</h2>
+      <p class="corpo">Novidades, melhorias e correções, da mais recente para a mais antiga.</p>
+    </div>
+    <div class="atu-lista">
+      <!--NOVIDADE_ATUAL-->
+      <div class="nov-anteriores">
+        <h3 class="nov-h-ant">Versões anteriores (<!--ANTERIORES_TOTAL-->)</h3>
+<!--NOVIDADES_ANTERIORES-->
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <p class="rodape-nome">NG+ · New Game+</p>
+  <nav class="rodape-links" aria-label="Atalhos">
+    <a href="./">Entrar</a>
+    <a href="instalar.html">Instalar no celular</a>
+  </nav>
+</footer>
+</body>
+</html>

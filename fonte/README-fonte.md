@@ -9,6 +9,7 @@ Fluxo: cardapio/*.js -> esbuild (.build/cardapio.js, módulo ES) ; app.html -> v
 - cardapio/engine.js + ui.js -> módulos ES, ÚNICA fonte do cardápio. `ui.js` exporta `criaCardapio(ctx)` e só enxerga o app pelo objeto `ctx` (contrato no topo do arquivo). O esbuild gera `.build/cardapio.js` (fora do git) e o `externaliza.py` o grava como `site/cardapio.<hash>.js`, trocando a constante `CARDAPIO_URL` do app pelo nome com hash e incluindo o arquivo no pré-cache do `sw.js`. O app o carrega com `import()` na primeira vez que a Dieta desenha o cardápio.
 - build.sh -> roda tudo e escreve ../site/index.html:   sh build.sh
 - undev.py -> converte um HTML do DEV em app.html (fonte do app).
+- inicio/ -> página de apresentação (antes do login). `inicio.template.html` é o modelo; `gera-inicio.mjs` (rodado pelo build.sh) lê `NOVIDADES` de `site/ng-nuvem.js` e escreve `site/inicio.html` com a lista de atualizações já no HTML (a mesma lista que o app usa: uma fonte só). `site/inicio.css` e `site/inicio.js` (constelação em canvas) são escritos à mão. A tela de entrada do app linka para ela ("Conhecer o NG+" e a faixa "Novidade"). Teste: `node testes/inicio.js http://localhost:8791`.
 - testes/rodar-todos.sh -> a bateria inteira (Playwright contra site/ servido com os cabeçalhos de produção): sh fonte/testes/rodar-todos.sh
 - testes/backend/ -> testes das Edge Functions (pedir-acesso, gerir-acesso, delete-account) sem rede e sem o Supabase real; veja o cabeçalho de cada arquivo
 
