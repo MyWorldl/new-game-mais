@@ -149,6 +149,7 @@
   text-shadow:0 0 34px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 .streak-card .value small{ color:var(--ink-soft); text-shadow:none; }
+.streak-card.zero .value, .streak-card.zero .value .num-big{ font-size:var(--fs-num-xl); }   /* PR C (P3.3): sem sequência o "0" não precisa de ~96 px */
 .streak-card .foot-note{ color:var(--ink-soft) !important; opacity:1 !important; }
 .flame-badge{
   width:58px; height:58px; color:var(--flame-warm);
@@ -734,6 +735,9 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .hg-meses{ display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:3px; margin-top:2px; font-size:var(--fs-2xs); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
 .hg-meses span{ min-width:0; white-space:nowrap; overflow:visible; }
 .hg-leg{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; margin-top:10px; font-size:var(--fs-2xs); color:var(--ink-soft); }
+.hg-row.vazio{ margin-bottom:var(--sp-2); }
+.hg-row.vazio .hg-c{ aspect-ratio:auto; min-height:0; height:10px; }
+.hg-row.vazio .hg-top{ margin-bottom:3px; }
 .hg-lg{ display:inline-flex; align-items:center; gap:5px; }
 .hg-sw{ width:12px; height:12px; border-radius:4px; display:inline-block; border:1px solid var(--line-strong); background:var(--surface-2); }
 .hg-sw.l1{ background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 40%, transparent); }
@@ -755,7 +759,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .hist-flag{ display:inline-grid; place-items:center; width:16px; height:16px; margin-left:6px; border-radius:50%; background:var(--warn); color:#2a1c00; font:800 11px/1 'Work Sans',sans-serif; cursor:help; vertical-align:middle; }
 
 /* ---------- ficha de personagem ---------- */
-.attrs-radar .fi-head{ grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(120px,1fr) auto; align-items:center; gap:var(--sp-2) var(--sp-4); padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--surface-2); }
+.attrs-radar .fi-head{ grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(120px,1fr); align-items:center; gap:var(--sp-2) var(--sp-4); padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--surface-2); }
 @media (max-width:640px){ .attrs-radar .fi-head{ grid-template-columns:1fr 1fr; } .attrs-radar .fi-xp{ grid-column:1 / -1; order:3; } }
 .fi-head b{ display:block; font-family:'Barlow Condensed',sans-serif; font-size:var(--fs-num-xs, 24px); line-height:1.1; }
 .fi-eb{ display:block; font-size:var(--fs-2xs); color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
@@ -1207,7 +1211,7 @@ button.badge-item:focus-visible{ outline:2px solid var(--accent); outline-offset
 .sl-segs{ display:grid; grid-template-columns:repeat(var(--n), minmax(0,1fr)); gap:6px; }
 .sl-segs i{ block-size:8px; border-radius:var(--r-pill); background:var(--line-strong); opacity:.55; transition:background-color .25s ease, opacity .25s ease, transform .25s ease; }
 .sl-segs i.on{ background:var(--accent); opacity:1; }
-.sl-segs i.next{ opacity:1; background:color-mix(in srgb, var(--accent) 35%, var(--line-strong)); }
+.sl-segs i.next{ opacity:1; background:transparent; box-shadow:inset 0 0 0 2px var(--accent); }   /* PR C (P3.4): a série da vez é só contorno; verde cheio = feita (antes parecia 1 de 3 pronta com 0/3) */
 .qc.done .sl-segs i.on{ background:var(--good); }
 .sl-top{ align-items:center; }
 .sl-count{ font-weight:700; }

@@ -56,7 +56,7 @@ function renderGradeHabitos(){
     const st = d.total
       ? '<div class="hg-st"><span>Esta semana <b>'+d.cont[11]+'</b></span><span>Média <b>'+num(d.media, 1)+'</b>/semana</span><span>Melhor <b>'+d.max+'</b> dias</span><span>Semanas seguidas <b>'+d.seg+'</b></span></div>'
       : '';
-    return '<div class="hg-row">'+
+    return '<div class="hg-row'+(d.total ? '' : ' vazio')+'">'+   // PR C (P3.2): hábito sem nenhum registro vira uma linha baixa (as 12 semanas seguem lá, só mais finas)
       '<div class="hg-top"><b>'+d.h.nome+'</b><span>'+(d.total ? dias(d.total)+" registrados" : "sem registros ainda")+'</span>'+
         (d.pct !== null ? '<span class="hg-pct" role="img" aria-label="Registrou em '+d.pct+'% dos dias desde o primeiro registro" title="Dias com registro desde o primeiro registro">'+d.pct+'%</span>' : '')+'</div>'+
       '<div class="hg-cells" role="list" aria-label="'+d.h.nome+": dias com registro por semana, das últimas 12 semanas"+'">'+cels+'</div>'+st+

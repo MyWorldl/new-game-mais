@@ -58,6 +58,7 @@
 3 login-retoma-codigo
 3 popup-ordem
 3 pr-b-ajustes
+3 pr-c-polimento
 3 scroll-dieta
 1 rolagem-dieta-webkit
 3 sub-abas

@@ -1700,7 +1700,7 @@ td.num, th.num{text-align:right; font-variant-numeric:tabular-nums;}
      3) componentes: --touch-min, --card-radius, --card-pad (um lugar só para ajustar) */
   --fs-10:10px; --fs-11:11px; --fs-12:12px; --fs-13:13px; --fs-14:14px; --fs-15:15px; --fs-16:16px;
   /* v98 Fase 5 — o menor texto do app passa a ser 11px (antes 10px em 28 pontos). */
-  --fs-3xs:var(--fs-11); --fs-2xs:var(--fs-11); --fs-xs:var(--fs-12); --fs-sm:var(--fs-13); --fs-base:var(--fs-15); --fs-md:17px; --fs-lg:20px;
+  --fs-3xs:var(--fs-12); --fs-2xs:var(--fs-12);   /* PR C (P3.5): piso de 12 px nos textos pequenos */ --fs-xs:var(--fs-12); --fs-sm:var(--fs-13); --fs-base:var(--fs-15); --fs-md:17px; --fs-lg:20px;
   --touch-min:44px; --target-min:24px; --card-radius:var(--r-lg); --card-pad:clamp(16px, 1.2vw + 12px, 24px);
   --fs-xl:clamp(22px, 1.4vw + 16px, 28px);
   --lh-tight:1.15; --lh-body:1.55;
@@ -2253,6 +2253,8 @@ dialog.keyshelp{max-block-size:min(560px, calc(100dvh - 32px));}
    ============================================================ */
 /* U3 (WCAG 2.5.8): no desktop o link "Vídeo" media 19 px de altura */
 @media (hover:hover) and (pointer:fine){ .ex-video-link{min-height:var(--target-min);} }
+/* PR C (P3.6): no mouse, chips e botões pequenos dos pop-ups (Editar perfil) tinham 28–31 px; piso de 32 px */
+@media (hover:hover) and (pointer:fine){ .modal .muscle-chip, .modal .btn.small{min-height:32px;} }
 
 /* U5: indicador de sincronização no topo */
 .sync-pill{
@@ -3386,8 +3388,7 @@ details.cc-group > section.cc-fixo-card, details.cc-group > details.cc, details.
         <h2>Distribuição de macronutrientes</h2>
         <span class="hint" id="macro-hint">—</span>
       </div>
-      <div id="macro-bars"></div>
-      <div class="table-scroll u-mt14" tabindex="0" role="region" aria-label="Tabela de macronutrientes (role para o lado)">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Tabela de macronutrientes (role para o lado)">
         <table>
           <thead><tr><th>Macro</th><th class="num">g/kg</th><th class="num">kcal</th></tr></thead>
           <tbody id="macro-table"></tbody>
@@ -8027,6 +8028,7 @@ function renderStreak(){
   if(!streakValueEl.querySelector(".num-big")) streakValueEl.innerHTML = '<span class="num-big">0</span><small></small>';
   animateNumberEl(streakValueEl.querySelector(".num-big"), streak, {duration:600});
   streakValueEl.querySelector("small").textContent = "dia"+(streak===1?"":"s")+" seguido"+(streak===1?"":"s")+"";
+  const cartaoSeq = document.getElementById("streak-card"); if(cartaoSeq) cartaoSeq.classList.toggle("zero", streak === 0);   // PR C (P3.3): sem sequência o "0" não precisa de 74 px
   const flame = document.querySelector("#streak-card .flame");
   if(flame) flame.classList.toggle("hot", streak >= 3);
   const isPerfect = engine.perfect && streak >= 7;
@@ -8775,7 +8777,7 @@ function renderSemanaResumo(){
   if(!el) return;
   let streak = 0; try{ streak = computeStreakEngine().streak; }catch(e){ ngReporta(e,"streak"); }
   const base = lab ? lab.textContent.replace(" concluídos","").replace(" concluído","") : "";
-  el.textContent = (base ? base+" · " : "")+"sequência "+streak;
+  el.textContent = base;   /* PR C (P3.1): a sequência já aparece logo abaixo, no cartão grande */
 }
 function renderTodayCard(){
   try{ renderPerdidoCard(); }catch(e){ ngReporta(e,"cartao-perdido"); }
@@ -10250,7 +10252,7 @@ function renderLiveWorkout(body){
     guiaExecucaoHtml(ex.nome, 'lw')+
     (alt.length ? '<div class="qc-alt lw-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : altSemLivreHtml(ex, alt, 'lw-alt'))+
     permBtnHtml(i, ex)+
-    '<div class="lw-video-row"><a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer">'+ICON_PLAY+'<span>Ver vídeo de execução</span></a></div>'+
+    '<div class="lw-video-row"><a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer">'+ICON_PLAY+'<span>Buscar vídeo no YouTube</span></a></div>'+
     /* carga e RPE vêm antes das séries: dá para registrar a série já com a carga certa (a ordem do painel do cartão) */
     '<div class="quest-carga-row"><label>Carga</label><input type="number" step="0.5" min="0" class="quest-carga-input" id="lw-carga-input" value="'+cargaAtual+'" placeholder="kg"><span class="quest-carga-hint">'+cargaHint+'</span></div>'+
     cargaQuickHtml(i, ex.nome, cargaAtual, histAntes.length ? histAntes[histAntes.length-1].peso : null)+
@@ -10488,7 +10490,7 @@ function renderWeekTrailDetail(){
       } else if(sug){
         pills.push('<span class="qc-pill muted">Sugestão '+fmtKg(sug.sugerido)+' kg</span>');
       } else {
-        pills.push('<span class="qc-pill muted">Sem carga</span>');
+        pills.push('<span class="qc-pill muted">Defina a carga</span>');   // PR C (P3.4): diz o que fazer, em vez de só "Sem carga"
       }
       if(rpeAtual) pills.push('<span class="qc-pill">RPE <b>'+rpeAtual+'</b></span>');
       if(timer && !open){
@@ -12050,7 +12052,6 @@ function renderDieta(){
   const stats = document.getElementById("dieta-stats");
   if(!p || !med){
     stats.innerHTML = indicField("TMB","—","kcal")+indicField("TDEE","—","kcal")+indicField("Meta calórica","—","kcal")+indicField("Peso considerado","—","kg");
-    document.getElementById("macro-bars").innerHTML = "";
     document.getElementById("macro-table").innerHTML = "";
     const ajEl = document.getElementById("ajuste-body"); if(ajEl) ajEl.innerHTML = "";
     document.getElementById("meta-peso-body").innerHTML = "";
@@ -12076,13 +12077,7 @@ function renderDieta(){
     {nome:"carboidrato", color:"var(--s-yellow)", d:macros.carbo},
     {nome:"gordura", color:"var(--s-magenta)", d:macros.gordura},
   ];
-  const totalKcal = macros.proteina.kcal+macros.carbo.kcal+macros.gordura.kcal || 1;
-  document.getElementById("macro-bars").innerHTML = rows.map(r=>{
-    const pct = Math.round(r.d.kcal/totalKcal*100);
-    return '<div class="macro-bar-row"><span>'+r.nome+'</span>'+
-      '<div class="macro-bar-track"><div class="macro-bar-fill" style="width:'+pct+'%; background:'+r.color+';"></div></div>'+
-      '<span class="macro-bar-val">'+num(r.d.g,0)+'g · '+pct+'%</span></div>';
-  }).join("");
+  /* PR C (P3.1): as barras de % repetiam o cartão da meta diária (mesmos g e %); ficam só os g/kg e kcal por macro */
   document.getElementById("macro-table").innerHTML = rows.map(r=>{
     return '<tr><td class="u-lower">'+r.nome+'</td><td class="num">'+num(r.d.gkg,2)+'</td><td class="num">'+num(r.d.kcal,0)+'</td></tr>';
   }).join("");

@@ -96,7 +96,7 @@ function renderRadar(){
   const info = computeNivelInfo();
   const patPct = info.isMax ? 100 : Math.min(100, Math.round((info.xpInTier/info.tierNeed)*100));
   const head = '<div class="fi-head"><div class="fi-pat"><span class="fi-eb">Patente</span><b>'+escapeHtml(info.tierName)+'</b></div>'+
-    '<div class="fi-xp"><div class="radar-li-bar" role="img" aria-label="Progresso na patente: '+patPct+'%"><i style="width:'+patPct+'%"></i></div><small>'+(info.isMax ? "patente máxima atingida" : num(info.xpInTier)+" de "+num(info.tierNeed)+" XP")+'</small></div>'+
+    /* PR C (P3.1): a barra "0 de 300 XP" repetia o cartão da patente logo acima; a Ficha mostra só a patente e o atributo dominante */
     (dom && dom.v > 0 ? '<div class="fi-dom"><span class="fi-eb">Atributo dominante</span><b>'+escapeHtml(dom.k)+'</b></div>' : '')+'</div>';
   const list = '<ul class="radar-list" aria-label="Atributos da ficha de personagem">'+axes.map(a=>
     '<li><div class="radar-li-top"><span><em class="ab">'+a.ab+'</em>'+escapeHtml(a.k)+'</span><b><i class="nv">Nv '+Math.max(1, Math.ceil(a.v/20))+'</i>'+a.v+'%</b></div>'+

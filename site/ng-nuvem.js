@@ -177,7 +177,7 @@
      GERADO por fonte/inicio/gera-inicio.mjs (rodado pelo build.sh) a partir de fonte/inicio/novidades.json: não edite este trecho.
      Para publicar uma versão nova, acrescente um item NO TOPO de novidades.json (t: novo | melhoria | correcao) e rode fonte/build.sh.
      A lista completa fica só em inicio.html: o app baixa apenas esta linha. */
-  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-70", titulo: "Descanso mais claro, Editar rotina por dia e telas vazias mais enxutas" }/*FIM*/ ];
+  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-71", titulo: "Menos repetição, textos maiores e telas vazias mais enxutas" }/*FIM*/ ];
   /* A lista completa de atualizações agora mora na página de apresentação (inicio.html), gerada a partir de NOVIDADES por fonte/inicio/gera-inicio.mjs. */
 
   function pedirLogin(){
@@ -1230,7 +1230,7 @@
     if (!mostra) { if (el) el.remove(); return; }
     if (!el) {
       el = document.createElement("div"); el.id = "ng-install-banner"; el.className = "card"; el.setAttribute("role", "region"); el.setAttribute("aria-label", "Instalar o app");
-      el.innerHTML = '<div class="card-head"><h2>Instale o NG+ no celular</h2></div>' +
+      el.innerHTML = '<div class="card-head"><h2>' + (pl.ios || pl.android ? "Instale o NG+ no celular" : "Instale o NG+ no computador") + '</h2></div>'   /* PR C (P3.8): no Chrome/Edge do desktop o título não diz "celular" */ +
         '<div class="hint u-mb10" id="ng-ib-info">Abre pelo ícone na tela inicial, em tela cheia e sem depender da internet.</div>' +
         '<div class="data-actions"><button class="btn primary small" id="ng-ib-btn" type="button" aria-expanded="false" aria-controls="ng-ib-passos"></button>' +
         '<button class="btn ghost small" id="ng-ib-fechar" type="button">Agora não</button></div>' +
