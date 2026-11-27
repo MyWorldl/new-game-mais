@@ -159,6 +159,10 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-59", data: "27/11/2026", titulo: "Cardápio sem pulos no Safari", itens: [
+      { t: "correcao", x: "No iPhone e no Safari, trocar a rotina (por exemplo \"Dia corrido\"), o jeito de comer ou uma restrição no cardápio fazia a página voltar para o topo. Agora ela fica onde você estava." },
+      { t: "melhoria", x: "Um teste automático novo roda a Dieta no motor do Safari (WebKit) com cinco rotinas, dois jeitos de comer e duas larguras de tela, para esse tipo de salto não voltar." }
+    ] },
     { v: "ng-modular-58", data: "27/11/2026", titulo: "Páginas de apoio abrem sem internet", itens: [
       { t: "correcao", x: "A página \"Conhecer o NG+\" não abria sem internet, mesmo depois de visitada: o navegador recusava a cópia guardada. Agora ela abre." },
       { t: "correcao", x: "A página \"Como instalar\" tinha o mesmo defeito e também volta a abrir sem internet." },
