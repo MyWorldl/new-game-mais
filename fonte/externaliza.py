@@ -25,7 +25,7 @@ partes = []; ultimo = 0
 for n, m in enumerate(estilos):
     partes.append(html[ultimo:m.start()])
     if n == 0:
-        partes.append('<link rel="stylesheet" href="%s">\n<link rel="stylesheet" id="ng-nuvem-css" href="ng-nuvem.css">' % nome_css)
+        partes.append('<script src="ng-cedo.js"></script>\n<link rel="stylesheet" href="%s">\n<link rel="stylesheet" id="ng-nuvem-css" href="ng-nuvem.css">' % nome_css)
     ultimo = m.end()
 partes.append(html[ultimo:])
 html = ''.join(partes)

@@ -28,6 +28,7 @@
 2 habitos-v3
 2 instalar
 2 missoes-hoje
+2 login-sem-app
 2 modelos-rotina
 2 paletas
 2 politica
