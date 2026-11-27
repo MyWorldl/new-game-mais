@@ -14,7 +14,7 @@ python3 gera-dados.py .build/dados.json
 python3 visual/aplica-visual.py app.html /tmp/app-v2.html
 python3 aplica-standalone.py /tmp/app-v2.html ../site/index.html
 python3 externaliza.py ../site .build/cardapio.js .build/mapa.js .build/dados.json
-# página de apresentação (antes do login): inicio.html é gerado do modelo + lista NOVIDADES de site/ng-nuvem.js; inicio.css/inicio.js são escritos à mão em site/
+# página de apresentação (antes do login): inicio.html é gerado do modelo + lista fonte/inicio/novidades.json (que também grava a versão mais recente em site/ng-nuvem.js); inicio.css/inicio.js são escritos à mão em site/
 node inicio/gera-inicio.mjs ../site
 # orçamento de tamanho (segundos): falha o build se app.js/css/dados passarem do limite, avisa quando chegar a 90% (fonte/orcamento-tamanho.json)
 node tamanho.mjs ../site

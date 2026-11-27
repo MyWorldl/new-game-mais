@@ -1,0 +1,248 @@
+[
+  {
+    "v": "ng-modular-62", "data": "27/11/2026",
+    "titulo": "Tela de entrada mais leve",
+    "itens": [
+      { "t": "melhoria", "x": "A lista completa de atualizações deixou de ser baixada junto com o app. O app agora guarda só a versão mais recente (a linha \"Novidade\" da tela de entrada), e a lista inteira fica na página \"Conhecer o NG+\". O arquivo da nuvem ficou cerca de 6 KB menor, já comprimido." },
+      { "t": "melhoria", "x": "Os testes passaram a conferir que a versão mais recente das novidades é a mesma do service worker, para uma não ser publicada sem a outra." }
+    ]
+  },
+  {
+    "v": "ng-modular-61", "data": "27/11/2026",
+    "titulo": "Mapa corporal sem vão na pelve",
+    "itens": [
+      { "t": "correcao", "x": "No mapa corporal, o topo das coxas aparecia como duas \"tampas\" soltas sobre o tronco, com um vão na pelve. Agora o quadril e a virilha formam uma linha contínua, nas silhuetas masculina, feminina e neutra." },
+      { "t": "correcao", "x": "Os glúteos (vista de costas) passavam um pouco do contorno do corpo na cintura; agora ficam dentro dele. O mesmo ajuste vale para o topo da coxa." },
+      { "t": "melhoria", "x": "Um teste automático novo confere a pelve e garante que glúteos, coxas e panturrilhas não saiam do contorno do corpo." }
+    ]
+  },
+  {
+    "v": "ng-modular-60", "data": "27/11/2026",
+    "titulo": "Cardápio mais simples ao trocar de dia",
+    "itens": [
+      { "t": "melhoria", "x": "Ao tocar nos dias da semana, em uma restrição ou na lista de compras, o cardápio agora só troca o que mudou. O truque antigo que prendia a altura do cartão e conferia a rolagem depois de cada toque saiu: não é mais preciso." },
+      { "t": "melhoria", "x": "Os testes do Safari (WebKit) passaram a tocar nos dias, nas restrições e no fim da página, para garantir que a tela não pule nem fique com espaço em branco sobrando." },
+      { "t": "melhoria", "x": "Quando você está no fim da página e escolhe um dia com menos refeições, a página encolhe junto, como em qualquer site. Antes ela ficava com espaço sobrando até você rolar." }
+    ]
+  },
+  {
+    "v": "ng-modular-59", "data": "27/11/2026",
+    "titulo": "Cardápio sem pulos no Safari",
+    "itens": [
+      { "t": "correcao", "x": "No iPhone e no Safari, trocar a rotina (por exemplo \"Dia corrido\"), o jeito de comer ou uma restrição no cardápio fazia a página voltar para o topo. Agora ela fica onde você estava." },
+      { "t": "melhoria", "x": "Um teste automático novo roda a Dieta no motor do Safari (WebKit) com cinco rotinas, dois jeitos de comer e duas larguras de tela, para esse tipo de salto não voltar." }
+    ]
+  },
+  {
+    "v": "ng-modular-58", "data": "27/11/2026",
+    "titulo": "Páginas de apoio abrem sem internet",
+    "itens": [
+      { "t": "correcao", "x": "A página \"Conhecer o NG+\" não abria sem internet, mesmo depois de visitada: o navegador recusava a cópia guardada. Agora ela abre." },
+      { "t": "correcao", "x": "A página \"Como instalar\" tinha o mesmo defeito e também volta a abrir sem internet." },
+      { "t": "melhoria", "x": "Os testes passaram a imitar o redirecionamento de endereços .html da hospedagem, para esse tipo de falha não passar despercebida." }
+    ]
+  },
+  {
+    "v": "ng-modular-57", "data": "26/11/2026",
+    "titulo": "Página de apresentação do NG+",
+    "itens": [
+      { "t": "novo", "x": "Página de apresentação do NG+, com o que o app faz e a lista completa de atualizações. Na tela de entrada, toque em \"Conhecer o NG+\"." },
+      { "t": "melhoria", "x": "A tela de entrada ficou mais simples: as abas Início e Atualizações viraram esse link, e o formulário de entrar fica sempre à vista." },
+      { "t": "melhoria", "x": "A página nova abre sem internet depois da primeira visita, tem uma constelação animada que pausa fora da tela e fica parada se o seu aparelho pede menos movimento." }
+    ]
+  },
+  {
+    "v": "ng-modular-56", "data": "26/11/2026",
+    "titulo": "Cardápio: grão-de-bico cozido",
+    "itens": [
+      { "t": "novo", "x": "O grão-de-bico cozido entrou na lista de alimentos do cardápio, como opção de leguminosa no almoço e para trocar pelo feijão. Valores por 100 g: 118 kcal, 8,5 g de proteína, 20,3 g de carboidrato e 2,1 g de gordura (Tabela Brasileira de Composição de Alimentos, TBCA/USP)." },
+      { "t": "melhoria", "x": "No \"Dia tradicional\" o cardápio continua com feijão ou lentilha; o grão-de-bico só é sugerido nas outras rotinas. Você ainda pode escolher a troca por conta própria." },
+      { "t": "melhoria", "x": "Tilápia e macarrão cozido seguem de fora: não consegui conferir os valores nas tabelas brasileiras, e o app só usa o que foi verificado." }
+    ]
+  },
+  {
+    "v": "ng-modular-55", "data": "26/11/2026",
+    "titulo": "Tela de entrada mais rápida",
+    "itens": [
+      { "t": "melhoria", "x": "A tela de entrada agora aparece sem esperar o app inteiro carregar. Em teste com rede e celular lentos, o botão de entrar apareceu em cerca de 2 segundos, em vez de cerca de 3,5." },
+      { "t": "melhoria", "x": "Os arquivos grandes do app passaram a carregar depois do essencial da entrada, para não disputarem a conexão com ela. O conteúdo e o funcionamento do app não mudam." },
+      { "t": "correcao", "x": "Atrás da tela de entrada o app deixava de ficar parado e se rearrumava (a página \"pulava\" de lugar) enquanto terminava de carregar. Agora ele fica oculto até você entrar, e a entrada aparece direto, sem o efeito de surgir aos poucos." }
+    ]
+  },
+  {
+    "v": "ng-modular-54", "data": "26/11/2026",
+    "titulo": "Mapa corporal no Volume semanal",
+    "itens": [
+      { "t": "novo", "x": "Em Treino > Progresso, o Volume semanal ganhou um mapa do corpo (frente e costas) que mostra, por músculo, quantas séries você planejou e quantas já fez nesta semana. Verde é dentro da faixa ideal, âmbar abaixo do mínimo e vermelho acima do máximo; a cor fica mais forte conforme você avança." },
+      { "t": "novo", "x": "A silhueta é masculina ou feminina conforme o seu perfil e neutra quando o gênero não foi informado. Tocar em um músculo, no desenho ou na lista ao lado, mostra os números dele. As barras de volume continuam como antes." },
+      { "t": "melhoria", "x": "O mapa entra com uma animação suave, os números sobem até o valor e há uma barra de progresso em cada músculo. Se o seu aparelho está com movimento reduzido, tudo aparece direto, sem animar." }
+    ]
+  },
+  {
+    "v": "ng-modular-53", "data": "22/11/2026",
+    "titulo": "Medição de desempenho sem identificar você e ajuste de título da página",
+    "itens": [
+      { "t": "novo", "x": "O app passou a medir, de forma agregada, quanto tempo as telas levam para carregar (Cloudflare Web Analytics). Isso só vale para quem tem 18 anos ou mais e só no site publicado; menores de idade e quem não informou a idade não são medidos." },
+      { "t": "melhoria", "x": "Se o seu navegador envia \"Não rastrear\" (DNT) ou o sinal Global Privacy Control, a medição fica desligada. A política de privacidade agora explica essa medição, o que ela não faz (não identifica você nem serve a publicidade) e como desligá-la." },
+      { "t": "correcao", "x": "O título e a descrição da página estavam fora do lugar certo do HTML (dentro do corpo). Agora ficam no cabeçalho, como os navegadores e as ferramentas de qualidade esperam." }
+    ]
+  },
+  {
+    "v": "ng-modular-52", "data": "22/11/2026",
+    "titulo": "Cardápio: \"Não quero mais este\" e alimentos favoritos",
+    "itens": [
+      { "t": "novo", "x": "Na janela de trocar alimentos há o botão \"Não quero mais este\": ele tira o alimento do cardápio, das trocas e da lista de compras e já mostra o que entrou no lugar. Se sobrar menos de 2 opções naquela categoria, o app explica em texto e não tira." },
+      { "t": "novo", "x": "Em Meus alimentos, cada alimento marcado ganhou uma estrela. Os favoritos passam a vir primeiro na ordem do cardápio e das trocas, sem tirar a variedade e sem passar por cima de restrições (vegano, sem lactose, menor de idade)." },
+      { "t": "melhoria", "x": "As suas escolhas de favoritos entram no backup e na sincronização junto com o resto das configurações do cardápio." }
+    ]
+  },
+  {
+    "v": "ng-modular-51", "data": "22/11/2026",
+    "titulo": "Pop-ups que não mexem na página e barra de status na cor do tema",
+    "itens": [
+      { "t": "correcao", "x": "Ao rolar até o fim de uma janela (Editar perfil, Editar rotina e outras), o gesto seguia para a página que fica atrás e ela andava sozinha. Agora a página fica parada enquanto a janela está aberta e volta ao mesmo ponto quando você fecha." },
+      { "t": "melhoria", "x": "A barra de status do celular agora muda junto com o tema. Antes ficava sempre azul-escura, e nos temas pastel claros (rosa, roxo e azul) aparecia uma faixa escura em cima de uma tela clara." },
+      { "t": "melhoria", "x": "A busca de comandos (atalho no teclado) também não passa a rolagem para a página atrás quando a lista chega ao fim." }
+    ]
+  },
+  {
+    "v": "ng-modular-50", "data": "22/11/2026",
+    "titulo": "Movimento mais leve, foco na trilha e toque sem realce preso",
+    "itens": [
+      { "t": "correcao", "x": "Na trilha da semana, o anel que aparece ao navegar pelo teclado ficava cortado na lateral do Domingo. Agora ele aparece inteiro em qualquer largura de tela, e a trilha não rola mais alguns pixels para o lado sem você perceber." },
+      { "t": "melhoria", "x": "O pulso de “sequência em risco” e a chama da sequência dão duas voltas e param. O aviso continua escrito no card, e o aparelho gasta menos bateria. Com “reduzir movimento” ligado, nada disso anima." },
+      { "t": "melhoria", "x": "As barras de progresso (XP do nível, marco da sequência, semana e mês, hábitos, compras do cardápio e importação) agora animam de forma mais leve. A ponta da barra ficou reta em vez de arredondada; o resto do visual é o mesmo." },
+      { "t": "correcao", "x": "No celular, o botão, a aba ou o cartão que você tocou ficava “aceso” ou levantado até o próximo toque. Agora o realce de passar o mouse só vale onde existe mouse; no toque, o controle volta ao normal assim que você solta. No computador nada muda." },
+      { "t": "correcao", "x": "O botão “Agora não” do aviso “ficou sem treino” era pequeno demais para o dedo (35 px de altura). Agora tem a área de toque de 44 px, como os outros botões." }
+    ]
+  },
+  {
+    "v": "ng-modular-49", "data": "21/11/2026",
+    "titulo": "Toques mais firmes",
+    "itens": [
+      { "t": "melhoria", "x": "Botões, abas, chips e a barra de baixo agora voltam ao repouso de forma suave depois do toque, sem o “pulinho” que passava do tamanho e voltava. O efeito de salto continua só nas comemorações, como subir de patente e abrir o baú." },
+      { "t": "melhoria", "x": "O visual segue o mesmo: mudou apenas a curva do movimento, em todas as abas e nas folhas de registro do treino." },
+      { "t": "melhoria", "x": "Com “reduzir movimento” ligado no aparelho, esses controles continuam sem animação nenhuma." }
+    ]
+  },
+  {
+    "v": "ng-modular-48", "data": "21/11/2026",
+    "titulo": "Ranking redesenhado",
+    "itens": [
+      { "t": "novo", "x": "O “Ranking dos amigos” agora se chama só “Ranking”. No topo ficam o número de participantes, a sua posição e a sua patente." },
+      { "t": "novo", "x": "Pódio em degraus com os três primeiros, e uma lista com barra proporcional ao líder. Em telas largas aparecem também as outras duas métricas em colunas." },
+      { "t": "novo", "x": "Escada de patentes: as 10 patentes do app (Novato até Titã), quantas pessoas estão em cada uma e onde você está." },
+      { "t": "melhoria", "x": "Tudo continua opcional: você sai do ranking em Configurações, e menores de 18 anos seguem fora do quadro." }
+    ]
+  },
+  {
+    "v": "ng-modular-47", "data": "21/11/2026",
+    "titulo": "Séries, unilaterais, análise e volume",
+    "itens": [
+      { "t": "novo", "x": "Medalhas das séries: cada série tem uma medalha própria, da maior repetição para a menor (empate: vale a mais tarde). Ao lado vem +n ou −n comparando com a mesma série do último treino, para você se superar." },
+      { "t": "correcao", "x": "Exercícios unilaterais (afundo, passada, búlgaro, rosca alternada…): a meta agora diz “por perna/lado/braço” e o total conta os dois lados. Registre as repetições de um lado; as de 12 por perna são 24 no total. Sua rotina atual foi ajustada automaticamente." },
+      { "t": "melhoria", "x": "Análise do treino organizada por categorias, como na Biblioteca de exercícios: Peito, ombros e tríceps, Costas e bíceps, Pernas e Core. Cada categoria abre e fecha e mostra o resumo de quem está progredindo." },
+      { "t": "correcao", "x": "Volume semanal por grupo muscular agora separa o planejado na rotina (barra clara) do que você já fez nesta semana (barra forte), com “feito X de Y”. Antes só aparecia o planejado, por isso grupos ainda não treinados pareciam cheios." }
+    ]
+  },
+  {
+    "v": "ng-modular-46", "data": "21/11/2026",
+    "titulo": "Listas de seleção no computador",
+    "itens": [
+      { "t": "correcao", "x": "No computador, as caixas de seleção dentro de janelas (como o treino do dia e os dias por semana em Editar rotina) abriam escondidas atrás da janela. Agora a lista aparece por cima, como no celular." },
+      { "t": "melhoria", "x": "A mesma correção vale para a lista de descanso no registro de séries e para qualquer outra caixa de seleção aberta dentro de uma janela ou folha." },
+      { "t": "melhoria", "x": "Nada muda nos seus dados: é só a forma como a lista é exibida. Escolher com o mouse, o toque ou o teclado funciona igual." }
+    ]
+  },
+  {
+    "v": "ng-modular-45", "data": "21/11/2026",
+    "titulo": "Editar rotina mais clara",
+    "itens": [
+      { "t": "novo", "x": "Em Editar rotina, o nome do treino do dia virou uma caixa de seleção: escolha entre os treinos dos modelos do app (já adaptados ao seu perfil), Descanso ou Personalizado… para digitar o seu próprio nome." },
+      { "t": "melhoria", "x": "Ao escolher um treino num dia que já tem exercícios, o app pergunta se você quer trocar pelos exercícios do treino, só renomear ou cancelar. Em dia vazio, os exercícios entram direto." },
+      { "t": "melhoria", "x": "Cartão do exercício redesenhado: número, nome com o botão de remover na mesma linha, séries/repetições/meta em bloco rotulado, músculos e dica técnica com títulos, e um resumo de exercícios e séries por dia." }
+    ]
+  },
+  {
+    "v": "ng-modular-44", "data": "21/11/2026",
+    "titulo": "Ranking dos amigos",
+    "itens": [
+      { "t": "novo", "x": "Ranking entre os cadastrados do NG+: XP e nível, sequência de dias e volume total em kg. Aparece em Hoje (top 3 e a sua posição) e em Treino › Ranking, com todas as posições." },
+      { "t": "novo", "x": "Privacidade: só maiores de 18 anos entram; aparecem apenas apelido e esses 3 números (nunca peso, medidas, fotos, hábitos ou nome completo). Quem quiser sai em Configurações › Ranking, e o servidor apaga os números na hora." },
+      { "t": "melhoria", "x": "Resetar seus dados e excluir a conta também tiram você do ranking." }
+    ]
+  },
+  {
+    "v": "ng-modular-43", "data": "21/11/2026",
+    "titulo": "Todo mundo sobe de nível",
+    "itens": [
+      { "t": "melhoria", "x": "Quem treina em casa ou com pouco equipamento, menores de 18, 60+, retorno após pausa e restrição articular também passam a receber exercícios mais exigentes quando se declaram intermediário ou avançado, cada grupo com a progressão que combina com a situação." },
+      { "t": "melhoria", "x": "Para 60+, retorno e restrição articular a subida é gradual (1 exercício por dia) e nunca traz de volta o que a sua situação pede para evitar; menores só recebem exercícios liberados para a idade e sem séries de carga máxima." },
+      { "t": "melhoria", "x": "O texto \"Por que esse plano\" explica o que subiu de nível e por quê." }
+    ]
+  },
+  {
+    "v": "ng-modular-42", "data": "21/11/2026",
+    "titulo": "Troca sem repetir exercício e plano por nível",
+    "itens": [
+      { "t": "correcao", "x": "Ao trocar um exercício no treino, a lista de variações não oferece mais o que já está em outro exercício do mesmo dia (ex.: Cadeira abdutora no lugar do Hip thrust quando ela já estava no treino)." },
+      { "t": "melhoria", "x": "Quem se declara intermediário ou avançado (18+, na academia) agora recebe versões mais exigentes de alguns exercícios no plano, como Barra fixa, Remada curvada, Supino com pausa e Hack squat." },
+      { "t": "melhoria", "x": "O texto \"Por que esse plano\" explica quais exercícios subiram de nível e, para 60+, retorno após pausa ou restrição articular, por que o plano segue mais conservador." }
+    ]
+  },
+  {
+    "v": "ng-modular-41", "data": "20/11/2026",
+    "titulo": "Treino, rotina e hábitos redesenhados",
+    "itens": [
+      { "t": "novo", "x": "Calendário do app para escolher o dia dos hábitos, no lugar do seletor do Android (só hoje e ontem ficam ativos)." },
+      { "t": "melhoria", "x": "Volume semanal por grupo e Foco do plano reorganizados: cartões por categoria, barras com zonas e legenda explicada." },
+      { "t": "melhoria", "x": "Treino ao vivo: descanso com lista do app, botão Iniciar descanso e interruptor de descanso automático; Como executar e variações mais compactos." },
+      { "t": "melhoria", "x": "Editar rotina: caixa Gerar plano, modelo em lista do app e um cartão por dia, com interruptor de dia de treino e campos com legenda." },
+      { "t": "melhoria", "x": "Evolução com métricas em faixa rolável e período em controle segmentado; grade das últimas 12 semanas de Hábitos em cartões." }
+    ]
+  },
+  {
+    "v": "ng-modular-40", "data": "20/11/2026",
+    "titulo": "Redesenho do app e tela de entrada nova",
+    "itens": [
+      { "t": "novo", "x": "Tela de entrada nova, com Início e Atualizações (esta que você está vendo)." },
+      { "t": "novo", "x": "Lista de compras da semana com visual novo e exportação em PDF." },
+      { "t": "melhoria", "x": "Configurações em 5 grupos (Treino e rotina, Aparência, App e ajuda, Dados, Conta); \"Conta e sincronização\" ficou no fim." },
+      { "t": "melhoria", "x": "Cargas: o seletor de exercício agora segue o visual do app, e os dias da semana viraram abas." },
+      { "t": "melhoria", "x": "Análise do treino redesenhada, com resumo no topo e distribuição por grupo muscular." },
+      { "t": "melhoria", "x": "Cardápio da semana: botões, dias e macros (kcal, proteína, carbo e gordura) reorganizados." },
+      { "t": "melhoria", "x": "A Biblioteca de exercícios agora fica em Treino › Plano, e o Glossário em Perfil › Sobre." },
+      { "t": "correcao", "x": "Topo do app no celular sem espaço vazio acima; Calculadoras rápidas e Indicadores alinhados." }
+    ]
+  },
+  {
+    "v": "ng-modular-37", "data": "novembro de 2026",
+    "titulo": "Treino mais flexível e mais fichas",
+    "itens": [
+      { "t": "novo", "x": "Mais de 30 fichas de exercícios novas, com planos montados automaticamente." },
+      { "t": "melhoria", "x": "O Treino deixou de ficar preso a 3 dias por semana; o plano se ajusta aos dias que você escolhe." },
+      { "t": "melhoria", "x": "Formato da semana revisto: uma regra única para decidir o que é dia de treino." }
+    ]
+  },
+  {
+    "v": "ng-modular-20", "data": "16/11/2026",
+    "titulo": "Pedir acesso, espera no login e acertos",
+    "itens": [
+      { "t": "novo", "x": "\"Pedir acesso\": quem ainda não foi liberado envia o pedido direto pela tela de entrada." },
+      { "t": "novo", "x": "Barra de espera ao pedir outro código por e-mail." },
+      { "t": "novo", "x": "Foto de perfil." },
+      { "t": "melhoria", "x": "Cadastro pede o foco do treino, e \"Corpo todo\" aparece em destaque." },
+      { "t": "correcao", "x": "Menus de seleção no Safari e salto de rolagem em alguns toques." },
+      { "t": "correcao", "x": "\"Primeira Medida\" só acende com peso, cintura, quadril e pescoço medidos." }
+    ]
+  },
+  {
+    "v": "ng-modular-10", "data": "12/11/2026",
+    "titulo": "Login por inatividade e check-in diário",
+    "itens": [
+      { "t": "novo", "x": "\"Como você está hoje?\": sono, energia e dor articular na primeira abertura de cada dia de treino." },
+      { "t": "novo", "x": "Opção para pedir e-mail e código de novo depois de um tempo fora do app (Configurações › Conta)." },
+      { "t": "melhoria", "x": "Verificação de segurança do login com aviso claro quando precisa de um toque." }
+    ]
+  }
+]
