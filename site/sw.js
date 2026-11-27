@@ -1,6 +1,6 @@
 /* Service worker do NG+ (New Game+) — só deixa o app abrir sem internet.
    Os DADOS ficam no IndexedDB (bff-runtime.js), não aqui. Para publicar uma versão nova, mude VERSAO. */
-const VERSAO = "ng-modular-57";
+const VERSAO = "ng-modular-58";
 const ARQUIVOS = ["./", "./bff-runtime.js", "./ng-nuvem.js", "./vendor-supabase.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./instalar.html", "./instalar.css", "./instalar.js", "./instalar-qr.svg", "./inicio.html", "./inicio.css", "./inicio.js", "./fonts/barlow-condensed-latin-500-normal.woff2", "./fonts/barlow-condensed-latin-600-normal.woff2", "./fonts/barlow-condensed-latin-700-normal.woff2", "./fonts/work-sans-latin-wght-normal.woff2", "./fonts/ibm-plex-mono-latin-500-normal.woff2", "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
 const ARQUIVOS_APP = ["./app.90bbe01e81.css", "./app.2c91564168.js", "./dados.0f24b2dccb.js", "./cardapio.7a40c899c7.js", "./mapa.e92af4409e.js", "./ng-nuvem.css"]; /*build:app*/   // regravada por fonte/externaliza.py (nomes com hash do app.css e app.js)
 self.addEventListener("install", e=>{ e.waitUntil(caches.open(VERSAO).then(c=>c.addAll(ARQUIVOS.concat(ARQUIVOS_APP))).then(()=>self.skipWaiting())); });
@@ -19,7 +19,11 @@ self.addEventListener("fetch", e=>{
       return res;
     }catch(_){
       const hit = await caches.match(r);
-      if(hit) return hit;
+      if(hit){
+        // Cópia guardada que veio de um redirecionamento (a Cloudflare manda /x.html para /x): o navegador recusa responder uma navegação com ela. Copiamos para uma resposta nova, sem a marca de redirecionamento.
+        if(hit.redirected) return new Response(await hit.blob(), {status: hit.status, statusText: hit.statusText, headers: hit.headers});
+        return hit;
+      }
       if(r.mode === "navigate"){ const home = await caches.match("./"); if(home) return home; }
       return Response.error();
     }

@@ -159,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-58", data: "27/11/2026", titulo: "Páginas de apoio abrem sem internet", itens: [
+      { t: "correcao", x: "A página \"Conhecer o NG+\" não abria sem internet, mesmo depois de visitada: o navegador recusava a cópia guardada. Agora ela abre." },
+      { t: "correcao", x: "A página \"Como instalar\" tinha o mesmo defeito e também volta a abrir sem internet." },
+      { t: "melhoria", x: "Os testes passaram a imitar o redirecionamento de endereços .html da hospedagem, para esse tipo de falha não passar despercebida." }
+    ] },
     { v: "ng-modular-57", data: "26/11/2026", titulo: "Página de apresentação do NG+", itens: [
       { t: "novo", x: "Página de apresentação do NG+, com o que o app faz e a lista completa de atualizações. Na tela de entrada, toque em \"Conhecer o NG+\"." },
       { t: "melhoria", x: "A tela de entrada ficou mais simples: as abas Início e Atualizações viraram esse link, e o formulário de entrar fica sempre à vista." },

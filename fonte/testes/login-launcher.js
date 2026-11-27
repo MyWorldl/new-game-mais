@@ -24,7 +24,7 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     const nov = await p.evaluate(() => { const a = document.querySelector('.ng-lc-novo'); return a && { tag: a.tagName, href: a.getAttribute('href'), txt: a.textContent, alt: Math.round(a.getBoundingClientRect().height) }; });
     t(L + 'faixa "Novidade" é link para inicio.html#atualizacoes e mostra o título mais recente', !!nov && nov.tag === 'A' && nov.href === 'inicio.html#atualizacoes' && /Novidade/.test(nov.txt) && nov.txt.length > 12 && nov.alt >= 44, JSON.stringify(nov));
     t(L + 'não sobrou nenhum código da lista de atualizações dentro do app', (await p.$$('.ng-nov, #ng-nov-mais, #ng-pn-novid')).length === 0);
-    const alvo = await Promise.all([p.waitForURL(/inicio\.html#atualizacoes/, { timeout: 8000 }).then(() => true, () => false), p.click('.ng-lc-novo')]);
+    const alvo = await Promise.all([p.waitForURL(/\/inicio(\.html)?#atualizacoes/, { timeout: 8000 }).then(() => true, () => false), p.click('.ng-lc-novo')]);
     await p.waitForSelector('#atualizacoes', { timeout: 8000 }).catch(() => {});
     t(L + 'tocar na faixa abre a página de apresentação já nas atualizações', alvo[0] && (await p.locator('.nov-atual').count()) === 1 && /Mais recente/i.test(await p.innerText('.nov-meta')), p.url());
     t(L + 'a página de apresentação tem "Entrar" que volta ao app', (await p.getAttribute('.topo .btn', 'href')) === './');
