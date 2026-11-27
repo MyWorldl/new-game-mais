@@ -2377,6 +2377,9 @@ html[data-loading="1"] :is(.card, .nivel-mini, .hero, .narrator-card, .callout, 
 /* C4: folha inferior de registro (celular) */
 :is(#modal-root, #celebration-root)[popover]{position:fixed; top:0; left:0; right:auto; bottom:auto; width:0; height:0; margin:0; padding:0; border:0; overflow:visible; background:transparent;}
 .toast[popover]{top:auto; right:auto; margin:0; height:auto; overflow:visible;}   /* anula o estilo padrão de popover: mantém a posição do aviso */
+/* PR D: aviso do estado de salvamento ancorado logo abaixo da pílula "Salvo" (posição medida em showToast) */
+.toast.toast-pilula[popover]{top:var(--pt-top,64px); right:var(--pt-right,12px); bottom:auto; left:auto; transform:translateY(-6px); max-width:min(86vw,340px); border-radius:14px; text-align:start;}
+.toast.toast-pilula[popover].show{transform:translateY(0);}
 .qc-sheet-head, .qc-grip{display:none;}
 @media (max-width:767px){
   .qc-sheet{
@@ -2604,7 +2607,9 @@ button, a, summary, [role="button"], label, select{touch-action:manipulation;}
 .foto-edit{display:flex; gap:var(--sp-3); align-items:center; padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2);}
 .foto-edit-prev{inline-size:72px; block-size:72px; border-radius:50%; font-size:var(--fs-xl,1.5rem); overflow:hidden;}
 .foto-edit-txt{display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; flex:1 1 auto;}
-.foto-edit-acoes{display:flex; gap:var(--sp-2); flex-wrap:wrap; margin-top:var(--sp-1);}
+.foto-edit-acoes{display:flex; gap:var(--sp-2); flex-wrap:wrap; margin-top:var(--sp-1); align-items:center;}
+.foto-edit-acoes .foto-remover{border-color:transparent; background:transparent; color:var(--ink-soft); font-weight:500; text-decoration:underline; text-underline-offset:3px;}
+@media (hover:hover){ .foto-edit-acoes .foto-remover:hover{color:var(--ink);} }
 .foco-sep{flex:1 1 100%; font-size:var(--fs-xs); color:var(--muted); margin:2px 0 -2px;}
 .foco-msg{font-size:var(--fs-xs); color:var(--warn); min-height:1.2em; margin-top:var(--sp-1);}
 .foco-box{display:flex; gap:10px; flex-direction:column; margin-bottom:14px; padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2); font-size:var(--fs-xs); color:var(--ink-soft); line-height:1.5;}
@@ -2704,6 +2709,7 @@ button, a, summary, [role="button"], label, select{touch-action:manipulation;}
 .nivel-mini .nivel-xp-track{height:5px;}
 .nivel-mini-sub{display:none;}
 .nivel-mini-streak{display:inline-flex; align-items:center; gap:var(--sp-1); flex:none; color:var(--ink); font-weight:700; font-variant-numeric:tabular-nums;}
+.nivel-mini-streak[hidden]{display:none;}
 .nivel-mini-streak svg{width:16px; height:16px; color:var(--warn);}
 .nivel-mini-streak small{font-size:var(--fs-2xs); font-weight:600; color:var(--ink-soft);}
 .nivel-mini.at-risk{border-color:var(--risk-text, var(--warn));}
@@ -5576,7 +5582,7 @@ async function flushPending(){
   if(!failed) lastSaveAt = Date.now();
   updateSyncPill();
   if(failed){ flushAttempt++; scheduleFlush(false); }
-  else { flushAttempt = 0; if(paths.length) showToast("Tudo salvo. As alterações pendentes foram enviadas."); }
+  else { flushAttempt = 0; if(paths.length) showToast("Tudo salvo. As alterações pendentes foram enviadas.", {perto:"pilula"}); }
 }
 window.addEventListener("online", ()=>{ updateSyncPill(); scheduleFlush(true); });
 window.addEventListener("offline", updateSyncPill);
@@ -5625,8 +5631,8 @@ function updateSyncPill(){
   if(!b) return;
   b.addEventListener("click", ()=>{
     const {k, n} = syncEstado();
-    if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…"); }
-    else showToast(syncTextos(k, n).full);
+    if(k === "pending"){ flushAttempt = 0; scheduleFlush(true); showToast("Tentando salvar agora…", {perto:"pilula"}); }
+    else showToast(syncTextos(k, n).full, {perto:"pilula"});
   });
   updateSyncPill();
 })();
@@ -5644,7 +5650,7 @@ async function saveDoc(path, data){
   }catch(e){
     queueWrite(path, "set", data);
     applyLocalFallback(path, data);   // a tela já mostra o que você acabou de registrar
-    showToast("Conexão instável. Guardei sua alteração e tento salvar de novo sozinho.");
+    showToast("Conexão instável. Guardei sua alteração e tento salvar de novo sozinho.", {perto:"pilula"});
   }
 }
 async function deleteDocRemote(path){
@@ -5879,6 +5885,11 @@ function showToast(msg, opts){
   clearTimeout(showToast._t);
   if(showToast._expire){ const f = showToast._expire; showToast._expire = null; try{ f(); }catch(e){} }
   const act = opts && opts.action;
+  // PR D: avisos do estado de salvamento aparecem logo abaixo da pílula "Salvo", não no rodapé
+  let pil = opts && opts.perto === "pilula" ? document.getElementById("sync-pill") : null;
+  if(pil){ const r0 = pil.getBoundingClientRect(); if(!(r0.width > 0 && r0.top >= 0 && r0.bottom <= window.innerHeight)) pil = null; }   // pílula fora da tela (ex.: rolou a página): volta ao rodapé
+  t.classList.toggle("toast-pilula", !!pil);
+  if(pil){ const r = pil.getBoundingClientRect(); t.style.setProperty("--pt-top", Math.round(r.bottom + 8)+"px"); t.style.setProperty("--pt-right", Math.max(8, Math.round(window.innerWidth - r.right))+"px"); }
   if(!act){
     t.textContent = msg;
     t.classList.remove("has-action");
@@ -7157,7 +7168,7 @@ function renderNarrator(){
   } else if(streak > 0){
     msg = "Você está em "+streak+" dia"+(streak===1?"":"s")+" seguido"+(streak===1?"":"s")+". Bora manter o ritmo até completar 1 semana.";
   } else {
-    msg = "Conclua a quest de hoje pra começar sua sequência. Eu tô aqui torcendo por você.";
+    msg = "Conclua a quest de hoje pra dar o primeiro passo. Eu tô aqui torcendo por você.";
   }
 
   card.hidden = false;
@@ -8048,6 +8059,7 @@ function renderStreak(){
   { const mini = document.getElementById("nivel-mini"), n = document.getElementById("nivel-mini-streak-n"), sm = document.querySelector("#nivel-mini-streak small");   // v98 F4: faixa compacta do topo
     if(n) n.textContent = streak;
     if(sm) sm.textContent = atRisk ? "em risco" : (streak === 1 ? "dia" : "dias");
+    { const chip = document.getElementById("nivel-mini-streak"); if(chip) chip.hidden = !atRisk; }   // PR D: a sequência já tem o cartão grande e a lateral; aqui só o aviso de risco
     if(mini){ mini.classList.toggle("at-risk", atRisk); mini.setAttribute("aria-label", "Ver sua patente no Perfil. Sequência de "+streak+" dia"+(streak===1?"":"s")+(atRisk?", em risco hoje":"")); } }
 
   if(atRisk){
@@ -11498,7 +11510,7 @@ function openPerfilEditor(){
       '<div class="foto-edit" id="p-foto-box"><div class="perfil-avatar foto-edit-prev" id="p-foto-prev" aria-hidden="true"></div>'+
         '<div class="foto-edit-txt"><b>Foto de perfil <span class="skins-hint">— opcional</span></b>'+
           '<span class="field-hint">Aparece no seu perfil e no topo do app. A foto é reduzida no seu aparelho e guardada só na sua conta.</span>'+
-          '<div class="foto-edit-acoes"><button type="button" class="btn small" id="p-foto-escolher">Escolher foto</button><button type="button" class="btn small ghost" id="p-foto-remover" hidden>Remover</button></div>'+
+          '<div class="foto-edit-acoes"><button type="button" class="btn small" id="p-foto-escolher">Escolher foto</button><button type="button" class="btn small ghost foto-remover" id="p-foto-remover" hidden>Remover foto</button></div>'+
           '<input type="file" id="p-foto-arq" accept="image/*" hidden>'+
           '<div class="foco-msg" id="p-foto-msg" role="status" aria-live="polite"></div></div></div>'+
       '<label>Nome completo<input type="text" id="p-nome"></label>'+

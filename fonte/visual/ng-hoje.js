@@ -28,29 +28,14 @@ function hojeHabitosHoje(){
 }
 function hojeMetricas(){
   const hoje = todayISO(), out = [];
-  // 1) sequência
-  const eng = computeStreakEngine();
-  out.push({id:"seq", rot:"Sequência", valor:String(eng.streak), unid: eng.streak === 1 ? "dia" : "dias",
-    sub:"Recorde: "+eng.best+(eng.best === 1 ? " dia" : " dias"), ic:SS_FLAME, barra:null});
-  // 2) treinos da semana (meta)
+  // PR D: sequência e peso saíram do carrossel (a sequência tem o cartão grande e a lateral; o peso tem o tile do Painel)
+  // 1) treinos da semana (meta)
   const s = statsSemana(mondayOfISO(hoje)), alvo = s.meta || s.cap;
   out.push({id:"sem", rot:"Treinos da semana", valor: alvo ? s.feitos+"/"+alvo : "—", unid: alvo ? "da meta" : "",
     sub: !alvo ? "Sem treinos agendados" : s.ok ? "Meta da semana batida" : "Falta"+(alvo-s.feitos === 1 ? "" : "m")+" "+(alvo-s.feitos)+" para a meta",
     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5 3 10l4 4M17.5 17.5 21 14l-4-4M14 4l6 6M4 14l6 6M8.5 15.5l7-7"/></svg>',
     barra: alvo ? Math.min(100, Math.round(s.feitos / alvo * 100)) : 0});
-  // 3) peso
-  const med = latestMedicao(), ms = sortedMedicoes().filter(m=> m.pesoKg != null);
-  let subP = "Registre seu peso", valP = "—";
-  if(med && med.pesoKg != null){
-    valP = num(med.pesoKg, 1);
-    const ant = ms.length >= 2 ? ms[ms.length-2] : null, d = ms.length >= 2 ? hojeDiasDesde(ms[ms.length-1].iso) : hojeDiasDesde(med.iso);
-    const quando = d === 0 ? "hoje" : d === 1 ? "ontem" : "há "+d+" dias";
-    if(ant){ const dl = ms[ms.length-1].pesoKg - ant.pesoKg; subP = (Math.abs(dl) < 0.05 ? "Estável" : (dl > 0 ? "+" : "−")+num(Math.abs(dl), 1)+" kg")+" desde a anterior · "+quando; }
-    else subP = "Medido "+quando;
-  }
-  out.push({id:"peso", rot:"Peso atual", valor:valP, unid: valP === "—" ? "" : "kg", sub:subP,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9a4 4 0 0 1 8 0M12 9l2-2"/></svg>', barra:null});
-  // 4) hábitos de hoje
+  // 2) hábitos de hoje
   const hb = hojeHabitosHoje();
   out.push({id:"hab", rot:"Hábitos de hoje", valor:hb.length+"/3", unid:"registros", sub: hb.length ? hb.join(" · ") : "Nada registrado hoje (opcional)",
     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>', barra: Math.round(hb.length/3*100)});

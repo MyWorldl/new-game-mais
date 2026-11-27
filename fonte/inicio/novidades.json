@@ -1,5 +1,14 @@
 [
   {
+    "v": "ng-modular-72", "data": "27/11/2026",
+    "titulo": "Hoje mais limpa e avisos de salvamento perto da pílula",
+    "itens": [
+      { "t": "melhoria", "x": "Hoje: a sequência e o peso não aparecem mais repetidos nos cartões de resumo (a sequência fica no cartão grande e na lateral; o peso, no Painel). O chip de sequência da faixa de patente só aparece quando ela está em risco." },
+      { "t": "melhoria", "x": "Os avisos do estado de salvamento (\"Tudo salvo\", \"Tentando salvar agora\", \"Conexão instável\") agora aparecem logo abaixo da pílula \"Salvo\", em vez de no rodapé." },
+      { "t": "melhoria", "x": "Editar perfil: \"Remover foto\" virou um botão discreto, para você não tocar nele sem querer ao trocar a foto." }
+    ]
+  },
+  {
     "v": "ng-modular-71", "data": "27/11/2026",
     "titulo": "Menos repetição, textos maiores e telas vazias mais enxutas",
     "itens": [
