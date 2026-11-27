@@ -3,7 +3,7 @@
 const { chromium } = require('playwright');
 const URL_ = (process.argv[2] || 'http://localhost:8791') + '/index.html';
 let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + String(x).slice(0, 300) : '')); };
-const STUB = `window.__cb=null;window.turnstile={render:function(sel,o){window.__cb=o;window.__renders=(window.__renders||0)+1;setTimeout(function(){o.callback('TOKEN-'+window.__renders)},120);return 'w1'},reset:function(){window.__resets=(window.__resets||0)+1;var o=window.__cb;setTimeout(function(){o.callback('TOKEN-R'+window.__resets)},120)}};`;
+const STUB = `window.__cb=null;window.turnstile={render:function(sel,o){window.__cb=o;window.__opts=o;window.__renders=(window.__renders||0)+1;var d=document.createElement('div');d.className='stub-w';d.style.cssText='height:65px';document.querySelector(sel).appendChild(d);setTimeout(function(){o.callback('TOKEN-'+window.__renders)},120);return 'w1'},reset:function(){window.__resets=(window.__resets||0)+1;var o=window.__cb;setTimeout(function(){o.callback('TOKEN-R'+window.__resets)},120)}};`;
 async function abre(b, modo, otpResp) {
   const c = await b.newContext({ viewport: { width: 400, height: 800 } });
   const p = await c.newPage(); p.csp = []; p.otp = []; p.errs = [];
@@ -27,6 +27,21 @@ async function abre(b, modo, otpResp) {
     t('depois do envio o widget é reiniciado (token vale uma vez)', await p.evaluate(() => window.__resets) >= 1);
     t('sem violação de CSP', p.csp.length === 0, p.csp.join('|'));
     t('sem erros de JS', p.errs.length === 0, p.errs.join('|')); await c.close(); }
+  { // porteiro discreto: a verificação que passa sozinha não ocupa espaço nem aparece no meio do formulário
+    const { c, p } = await abre(b, 'ok');
+    await p.waitForFunction(() => window.__renders === 1, null, { timeout: 5000 }); await p.waitForTimeout(400);
+    const o = await p.evaluate(() => ({ a: window.__opts.appearance, s: window.__opts.size, th: window.__opts.theme, l: window.__opts.language }));
+    const lum = await p.evaluate(() => { const n = getComputedStyle(document.querySelector('.ng-login')).backgroundColor.match(/\d+(\.\d+)?/g); return (0.2126 * n[0] + 0.7152 * n[1] + 0.0722 * n[2]) / 255; });
+    t('widget pede appearance interaction-only, tamanho flexível e idioma pt-br', o.a === 'interaction-only' && o.s === 'flexible' && o.l === 'pt-br', JSON.stringify(o));
+    t('tema do widget acompanha o fundo real da tela de entrada (escuro/claro), não só o sistema', o.th === (lum < 0.5 ? 'dark' : 'light'), o.th + ' lum=' + lum.toFixed(2));
+    const col = await p.evaluate(() => { const e = document.getElementById('ng-login-ts'), cs = getComputedStyle(e), r = e.getBoundingClientRect(); return { h: Math.round(r.height), vis: cs.visibility, cls: e.className }; });
+    t('com o token na mão, o contêiner do widget fica fechado (altura 0, invisível)', col.h === 0 && col.vis === 'hidden' && !/ng-ts-vis/.test(col.cls), JSON.stringify(col));
+    const gap = await p.evaluate(() => Math.round(document.getElementById('ng-login-ok').getBoundingClientRect().top - document.getElementById('ng-login-e').getBoundingClientRect().bottom));
+    t('o e-mail e o botão ficam a um espaço só um do outro (sem buraco do widget)', gap >= 12 && gap <= 16, gap + ' px');
+    await p.click('#ng-login-pedir'); await p.waitForFunction(() => window.__renders === 2, null, { timeout: 5000 }).catch(() => {});
+    const ped = await p.evaluate(() => ({ n: window.__renders, a: window.__opts.appearance, s: window.__opts.size, cls: document.getElementById('ng-ped-ts').className }));
+    t('o formulário "Pedir acesso" usa o mesmo widget discreto', ped.n === 2 && ped.a === 'interaction-only' && ped.s === 'flexible' && !/ng-ts-vis/.test(ped.cls), JSON.stringify(ped));
+    await c.close(); }
   { const { c, p } = await abre(b, 'bloqueado');
     await p.fill('#ng-login-e', 'teste@example.com'); await p.waitForTimeout(600); await p.click('#ng-login-ok'); await p.waitForTimeout(900);
     t('widget bloqueado: o envio ainda é tentado (sem token)', p.otp.length === 1 && !(p.otp[0].gotrue_meta_security && p.otp[0].gotrue_meta_security.captcha_token), JSON.stringify(p.otp[0]));
@@ -37,14 +52,19 @@ async function abre(b, modo, otpResp) {
     t('captcha recusado pelo Supabase mostra mensagem clara', /verificação de segurança/.test(m), m); await c.close(); }
   { // o widget pede um toque (desafio interativo): a mensagem manda marcar a caixa e nada é enviado até o token chegar
     const c = await b.newContext({ viewport: { width: 400, height: 800 } }); const p = await c.newPage(); p.otp = [];
-    await p.route('**/challenges.cloudflare.com/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: "window.turnstile={render:function(s,o){window.__o=o;setTimeout(function(){o['before-interactive-callback']()},100);return 'w1'},reset:function(){}};" }));
+    await p.route('**/challenges.cloudflare.com/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: "window.turnstile={render:function(s,o){window.__o=o;var d=document.createElement('div');d.style.cssText='height:65px';document.querySelector(s).appendChild(d);setTimeout(function(){o['before-interactive-callback']()},100);return 'w1'},reset:function(){}};" }));
     await p.route('**/gjoxrgnkwmjvcfiywtcs.supabase.co/**', r => { if (/\/auth\/v1\/otp/.test(r.request().url())) p.otp.push(JSON.parse(r.request().postData() || '{}')); return r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); });
     await p.goto(URL_); await p.waitForSelector('#ng-login-e'); await p.waitForTimeout(500);
     t('widget interativo: aviso para marcar a caixa aparece sozinho', /Marque a caixa/.test(await p.textContent('#ng-login-m')), await p.textContent('#ng-login-m'));
+    const alt = () => p.evaluate(() => { const e = document.getElementById('ng-login-ts'); return { h: Math.round(e.getBoundingClientRect().height), vis: getComputedStyle(e).visibility }; });
+    const aberto = await alt();
+    t('widget interativo: a caixa de verificação aparece (altura e visível) só quando precisa de toque', aberto.h >= 60 && aberto.vis === 'visible', JSON.stringify(aberto));
     await p.fill('#ng-login-e', 'teste@example.com'); await p.click('#ng-login-ok'); await p.waitForTimeout(400);
     t('sem token, nada é enviado e o aviso continua', p.otp.length === 0 && /Marque a caixa/.test(await p.textContent('#ng-login-m')));
     await p.evaluate(() => window.__o.callback('TOKEN-X')); await p.waitForTimeout(200);
     t('depois de marcar a caixa, o aviso some', (await p.textContent('#ng-login-m')) === '');
+    const fechado = await alt();
+    t('depois de marcar a caixa, o quadro volta a fechar (não fica o "Sucesso!" no meio do formulário)', fechado.h === 0 && fechado.vis === 'hidden', JSON.stringify(fechado));
     await p.click('#ng-login-ok'); await p.waitForTimeout(700);
     t('com o token, o e-mail é enviado', p.otp.length === 1 && p.otp[0].gotrue_meta_security.captcha_token === 'TOKEN-X'); await c.close(); }
   console.log(`\n${ok} ok / ${bad} falhas`); await b.close(); process.exit(bad ? 1 : 0);
