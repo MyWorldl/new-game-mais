@@ -1,5 +1,17 @@
 [
   {
+    "v": "ng-modular-70", "data": "27/11/2026",
+    "titulo": "Descanso mais claro, Editar rotina por dia e telas vazias mais enxutas",
+    "itens": [
+      { "t": "melhoria", "x": "Pop-up do exercício: a barra do descanso fica visível enquanto você rola, e quando o tempo acaba aparece o aviso \"Descanso concluído: pode fazer a próxima série\"." },
+      { "t": "melhoria", "x": "Editar rotina: agora você escolhe o dia da semana numa fileira de abas (abre no dia de hoje) em vez de rolar os sete dias. Os botões Cancelar e Salvar rotina ficam sempre à vista." },
+      { "t": "correcao", "x": "Leitores de tela: o pop-up do exercício agora se anuncia pelo nome do exercício, e não como \"Janela\"." },
+      { "t": "correcao", "x": "Hoje: os contadores da semana e do mês deixaram de contar dias anteriores ao seu cadastro, e o texto explica a diferença entre o total feito e a meta." },
+      { "t": "melhoria", "x": "Meta de peso, Ajuste pelo resultado e gráfico de peso sem medições ganharam um cartão compacto com botão de ação, sem a área em branco do gráfico." },
+      { "t": "correcao", "x": "O indicador \"Tudo salvo\" agora diz que está sincronizado com a sua conta quando você está logado, em vez de só \"neste aparelho\"." }
+    ]
+  },
+  {
     "v": "ng-modular-69", "data": "27/11/2026",
     "titulo": "Voltar do e-mail sem perder o código e carga antes de registrar a série",
     "itens": [

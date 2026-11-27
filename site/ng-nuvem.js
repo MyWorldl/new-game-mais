@@ -177,7 +177,7 @@
      GERADO por fonte/inicio/gera-inicio.mjs (rodado pelo build.sh) a partir de fonte/inicio/novidades.json: não edite este trecho.
      Para publicar uma versão nova, acrescente um item NO TOPO de novidades.json (t: novo | melhoria | correcao) e rode fonte/build.sh.
      A lista completa fica só em inicio.html: o app baixa apenas esta linha. */
-  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-69", titulo: "Voltar do e-mail sem perder o código e carga antes de registrar a série" }/*FIM*/ ];
+  var NOVIDADES = [ /*NOV*/{ v: "ng-modular-70", titulo: "Descanso mais claro, Editar rotina por dia e telas vazias mais enxutas" }/*FIM*/ ];
   /* A lista completa de atualizações agora mora na página de apresentação (inicio.html), gerada a partir de NOVIDADES por fonte/inicio/gera-inicio.mjs. */
 
   function pedirLogin(){

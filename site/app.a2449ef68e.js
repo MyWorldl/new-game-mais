@@ -133,6 +133,7 @@ const ICONS = {
   camera:   ["M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z","M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
   user:     ["M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2","M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
   "line-chart": ["M3 3v16a2 2 0 0 0 2 2h16","m19 9-5 5-4-4-3 3"],
+  target:   ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z","M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z","M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"],   // PR B: meta de peso
   "cloud-check": ["M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z","m9 13 2 2 4-4"],
   "cloud-off":   ["m2 2 20 20","M5.782 5.782A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193","M21.532 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07"],
   refresh:  ["M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8","M21 3v5h-5","M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16","M8 16H3v5"],
@@ -142,7 +143,12 @@ const ICONS = {
 };
 const ic = (name, cls)=> '<svg class="ic'+(cls?' '+cls:'')+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-'+name+'"/></svg>';
 /* v93 C6: estado vazio com ilustração e uma ação. Ações: medir | perfil | foto | treino */
-function emptyState(icon, title, text, act){
+function emptyState(icon, title, text, act, compacto){
+  if(compacto) return '<div class="empty-state compact">'+   // PR B: para cartões estreitos (ícone ao lado do texto, sem 70 px de ilustração)
+    '<div class="empty-ill" aria-hidden="true"><svg viewBox="0 0 24 24" class="ic"><use href="#i-'+icon+'"/></svg></div>'+
+    '<div class="empty-body"><div class="empty-title">'+title+'</div><div class="empty-text">'+text+'</div></div>'+
+    (act ? '<button type="button" class="btn small primary" data-empty-go="'+act.go+'">'+act.label+'</button>' : '')+
+  '</div>';
   return '<div class="empty-state">'+
     '<div class="empty-ill" aria-hidden="true"><svg viewBox="0 0 24 24" class="ic"><use href="#i-'+icon+'"/></svg></div>'+
     '<div class="empty-title">'+title+'</div>'+
@@ -1852,7 +1858,7 @@ function syncTextos(k, n){
     loading: {ic:"refresh", txt:"Conectando", full:"Conectando para buscar seus dados…"},
     syncing: {ic:"refresh", txt:"Sincronizando", full:"Sincronizando com a sua conta…"},
     erro:    {ic:"cloud-off", txt: n===1 ? "1 pendente" : n+" pendentes", full: alt+" ainda não chegaram à nuvem. Estão guardadas neste aparelho e o app tenta de novo sozinho. Toque para tentar agora."},
-    saved:   {ic:"cloud-check", txt:"Salvo", full:"Tudo salvo"+(window.bffRuntime ? " neste aparelho" : "")+(hora ? " — última gravação às "+hora : "")+"."},
+    saved:   {ic:"cloud-check", txt:"Salvo", full:"Tudo salvo"+(window.ngNuvem ? " e sincronizado com a sua conta" : (window.bffRuntime ? " neste aparelho" : ""))+(hora ? " — última gravação às "+hora : "")+"."},
     pending: {ic: flushing ? "refresh" : "cloud", txt: n===1 ? "1 pendente" : n+" pendentes", full: alt+" aguardando para salvar. Toque para tentar agora."},
     offline: {ic:"cloud-off", txt:"Sem conexão", full:"Sem conexão"+(n ? ". "+(n===1 ? "1 alteração está guardada neste aparelho e será enviada" : n+" alterações estão guardadas neste aparelho e serão enviadas")+" ao reconectar." : ". O que você registrar fica guardado e é enviado ao reconectar.")},
     local:   {ic:"cloud-off", txt:"Modo local", full:"Modo local: o que você registrar vale só até fechar o app."}
@@ -5956,10 +5962,12 @@ function renderWeekDots(){
   const wrap = document.getElementById("week-dots");
   wrap.innerHTML = "";
   const freezeUsedSet = new Set(computeStreakEngine().freezeUsedDates);
+  const inicio = getTrackingStartISO();   // dias antes do cadastro não entram na conta (a meta da semana já fazia isso: assim "de N" e a meta combinam)
   let done=0, total=0;
   days.forEach(iso=>{
     const key = treinoKey(iso);
-    const ativo = treinoAtivoKey(key);
+    const antes = iso < inicio;
+    const ativo = treinoAtivoKey(key) && !antes;
     const isDone = !!state.checkins[iso]?.concluido;
     const isToday = iso === todayISO();
     const isFrozen = freezeUsedSet.has(iso);
@@ -5969,10 +5977,12 @@ function renderWeekDots(){
     const wd = dayKeyFromISO(iso);
     const glifo = isFrozen ? ic("snow") : (isDone ? "✓" : (ativo ? "·" : ""));
     el.innerHTML = '<span class="d-n">'+DAY_LABEL[wd]+'</span><span class="d-s" aria-hidden="true">'+glifo+'</span>';
-    el.title = DAY_FULL[wd] + (isFrozen ? " — protegido por congelamento" : (ativo ? (isDone ? (state.checkins[iso].leve ? " — dia leve" : " — concluído") : " — pendente") : " — descanso"));
+    el.title = DAY_FULL[wd] + (isFrozen ? " — protegido por congelamento" : (ativo ? (isDone ? (state.checkins[iso].leve ? " — dia leve" : " — concluído") : " — pendente") : (antes ? " — antes do seu cadastro" : " — descanso")));
     wrap.appendChild(el);
   });
-  document.getElementById("week-label").textContent = done+" de "+total+" treinos concluídos";
+  const wl = document.getElementById("week-label");
+  wl.textContent = done+" de "+total+" treinos concluídos";
+  wl.title = "Dias de treino desta semana, contados a partir do seu cadastro. A meta da semana (mensagem abaixo) pode ser menor que esse total: é o mínimo para manter a sequência.";
   const pct = total ? Math.round(done/total*100) : 0;
   document.getElementById("week-pct").textContent = pct+"%";
 
@@ -5984,13 +5994,16 @@ function renderWeekDots(){
   for(let d=1; d<=lastDayNum; d++){
     const dIso = y+"-"+m+"-"+pad2(d);
     if(dIso > iso) break;
+    if(dIso < inicio) continue;   // mês de quem se cadastrou no meio dele começa no cadastro
     const key = treinoKey(dIso);
     if(treinoAtivoKey(key)){
       mtotal++;
       if(state.checkins[dIso]?.concluido) mdone++;
     }
   }
-  document.getElementById("month-label").textContent = mdone+" de "+mtotal+" treinos concluídos (mês)";
+  const ml = document.getElementById("month-label");
+  ml.textContent = mdone+" de "+mtotal+" treinos concluídos (mês)";
+  ml.title = "Dias de treino do mês até hoje"+(inicio > y+"-"+m+"-01" ? ", a partir do seu cadastro" : "")+". Outros resumos (como o dos meses) usam a janela que mostram.";
   const mpct = mtotal ? Math.round(mdone/mtotal*100) : 0;
 
   // anéis concêntricos: semana (externo) e mês (interno)
@@ -6245,6 +6258,8 @@ function renderWeightChart(){
   if(titleEl) titleEl.textContent = pesoPeriodo === "all" ? "Peso — histórico completo" : "Peso — últimos "+pesoPeriodo+" dias";
   document.querySelectorAll("#weight-period button").forEach(b=>{ const on = b.dataset.p === pesoPeriodo; b.classList.toggle("active", on); b.setAttribute("aria-pressed", on?"true":"false"); });
   const data = sortedMedicoes().filter(m=>(!cutoff || m.iso>=cutoff) && m.pesoKg!=null);
+  const areaGraf = svg.closest(".chart-wrap");
+  if(areaGraf) areaGraf.hidden = data.length < 2;   // vazio: só o cartão com o botão (a área em branco ocupava ~200 px)
   if(data.length < 2){
     svg.innerHTML = "";
     empty.hidden = false;
@@ -7943,6 +7958,7 @@ function bindSerieLog(root, pfx, iso, key, rerender, tick){
    próxima vez que a célula for desenhada.
    ============================================================ */
 const restTimers = {};
+const restFim = {};   // índice do exercício → quando o descanso acabou (mostra "Descanso concluído" por 2 min, além do som, da vibração e do aviso)
 // índices dos exercícios de hoje com o painel de registro aberto (Rotina semanal)
 const questExpanded = new Set();
 let sheetFresh = -1;   // v94 C4: índice do exercício cuja folha acabou de abrir (anima só nessa vez)
@@ -7980,7 +7996,8 @@ function restTimerCellHtml(idx, exNome){
   }
   const pref = restPref();
   const sg = exNome ? restSugerido(exNome) : null;   // v95 (T3)
-  return '<div class="quest-rest-row">'+
+  const fim = (restFim[idx] && Date.now() - restFim[idx] < 120000) ? '<div class="rest-fim" role="status">'+ic('timer')+' Descanso concluído: pode fazer a próxima série.</div>' : '';
+  return fim+'<div class="quest-rest-row">'+
     '<select class="quest-rest-select" data-ngselect data-restsel="'+idx+'" aria-label="Duração do descanso">'+
       REST_PRESETS.map(s=>'<option value="'+s+'"'+(s===pref?' selected':'')+'>'+s+'s'+(sg && sg.presets.indexOf(s)>=0 ? ' · sugerido' : '')+'</option>').join("")+
     '</select>'+
@@ -7990,6 +8007,7 @@ function restTimerCellHtml(idx, exNome){
 }
 function startRestTimer(idx, seconds, onTick){
   cancelRestTimer(idx);
+  delete restFim[idx];
   const tick = onTick || semFocoEmCampo(renderWeekTrailDetail);   // NG+: não redesenha enquanto a pessoa digita as repetições
   restTimers[idx] = {remaining: seconds, total: seconds, intervalId: null};
   restTimers[idx].intervalId = setInterval(()=>{
@@ -7999,6 +8017,7 @@ function startRestTimer(idx, seconds, onTick){
     if(t.remaining <= 0){
       clearInterval(t.intervalId);
       delete restTimers[idx];
+      restFim[idx] = Date.now();
       hapticPulse([40,60,40]);
       playSound("resttimer");
       showToast("Descanso concluído — próxima série!");
@@ -8010,6 +8029,7 @@ function startRestTimer(idx, seconds, onTick){
   tick();
 }
 function cancelRestTimer(idx){
+  delete restFim[idx];
   const t = restTimers[idx];
   if(t && t.intervalId) clearInterval(t.intervalId);
   delete restTimers[idx];
@@ -8093,6 +8113,7 @@ function renderLiveWorkout(body){
     '</div>';
 
   bindSerieLog(body, 'lw', iso, key, ()=>renderLiveWorkout(body), semFocoEmCampo(()=>renderLiveWorkout(body)));
+  atualizaRotuloModal();   // o título do exercício vira o nome do diálogo
   aplicaFocoPendente();
   body.querySelectorAll("[data-qswap]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -9060,8 +9081,9 @@ function openRotinaEditor(){
       '<button class="btn small ghost" type="button" id="rotina-template-apply">Aplicar modelo</button>'+
     '</div>'+
     '<div class="hint u-mb12" id="rotina-template-desc"></div>'+
+    '<div class="re-tabs" id="re-tabs" role="group" aria-label="Escolha o dia da semana para editar"></div>'+
     '<div id="rotina-editor-days" class="u-col14"></div>'+
-    '<div class="modal-actions"><button class="btn" id="rotina-cancel">Cancelar</button><button class="btn primary" id="rotina-save">Salvar rotina</button></div>';
+    '<div class="modal-actions re-actions"><button class="btn" id="rotina-cancel">Cancelar</button><button class="btn primary" id="rotina-save">Salvar rotina</button></div>';
   openModal(body);
 
   const daysWrap = body.querySelector("#rotina-editor-days");
@@ -9222,9 +9244,31 @@ function openRotinaEditor(){
     });
   }
 
+  /* PR B (P2.3): um dia por vez. Todas as seções continuam no DOM (o "Salvar" lê todas), só a do dia escolhido fica visível. */
+  const tabsWrap = body.querySelector("#re-tabs");
+  let diaSel = (function(){ try{ const k = dayKeyFromISO(todayISO()); return DAYS.indexOf(k) >= 0 ? k : DAYS[0]; }catch(e){ return DAYS[0]; } })();
+  function marcaDiaEscolhido(){
+    daysWrap.querySelectorAll(".re-day").forEach(sec=>{ sec.hidden = sec.dataset.key !== diaSel; });
+    tabsWrap.querySelectorAll(".re-tab").forEach(b=>{
+      const sec = daysWrap.querySelector('.re-day[data-key="'+b.dataset.dia+'"]');
+      const ativo = !!(sec && sec.querySelector(".d-ativo").checked);
+      b.setAttribute("aria-pressed", b.dataset.dia === diaSel ? "true" : "false");
+      b.classList.toggle("off", !ativo);
+      const sm = b.querySelector("small"); if(sm) sm.textContent = ativo ? "treino" : "folga";
+    });
+  }
+  tabsWrap.innerHTML = DAYS.map(k=> '<button type="button" class="re-tab" data-dia="'+k+'" aria-pressed="false" aria-label="'+DAY_FULL[k]+'"><span>'+DAY_ABBR[k]+'</span><small></small></button>').join("");
+  tabsWrap.addEventListener("click", ev=>{
+    const b = ev.target.closest(".re-tab"); if(!b) return;
+    diaSel = b.dataset.dia; marcaDiaEscolhido(); playSound("tick");
+    const sec = daysWrap.querySelector('.re-day[data-key="'+diaSel+'"]');
+    if(sec){ const m = body.closest(".modal"); if(m) m.scrollTop = Math.max(0, tabsWrap.offsetTop - 8); }
+  });
+  daysWrap.addEventListener("change", ev=>{ if(ev.target.classList && ev.target.classList.contains("d-ativo")) marcaDiaEscolhido(); });
   function renderDays(){
     daysWrap.innerHTML = "";
     DAYS.forEach(key=> buildDaySection(key, draft[key]));
+    marcaDiaEscolhido();
   }
   renderDays();
 
@@ -10092,9 +10136,9 @@ function renderAjusteResultado(med, p, kcalAlvo, tdee){
   }
   const t = computeTendenciaPeso();
   if(!t.ok){
-    el.innerHTML = '<div class="empty-note">'+(t.motivo==="curto"
-      ? 'Suas medições cobrem só '+t.spanDias+' dias. Com pelo menos 2 semanas de dados, o app compara o ritmo real do seu peso com a faixa recomendada.'
-      : 'Registre pelo menos 3 medições de peso nas últimas 5 semanas (aba Corpo) pra o app comparar o ritmo real do seu peso com a faixa recomendada.')+'</div>';
+    el.innerHTML = t.motivo==="curto"
+      ? emptyState("line-chart", "Ainda cedo para ajustar", 'Suas medições cobrem só '+t.spanDias+' dias. Com pelo menos 2 semanas de dados, o app compara o ritmo real do seu peso com a faixa recomendada.', {go:"medir", label:"Registrar peso"}, true)
+      : emptyState("line-chart", "Faltam medições de peso", 'Registre pelo menos 3 medições de peso nas últimas 5 semanas para o app comparar o ritmo real do seu peso com a faixa recomendada.', {go:"medir", label:"Registrar peso"}, true);
     return;
   }
   const sinal = t.kgSemana>0?"+":"";
@@ -10138,7 +10182,7 @@ function renderAjusteResultado(med, p, kcalAlvo, tdee){
 function renderMetaPeso(med, p, kcalAlvo, tdee){
   const el = document.getElementById("meta-peso-body");
   if(!p.pesoMetaKg){
-    el.innerHTML = '<div class="empty-note">Defina um peso meta na aba Perfil → Editar para acompanhar o progresso aqui.</div>';
+    el.innerHTML = emptyState("target", "Sem meta de peso ainda", "Defina o peso que você quer alcançar para acompanhar o progresso e o prazo estimado aqui.", {go:"perfil", label:"Definir meta"}, true);
     return;
   }
   const arr = sortedMedicoes();
@@ -10337,6 +10381,19 @@ function modalKeydown(e){
   else if(e.shiftKey && (document.activeElement === first || document.activeElement === modal)){ e.preventDefault(); last.focus(); }
   else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
 }
+/* nome do diálogo para leitores de tela: o primeiro título do conteúdo. Pop-ups que desenham o conteúdo DEPOIS de abrir (treino ao vivo)
+   chamam atualizaRotuloModal() de novo, senão ficariam "Janela". */
+function rotuloDoModal(modal){
+  const heading = modal.querySelector("h1,h2,h3,.modal-title");
+  modal.removeAttribute("aria-labelledby"); modal.removeAttribute("aria-label");
+  if(heading){
+    if(!heading.id) heading.id = "modal-title";
+    modal.setAttribute("aria-labelledby", heading.id);
+  } else {
+    modal.setAttribute("aria-label", "Janela");
+  }
+}
+function atualizaRotuloModal(){ const m = document.querySelector("#modal-root .modal"); if(m) rotuloDoModal(m); }
 function openModal(contentEl, opts){
   const dismissible = !opts || opts.dismissible !== false;
   const root = document.getElementById("modal-root");
@@ -10353,13 +10410,7 @@ function openModal(contentEl, opts){
   modal.setAttribute("aria-modal", "true");
   modal.tabIndex = -1;
   modal.appendChild(contentEl);
-  const heading = modal.querySelector("h1,h2,h3,.modal-title");
-  if(heading){
-    if(!heading.id) heading.id = "modal-title";
-    modal.setAttribute("aria-labelledby", heading.id);
-  } else {
-    modal.setAttribute("aria-label", "Janela");
-  }
+  rotuloDoModal(modal);
   backdrop.appendChild(modal);
   if(dismissible){
     backdrop.addEventListener("click", (e)=>{ if(e.target===backdrop) closeModal(); });
