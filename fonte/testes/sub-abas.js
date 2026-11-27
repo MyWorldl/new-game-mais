@@ -33,9 +33,9 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     // ---- Dieta ----
     await ir('tab-dieta');
     t(L + 'Dieta: barra com Metas e Cardápio; abre em Metas', await p.evaluate(() => { const n = document.getElementById('dieta-subnav'); return !n.hidden && n.querySelectorAll('.subtab-btn').length === 2; }) && (await marcada('#subtab-dieta-metas')) === 'true');
-    t(L + 'Dieta › Metas: objetivo calórico e macros visíveis; cardápio oculto', await vis('#seg-objetivo') && await vis('#macro-bars') && !(await vis('#cardapio-card')));
+    t(L + 'Dieta › Metas: objetivo calórico e macros visíveis; cardápio oculto', await vis('#seg-objetivo') && await vis('#macro-table') && !(await vis('#cardapio-card')));
     await sub('#subtab-dieta-cardapio');
-    t(L + 'Dieta › Cardápio: cardápio visível; objetivo e macros ocultos', await vis('#cardapio-card') && !(await vis('#seg-objetivo')) && !(await vis('#macro-bars')));
+    t(L + 'Dieta › Cardápio: cardápio visível; objetivo e macros ocultos', await vis('#cardapio-card') && !(await vis('#seg-objetivo')) && !(await vis('#macro-table')));
 
     // ---- Perfil ----
     await ir('tab-perfil');

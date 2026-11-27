@@ -2945,7 +2945,7 @@ function renderGradeHabitos(){
     const st = d.total
       ? '<div class="hg-st"><span>Esta semana <b>'+d.cont[11]+'</b></span><span>Média <b>'+num(d.media, 1)+'</b>/semana</span><span>Melhor <b>'+d.max+'</b> dias</span><span>Semanas seguidas <b>'+d.seg+'</b></span></div>'
       : '';
-    return '<div class="hg-row">'+
+    return '<div class="hg-row'+(d.total ? '' : ' vazio')+'">'+   // PR C (P3.2): hábito sem nenhum registro vira uma linha baixa (as 12 semanas seguem lá, só mais finas)
       '<div class="hg-top"><b>'+d.h.nome+'</b><span>'+(d.total ? dias(d.total)+" registrados" : "sem registros ainda")+'</span>'+
         (d.pct !== null ? '<span class="hg-pct" role="img" aria-label="Registrou em '+d.pct+'% dos dias desde o primeiro registro" title="Dias com registro desde o primeiro registro">'+d.pct+'%</span>' : '')+'</div>'+
       '<div class="hg-cells" role="list" aria-label="'+d.h.nome+": dias com registro por semana, das últimas 12 semanas"+'">'+cels+'</div>'+st+
@@ -4798,7 +4798,7 @@ function renderRadar(){
   const info = computeNivelInfo();
   const patPct = info.isMax ? 100 : Math.min(100, Math.round((info.xpInTier/info.tierNeed)*100));
   const head = '<div class="fi-head"><div class="fi-pat"><span class="fi-eb">Patente</span><b>'+escapeHtml(info.tierName)+'</b></div>'+
-    '<div class="fi-xp"><div class="radar-li-bar" role="img" aria-label="Progresso na patente: '+patPct+'%"><i style="width:'+patPct+'%"></i></div><small>'+(info.isMax ? "patente máxima atingida" : num(info.xpInTier)+" de "+num(info.tierNeed)+" XP")+'</small></div>'+
+    /* PR C (P3.1): a barra "0 de 300 XP" repetia o cartão da patente logo acima; a Ficha mostra só a patente e o atributo dominante */
     (dom && dom.v > 0 ? '<div class="fi-dom"><span class="fi-eb">Atributo dominante</span><b>'+escapeHtml(dom.k)+'</b></div>' : '')+'</div>';
   const list = '<ul class="radar-list" aria-label="Atributos da ficha de personagem">'+axes.map(a=>
     '<li><div class="radar-li-top"><span><em class="ab">'+a.ab+'</em>'+escapeHtml(a.k)+'</span><b><i class="nv">Nv '+Math.max(1, Math.ceil(a.v/20))+'</i>'+a.v+'%</b></div>'+
@@ -5875,6 +5875,7 @@ function renderStreak(){
   if(!streakValueEl.querySelector(".num-big")) streakValueEl.innerHTML = '<span class="num-big">0</span><small></small>';
   animateNumberEl(streakValueEl.querySelector(".num-big"), streak, {duration:600});
   streakValueEl.querySelector("small").textContent = "dia"+(streak===1?"":"s")+" seguido"+(streak===1?"":"s")+"";
+  const cartaoSeq = document.getElementById("streak-card"); if(cartaoSeq) cartaoSeq.classList.toggle("zero", streak === 0);   // PR C (P3.3): sem sequência o "0" não precisa de 74 px
   const flame = document.querySelector("#streak-card .flame");
   if(flame) flame.classList.toggle("hot", streak >= 3);
   const isPerfect = engine.perfect && streak >= 7;
@@ -6624,7 +6625,7 @@ function renderSemanaResumo(){
   if(!el) return;
   let streak = 0; try{ streak = computeStreakEngine().streak; }catch(e){ ngReporta(e,"streak"); }
   const base = lab ? lab.textContent.replace(" concluídos","").replace(" concluído","") : "";
-  el.textContent = (base ? base+" · " : "")+"sequência "+streak;
+  el.textContent = base;   /* PR C (P3.1): a sequência já aparece logo abaixo, no cartão grande */
 }
 function renderTodayCard(){
   try{ renderPerdidoCard(); }catch(e){ ngReporta(e,"cartao-perdido"); }
@@ -8099,7 +8100,7 @@ function renderLiveWorkout(body){
     guiaExecucaoHtml(ex.nome, 'lw')+
     (alt.length ? '<div class="qc-alt lw-alt"><span class="qc-alt-label">'+ICON_SWAP+(ex.trocado?'Trocar por':'Variações — toque para trocar hoje')+'</span>'+altChipsHtml(alt, i, ex)+'</div>' : altSemLivreHtml(ex, alt, 'lw-alt'))+
     permBtnHtml(i, ex)+
-    '<div class="lw-video-row"><a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer">'+ICON_PLAY+'<span>Ver vídeo de execução</span></a></div>'+
+    '<div class="lw-video-row"><a class="ex-video-link" href="'+youtubeSearchUrl(ex.nome)+'" target="_blank" rel="noopener noreferrer">'+ICON_PLAY+'<span>Buscar vídeo no YouTube</span></a></div>'+
     /* carga e RPE vêm antes das séries: dá para registrar a série já com a carga certa (a ordem do painel do cartão) */
     '<div class="quest-carga-row"><label>Carga</label><input type="number" step="0.5" min="0" class="quest-carga-input" id="lw-carga-input" value="'+cargaAtual+'" placeholder="kg"><span class="quest-carga-hint">'+cargaHint+'</span></div>'+
     cargaQuickHtml(i, ex.nome, cargaAtual, histAntes.length ? histAntes[histAntes.length-1].peso : null)+
@@ -8337,7 +8338,7 @@ function renderWeekTrailDetail(){
       } else if(sug){
         pills.push('<span class="qc-pill muted">Sugestão '+fmtKg(sug.sugerido)+' kg</span>');
       } else {
-        pills.push('<span class="qc-pill muted">Sem carga</span>');
+        pills.push('<span class="qc-pill muted">Defina a carga</span>');   // PR C (P3.4): diz o que fazer, em vez de só "Sem carga"
       }
       if(rpeAtual) pills.push('<span class="qc-pill">RPE <b>'+rpeAtual+'</b></span>');
       if(timer && !open){
@@ -10018,7 +10019,6 @@ function renderDieta(){
   const stats = document.getElementById("dieta-stats");
   if(!p || !med){
     stats.innerHTML = indicField("TMB","—","kcal")+indicField("TDEE","—","kcal")+indicField("Meta calórica","—","kcal")+indicField("Peso considerado","—","kg");
-    document.getElementById("macro-bars").innerHTML = "";
     document.getElementById("macro-table").innerHTML = "";
     const ajEl = document.getElementById("ajuste-body"); if(ajEl) ajEl.innerHTML = "";
     document.getElementById("meta-peso-body").innerHTML = "";
@@ -10045,13 +10045,7 @@ function renderDieta(){
     {nome:"carboidrato", color:"var(--s-yellow)", d:macros.carbo},
     {nome:"gordura", color:"var(--s-magenta)", d:macros.gordura},
   ];
-  const totalKcal = macros.proteina.kcal+macros.carbo.kcal+macros.gordura.kcal || 1;
-  document.getElementById("macro-bars").innerHTML = rows.map(r=>{
-    const pct = Math.round(r.d.kcal/totalKcal*100);
-    return '<div class="macro-bar-row"><span>'+r.nome+'</span>'+
-      '<div class="macro-bar-track"><div class="macro-bar-fill" style="width:'+pct+'%; background:'+r.color+';"></div></div>'+
-      '<span class="macro-bar-val">'+num(r.d.g,0)+'g · '+pct+'%</span></div>';
-  }).join("");
+  /* PR C (P3.1): as barras de % repetiam o cartão da meta diária (mesmos g e %); ficam só os g/kg e kcal por macro */
   document.getElementById("macro-table").innerHTML = rows.map(r=>{
     return '<tr><td class="u-lower">'+r.nome+'</td><td class="num">'+num(r.d.gkg,2)+'</td><td class="num">'+num(r.d.kcal,0)+'</td></tr>';
   }).join("");

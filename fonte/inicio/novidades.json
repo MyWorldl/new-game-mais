@@ -1,5 +1,16 @@
 [
   {
+    "v": "ng-modular-71", "data": "27/11/2026",
+    "titulo": "Menos repetição, textos maiores e telas vazias mais enxutas",
+    "itens": [
+      { "t": "melhoria", "x": "Menos informação repetida: a Dieta não mostra mais as barras de macros que repetiam o cartão da meta diária (ficam os gramas por kg e as calorias), o resumo da semana na Hoje não repete a sequência e a Ficha do Perfil não repete a barra de XP da patente." },
+      { "t": "melhoria", "x": "Corpo: hábitos sem nenhum registro viram uma linha baixa, em vez de um cartão inteiro quase vazio." },
+      { "t": "melhoria", "x": "Hoje: sem sequência, o número grande do cartão fica menor. Treino: a série da vez aparece só com contorno (verde cheio é série feita) e a carga sem valor diz \"Defina a carga\"." },
+      { "t": "melhoria", "x": "Textos pequenos agora têm pelo menos 12 px, e chips e botões dos pop-ups ficaram mais fáceis de acertar com o mouse." },
+      { "t": "correcao", "x": "O link de vídeo do pop-up agora diz \"Buscar vídeo no YouTube\", que é o que ele faz, e o aviso de instalar no computador deixou de dizer \"no celular\"." }
+    ]
+  },
+  {
     "v": "ng-modular-70", "data": "27/11/2026",
     "titulo": "Descanso mais claro, Editar rotina por dia e telas vazias mais enxutas",
     "itens": [
