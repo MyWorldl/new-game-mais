@@ -57,6 +57,7 @@ roda modal-tema node modal-tema.js http://localhost:8791
 roda mapa-corporal node mapa-corporal.js http://localhost:8791
 roda medicao node medicao.js http://localhost:8791
 roda login-rapido node login-rapido.js http://localhost:8791
+roda inicio node inicio.js http://localhost:8791
 roda cardapio-meus node cardapio-meus.js http://localhost:8791
 roda cardapio-trocas node cardapio-trocas.js http://localhost:8791
 roda cardapio-compras node cardapio-compras.js http://localhost:8791

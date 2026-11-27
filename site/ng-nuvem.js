@@ -159,6 +159,11 @@
   /* ---------- Atualizações mostradas na tela de entrada (a primeira da lista é a mais recente) ----------
      t: novo | melhoria | correcao. Para publicar uma versão nova, acrescente um item NO TOPO desta lista. */
   var NOVIDADES = [
+    { v: "ng-modular-57", data: "26/11/2026", titulo: "Página de apresentação do NG+", itens: [
+      { t: "novo", x: "Página de apresentação do NG+, com o que o app faz e a lista completa de atualizações. Na tela de entrada, toque em \"Conhecer o NG+\"." },
+      { t: "melhoria", x: "A tela de entrada ficou mais simples: as abas Início e Atualizações viraram esse link, e o formulário de entrar fica sempre à vista." },
+      { t: "melhoria", x: "A página nova abre sem internet depois da primeira visita, tem uma constelação animada que pausa fora da tela e fica parada se o seu aparelho pede menos movimento." }
+    ] },
     { v: "ng-modular-56", data: "26/11/2026", titulo: "Cardápio: grão-de-bico cozido", itens: [
       { t: "novo", x: "O grão-de-bico cozido entrou na lista de alimentos do cardápio, como opção de leguminosa no almoço e para trocar pelo feijão. Valores por 100 g: 118 kcal, 8,5 g de proteína, 20,3 g de carboidrato e 2,1 g de gordura (Tabela Brasileira de Composição de Alimentos, TBCA/USP)." },
       { t: "melhoria", x: "No \"Dia tradicional\" o cardápio continua com feijão ou lentilha; o grão-de-bico só é sugerido nas outras rotinas. Você ainda pode escolher a troca por conta própria." },
@@ -274,50 +279,7 @@
       { t: "melhoria", x: "Verificação de segurança do login com aviso claro quando precisa de um toque." }
     ] }
   ];
-  var ROTULO_NOV = { novo: "Novo", melhoria: "Melhoria", correcao: "Correção" };
-  function itensNov(n){
-    return '<ul class="ng-nov-itens">' + n.itens.map(function(i){
-      return '<li><span class="ng-nov-tag ng-nov-' + i.t + '">' + ROTULO_NOV[i.t] + '</span><span>' + esc(i.x) + '</span></li>';
-    }).join("") + '</ul>';
-  }
-  function htmlNovidades(){
-    var n0 = NOVIDADES[0], ant = NOVIDADES.slice(1);
-    return '<div class="ng-nov">' +
-      '<h2 class="ng-nov-h">Atualizações</h2>' +
-      '<p class="ng-nov-p">O que mudou no NG+: novidades, melhorias e correções.</p>' +
-      '<article class="ng-nov-card ng-nov-atual" aria-labelledby="ng-nov-t0">' +
-        '<div class="ng-nov-cab"><span class="ng-nov-badge">Mais recente</span><span class="ng-nov-meta">' + esc(n0.v.replace("ng-modular-", "Versão ")) + ' · ' + esc(n0.data) + '</span></div>' +
-        '<h3 id="ng-nov-t0">' + esc(n0.titulo) + '</h3>' + itensNov(n0) +
-      '</article>' +
-      (ant.length ? '<button type="button" class="ng-btn ghost ng-nov-mais" id="ng-nov-mais" aria-expanded="false" aria-controls="ng-nov-ant">Ver atualizações anteriores (' + ant.length + ')</button>' +
-        '<div class="ng-nov-ant" id="ng-nov-ant" hidden>' + ant.map(function(n, k){
-          return '<details class="ng-nov-card"><summary><span class="ng-nov-sv">' + esc(n.v.replace("ng-modular-", "Versão ")) + '</span><span class="ng-nov-st">' + esc(n.titulo) + '</span><span class="ng-nov-sd">' + esc(n.data) + '</span></summary>' + itensNov(n) + '</details>';
-        }).join("") + '</div>' : '') +
-      '<button type="button" class="ng-btn ng-nov-entrar" data-lc="inicio">Voltar para entrar</button>' +
-    '</div>';
-  }
-  function ligaLauncher(el){
-    var tabs = [].slice.call(el.querySelectorAll(".ng-lc-tab")), pn = { inicio: el.querySelector("#ng-pn-inicio"), novid: el.querySelector("#ng-pn-novid") };
-    function ir(k, foco){
-      tabs.forEach(function(b){ var on = b.getAttribute("data-lc") === k; b.setAttribute("aria-selected", on ? "true" : "false"); b.tabIndex = on ? 0 : -1; if (on && foco) b.focus(); });
-      pn.inicio.hidden = k !== "inicio"; pn.novid.hidden = k !== "novid";
-      var rolar = el.querySelector(".ng-lc-main"); try { el.scrollTop = 0; if (rolar) rolar.scrollTop = 0; } catch(e){}
-    }
-    el.addEventListener("click", function(ev){
-      var b = ev.target.closest && ev.target.closest("[data-lc]"); if (!b || !el.contains(b)) return;
-      ir(b.getAttribute("data-lc"), b.classList.contains("ng-lc-tab"));
-    });
-    el.querySelector(".ng-lc-tabs").addEventListener("keydown", function(ev){
-      var i = tabs.indexOf(document.activeElement); if (i < 0) return;
-      var j = ev.key === "ArrowRight" ? (i + 1) % tabs.length : ev.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : ev.key === "Home" ? 0 : ev.key === "End" ? tabs.length - 1 : -1;
-      if (j < 0) return; ev.preventDefault(); ir(tabs[j].getAttribute("data-lc"), true);
-    });
-    var mais = el.querySelector("#ng-nov-mais"), ant = el.querySelector("#ng-nov-ant");
-    if (mais) mais.addEventListener("click", function(){
-      var abre = ant.hidden; ant.hidden = !abre; mais.setAttribute("aria-expanded", abre ? "true" : "false");
-      mais.textContent = abre ? "Esconder atualizações anteriores" : "Ver atualizações anteriores (" + ant.children.length + ")";
-    });
-  }
+  /* A lista completa de atualizações agora mora na página de apresentação (inicio.html), gerada a partir de NOVIDADES por fonte/inicio/gera-inicio.mjs. */
 
   function pedirLogin(){
     return new Promise(function(resolve){
@@ -330,13 +292,10 @@
           '<div class="ng-lc-shell">' +
             '<header class="ng-lc-top">' +
               '<div class="ng-lc-brand"><span class="ng-lc-mark" aria-hidden="true">NG+</span><span class="ng-lc-nome">New Game+</span></div>' +
-              '<div class="ng-lc-tabs" role="tablist" aria-label="Seções da tela inicial">' +
-                '<button type="button" class="ng-lc-tab" role="tab" id="ng-tab-inicio" aria-controls="ng-pn-inicio" aria-selected="true" data-lc="inicio">Início</button>' +
-                '<button type="button" class="ng-lc-tab" role="tab" id="ng-tab-novid" aria-controls="ng-pn-novid" aria-selected="false" tabindex="-1" data-lc="novid">Atualizações<span class="ng-lc-ver">' + NOVIDADES[0].v.replace("ng-modular-", "v") + '</span></button>' +
-              '</div>' +
+              '<a class="ng-lc-conhecer" href="inicio.html">Conhecer o NG+<span class="ng-lc-ver">' + NOVIDADES[0].v.replace("ng-modular-", "v") + '</span></a>' +
             '</header>' +
             '<div class="ng-lc-main">' +
-            '<section class="ng-lc-pn ng-lc-inicio" id="ng-pn-inicio" role="tabpanel" aria-labelledby="ng-tab-inicio">' +
+            '<section class="ng-lc-pn ng-lc-inicio" id="ng-pn-inicio">' +
               '<div class="ng-lc-hero">' +
                 '<p class="ng-lc-kick">Treino · Dieta · Evolução</p>' +
                 '<p class="ng-lc-titulo">Comece o seu <em>New Game+</em></p>' +
@@ -346,7 +305,7 @@
                   '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 11h14l-1.2 8a2 2 0 0 1-2 1.7H8.2a2 2 0 0 1-2-1.7zM9 11V8a3 3 0 0 1 6 0v3"/></svg></span><span><b>Cardápio e lista de compras</b><br>Da semana inteira, com PDF.</span></li>' +
                   '<li><span class="ng-lc-fi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></span><span><b>Progresso que motiva</b><br>Cargas, medidas, conquistas e patentes.</span></li>' +
                 '</ul>' +
-                '<button type="button" class="ng-lc-novo" data-lc="novid"><span class="ng-lc-novo-t">Novidade</span><span class="ng-lc-novo-x">' + esc(NOVIDADES[0].titulo) + '</span><span class="ng-lc-seta" aria-hidden="true">›</span></button>' +
+                '<a class="ng-lc-novo" href="inicio.html#atualizacoes"><span class="ng-lc-novo-t">Novidade</span><span class="ng-lc-novo-x">' + esc(NOVIDADES[0].titulo) + '</span><span class="ng-lc-seta" aria-hidden="true">›</span></a>' +
               '</div>' +
           '<div class="ng-login-box">' +
             '<div class="ng-login-mark" aria-hidden="true">NG+</div>' +
@@ -383,11 +342,9 @@
             '<p class="ng-peq" style="font-size:13px">Ao entrar, você concorda com o uso dos seus dados descrito na <button type="button" class="ng-link" id="ng-login-pol">política de privacidade</button>.</p>' +
           '</div>' +
             '</section>' +
-            '<section class="ng-lc-pn ng-lc-nov" id="ng-pn-novid" role="tabpanel" aria-labelledby="ng-tab-novid" hidden>' + htmlNovidades() + '</section>' +
             '</div>' +
           '</div>';
         document.body.appendChild(el);
-        ligaLauncher(el);
         var f = $("ng-login-f"), inE = $("ng-login-e"), inC = $("ng-login-c"), box = $("ng-login-cod"), ok = $("ng-login-ok"),
             reenv = $("ng-login-reenv"), outro = $("ng-login-outro"), m = $("ng-login-m"), p = $("ng-login-p");
         $("ng-login-pol").addEventListener("click", abrirPolitica);

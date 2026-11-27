@@ -1,4 +1,4 @@
-// Tela de entrada estilo launcher: abas Início/Atualizações, só a última atualização à vista, anteriores sob pedido, login sempre alcançável.
+// Tela de entrada estilo launcher: formulário de entrada sempre à vista, link para a página de apresentação (inicio.html) e faixa "Novidade" que leva às atualizações.
 // Uso: node login-launcher.js http://localhost:8791
 const fs = require('fs');
 const { chromium } = require('playwright');
@@ -15,32 +15,21 @@ let ok = 0, bad = 0; const t = (n, c, x = '') => { (c ? ok++ : bad++); console.l
     await p.route('**/supabase.co/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
     await p.goto(URL_); await p.waitForSelector('#ng-login-e', { timeout: 8000 }); await p.waitForTimeout(500);
     const v = id => p.evaluate(i => { const e = document.getElementById(i); return !!e && !e.closest('[hidden]') && e.offsetParent !== null; }, id);
-    t(L + 'abre na aba Início com o formulário de entrada visível', await v('ng-login-e') && await v('ng-login-ok') && (await p.getAttribute('#ng-tab-inicio', 'aria-selected')) === 'true');
-    t(L + 'Atualizações fica escondida', !(await v('ng-pn-novid')));
+    t(L + 'abre direto no formulário de entrada (sem abas)', await v('ng-login-e') && await v('ng-login-ok') && (await p.$$('.ng-lc [role=tab], .ng-lc [role=tablist]')).length === 0);
     t(L + 'um único h1 na tela de entrada', (await p.$$('.ng-lc h1')).length === 1);
     t(L + 'sem rolagem lateral', (await p.evaluate(() => document.querySelector('.ng-lc').scrollWidth - document.querySelector('.ng-lc').clientWidth)) <= 0);
-    if (axeSrc) { await p.evaluate(axeSrc); const r = await p.evaluate(async () => (await axe.run('.ng-lc', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t(L + 'axe: Início sem violações', r.length === 0, r.join(',')); }
-    await p.click('#ng-tab-novid'); await p.waitForTimeout(450);
-    t(L + 'aba Atualizações abre e Início some', await v('ng-pn-novid') && !(await v('ng-login-e')) && (await p.getAttribute('#ng-tab-novid', 'aria-selected')) === 'true');
-    const atual = await p.textContent('.ng-nov-atual');
-    t(L + 'mostra a atualização mais recente (versão mais nova) com etiquetas', /Mais recente/.test(atual) && /Versão \d+/.test(atual) && (await p.$$('.ng-nov-atual .ng-nov-tag')).length >= 3, atual.slice(0, 80));
-    t(L + 'atualizações anteriores começam recolhidas', !(await v('ng-nov-ant')) && (await p.getAttribute('#ng-nov-mais', 'aria-expanded')) === 'false' && /Ver atualizações anteriores \(\d+\)/.test(await p.textContent('#ng-nov-mais')));
-    await p.click('#ng-nov-mais'); await p.waitForTimeout(250);
-    const n = await p.evaluate(() => document.querySelectorAll('#ng-nov-ant details').length);
-    t(L + 'botão mostra as versões anteriores (cada uma recolhível)', await v('ng-nov-ant') && n >= 2 && (await p.getAttribute('#ng-nov-mais', 'aria-expanded')) === 'true', n);
-    await p.click('#ng-nov-ant details:first-child summary'); await p.waitForTimeout(200);
-    t(L + 'versão anterior abre ao tocar', await p.evaluate(() => document.querySelector('#ng-nov-ant details').open && document.querySelector('#ng-nov-ant details .ng-nov-tag').offsetParent !== null));
-    t(L + 'sem rolagem lateral nas atualizações', (await p.evaluate(() => document.querySelector('.ng-lc').scrollWidth - document.querySelector('.ng-lc').clientWidth)) <= 0);
-    if (axeSrc) { const r = await p.evaluate(async () => (await axe.run('.ng-lc', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t(L + 'axe: Atualizações sem violações', r.length === 0, r.join(',')); }
-    await p.click('#ng-nov-mais'); await p.waitForTimeout(150);
-    t(L + 'botão esconde as anteriores de novo', !(await v('ng-nov-ant')));
-    await p.focus('#ng-tab-novid'); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(300);
-    t(L + 'teclado: seta para a esquerda volta ao Início', await v('ng-login-e') && (await p.evaluate(() => document.activeElement.id)) === 'ng-tab-inicio');
-    await p.click('.ng-lc-novo'); await p.waitForTimeout(300);
-    t(L + 'faixa "Novidade" do Início leva às Atualizações', await v('ng-pn-novid'));
-    await p.click('.ng-nov-entrar'); await p.waitForTimeout(300);
-    t(L + '"Voltar para entrar" volta ao formulário', await v('ng-login-e'));
-    // o fluxo de pedir acesso continua dentro da aba Início
+    if (axeSrc) { await p.evaluate(axeSrc); const r = await p.evaluate(async () => (await axe.run('.ng-lc', { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map(x => x.id + ':' + x.nodes.length)); t(L + 'axe: tela de entrada sem violações', r.length === 0, r.join(',')); }
+    const conh = await p.evaluate(() => { const a = document.querySelector('.ng-lc-conhecer'); return a && { href: a.getAttribute('href'), alt: Math.round(a.getBoundingClientRect().height), txt: a.textContent }; });
+    t(L + 'link "Conhecer o NG+" no topo leva à página de apresentação (inicio.html), com versão e 44 px de altura', !!conh && conh.href === 'inicio.html' && /Conhecer o NG\+/.test(conh.txt) && /v\d+/.test(conh.txt) && conh.alt >= 44, JSON.stringify(conh));
+    const nov = await p.evaluate(() => { const a = document.querySelector('.ng-lc-novo'); return a && { tag: a.tagName, href: a.getAttribute('href'), txt: a.textContent, alt: Math.round(a.getBoundingClientRect().height) }; });
+    t(L + 'faixa "Novidade" é link para inicio.html#atualizacoes e mostra o título mais recente', !!nov && nov.tag === 'A' && nov.href === 'inicio.html#atualizacoes' && /Novidade/.test(nov.txt) && nov.txt.length > 12 && nov.alt >= 44, JSON.stringify(nov));
+    t(L + 'não sobrou nenhum código da lista de atualizações dentro do app', (await p.$$('.ng-nov, #ng-nov-mais, #ng-pn-novid')).length === 0);
+    const alvo = await Promise.all([p.waitForURL(/inicio\.html#atualizacoes/, { timeout: 8000 }).then(() => true, () => false), p.click('.ng-lc-novo')]);
+    await p.waitForSelector('#atualizacoes', { timeout: 8000 }).catch(() => {});
+    t(L + 'tocar na faixa abre a página de apresentação já nas atualizações', alvo[0] && (await p.locator('.nov-atual').count()) === 1 && /Mais recente/i.test(await p.innerText('.nov-meta')), p.url());
+    t(L + 'a página de apresentação tem "Entrar" que volta ao app', (await p.getAttribute('.topo .btn', 'href')) === './');
+    await p.goto(URL_); await p.waitForSelector('#ng-login-e', { timeout: 8000 }); await p.waitForTimeout(300);
+    // o fluxo de pedir acesso continua na própria tela de entrada
     await p.click('#ng-login-pedir'); await p.waitForTimeout(300);
     t(L + 'Pedir acesso abre o formulário e troca o título', await v('ng-ped-n') && /Pedir acesso/.test(await p.textContent('#ng-login-t')));
     t(L + 'sem erros de JS nem violação de CSP', errs.length === 0 && csp.length === 0, errs.concat(csp).join('|'));
